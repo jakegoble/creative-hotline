@@ -1,0 +1,86 @@
+graph TD
+    %% Discovery Entry Points
+    A[Discovery: IG / Website / Referral] --> B{Entry Path}
+
+    B -->|IG Keyword Drop| C[Laylo Capture]
+    B -->|Direct Purchase| D[Stripe Checkout - $499]
+    B -->|Website Visit| E[Website Contact Form]
+    B -->|IG DM| F[ManyChat Automation]
+
+    %% Laylo Path
+    C --> G[Laylo Webhook fires]
+    G --> H["n8n WF4: Create Notion Lead<br/>Status: Lead - Laylo<br/>Lead Source: IG DM"]
+    H --> I[Team Notification]
+    I --> J["Lead Nurture Email<br/>WF7: Days 3-7"]
+    J --> K{Lead Converts?}
+    K -->|Yes| D
+    K -->|No| L[Lead Drops Off]
+
+    %% ManyChat Path
+    F --> M[AI Reply via Knowledge Base]
+    M --> N{AI Goal Triggered?}
+    N -->|Share Booking Link| O[Customer gets Calendly link]
+    N -->|Capture Email| P[Email Captured in ManyChat]
+    P --> Q[Manual follow-up by team]
+
+    %% Stripe Payment Path
+    D --> R[Stripe webhook: checkout.session.completed]
+    R --> S["n8n WF1: Extract Payment Data"]
+    S --> T["Create Notion Record<br/>Status: Paid - Needs Booking<br/>Product Purchased: Standard Call / 3-Pack Sprint / First Call"]
+    T --> U{Has Phone?}
+    U -->|Yes| V[Laylo Subscribe via SMS]
+    U -->|No| W[Laylo Subscribe via Email]
+    V --> X[Wait 10s]
+    W --> X
+    X --> Y["Send Calendly Link Email<br/>from hello@creativehotline.com"]
+    Y --> Z[Team Payment Notification]
+
+    %% Booking Path
+    Y --> AA{Customer Books Call?}
+    AA -->|Yes| AB[Calendly: invitee.created webhook]
+    AA -->|No, 48hrs pass| AC["WF5: Paid But Never Booked<br/>Daily 9am reminder"]
+    AC --> AA
+
+    AB --> AD["n8n WF2: Find Payment by Email"]
+    AD --> AE["Update Status: Booked - Needs Intake<br/>Set Call Date + Calendly Link"]
+    AE --> AF[Team Booking Notification]
+
+    %% Intake Path
+    AE --> AG{Submits Intake Form?}
+    AG -->|Yes| AH["Tally Form Submitted<br/>https://tally.so/r/b5W1JE"]
+    AG -->|No, call within 24hrs| AI["WF6: Booked But No Intake<br/>Daily 8am reminder"]
+    AI --> AG
+
+    AH --> AJ["n8n WF3: Extract Tally Data<br/>(fuzzy label matching)"]
+    AJ --> AK[Create Intake Record in Notion]
+    AK --> AL["Claude API: Analyze Intake<br/>claude-sonnet-4-5-20250929<br/>max 1024 tokens"]
+    AL --> AM[Update Notion with AI Summary]
+    AM --> AN{Upsell Detected?}
+    AN -->|Yes| AO[Upsell Alert to Team]
+    AN -->|No| AP[Continue]
+    AO --> AP
+    AP --> AQ[Link Intake to Payment Record]
+    AQ --> AR[Update Status: Intake Complete]
+    AR --> AS[Team Intake Notification]
+
+    %% Call Path
+    AS --> AT[Status: Ready for Call]
+    AT --> AU[45-Minute Creative Direction Call]
+    AU --> AV[Status: Call Complete]
+    AV --> AW[Action Plan Delivered within 24hrs]
+    AW --> AX["Post-Call Follow-Up<br/>(WF9 — currently broken, needs rebuild)"]
+
+    %% Dead Ends
+    E --> DE["DEAD END<br/>Contact form not connected"]
+
+    %% Styling
+    style A fill:#6C5CE7,color:#fff
+    style D fill:#00B894,color:#fff
+    style C fill:#FDCB6E,color:#333
+    style F fill:#E17055,color:#fff
+    style L fill:#D63031,color:#fff
+    style AU fill:#0984E3,color:#fff
+    style AW fill:#00B894,color:#fff
+    style E fill:#636E72,color:#fff
+    style DE fill:#D63031,color:#fff
+    style AX fill:#636E72,color:#fff

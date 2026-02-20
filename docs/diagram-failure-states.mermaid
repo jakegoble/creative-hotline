@@ -1,0 +1,93 @@
+graph TD
+    %% Title
+    subgraph LEGEND[" "]
+        direction LR
+        LEG1[Silent Failure]:::silent
+        LEG2[Known Bug / Placeholder]:::bug
+        LEG3[Data Integrity Risk]:::integrity
+        LEG4[Broken Workflow]:::broken
+        LEG5[Type Mismatch]:::typemismatch
+    end
+
+    %% Entry Failures (Updated post-Webflow publish)
+    subgraph ENTRY["Website — Remaining Issues"]
+        E1["Contact Form<br/>DEAD END — not connected to pipeline"]:::bug
+        E3["Footer email signup<br/>destination unclear"]:::bug
+        E5["Pricing page title<br/>still shows Marketio template"]:::bug
+        E7["Pricing inconsistency<br/>$499 homepage vs $500/$599 pricing page"]:::integrity
+        E8["No Tally form embed<br/>on contact page"]:::integrity
+    end
+
+    %% WF1 Failures
+    subgraph WF1["WF1: Stripe → Calendly Link"]
+        F1["Product Purchased = null<br/>line_items NOT in Stripe webhook<br/>Notion select field gets empty value"]:::silent
+        F2["Stripe webhook retries<br/>DUPLICATE Notion record created<br/>No dedup on Session ID"]:::silent
+        F3["Notion API down<br/>continueRegularOutput masks failure<br/>Customer gets link, NO CRM record"]:::silent
+        F4["Customer email from jake@radanimal.co<br/>instead of hello@creativehotline.com"]:::bug
+        F5["Lead Source not set<br/>Payments DB field left empty"]:::integrity
+    end
+
+    %% WF2 Failures
+    subgraph WF2["WF2: Calendly → Payments Update"]
+        F6["EMAIL MISMATCH<br/>Customer used different email<br/>for Stripe vs Calendly<br/>Find Payment returns 0 results<br/>Status STUCK at Paid - Needs Booking<br/>No fallback notification"]:::silent
+        F7["Team notification references<br/>event_type + start_time<br/>but extracted fields are<br/>call_date + calendly_link"]:::bug
+    end
+
+    %% WF3 Failures
+    subgraph WF3["WF3: Tally Intake → Claude Analysis"]
+        F8["EMAIL MISMATCH<br/>Tally email differs from Stripe<br/>Intake record ORPHANED<br/>Never linked to Payment<br/>Status stuck"]:::silent
+        F9["Intake record fields may be BLANK<br/>textContent empty for:<br/>Client Name, Brand, Creative Emergency,<br/>What They've Tried, Deadline, Constraints"]:::silent
+        F10["AI Summary may not persist<br/>textContent empty for<br/>AI Intake Summary field"]:::silent
+        F11["Role mapped as select<br/>Notion type is text/rich_text<br/>Write silently fails"]:::typemismatch
+        F12["Desired Outcome mapped as select<br/>Notion type is multi_select<br/>Write silently fails"]:::typemismatch
+        F13["Claude API returns 429/500/timeout<br/>continueRegularOutput masks failure<br/>No AI summary, status stuck"]:::silent
+        F14["Upsell alert from wrong email<br/>soscreativehotline@gmail.com<br/>should be notifications@"]:::bug
+        F15["Orphaned Find Notion Lead node<br/>exists but not connected"]:::integrity
+    end
+
+    %% WF4 Failures
+    subgraph WF4["WF4: Laylo → Notion"]
+        F16["Product Purchased mapped as rich_text<br/>Notion type is select<br/>Write silently fails"]:::typemismatch
+        F17["Phone extracted but not written<br/>phoneValue is empty in Notion node"]:::silent
+        F18["Client Name always blank<br/>Laylo provides no name<br/>Title set to empty string"]:::integrity
+        F19["Lead Source not set<br/>should be IG DM"]:::integrity
+        F20["Duplicate Laylo subscribers<br/>Multiple IG keywords create<br/>multiple records for same person"]:::integrity
+    end
+
+    %% WF6 Failures
+    subgraph WF6["WF6: Booked But No Intake"]
+        F21["Tally URL is PLACEHOLDER<br/>href = tally.so/r/YOUR_TALLY_FORM_ID<br/>Customer clicks broken link<br/>Cannot submit intake form"]:::bug
+    end
+
+    %% WF7 Failures
+    subgraph WF7["WF7: Laylo Lead Nurture"]
+        F22["Learn More button links to<br/>soscreativehotline.com<br/>Domain does not exist<br/>Should be thecreativehotline.com"]:::bug
+    end
+
+    %% Broken Workflows
+    subgraph BROKEN_WF["Broken Utility Workflows (Deactivate)"]
+        F23["WF8: Calendly → Tally<br/>ENTIRELY NON-FUNCTIONAL<br/>• Queries wrong DB (Intake not Payments)<br/>• Update node has empty properties<br/>• Calls Laylo API instead of email<br/>• All filter/body values empty<br/>• Conflicts with WF2 (same trigger)"]:::broken
+        F24["WF9: Post-Call Follow-Up<br/>ENTIRELY NON-FUNCTIONAL<br/>• Filter conditions empty (returns ALL records)<br/>• Calls Laylo API instead of email<br/>• Update node has no properties<br/>• Runs every hour doing nothing useful"]:::broken
+    end
+
+    %% Pipeline Drop-Off Points
+    subgraph DROPOFF["Customer Drop-Off Points"]
+        D1["Lead captured but never pays<br/>Only 1 nurture window: days 3-7<br/>No long-term drip<br/>Nurture links to wrong domain"]
+        D2["Paid but never books<br/>48hr reminder fires<br/>but no escalation beyond one reminder"]
+        D3["Booked but no intake<br/>24hr reminder fires<br/>BUT Tally link is broken placeholder"]
+        D4["Intake complete but call missed<br/>No reschedule automation exists"]
+        D5["Call complete, no action plan<br/>Post-call workflow (WF9) is broken<br/>Action plan delivery is manual only"]
+    end
+
+    %% Infrastructure
+    subgraph INFRA["Infrastructure Risks"]
+        F25["n8n Cloud trial expires ~Feb 23<br/>ALL 9 workflows go offline<br/>Entire pipeline stops"]:::bug
+        F26["Claude API key hardcoded<br/>in WF3 HTTP Request headers<br/>Should use n8n credential"]:::integrity
+    end
+
+    %% Styling
+    classDef silent fill:#D63031,color:#fff,stroke:#C0392B
+    classDef bug fill:#E17055,color:#fff,stroke:#D35400
+    classDef integrity fill:#FDCB6E,color:#333,stroke:#F39C12
+    classDef broken fill:#2D3436,color:#fff,stroke:#000
+    classDef typemismatch fill:#6C5CE7,color:#fff,stroke:#5B4CC4

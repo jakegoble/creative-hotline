@@ -1,0 +1,138 @@
+graph LR
+    %% External Platforms
+    subgraph SOCIAL["Social / Discovery"]
+        IG[Instagram<br/>@creative.hotline]
+        WEB[Webflow Website<br/>thecreativehotline.com]
+        REF[Referrals /<br/>Word of Mouth]
+    end
+
+    %% Engagement Tools
+    subgraph ENGAGE["Engagement Layer"]
+        MC[ManyChat PRO<br/>IG DM Automation<br/>AI Replies + Goals]
+        LAYLO[Laylo<br/>IG Keyword Drops<br/>BOOK / PRICING / HELP<br/>SMS + Email Signup ONLY]
+    end
+
+    %% Payment
+    subgraph PAY["Payment"]
+        STRIPE[Stripe<br/>$499 Payment<br/>checkout.session.completed]
+    end
+
+    %% Scheduling
+    subgraph SCHED["Scheduling"]
+        CAL[Calendly<br/>45-min call booking<br/>invitee.created]
+    end
+
+    %% Forms
+    subgraph FORMS["Intake"]
+        TALLY[Tally<br/>Pre-call intake form<br/>tally.so/r/b5W1JE]
+    end
+
+    %% AI
+    subgraph AI["AI Processing"]
+        CLAUDE[Claude API<br/>claude-sonnet-4-5-20250929<br/>Intake analysis +<br/>upsell detection]
+    end
+
+    %% Automation Hub
+    subgraph N8N["n8n Cloud — Automation Hub"]
+        WF1["WF1: Stripe → Calendly Link<br/>/webhook/stripe-checkout"]
+        WF2["WF2: Calendly → Payments Update<br/>/webhook/calendly-payments-update"]
+        WF3["WF3: Tally → Claude Analysis<br/>/webhook/tally-intake"]
+        WF4["WF4: Laylo → Notion Lead<br/>/webhook/8e422442-..."]
+        WF5[WF5: Follow-Up: Paid No Book<br/>Daily 9am]
+        WF6[WF6: Follow-Up: Booked No Intake<br/>Daily 8am]
+        WF7[WF7: Follow-Up: Lead Nurture<br/>Daily 10am]
+        WF8["WF8: Calendly → Tally<br/>BROKEN — Deactivate"]
+        WF9["WF9: Post-Call Follow-Up<br/>BROKEN — Deactivate"]
+    end
+
+    %% CRM
+    subgraph CRM["CRM — Notion"]
+        PAYMENTS[("Payments Database<br/>Master CRM<br/>Statuses: Lead-Laylo → Paid → Booked → Intake Complete → Ready → Call Complete<br/>Products: Standard Call, 3-Pack Sprint, First Call")]
+        INTAKE[("Intake Database<br/>Questionnaire responses<br/>+ AI analysis<br/>+ Action Plan Sent checkbox")]
+    end
+
+    %% Email
+    subgraph EMAIL["Email System (SMTP)"]
+        HELLO["hello@creativehotline.com<br/>Customer-facing emails"]
+        NOTIFY["notifications@creativehotline.com<br/>Team alerts"]
+    end
+
+    %% Team
+    subgraph TEAM["Team"]
+        JAKE[Jake<br/>jake@radanimal.co]
+        MEGHA[Megha<br/>megha@theanecdote.co]
+        SHARED[Shared Inbox<br/>soscreativehotline@gmail.com]
+    end
+
+    %% === DATA FLOWS ===
+
+    %% Discovery → Engagement
+    IG -->|DM| MC
+    IG -->|Keyword comment/story| LAYLO
+    WEB -->|Visit| STRIPE
+    REF -->|Direct link| STRIPE
+
+    %% ManyChat flows
+    MC -->|Share Booking Link goal| CAL
+    MC -->|Capture Email goal| NOTIFY
+
+    %% Laylo → n8n
+    LAYLO -->|"Webhook: email, phone, productId"| WF4
+    WF4 -->|"Create lead record<br/>Status: Lead - Laylo"| PAYMENTS
+    WF4 -->|Alert| NOTIFY
+
+    %% Stripe → n8n
+    STRIPE -->|"Webhook: checkout.session.completed<br/>name, email, phone, amount, session_id<br/>(line_items NOT included)"| WF1
+    WF1 -->|"Create payment record<br/>Status: Paid - Needs Booking"| PAYMENTS
+    WF1 -->|Subscribe contact| LAYLO
+    WF1 -->|Send Calendly link| HELLO
+    WF1 -->|Alert| NOTIFY
+
+    %% Calendly → n8n
+    CAL -->|"Webhook: invitee.created<br/>name, email, start_time, uri"| WF2
+    WF2 -->|"Update status + call date<br/>Status: Booked - Needs Intake"| PAYMENTS
+    WF2 -->|Alert| NOTIFY
+
+    %% Tally → n8n
+    TALLY -->|"Webhook: form submission<br/>all intake fields via data.fields array"| WF3
+    WF3 -->|Create intake record| INTAKE
+    WF3 -->|"POST /v1/messages<br/>intake text → analysis"| CLAUDE
+    CLAUDE -->|"ai_summary + upsell_detected"| WF3
+    WF3 -->|Update AI summary| INTAKE
+    WF3 -->|"Link intake ↔ payment<br/>Status: Intake Complete"| PAYMENTS
+    WF3 -->|Alert + upsell flag| NOTIFY
+
+    %% Follow-ups
+    WF5 -->|Query all records| PAYMENTS
+    WF5 -->|Booking reminder| HELLO
+    WF5 -->|Stale booking alert| NOTIFY
+
+    WF6 -->|Query all records| PAYMENTS
+    WF6 -->|"Intake reminder<br/>(Tally link: tally.so/r/b5W1JE)"| HELLO
+    WF6 -->|Missing intake alert| NOTIFY
+
+    WF7 -->|Query all records| PAYMENTS
+    WF7 -->|Nurture email| HELLO
+    WF7 -->|Lead nurture alert| NOTIFY
+
+    %% Email → Team
+    NOTIFY -->|All alerts| JAKE
+    NOTIFY -->|All alerts| MEGHA
+    NOTIFY -->|All alerts| SHARED
+
+    %% Notion relation
+    PAYMENTS ---|"Linked Intake<br/>↔ Linked Payment<br/>relation"| INTAKE
+
+    %% Styling
+    style STRIPE fill:#635BFF,color:#fff
+    style CAL fill:#006BFF,color:#fff
+    style TALLY fill:#5C6BC0,color:#fff
+    style CLAUDE fill:#D4A574,color:#333
+    style MC fill:#0084FF,color:#fff
+    style LAYLO fill:#FF6B6B,color:#fff
+    style IG fill:#E1306C,color:#fff
+    style WEB fill:#4353FF,color:#fff
+    style PAYMENTS fill:#000,color:#fff
+    style INTAKE fill:#000,color:#fff
+    style WF8 fill:#D63031,color:#fff
+    style WF9 fill:#D63031,color:#fff
