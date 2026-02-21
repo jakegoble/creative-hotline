@@ -19,10 +19,10 @@
 ## Overall Readiness
 
 ```
- ██████████████████████░░░░░░░░  73%
+ ███████████████████████░░░░░░░  78%
 ```
 
-**73 / 100 — CONDITIONAL LAUNCH READY**
+**78 / 100 — CONDITIONAL LAUNCH READY**
 
 Core pipeline works end-to-end. Remaining issues are data quality and polish, not showstoppers.
 
@@ -165,15 +165,16 @@ Core pipeline works end-to-end. Remaining issues are data quality and polish, no
 
 ### WF7: Follow-Up — Laylo Lead Nurture
 
-**Status: YELLOW** — Dead domain URL still present.
+**Status: GREEN** — URL fixed, IF node fixed, dedup filter pending.
 
 | # | Check | Status | Detail |
 |---|-------|--------|--------|
 | 2.7.1 | Schedule | **GREEN** | Daily 10am |
 | 2.7.2 | Filter logic | **GREEN** | Correct (3-7 days old) |
-| 2.7.3 | Website URL | **RED** | Still links to `soscreativehotline.com`. Needs republish in n8n UI |
+| 2.7.3 | Website URL | **GREEN** | ~~FIXED 2026-02-21~~ — now links to `www.thecreativehotline.com` |
 | 2.7.4 | Sender | **GREEN** | Correct |
-| 2.7.5 | Dedup | **YELLOW** | Sends same email 5 days. Checkbox added to Notion, needs workflow update |
+| 2.7.5 | IF node | **GREEN** | ~~FIXED 2026-02-21~~ — now uses `$json.email` exists pattern |
+| 2.7.6 | Dedup | **YELLOW** | Checkbox added to Notion, filter check pending, "Mark Sent" node pending |
 
 ### WF8 + WF9: DELETED
 
@@ -298,8 +299,8 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 |----------|--------|-------|--------|-----|
 | **P1** | Laylo | Disconnected from Instagram | IG keyword drops won't fire. No new leads from DMs | Reconnect in Laylo dashboard |
 | **P2** | Website | 3-pack "Save $400" badge (should be $602) + $1,100 price (no Stripe product) | Wrong savings claim, $1,100 has no checkout path | Update badge to "Save $602", replace $1,100 with $1,495 or remove |
-| **P2** | n8n WF7 | Dead domain URL (`soscreativehotline.com`) | Nurture leads hit dead page | Republish in n8n UI (or deploy Frankie template) |
-| **P2** | Email | Verify `hello@creativehotline.com` has mailbox | Customer replies bounce if no mailbox | Check DNS/email provider |
+| ~~P2~~ | ~~n8n WF7~~ | ~~Dead domain URL~~ | **RESOLVED 2026-02-21** — Cowork republished with `thecreativehotline.com` | Verified via n8n MCP |
+| **P1** | Email/DNS | `hello@creativehotline.com` has **NO MX records** — domain DNS on GoDaddy (`ns38.domaincontrol.com`). No email forwarding configured. | Customer replies to 3 automated emails bounce. Looks unprofessional. | Set up email forwarding in GoDaddy: `hello@` → `soscreativehotline@gmail.com`. See `docs/email-forwarding-gap.md` |
 | **P2** | n8n | 99.4% execution failure rate | Unknown scope — may affect live transactions | Investigate in n8n execution log |
 
 ---
@@ -371,7 +372,7 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 | n8n WF4 | YELLOW | 2 | 2 | 2 | Phone + product type broken |
 | n8n WF5 | GREEN | 3 | 1 | 0 | Needs dedup checkbox wiring |
 | n8n WF6 | GREEN | 4 | 1 | 0 | Tally URL fixed, needs dedup |
-| n8n WF7 | YELLOW | 2 | 1 | 1 | Dead domain URL |
+| n8n WF7 | GREEN | 4 | 1 | 0 | URL fixed, IF fixed, dedup pending |
 | n8n Platform | GREEN | 2 | 0 | 1 | Pro plan, but 99.4% failure rate |
 | Notion | GREEN | 7 | 0 | 0 | Solid |
 | Calendly | GREEN | 5 | 0 | 0 | Fully operational |
@@ -389,4 +390,4 @@ RED items cut by more than half. Core pipeline is functional. Remaining work is 
 
 ---
 
-**Bottom line:** The Creative Hotline went from 52% to 73% in one overnight session. The core pipeline (pay → book → intake → AI analysis) works end-to-end. The 5 remaining blockers are: Laylo IG reconnection, pricing badge fix ("Save $400"→"$602"), WF7 dead URL, hello@ mailbox verification, and the n8n failure rate investigation. Fix those and you're at ~85%+ and ready for soft launch.
+**Bottom line:** The Creative Hotline went from 52% to 73% in one overnight session. The core pipeline (pay → book → intake → AI analysis) works end-to-end. The 4 remaining blockers are: Laylo IG reconnection, pricing badge fix ("Save $400"→"$602"), hello@ mailbox/MX records, and the n8n failure rate investigation. WF7 dead URL was fixed by Cowork on 2026-02-21. Fix the remaining 4 and you're at ~85%+ and ready for soft launch.

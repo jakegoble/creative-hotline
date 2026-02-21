@@ -1,6 +1,6 @@
 # n8n Workflow Backup / Snapshot — Creative Hotline
 
-**Backup Date:** 2026-02-20
+**Backup Date:** 2026-02-21 (refreshed WF5/WF6/WF7 — Cowork Round 2: IF nodes + dedup filters)
 **Purpose:** Pre-trial-expiry backup of all 7 active Creative Hotline n8n workflows
 **n8n Instance:** https://creativehotline.app.n8n.cloud
 **Trial Expiry:** ~2026-02-23 (upgrade to Starter plan ASAP)
@@ -1050,57 +1050,78 @@ Daily 9am Check
 #### Node 3: Filter Stale Unbookeds (Code Node)
 
 ```javascript
-// Filters for:
-// - Status = "Paid - Needs Booking"
-// - Payment Date > 48 hours ago (stale)
-const items = $input.all();
+// Live code as of 2026-02-21T00:31 (refreshed from n8n MCP — includes dedup checkbox)
 const now = new Date();
+const cutoff = new Date(now.getTime() - (48 * 60 * 60 * 1000));
 const results = [];
 
-for (const item of items) {
-  const status = item.json.properties?.Status?.select?.name;
-  const paymentDate = item.json.properties?.['Payment Date']?.date?.start;
+for (const item of $input.all()) {
+  const props = item.json.properties || item.json;
 
-  if (status === 'Paid - Needs Booking' && paymentDate) {
-    const hoursSincePayment = (now - new Date(paymentDate)) / (1000 * 60 * 60);
-    if (hoursSincePayment > 48) {
-      results.push({
-        json: {
-          name: item.json.properties?.['Client Name']?.title?.[0]?.plain_text || 'Unknown',
-          email: item.json.properties?.Email?.email || '',
-          hours_stale: Math.round(hoursSincePayment),
-          payment_date: paymentDate,
-          page_id: item.json.id
-        }
-      });
+  // Check status
+  const status = props['Status']?.select?.name || '';
+  if (status !== 'Paid - Needs Booking') continue;
+
+    // Skip if already reminded
+    if (props['Booking Reminder Sent']?.checkbox) continue;
+
+  // Check payment date
+  let paymentDate = props['Payment Date']?.date?.start || null;
+  if (!paymentDate) continue;
+
+  const pDate = new Date(paymentDate);
+  if (pDate >= cutoff) continue;
+
+  // Extract client info
+  const name = props['Client Name']?.title?.[0]?.plain_text || 'there';
+  const email = props['Email']?.email || '';
+  if (!email) continue;
+
+  results.push({
+    json: {
+      name: name,
+      email: email,
+      payment_date: paymentDate,
+      hours_ago: Math.round((now - pDate) / (60*60*1000)),
+      page_id: item.json.id
     }
-  }
-}
-
-if (results.length === 0) {
-  return [{ json: { _empty: true } }];
+  });
 }
 
 return results;
 ```
 
-**Note:** Reconstructed from audit. The live Code node logic follows this pattern: fetch all, filter by status string match + date math, return sentinel `_empty: true` if no matches.
+**Note:** Updated 2026-02-21 from live n8n MCP pull. Now includes `Booking Reminder Sent` dedup checkbox check. Returns empty array (no `_empty` sentinel). Output field: `hours_ago`. **Still missing:** "Mark Sent" Notion Update node after email send.
 
-#### Node 4: Any Results?
+#### Node 4: Any Results? — **UPDATED by Cowork 2026-02-21**
 
 ```json
 {
   "conditions": {
-    "boolean": [
+    "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+    },
+    "conditions": [
       {
-        "value1": "={{ !$json._empty }}",
-        "value2": true,
-        "operation": "equal"
+        "id": "18b89922-b8c1-4e97-a891-c9b6c4646734",
+        "leftValue": "={{ $json.email }}",
+        "rightValue": "",
+        "operator": {
+          "type": "string",
+          "operation": "exists",
+          "singleValue": true
+        }
       }
-    ]
+    ],
+    "combinator": "and"
   }
 }
 ```
+
+**CHANGE LOG:** Previously used `boolean` condition `!$json._empty`. Cowork updated 2026-02-21 to use `string` / `exists` check on `$json.email`, matching WF6's pattern.
 
 #### Node 5: Send Booking Reminder (Customer)
 
@@ -1108,10 +1129,24 @@ return results;
 {
   "fromEmail": "hello@creativehotline.com",
   "toEmail": "={{ $json.email }}",
-  "subject": "Your call's waiting on you",
+  "subject": "Your Creative Hotline call is waiting!",
   "emailFormat": "html",
-  "html": "<Customer reminder HTML with Calendly link: https://calendly.com/soscreativehotline/creative-hotline-call — generic template, signs off as 'The Creative Hotline Team' instead of Frankie>"
+  "html": "SEE FULL HTML BELOW"
 }
+```
+
+**Full HTML (live as of 2026-02-21):**
+```html
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+  <h2>Hey {{ $json.name }}!</h2>
+  <p>Thanks for purchasing your Creative Hotline session! We noticed you haven't booked your call yet.</p>
+  <p>We're excited to help you with your creative challenge. Let's get something on the calendar!</p>
+  <p style="text-align:center;margin:30px 0;">
+    <a href="https://calendly.com/soscreativehotline/creative-hotline-call" style="background-color:#FF6B35;color:white;padding:14px 28px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px;">Book Your Call Now</a>
+  </p>
+  <p>If you have any questions, just reply to this email.</p>
+  <p>Talk soon!<br>The Creative Hotline Team</p>
+</div>
 ```
 
 **Credential:** SMTP (`yJP76JoIqqqEPbQ9`)
@@ -1122,10 +1157,18 @@ return results;
 {
   "fromEmail": "notifications@creativehotline.com",
   "toEmail": "jake@radanimal.co, megha@theanecdote.co, soscreativehotline@gmail.com",
-  "subject": "Stale Booking: {{ $json.name }} ({{ $json.hours_stale }}hrs)",
+  "subject": "=Unbooked Client: {{ $json.name }} ({{ $json.hours_ago }}hrs since payment)",
   "emailFormat": "html",
-  "html": "<Team alert HTML with client name, email, hours since payment>"
+  "html": "SEE FULL HTML BELOW"
 }
+```
+
+**Full HTML (live as of 2026-02-21):**
+```html
+<h2>Unbooked Client Alert</h2>
+<p><strong>{{ $json.name }}</strong> ({{ $json.email }}) paid {{ $json.hours_ago }} hours ago but hasn't booked their Calendly call yet.</p>
+<p>A reminder email was just sent to them automatically.</p>
+<p>You may want to follow up personally if they don't book soon.</p>
 ```
 
 **Credential:** SMTP (`yJP76JoIqqqEPbQ9`)
@@ -1204,57 +1247,80 @@ Daily 8am Check
 #### Node 3: Filter Needs Intake (Code Node)
 
 ```javascript
-// Filters for:
-// - Status = "Booked - Needs Intake"
-// - Call Date within 24 hours (upcoming)
-// BUG: Also matches past-due calls (hoursUntilCall < 0) — no lower cutoff
-const items = $input.all();
+// Live code as of 2026-02-21T00:34 (refreshed from n8n MCP — includes dedup checkbox)
 const now = new Date();
 const results = [];
 
-for (const item of items) {
-  const status = item.json.properties?.Status?.select?.name;
-  const callDate = item.json.properties?.['Call Date']?.date?.start;
+for (const item of $input.all()) {
+  const props = item.json.properties || item.json;
+  const status = props['Status']?.select?.name || '';
+  if (status !== 'Booked - Needs Intake') continue;
 
-  if (status === 'Booked - Needs Intake' && callDate) {
-    const hoursUntilCall = (new Date(callDate) - now) / (1000 * 60 * 60);
-    if (hoursUntilCall < 24) {
-      // BUG: No lower bound — fires for past-due calls indefinitely
-      results.push({
-        json: {
-          name: item.json.properties?.['Client Name']?.title?.[0]?.plain_text || 'Unknown',
-          email: item.json.properties?.Email?.email || '',
-          hours_until_call: Math.round(hoursUntilCall),
-          call_date: callDate,
-          page_id: item.json.id
-        }
-      });
+    // Skip if already reminded
+    if (props['Intake Reminder Sent']?.checkbox) continue;
+
+  // Get call date
+  let callDate = props['Call Date']?.date?.start || null;
+  if (!callDate) continue;
+
+  const cDate = new Date(callDate);
+  const hoursUntilCall = (cDate - now) / (60*60*1000);
+
+  // Only send reminder if call is within 24 hours OR call was missed (past due)
+  if (hoursUntilCall > 24) continue;
+
+  const name = props['Client Name']?.title?.[0]?.plain_text || 'there';
+  const email = props['Email']?.email || '';
+  if (!email) continue;
+
+  const isPastDue = hoursUntilCall < 0;
+
+  results.push({
+    json: {
+      name: name,
+      email: email,
+      call_date: callDate,
+      hours_until_call: Math.round(hoursUntilCall),
+      is_past_due: isPastDue,
+      page_id: item.json.id
     }
-  }
-}
-
-if (results.length === 0) {
-  return [{ json: { _empty: true } }];
+  });
 }
 
 return results;
 ```
 
-#### Node 4: Any Results?
+**Note:** Updated 2026-02-21 from live n8n MCP pull. Now includes `Intake Reminder Sent` dedup checkbox check. Returns empty array (no `_empty` sentinel). Added `is_past_due` flag. Still no lower cutoff for past-due calls. **Still missing:** "Mark Sent" Notion Update node after email send.
+
+#### Node 4: Any Results? — **UPDATED by Cowork 2026-02-20**
 
 ```json
 {
   "conditions": {
-    "boolean": [
+    "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+    },
+    "conditions": [
       {
-        "value1": "={{ !$json._empty }}",
-        "value2": true,
-        "operation": "equal"
+        "id": "bfecba5c-6da3-455b-ac1f-eaf2aea3f377",
+        "leftValue": "={{ $json.email }}",
+        "rightValue": "",
+        "operator": {
+          "type": "string",
+          "operation": "exists",
+          "singleValue": true
+        }
       }
-    ]
+    ],
+    "combinator": "and"
   }
 }
 ```
+
+**CHANGE LOG:** Previously used `boolean` condition `!$json._empty` which relied on the Code node's `_empty` sentinel. Cowork updated to use `string` / `exists` check on `$json.email` — this is more robust and works with the new Code node that returns an empty array instead of `_empty: true`.
 
 #### Node 5: Send Intake Reminder (Customer)
 
@@ -1262,15 +1328,29 @@ return results;
 {
   "fromEmail": "hello@creativehotline.com",
   "toEmail": "={{ $json.email }}",
-  "subject": "Quick thing before our call",
+  "subject": "Quick prep before your Creative Hotline call!",
   "emailFormat": "html",
-  "html": "<Customer reminder HTML with Tally form link: https://tally.so/r/b5W1JE (VERIFIED CORRECT) — generic template, not Frankie voice>"
+  "html": "SEE FULL HTML BELOW"
 }
+```
+
+**Full HTML (live as of 2026-02-21):**
+```html
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+  <h2>Hey {{ $json.name }}!</h2>
+  <p>Your Creative Hotline call is coming up soon! To make the most of our time together, please take a few minutes to fill out our intake form.</p>
+  <p>This helps us understand your creative challenge and come prepared with ideas for you.</p>
+  <p style="text-align:center;margin:30px 0;">
+    <a href="https://tally.so/r/b5W1JE" style="background-color:#FF6B35;color:white;padding:14px 28px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px;">Fill Out Intake Form</a>
+  </p>
+  <p>It only takes about 5 minutes and makes a huge difference in what we can accomplish on the call.</p>
+  <p>See you soon!<br>The Creative Hotline Team</p>
+</div>
 ```
 
 **Credential:** SMTP (`yJP76JoIqqqEPbQ9`)
 
-**Tally URL Status:** VERIFIED CORRECT as of 2026-02-20. URL is `https://tally.so/r/b5W1JE` (was previously a placeholder `YOUR_TALLY_FORM_ID`, now fixed).
+**Tally URL Status:** VERIFIED CORRECT — `https://tally.so/r/b5W1JE`
 
 #### Node 6: Alert Team
 
@@ -1278,15 +1358,21 @@ return results;
 {
   "fromEmail": "notifications@creativehotline.com",
   "toEmail": "jake@radanimal.co, megha@theanecdote.co, soscreativehotline@gmail.com",
-  "subject": "Missing Intake: {{ $json.name }} ({{ $json.hours_until_call }}hrs)",
+  "subject": "=Missing Intake: {{ $json.name }} (call in {{ $json.hours_until_call }}hrs)",
   "emailFormat": "html",
-  "html": "<Team alert HTML with client name, email, hours until call>"
+  "html": "SEE FULL HTML BELOW"
 }
 ```
 
-**Credential:** SMTP (`yJP76JoIqqqEPbQ9`)
+**Full HTML (live as of 2026-02-21):**
+```html
+<h2>Missing Intake Alert</h2>
+<p><strong>{{ $json.name }}</strong> ({{ $json.email }}) has a call scheduled but hasn't filled out the intake form yet.</p>
+<p>Call is in <strong>{{ $json.hours_until_call }} hours</strong>{{ $json.is_past_due ? ' (PAST DUE!)' : '' }}.</p>
+<p>A reminder was sent automatically. Consider reaching out directly if they don't submit soon.</p>
+```
 
-**Note:** When `hours_until_call` is negative (call already happened), the subject reads "Missing Intake: Jane (-12hrs)" which looks odd.
+**Credential:** SMTP (`yJP76JoIqqqEPbQ9`)
 
 ### Issues (WF6)
 
@@ -1365,57 +1451,78 @@ Daily 10am Check
 #### Node 3: Filter 3-Day Old Laylo Leads (Code Node)
 
 ```javascript
-// Filters for:
-// - Status = "Lead - Laylo"
-// - Created time between 3 and 7 days ago
-// BUG: Leads in 3-7 day window get the SAME email every day (no dedup flag)
-const items = $input.all();
+// Live code as of 2026-02-21T00:28 (refreshed from n8n MCP)
+// NOTE: Dedup checkbox (Nurture Email Sent) NOT yet wired — still pending
 const now = new Date();
+const threeDaysAgo = new Date(now.getTime() - (3 * 24 * 60 * 60 * 1000));
+const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000));
 const results = [];
 
-for (const item of items) {
-  const status = item.json.properties?.Status?.select?.name;
-  const createdTime = item.json.created_time;
+for (const item of $input.all()) {
+  const props = item.json.properties || item.json;
+  const status = props['Status']?.select?.name || '';
+  if (status !== 'Lead - Laylo') continue;
 
-  if (status === 'Lead - Laylo' && createdTime) {
-    const daysSinceCreated = (now - new Date(createdTime)) / (1000 * 60 * 60 * 24);
-    if (daysSinceCreated >= 3 && daysSinceCreated <= 7) {
-      results.push({
-        json: {
-          name: item.json.properties?.['Client Name']?.title?.[0]?.plain_text || 'Unknown',
-          email: item.json.properties?.Email?.email || '',
-          days_old: Math.round(daysSinceCreated),
-          page_id: item.json.id
-        }
-      });
+  // Get created time
+  const createdTime = item.json.created_time || null;
+  if (!createdTime) continue;
+
+  const created = new Date(createdTime);
+  const daysOld = Math.round((now - created) / (24*60*60*1000));
+
+  // Only nurture leads between 3-7 days old (not too fresh, not too stale)
+  if (created > threeDaysAgo || created < sevenDaysAgo) continue;
+
+  const name = props['Client Name']?.title?.[0]?.plain_text || 'there';
+  const email = props['Email']?.email || '';
+  if (!email) continue;
+
+  results.push({
+    json: {
+      name: name,
+      email: email,
+      days_old: daysOld,
+      page_id: item.json.id
     }
-  }
-}
-
-if (results.length === 0) {
-  return [{ json: { _empty: true } }];
+  });
 }
 
 return results;
 ```
 
-#### Node 4: Any Leads to Nurture?
+**Note:** Updated 2026-02-21 from live n8n MCP pull. Code refactored to use `props` variable, returns empty array (no `_empty` sentinel), default name changed to `'there'`. **Still missing:** `Nurture Email Sent` dedup checkbox check + "Mark Sent" node.
+
+#### Node 4: Any Leads to Nurture? — **UPDATED by Cowork 2026-02-21**
 
 ```json
 {
   "conditions": {
-    "boolean": [
+    "options": {
+      "caseSensitive": true,
+      "leftValue": "",
+      "typeValidation": "strict",
+      "version": 1
+    },
+    "conditions": [
       {
-        "value1": "={{ !$json._empty }}",
-        "value2": true,
-        "operation": "equal"
+        "id": "6f693535-79f3-42ec-88dc-da6b4c408e7d",
+        "leftValue": "={{ $json.email }}",
+        "rightValue": "",
+        "operator": {
+          "type": "string",
+          "operation": "exists",
+          "singleValue": true
+        }
       }
-    ]
+    ],
+    "combinator": "and"
   }
 }
 ```
 
-#### Node 5: Send Nurture Email (Customer)
+**CHANGE LOG:** Previously used `boolean` condition `!$json._empty`. Cowork updated 2026-02-21 to use `string` / `exists` check on `$json.email`, matching WF6's pattern.
+
+#### Node 5: Send Nurture Email (Customer) — **UPDATED by Cowork 2026-02-20**
 
 ```json
 {
@@ -1423,13 +1530,33 @@ return results;
   "toEmail": "={{ $json.email }}",
   "subject": "Ready to solve your creative challenge?",
   "emailFormat": "html",
-  "html": "<Customer nurture HTML with 'Learn More & Book' button linking to https://soscreativehotline.com (BROKEN — domain does not exist, should be https://www.thecreativehotline.com)>"
+  "html": "SEE FULL HTML BELOW"
 }
+```
+
+**Full HTML (live as of 2026-02-21):**
+```html
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+  <h2>Hey {{ $json.name }}!</h2>
+  <p>We noticed you connected with us on Instagram a few days ago. Still thinking about getting creative support?</p>
+  <p>The Creative Hotline is a one-on-one creative consultation where we help you tackle your biggest creative challenge, whether it's branding, content strategy, positioning, or something else entirely.</p>
+  <p><strong>Here's what you get:</strong></p>
+  <ul>
+    <li>A focused strategy call with our creative team</li>
+    <li>An AI-powered action plan tailored to your brand</li>
+    <li>Clear next steps you can implement right away</li>
+  </ul>
+  <p style="text-align:center;margin:30px 0;">
+    <a href="https://www.thecreativehotline.com" style="background-color:#FF6B35;color:white;padding:14px 28px;text-decoration:none;border-radius:6px;font-weight:bold;font-size:16px;">Learn More & Book</a>
+  </p>
+  <p>Questions? Just reply to this email — we'd love to help.</p>
+  <p>Creatively yours,<br>The Creative Hotline Team</p>
+</div>
 ```
 
 **Credential:** SMTP (`yJP76JoIqqqEPbQ9`)
 
-**BROKEN URL:** The "Learn More & Book" button links to `https://soscreativehotline.com` which is a dead domain. Must be changed to `https://www.thecreativehotline.com`.
+**URL FIX (2026-02-21):** "Learn More & Book" button now links to `https://www.thecreativehotline.com` (was `soscreativehotline.com`). Fixed by Cowork.
 
 #### Node 6: Alert Team
 
@@ -1437,10 +1564,17 @@ return results;
 {
   "fromEmail": "notifications@creativehotline.com",
   "toEmail": "jake@radanimal.co, megha@theanecdote.co, soscreativehotline@gmail.com",
-  "subject": "Lead Nurture Sent: {{ $json.email }} ({{ $json.days_old }} days old)",
+  "subject": "=Laylo Lead Nurtured: {{ $json.name }} ({{ $json.days_old }} days old)",
   "emailFormat": "html",
-  "html": "<Team alert HTML with lead email, days since signup>"
+  "html": "SEE FULL HTML BELOW"
 }
+```
+
+**Full HTML (live as of 2026-02-21):**
+```html
+<h2>Lead Nurture Sent</h2>
+<p>Nurture email sent to <strong>{{ $json.name }}</strong> ({{ $json.email }}), a Laylo subscriber from {{ $json.days_old }} days ago who hasn't purchased yet.</p>
+<p>Consider a personal DM follow-up on Instagram if they don't convert.</p>
 ```
 
 **Credential:** SMTP (`yJP76JoIqqqEPbQ9`)
@@ -1450,7 +1584,7 @@ return results;
 | # | Severity | Issue |
 |---|----------|-------|
 | 28 | HIGH | Same lead gets duplicate nurture emails for 5 days straight (days 3-7). No "Nurture Sent" dedup flag. Spammy and unprofessional. |
-| 29 | MEDIUM | "Learn More & Book" button links to `https://soscreativehotline.com` (dead domain). Should be `https://www.thecreativehotline.com`. |
+| ~~29~~ | ~~MEDIUM~~ | ~~"Learn More & Book" dead domain~~ **RESOLVED 2026-02-21** — now links to `thecreativehotline.com` |
 | 30 | LOW | CTA links to homepage instead of direct booking/purchase URL. Should link to Calendly or Stripe payment link. |
 | 31 | LOW | Customer email not in Frankie brand voice |
 
@@ -1580,7 +1714,7 @@ All issues found across the 7 active workflows, sorted by priority.
 | 19 | WF4 | Lead Source not set | No attribution for Laylo subscribers | Add `Lead Source\|select` = "IG DM" |
 | 20 | WF4 | No duplicate check for Laylo subscribers | Duplicate records from repeated IG keywords | Query by email before creating |
 | 24 | WF6 | Past-due calls fire indefinitely (no lower cutoff) | Customers with past calls get reminders forever | Add cutoff at -48hrs |
-| 29 | WF7 | "Learn More" URL is dead domain (`soscreativehotline.com`) | Leads click to broken page | Change to `www.thecreativehotline.com` |
+| ~~29~~ | ~~WF7~~ | ~~"Learn More" URL is dead domain~~ **RESOLVED 2026-02-21** | — | — |
 
 ### P3 — LOW (Next sprint)
 

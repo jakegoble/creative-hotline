@@ -180,23 +180,18 @@ Re-pulled all 7 workflows via n8n MCP for final pre-launch verification.
 | 4 | Laylo → Notion | PASS | PASS | PASS | N/A | N/A |
 | 5 | Paid But Never Booked | PASS | PASS | PASS | N/A | PASS (`calendly.com/soscreativehotline/creative-hotline-call`) |
 | 6 | Booked But No Intake | PASS | PASS | PASS | PASS (`tally.so/r/b5W1JE`) | N/A |
-| 7 | Laylo Lead Nurture | **FAIL** | PASS | PASS | N/A | N/A |
+| 7 | Laylo Lead Nurture | **PASS** | PASS | PASS | N/A | N/A |
 
-### WF7 URL — NOT FIXED
+### WF7 URL — FIXED (Verified 2026-02-21)
 
-**The WF7 "Send Nurture Email" node still contains `href="https://soscreativehotline.com"`.**
+**The WF7 "Send Nurture Email" node now contains `href="https://www.thecreativehotline.com"`.**
 
 Evidence:
-- `versionId`: `e9732d2c-52f3-4298-af6c-1d570847f728` (unchanged from Batch 2 pull)
-- `updatedAt`: `2026-02-20T17:38:23.382Z` (unchanged from Batch 2 pull)
-- HTML parameter still contains the dead domain
+- `versionId`: `54e82714-a34c-41e9-bf36-7a02fae8b50e` (changed from Batch 4)
+- `updatedAt`: `2026-02-20T21:24:54.268Z` (updated after Batch 4 check)
+- HTML parameter confirmed via n8n MCP pull — dead domain replaced
 
-**Possible explanations:**
-1. Cowork made the change but **did not save/publish** the workflow
-2. The n8n MCP is returning cached data (unlikely — other workflows show fresh data)
-3. The fix was not applied
-
-**Action required:** Verify in n8n Cloud UI whether the change was saved. If not, apply the fix documented in Check 2 above and **publish** the workflow.
+**Fixed by:** Cowork session (browser UI republish)
 
 ### Additional Findings in This Sweep
 
@@ -216,6 +211,6 @@ Evidence:
 
 ### Overall Batch 4 Result
 
-**6/7 workflows pass all checks. WF7 fails the dead domain check — fix not yet published.**
+**7/7 workflows pass all checks.** WF7 dead domain fix confirmed 2026-02-21.
 
-Everything else matches Batch 2 findings. No regressions detected. The pre-existing issues (WF1 product mapping, WF1 dedup, WF3 API key) all have fix specs written and are awaiting manual application in the n8n UI.
+The pre-existing issues (WF1 product mapping, WF1 dedup, WF3 API key) all have fix specs written and are awaiting manual application in the n8n UI.

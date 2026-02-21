@@ -10,7 +10,7 @@ The Creative Hotline is a creative consultancy run by Jake Goble and Megha. Clie
 
 | Tool | Purpose | Access |
 |------|---------|--------|
-| **n8n** (Cloud, Pro plan) | All workflow automation (7 active workflows) | https://creativehotline.app.n8n.cloud |
+| **n8n** (Cloud, trial — expires ~Feb 23) | All workflow automation (7 active workflows) | https://creativehotline.app.n8n.cloud |
 | **Notion** | CRM — 2 databases (Payments DB + Intake DB) | MCP: `claude mcp add --transport http notion https://mcp.notion.com/mcp` |
 | **Stripe** | Payment processing | Webhook → n8n |
 | **Calendly** | Call booking | https://calendly.com/soscreativehotline/creative-hotline-call |
@@ -77,10 +77,17 @@ Webhook registered for `checkout.session.completed` → n8n. Signing secret stor
 | WF6: Booked But No Intake | `Esq2SMGEy6LVHdIQ` | Daily 8am (call within 24hrs) |
 | WF7: Laylo Lead Nurture | `VYCokTqWGAFCa1j0` | Daily 10am (3-7 days old) |
 
-### Deleted (Feb 20, 2026)
-- ~~WF8: Calendly Booking → Tally~~ (`3ONZZbLdprx4nxGK7eEom`) — broken scaffolding, deleted
-- ~~WF9: Post-Call Follow-Up~~ (`9mct9GBz3R-EjTgQOZcPt`) — broken scaffolding, deleted
-- Rebuild specs for both are in `docs/workflow-rebuild-specs.md`
+### Deactivated/Deleted
+- ~~WF8: Calendly Booking → Tally~~ (`3ONZZbLdprx4nxGK7eEom`) — broken scaffolding, deleted Feb 20
+- ~~WF9: Post-Call Follow-Up~~ (`9mct9GBz3R-EjTgQOZcPt`) — broken scaffolding, deleted Feb 20
+- Rebuild specs: `docs/workflow-rebuild-specs.md`
+
+### n8n IF Node Pattern (Standardized Feb 21)
+All follow-up workflow IF nodes now use the robust pattern:
+```json
+{ "leftValue": "={{ $json.email }}", "operator": { "type": "string", "operation": "exists", "singleValue": true } }
+```
+Do NOT use the old `!$json._empty` boolean pattern. See `docs/postmortems/empty-if-condition-bug.md`.
 
 ### n8n Credentials
 | Credential | ID |
@@ -119,22 +126,26 @@ Discovery (IG/Website/Referral)
 
 ## Priorities & Known Issues
 
-### Open
-1. Website contact form is a dead end (not connected to pipeline) — see `docs/contact-form-webhook-spec.md`
-2. Website 3-pack has "Save $400" badge (should be "Save $602") + $1,100 price with no Stripe product — see `docs/website-pricing-audit.md`
-3. Website 3-pack price shows $1,497, Stripe charges $1,495 — needs alignment
-4. /pricing page returns 404
-5. Pricing page title still shows "Marketio - Webflow Ecommerce Website Template"
-6. Some navigation links still broken (# anchors in some instances)
-7. WF7 nurture email still links to dead domain `soscreativehotline.com` — needs republish
-8. WF1 needs: product mapping (metadata or amount-based), dedup guard, Frankie email template
-9. WF2 needs: team notification variable fix (`event_type`/`start_time` → `call_date`)
-10. WF4 needs: phone mapping, client name fallback, Product Purchased fix, Lead Source
-11. WF5/6/7 need: dedup checkboxes (Booking/Intake/Nurture Reminder Sent) to prevent spam
-12. WF1 webhook has no Stripe signature verification — see `docs/wf1-stripe-fix-spec.md`
+### Launch Blockers (P1)
+1. **hello@creativehotline.com has NO MX records** — domain on GoDaddy, no email forwarding. Customer replies bounce. See `docs/email-forwarding-gap.md`
+2. **Laylo disconnected from Instagram** — DM keyword triggers won't fire. Reconnect in Laylo dashboard
+3. **n8n trial expiring ~Feb 23** — upgrade to Starter (€24/mo). Consolidation spec ready for 5-workflow limit: `docs/specs/workflow-consolidation-spec.md`
+
+### Open (P2)
+4. Website contact form dead end — see `docs/contact-form-webhook-spec.md`
+5. Website pricing: "Save $400" badge (should be $602), $1,100 (no Stripe product), $1,497→$1,495 — see `docs/website-pricing-audit.md`
+6. /pricing page 404, pricing page title still "Marketio"
+7. WF1 needs: product mapping, dedup guard, Frankie template — see `docs/wf1-stripe-fix-spec.md`
+8. WF2 needs: team notification variable fix
+9. WF4 needs: phone mapping, client name fallback, Product Purchased fix, Lead Source
+10. WF5/6/7 dedup: filter side done for WF5+WF6, WF7 + all "Mark Sent" nodes pending — see `docs/specs/dedup-checkbox-wiring.md`
+11. WF3 Claude API key hardcoded — should use n8n credential
+12. Frankie email templates written but not deployed — see `docs/email-deployment-guide.md`
+13. Notion test records need cleanup — see `docs/notion-test-records-cleanup.md`
 
 ### Resolved
-- ~~n8n cloud trial expiring~~ Upgraded to Pro plan (no workflow limit)
+- ~~WF7 dead domain URL~~ Fixed by Cowork (Feb 21) — now `thecreativehotline.com`
+- ~~WF5/WF6/WF7 IF node bugs~~ All 3 fixed by Cowork (Feb 20-21) — now use `$json.email` exists pattern
 - ~~WF8/WF9 broken scaffolding~~ Deleted from n8n (Feb 20)
 - ~~Tally form URL in WF6 is placeholder~~ Fixed to `b5W1JE` (verified Feb 20)
 - ~~"Book a Call" buttons link to contact page~~ Now link to Calendly

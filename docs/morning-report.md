@@ -1,6 +1,6 @@
 # Morning Report — Creative Hotline
 
-**Date:** 2026-02-20 (Updated — post-overnight session)
+**Date:** 2026-02-21
 **For:** Jake Goble
 **Read time:** 2 minutes
 
@@ -8,107 +8,112 @@
 
 ## TL;DR
 
-- Launch readiness went from **52% to 73%** overnight
-- Core pipeline works end-to-end (pay -> book -> intake -> AI analysis)
-- **5 remaining blockers** before soft launch
-- n8n upgraded to Pro (no more trial deadline)
-- 10 total workflows found in n8n (not the 3 originally thought) -- 7 active, 2 deleted (broken), 1 unaccounted
-- **99.4% failure rate** on n8n executions -- needs investigation
+- Launch readiness: **52% → 78%** over 2 sessions (Feb 20-21)
+- **All 7 workflow health checks PASS** (was 6/7)
+- All 3 follow-up IF node bugs **fixed** by Cowork overnight
+- Dedup checkbox filters **wired** for WF5+WF6 (WF7 in progress)
+- **3 remaining blockers** before soft launch
+- Wrote consolidation spec: merge WF5+WF6+WF7 into 1 workflow to fit Starter plan's 5-workflow limit
 
 ---
 
-## What Got Done Overnight
+## What Got Done Tonight (Session 2 — Feb 21)
 
-- n8n upgraded from trial to Pro plan (no workflow limit)
-- WF8 + WF9 (broken scaffolding) deleted from n8n
-- WF6 Tally URL fixed (was placeholder, now correct)
-- Website CTAs all fixed -- "Book a Call" buttons now link to Calendly (were linking to template pages)
-- Website footer fixed -- "Based in Venice, CA" (was Dubai placeholder)
-- Stripe: 3 live products created with correct prices ($499/$699/$1,495) and payment links
-- Stripe webhook registered for live mode
-- Laylo: test Stripe links swapped to live payment links
-- Laylo: drop descriptions updated with correct product info
-- Notion: 4 dedup checkboxes added (Booking/Intake/Nurture Reminder Sent, Thank You Sent)
-- Notion: "Follow-Up Sent" status added to pipeline
-- Notion: duplicate test records cleaned (Payments DB down to 1 keeper)
-- Notion: "3-Session Clarity Sprint" added to Product Purchased options
-- 30 documentation files created covering every system
+### Cowork (Browser)
+- Fixed WF5 IF node — replaced buggy `_empty` pattern with robust `$json.email` exists check
+- Fixed WF7 IF node — same pattern fix
+- Wired WF5 dedup filter — `Booking Reminder Sent` checkbox now checked in filter code
+- Wired WF6 dedup filter — `Intake Reminder Sent` checkbox now checked in filter code
+- (Still working — WF7 dedup filter + "Mark Sent" nodes for all 3)
+
+### Claude Code (CLI)
+- Updated IF node audit — all 7 workflows now pass (was 2 buggy)
+- Updated workflow backup with latest live code from n8n MCP
+- Updated Cowork session log with Round 2 fixes
+- Updated dedup checkbox spec with implementation progress
+- Wrote **WF5+WF6+WF7 consolidation spec** — single "Daily Follow-Ups" workflow for Starter plan limit
+- Refreshed this morning report
+- Previous session: 14 items including error handler spec, postmortems, email forwarding gap, .gitignore, Notion cleanup plan
 
 ---
 
-## What Still Needs Fixing (5 Blockers)
+## What Still Needs Fixing (3 Blockers)
 
 ### Do Right Now
 
 | # | Action | Why |
 |---|--------|-----|
-| 1 | **Reconnect Laylo to Instagram** | Laylo got disconnected from IG during the session. DM keyword triggers (BOOK, PRICING, HELP) won't fire until reconnected. Do this in the Laylo dashboard. |
-| 2 | **Investigate n8n 99.4% failure rate** | Found during audit. Check the n8n execution log at https://creativehotline.app.n8n.cloud to see if these are test failures or real problems. |
-| 3 | **Verify hello@creativehotline.com has a mailbox** | This address is the "From" on 3 customer-facing emails. If customers reply and it bounces, that's a bad look. Check your DNS/email provider. |
+| 1 | **Set up hello@ email forwarding** | `hello@creativehotline.com` has NO MX records. Customer replies to 3 automated emails will bounce. Set up forwarding in GoDaddy → `soscreativehotline@gmail.com`. See [email-forwarding-gap.md](email-forwarding-gap.md) |
+| 2 | **Reconnect Laylo to Instagram** | IG keyword triggers (BOOK, PRICING, HELP) won't fire until reconnected in Laylo dashboard |
 
 ### Do Today
 
 | # | Action | Why |
 |---|--------|-----|
-| 4 | **Republish WF7 in n8n** | The "Learn More" button in the lead nurture email still links to `soscreativehotline.com` (dead domain). Should be `www.thecreativehotline.com`. Or deploy the new Frankie template which fixes this automatically. |
-| 5 | **Tell Webflow dev: fix pricing badges** | The 3-pack has a "Save $400" badge (was "Save $300") — actual savings is $602 (3×$699−$1,495). Update to "Save $602". Also: $1,100 price has no Stripe product (remove or replace with $1,495), $1,497 should be $1,495, and /pricing returns 404. |
-
----
-
-## Pricing Status
-
-| Touchpoint | First Call | Standard Call | 3-Session Sprint |
-|-----------|-----------|--------------|-----------------|
-| **Stripe (truth)** | $499 | $699 | $1,495 |
-| **Website section 1** | $499 | $699 | $1,497 ($2 off) |
-| **Website section 2** | -- | -- | "Save $400" badge (should be $602), $1,100 (WRONG) |
-| **Calendly gate** | $499 | -- | -- |
-| **Laylo drops** | Updated | Updated | Updated |
-| **ManyChat KB** | Needs check | Needs check | Needs check |
+| 3 | **Tell Webflow dev: fix pricing badges** | "Save $400" badge should be "Save $602" (3×$699−$1,495). Also: $1,100 price has no Stripe product, $1,497→$1,495, /pricing returns 404 |
 
 ---
 
 ## n8n Workflow Health (7 Active)
 
-| Workflow | Status | Key Issue |
+| Workflow | Status | Key Detail |
 |----------|--------|-----------|
-| WF1: Stripe -> Calendly | YELLOW | Product name always null, sender wrong |
-| WF2: Calendly -> Payments | YELLOW | Team notification has wrong variables |
-| WF3: Tally -> Claude AI | GREEN | Working -- type mismatches are cosmetic |
-| WF4: Laylo -> Notion | YELLOW | Phone lost, product type wrong |
-| WF5: Paid No Booking | GREEN | Needs dedup checkbox wiring |
-| WF6: Booked No Intake | GREEN | Tally URL fixed, needs dedup |
-| WF7: Lead Nurture | YELLOW | Dead domain URL -- needs republish |
+| WF1: Stripe → Calendly | YELLOW | Product name null, sender wrong — fix specs ready |
+| WF2: Calendly → Payments | YELLOW | Team notification wrong variables |
+| WF3: Tally → Claude AI | GREEN | Working (type mismatches cosmetic) |
+| WF4: Laylo → Notion | YELLOW | Phone lost, product type wrong |
+| WF5: Paid No Booking | GREEN | IF fixed, dedup filter wired, needs "Mark Sent" node |
+| WF6: Booked No Intake | GREEN | IF fixed, dedup filter wired, needs "Mark Sent" node |
+| WF7: Lead Nurture | GREEN | URL fixed, IF fixed, dedup filter pending |
+
+**Health check: 7/7 pass** (up from 6/7)
 
 ---
 
-## Live Stripe Payment Links
+## n8n Trial — URGENT
 
-- **First Call ($499):** `https://buy.stripe.com/14AaEQcDDaY43eFdT59ws00`
-- **Standard Call ($699):** `https://buy.stripe.com/eVqbIUeLL1nu02t16j9ws02`
-- **3-Session Clarity Sprint ($1,495):** `https://buy.stripe.com/4gMcMY9rr2rycPfdT59ws03`
+Trial expires **~Feb 23** (2 days). Must upgrade to Starter (€24/mo) or risk losing all workflows.
+
+**Workflow limit strategy:**
+- Starter plan: 5 active workflows
+- Current: 7 active + 2 broken (WF8+WF9)
+- Plan: Deactivate WF8+WF9, consolidate WF5+WF6+WF7 into single "Daily Follow-Ups" = exactly 5
+- Full spec: [workflow-consolidation-spec.md](specs/workflow-consolidation-spec.md)
 
 ---
 
-## Key Docs to Read
+## Dedup Status
 
-- **Full scorecard:** [launch-readiness-scorecard.md](launch-readiness-scorecard.md) -- 73% ready, detailed breakdown
-- **Webflow dev handoff:** [webflow-dev-handoff.md](webflow-dev-handoff.md) -- what to tell your developer
-- **Email templates:** [email-templates-frankie.md](email-templates-frankie.md) -- 7 Frankie-voice templates ready to deploy
-- **Email deployment guide:** [email-deployment-guide.md](email-deployment-guide.md) -- step-by-step for swapping templates in n8n
-- **WF1 fix spec:** [wf1-stripe-fix-spec.md](wf1-stripe-fix-spec.md) -- product mapping + dedup + signature verification
-- **Website pricing audit:** [website-pricing-audit.md](website-pricing-audit.md) -- all pricing mismatches documented
+| Workflow | Filter Side | "Mark Sent" Node | Email Spam Risk |
+|----------|------------|-----------------|-----------------|
+| WF5 | DONE (checks `Booking Reminder Sent`) | NOT YET | Reduced — only unsent records pass filter |
+| WF6 | DONE (checks `Intake Reminder Sent`) | NOT YET | Reduced |
+| WF7 | NOT YET | NOT YET | Still sends 5 days straight |
+
+**Note:** Until the "Mark Sent" nodes are added, the checkbox is never set to `true` after sending. The filter check works but has no records to skip yet. Cowork is still working on this.
+
+---
+
+## Key Docs (New This Session)
+
+- **Workflow consolidation spec:** [specs/workflow-consolidation-spec.md](specs/workflow-consolidation-spec.md) — how to merge 3 follow-ups into 1
+- **IF node audit (updated):** [postmortems/if-node-audit-2026-02-21.md](postmortems/if-node-audit-2026-02-21.md) — all 7 workflows now pass
+- **Dedup checkbox wiring spec:** [specs/dedup-checkbox-wiring.md](specs/dedup-checkbox-wiring.md) — partially implemented
+- **Error handler spec:** [specs/n8n-error-handler-spec.md](specs/n8n-error-handler-spec.md) — universal error alerting workflow
+- **Email forwarding gap:** [email-forwarding-gap.md](email-forwarding-gap.md) — P1 blocker with fix options
+- **Notion cleanup plan:** [notion-test-records-cleanup.md](notion-test-records-cleanup.md) — test record inventory + safe removal plan
 
 ---
 
 ## What's Working Well
 
-- **Core pipeline:** Customer can pay via Stripe -> get Calendly link -> book -> submit Tally intake -> Claude AI analyzes -> team gets briefing. End to end.
+- **Core pipeline:** Pay → Book → Intake → AI Analysis → Team Briefing — end to end
+- **All IF nodes:** Fixed. No more empty-routing bugs in any workflow
 - **Calendly:** Fully operational with $499 payment gate
 - **ManyChat:** 4 automations active, AI responding to DMs
-- **Notion CRM:** Clean, dedup checkboxes ready, relations working
-- **Tally:** Form + webhook working
+- **Notion CRM:** Clean schema, dedup checkboxes ready, relations working
+- **Stripe:** 3 live products ($499/$699/$1,495) with payment links
 
 ---
 
-**Bottom line:** You went from 52% to 73% launch-ready overnight. The core pipeline works. Fix the 5 blockers (Laylo IG reconnection, failure rate investigation, hello@ mailbox, WF7 URL, pricing badge fix) and you're ready for a soft launch.
+**Bottom line:** 78% launch-ready. All workflow IF node bugs are fixed. The 3 remaining blockers are: hello@ email forwarding (GoDaddy DNS), Laylo IG reconnection, and pricing badge corrections. Upgrade n8n to Starter within 2 days to avoid losing workflows. The consolidation spec is ready for when you hit the 5-workflow limit.
