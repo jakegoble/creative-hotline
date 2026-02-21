@@ -114,6 +114,17 @@ Jake had a 12:30 AM PST meeting (captured in Notion meeting notes) with a Webflo
 **Change:** Added `if (props['Intake Reminder Sent']?.checkbox) continue;` to filter code
 **Note:** Filter side is done — checks the checkbox. "Mark Sent" Notion Update node not yet added.
 
+### 13. WF8 + WF9 — DELETED
+
+**Workflows:**
+- WF8: Calendly Booking → Tally (`3ONZZbLdprx4nxGK7eEom`)
+- WF9: Post-Call Follow-Up (`9mct9GBz3R-EjTgQOZcPt`)
+
+**Change:** Both broken scaffolding workflows fully deleted from n8n (not just deactivated).
+**Evidence:** n8n MCP `search_workflows` returns 7 results. `get_workflow_details` for WF9 returns "Workflow not found."
+
+**Impact:** n8n workflow count reduced from 9 → 7. Aligns with our recommendation to remove non-functional workflows. Still need consolidation of WF5+WF6+WF7 to reach Starter plan's 5-workflow limit.
+
 ---
 
 ## What Was NOT Fixed (Still Open)
@@ -122,6 +133,7 @@ Jake had a 12:30 AM PST meeting (captured in Notion meeting notes) with a Webflo
 |------|----------|--------|
 | ~~WF5 IF node~~ | ~~WF5~~ | ~~FIXED 2026-02-21~~ |
 | ~~WF7 IF node~~ | ~~WF7~~ | ~~FIXED 2026-02-21~~ |
+| ~~WF8+WF9 broken scaffolding~~ | ~~WF8/WF9~~ | ~~DELETED from n8n (confirmed via MCP)~~ |
 | WF7 dedup checkbox filter not wired | WF7 | `Nurture Email Sent` check not in filter code yet |
 | "Mark Sent" nodes missing (all 3 WFs) | WF5/WF6/WF7 | Filter checks checkbox but nothing sets it after email send |
 | Frankie voice email templates | WF5/WF6/WF7 | Templates written in docs, not deployed |

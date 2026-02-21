@@ -2,6 +2,7 @@
 
 **Backup Date:** 2026-02-21 (refreshed WF5/WF6/WF7 — Cowork Round 2: IF nodes + dedup filters)
 **Purpose:** Pre-trial-expiry backup of all 7 active Creative Hotline n8n workflows
+**Note:** WF8 (`3ONZZbLdprx4nxGK7eEom`) and WF9 (`9mct9GBz3R-EjTgQOZcPt`) were deleted by Cowork on Feb 21. Rebuild specs remain in `docs/workflow-rebuild-specs.md`.
 **n8n Instance:** https://creativehotline.app.n8n.cloud
 **Trial Expiry:** ~2026-02-23 (upgrade to Starter plan ASAP)
 **Backup Author:** Claude Code agent

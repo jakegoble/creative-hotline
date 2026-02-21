@@ -19,10 +19,10 @@ n8n Starter plan (€24/mo) allows **5 active workflows**. Current state:
 | WF5 | Follow Up: Paid But Never Booked | Active |
 | WF6 | Follow Up: Booked But No Intake | Active |
 | WF7 | Follow Up: Laylo Lead Nurture | Active |
-| WF8 | Calendly → Tally (BROKEN) | Deactivate |
-| WF9 | Post-Call Follow-Up (BROKEN) | Deactivate |
+| ~~WF8~~ | ~~Calendly → Tally~~ | Deleted by Cowork (Feb 21) |
+| ~~WF9~~ | ~~Post-Call Follow-Up~~ | Deleted by Cowork (Feb 21) |
 
-After deactivating WF8+WF9: **7 active workflows**, still 2 over the limit.
+With WF8+WF9 deleted: **7 active workflows**, still 2 over the limit.
 
 **Solution:** Consolidate WF5+WF6+WF7 into a single "Daily Follow-Ups" workflow = **5 active workflows** (exactly at limit).
 
@@ -315,7 +315,7 @@ vs. current: 3×(trigger + Notion + Code + IF + 2×Email) = **18 nodes** across 
    - Verify re-run skips the record
 3. **Activate the consolidated workflow**
 4. **Deactivate WF5, WF6, WF7** (keep them inactive as backups, don't delete)
-5. **Deactivate WF8 and WF9** (broken)
+5. ~~**Deactivate WF8 and WF9**~~ — Already deleted by Cowork (Feb 21)
 6. **Verify active count:** WF1 + WF2 + WF3 + WF4 + Daily Follow-Ups = **5 active**
 
 ---

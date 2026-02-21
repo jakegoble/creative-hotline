@@ -529,6 +529,207 @@ For each workflow, replace `{{ EVENT_TYPE }}` and adjust the data table rows as 
 
 ---
 
+## 8. Payment Receipt / Welcome
+
+**Workflow:** WF1 — Stripe Purchase → Calendly (future addition)
+**Trigger:** Immediate after Stripe payment, sent before Calendly link
+**Purpose:** Confirms payment received, sets expectations for the process
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $('Extract Data').item.json.email }}` |
+| subject | `You're in — here's what happens next` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're in</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $('Extract Data').item.json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Your payment just came through — you're officially on the books. Here's the quick rundown of what happens from here:</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px 0;">
+                <tr>
+                  <td style="padding: 12px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;"><strong>Step 1:</strong> Book your 45-minute call (link coming in a separate email)</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;"><strong>Step 2:</strong> Fill out a 5-minute intake form so we can prep</td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0; font-size: 16px; line-height: 1.6; color: #333333;"><strong>Step 3:</strong> Show up. We dig in. You leave with a clear plan.</td>
+                </tr>
+              </table>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Simple as that. Check your inbox for the booking link — it should arrive any second.</p>
+              <p style="margin: 20px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+              <p style="margin: 16px 0 0 0; font-size: 13px; color: #999999;">Payment: ${{ $('Extract Data').item.json.amount }} received</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 9. Booking Confirmation
+
+**Workflow:** WF2 — Calendly Booking → Payments Update (future addition)
+**Trigger:** Immediately after Calendly booking is confirmed
+**Purpose:** Brand-voice confirmation (supplements Calendly's generic confirmation)
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `You're on the calendar` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>You're on the calendar</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Just saw your booking come through — nice.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">One thing that'll make this call way better: fill out the intake form before we meet. It takes about 5 minutes and means we skip the warmup and get straight to work.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" style="border-radius: 6px; background-color: #FF6B35;">
+                    <a href="https://tally.so/r/b5W1JE" target="_blank" style="display: inline-block; padding: 16px 36px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">Fill Out the Intake</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 30px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">See you on the call.</p>
+              <p style="margin: 16px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 10. Follow-Up Nudge (7 Days Post-Action Plan)
+
+**Workflow:** Future — not yet built
+**Trigger:** 7 days after Action Plan Sent = true
+**Purpose:** Check in on progress, open door for follow-up session
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `How's it going?` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How's it going?</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. It's been about a week since your action plan landed. Just checking in — how's it going?</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">If you've started executing, that's great. If you haven't yet, that's fine too — life happens. The plan isn't going anywhere.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">If you've hit a snag, or new questions came up, or the plan needs adjusting now that you're in the weeds — just reply to this email. Sometimes a quick back-and-forth is all it takes to get unstuck again.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">And if you're ready for a deeper dive, you can always book another session.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" style="border-radius: 6px; background-color: #FF6B35;">
+                    <a href="https://www.thecreativehotline.com" target="_blank" style="display: inline-block; padding: 16px 36px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">Book Another Session</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 30px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Either way, rooting for you.</p>
+              <p style="margin: 16px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
 ## Implementation Notes
 
 1. **n8n expression syntax:** All `{{ }}` expressions in these templates use n8n's built-in expression format. They reference the output of upstream nodes. Verify node names match your workflow exactly before deploying.

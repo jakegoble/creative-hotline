@@ -24,6 +24,7 @@
 - Fixed WF7 IF node — same pattern fix
 - Wired WF5 dedup filter — `Booking Reminder Sent` checkbox now checked in filter code
 - Wired WF6 dedup filter — `Intake Reminder Sent` checkbox now checked in filter code
+- Deleted WF8 + WF9 (broken scaffolding) — down from 9 to 7 workflows
 - (Still working — WF7 dedup filter + "Mark Sent" nodes for all 3)
 
 ### Claude Code (CLI)
@@ -76,8 +77,8 @@ Trial expires **~Feb 23** (2 days). Must upgrade to Starter (€24/mo) or risk l
 
 **Workflow limit strategy:**
 - Starter plan: 5 active workflows
-- Current: 7 active + 2 broken (WF8+WF9)
-- Plan: Deactivate WF8+WF9, consolidate WF5+WF6+WF7 into single "Daily Follow-Ups" = exactly 5
+- Current: 7 active (WF8+WF9 already deleted by Cowork)
+- Plan: Consolidate WF5+WF6+WF7 into single "Daily Follow-Ups" = exactly 5
 - Full spec: [workflow-consolidation-spec.md](specs/workflow-consolidation-spec.md)
 
 ---

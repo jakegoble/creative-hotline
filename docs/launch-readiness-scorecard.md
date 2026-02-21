@@ -44,7 +44,7 @@ Core pipeline works end-to-end. Remaining issues are data quality and polish, no
 
 | Item | Before | After | Impact |
 |------|--------|-------|--------|
-| n8n Platform | **RED** (trial expiring) | **GREEN** (upgraded to Pro) | +5 pts |
+| n8n Platform | **RED** (trial expiring) | **YELLOW** (trial expires ~Feb 23, needs Starter upgrade) | +3 pts |
 | WF8/WF9 | **RED** (broken, still running) | **GREEN** (deleted) | +4 pts |
 | WF6 Tally URL | **RED** (placeholder) | **GREEN** (fixed to b5W1JE) | +3 pts |
 | WF5/WF6/WF7 | Various issues | Email templates + URLs fixed | +3 pts |
@@ -184,8 +184,8 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 
 | # | Check | Status | Detail |
 |---|-------|--------|--------|
-| 2.10.1 | Plan | **GREEN** | Upgraded to Pro — no workflow limit |
-| 2.10.2 | Active workflows | **GREEN** | 7 active (was 9 before WF8/WF9 deletion) |
+| 2.10.1 | Plan | **RED** | Trial expires ~Feb 23. Must upgrade to Starter (€24/mo). Consolidation spec ready for 5-workflow limit |
+| 2.10.2 | Active workflows | **YELLOW** | 7 active (WF8/WF9 deleted). Need consolidation to 5 for Starter plan |
 | 2.10.3 | Execution health | **RED** | 99.4% failure rate on executions — needs investigation. May be test noise vs real failures |
 
 ---
@@ -337,12 +337,12 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 ## Recommended Next Steps
 
 ### Do Now (10 minutes)
-1. Reconnect Laylo to Instagram
-2. Investigate n8n 99.4% failure rate (check execution log for pattern)
-3. Verify `hello@creativehotline.com` can receive replies
+1. **Upgrade n8n to Starter plan** (trial expires ~Feb 23 — 2 days)
+2. Set up hello@ email forwarding (GoDaddy → `soscreativehotline@gmail.com`)
+3. Reconnect Laylo to Instagram
 
 ### Do Today (30 minutes)
-4. Republish WF7 with correct URL (or deploy Frankie template)
+4. ~~Republish WF7 with correct URL~~ DONE (Cowork, Feb 21)
 5. Deploy Frankie email template to WF1 (fixes sender + template in one step)
 6. Apply WF4 fixes (phone, name, product type, lead source)
 7. Apply WF2 team notification fix
@@ -373,7 +373,7 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 | n8n WF5 | GREEN | 3 | 1 | 0 | Needs dedup checkbox wiring |
 | n8n WF6 | GREEN | 4 | 1 | 0 | Tally URL fixed, needs dedup |
 | n8n WF7 | GREEN | 4 | 1 | 0 | URL fixed, IF fixed, dedup pending |
-| n8n Platform | GREEN | 2 | 0 | 1 | Pro plan, but 99.4% failure rate |
+| n8n Platform | RED | 0 | 1 | 2 | Trial expiring, 99.4% failure rate |
 | Notion | GREEN | 7 | 0 | 0 | Solid |
 | Calendly | GREEN | 5 | 0 | 0 | Fully operational |
 | Tally | GREEN | 3 | 1 | 0 | Working, not on website |
