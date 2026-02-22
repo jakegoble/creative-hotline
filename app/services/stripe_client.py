@@ -4,6 +4,8 @@ Payment happens at Calendly booking via Stripe integration.
 Products: First Call ($499), Standard Call ($699), Sprint ($1,495).
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timedelta
 from typing import Any

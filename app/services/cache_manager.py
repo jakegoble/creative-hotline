@@ -8,6 +8,8 @@ Tiers:
 Webhook invalidation: n8n writes a JSON signal file that Streamlit polls.
 """
 
+from __future__ import annotations
+
 import json
 import os
 import time

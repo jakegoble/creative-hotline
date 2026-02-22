@@ -4,6 +4,8 @@ Follows the established n8n pattern: fetch all records, filter/aggregate in Pyth
 Parses all Notion property types into clean Python dicts.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime
 from typing import Any

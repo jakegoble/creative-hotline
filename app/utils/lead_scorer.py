@@ -8,6 +8,8 @@ Scoring breakdown (100 points total):
   Upsell Potential:   10 pts — Multiple brands, ongoing needs, team size
 """
 
+from __future__ import annotations
+
 import re
 from datetime import datetime
 

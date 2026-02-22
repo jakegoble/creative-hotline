@@ -184,9 +184,9 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 
 | # | Check | Status | Detail |
 |---|-------|--------|--------|
-| 2.10.1 | Plan | **RED** | Trial expires ~Feb 23. Must upgrade to Starter (€24/mo). Consolidation spec ready for 5-workflow limit |
-| 2.10.2 | Active workflows | **YELLOW** | 7 active (WF8/WF9 deleted). Need consolidation to 5 for Starter plan |
-| 2.10.3 | Execution health | **RED** | 99.4% failure rate on executions — needs investigation. May be test noise vs real failures |
+| 2.10.1 | Plan | **GREEN** | Upgraded from trial (confirmed Feb 21). No longer a blocker |
+| 2.10.2 | Active workflows | **YELLOW** | 7 active (WF8/WF9 deleted). Need consolidation to 5 for Starter plan limit. Spec ready |
+| 2.10.3 | Execution health | **YELLOW** | 99.4% failure rate on executions — needs investigation. May be test noise vs real failures |
 
 ---
 
@@ -337,7 +337,7 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 ## Recommended Next Steps
 
 ### Do Now (10 minutes)
-1. **Upgrade n8n to Starter plan** (trial expires ~Feb 23 — 2 days)
+1. ~~**Upgrade n8n to Starter plan**~~ DONE (Feb 21)
 2. Set up hello@ email forwarding (GoDaddy → `soscreativehotline@gmail.com`)
 3. Reconnect Laylo to Instagram
 
@@ -373,7 +373,7 @@ Both broken scaffolding workflows deleted from n8n on Feb 20. Rebuild specs in `
 | n8n WF5 | GREEN | 3 | 1 | 0 | Needs dedup checkbox wiring |
 | n8n WF6 | GREEN | 4 | 1 | 0 | Tally URL fixed, needs dedup |
 | n8n WF7 | GREEN | 4 | 1 | 0 | URL fixed, IF fixed, dedup pending |
-| n8n Platform | RED | 0 | 1 | 2 | Trial expiring, 99.4% failure rate |
+| n8n Platform | YELLOW | 1 | 2 | 0 | Upgraded, consolidation + failure rate investigation needed |
 | Notion | GREEN | 7 | 0 | 0 | Solid |
 | Calendly | GREEN | 5 | 0 | 0 | Fully operational |
 | Tally | GREEN | 3 | 1 | 0 | Working, not on website |

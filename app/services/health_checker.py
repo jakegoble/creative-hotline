@@ -4,6 +4,8 @@ Each service has is_healthy() -> bool.
 Health page aggregates all checks with last_checked timestamps.
 """
 
+from __future__ import annotations
+
 import logging
 import time
 from dataclasses import dataclass

@@ -1,5 +1,7 @@
 """KPI metric card components for the dashboard."""
 
+from __future__ import annotations
+
 import streamlit as st
 
 from app.utils.formatters import format_currency, format_percentage

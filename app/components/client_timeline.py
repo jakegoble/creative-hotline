@@ -4,6 +4,8 @@ Stages: DM/Lead → Payment → Booking → Intake → Call → Action Plan → 
 Each stage shows source system, date, and key details.
 """
 
+from __future__ import annotations
+
 import streamlit as st
 
 from app.config import PIPELINE_STATUSES

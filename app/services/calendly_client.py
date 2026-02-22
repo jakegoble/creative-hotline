@@ -4,6 +4,8 @@ Event type: Creative Hotline Call (45 min, Stripe-gated $499).
 Calendly API uses Personal Access Token auth.
 """
 
+from __future__ import annotations
+
 import logging
 from datetime import datetime, timedelta
 from typing import Any

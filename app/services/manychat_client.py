@@ -5,6 +5,8 @@ Provides subscriber counts, keyword trigger stats, and flow completion rates.
 Falls back to CSV import if API is unavailable.
 """
 
+from __future__ import annotations
+
 import csv
 import io
 import logging

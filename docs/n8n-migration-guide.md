@@ -1,6 +1,6 @@
 # n8n Cloud Trial Migration Guide
 
-> **SUPERSEDED:** n8n was upgraded to the Pro plan on Feb 20, 2026. Trial deadline is no longer relevant. This doc is retained for reference only.
+> **SUPERSEDED:** n8n was upgraded on Feb 21, 2026. Trial deadline is no longer relevant. This doc is retained for reference only.
 
 ~~**URGENT:** Your n8n Cloud trial expires around **February 23, 2026** (3 days from now). When it expires, all 9 workflows go offline — no payments processed, no bookings tracked, no intake forms analyzed, no follow-up emails sent.~~
 
