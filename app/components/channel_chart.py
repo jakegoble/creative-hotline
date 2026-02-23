@@ -10,6 +10,13 @@ import plotly.graph_objects as go
 from app.config import LEAD_SOURCES
 
 
+def _hex_to_rgba(hex_color: str, alpha: float = 0.3) -> str:
+    """Convert hex color to rgba string."""
+    hex_color = hex_color.lstrip("#")
+    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"
+
+
 # Consistent channel colors
 CHANNEL_COLORS = {
     "IG DM": "#FF6B35",
@@ -115,8 +122,7 @@ def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
             fill="toself",
             name=channel,
             line=dict(color=color),
-            fillcolor=color.replace("#", "rgba(") + ")" if "#" in color else color,
-            opacity=0.3,
+            fillcolor=_hex_to_rgba(color, 0.3) if "#" in color else color,
         ))
 
     fig.update_layout(
