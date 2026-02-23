@@ -70,6 +70,9 @@ def main():
                 "Channel Performance",
                 "Retargeting",
                 "Conversion Paths",
+                "Revenue Goals",
+                "Funnel Analytics",
+                "Outcomes & Testimonials",
                 "System Health",
                 "Settings",
             ],
@@ -83,7 +86,7 @@ def main():
             cache.invalidate_all()
             st.rerun()
 
-        st.caption(f"v2.0 | Built for Jake & Megha")
+        st.caption(f"v3.0 | Built for Jake & Megha")
 
     # Route to selected page
     if page == "Dashboard":
@@ -109,6 +112,15 @@ def main():
         render()
     elif page == "Conversion Paths":
         from app.pages.conversion_paths import render
+        render()
+    elif page == "Revenue Goals":
+        from app.pages.revenue_goals import render
+        render()
+    elif page == "Funnel Analytics":
+        from app.pages.funnel_analytics import render
+        render()
+    elif page == "Outcomes & Testimonials":
+        from app.pages.outcomes import render
         render()
     elif page == "System Health":
         from app.pages.health import render

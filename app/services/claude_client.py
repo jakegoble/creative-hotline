@@ -7,8 +7,15 @@ import anthropic
 from app.utils.frankie_prompts import (
     ACTION_PLAN_SYSTEM_PROMPT,
     ICP_ANALYSIS_SYSTEM_PROMPT,
+    REVENUE_STRATEGY_PROMPT,
+    TESTIMONIAL_GENERATION_PROMPT,
+    CASE_STUDY_PROMPT,
+    GROWTH_RECOMMENDATION_PROMPT,
     build_action_plan_prompt,
     build_icp_prompt,
+    build_testimonial_prompt,
+    build_case_study_prompt,
+    build_growth_analysis_prompt,
 )
 
 logger = logging.getLogger(__name__)
@@ -116,3 +123,84 @@ class ClaudeService:
         except Exception as e:
             logger.error(f"Claude ICP analysis failed: {e}")
             return f"Error generating ICP analysis: {e}"
+
+    def generate_testimonial(
+        self,
+        client_name: str,
+        brand: str,
+        creative_emergency: str,
+        outcome_text: str,
+        product_purchased: str,
+    ) -> str:
+        """Generate a client testimonial from outcome data."""
+        user_message = build_testimonial_prompt(
+            client_name=client_name,
+            brand=brand,
+            creative_emergency=creative_emergency,
+            outcome_text=outcome_text,
+            product_purchased=product_purchased,
+        )
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=500,
+                system=TESTIMONIAL_GENERATION_PROMPT,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Claude testimonial generation failed: {e}")
+            return f"Error: {e}"
+
+    def generate_case_study(
+        self,
+        client_name: str,
+        brand: str,
+        role: str,
+        creative_emergency: str,
+        action_plan_summary: str,
+        outcome_text: str,
+        product_purchased: str,
+    ) -> str:
+        """Generate a case study from full client journey data."""
+        user_message = build_case_study_prompt(
+            client_name=client_name,
+            brand=brand,
+            role=role,
+            creative_emergency=creative_emergency,
+            action_plan_summary=action_plan_summary,
+            outcome_text=outcome_text,
+            product_purchased=product_purchased,
+        )
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=2048,
+                system=CASE_STUDY_PROMPT,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Claude case study generation failed: {e}")
+            return f"Error: {e}"
+
+    def analyze_growth(self, metrics: dict) -> str:
+        """Analyze growth metrics and recommend strategies."""
+        user_message = build_growth_analysis_prompt(
+            revenue_pace=metrics.get("pace", {}),
+            goal=metrics.get("goal", 800_000),
+            channel_data=metrics.get("channels", []),
+            product_mix=metrics.get("product_mix", {}),
+            upsell_rate_pct=metrics.get("upsell_rate", 0),
+        )
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=1500,
+                system=REVENUE_STRATEGY_PROMPT,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Claude growth analysis failed: {e}")
+            return f"Error: {e}"

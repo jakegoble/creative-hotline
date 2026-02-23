@@ -194,3 +194,144 @@ def build_icp_prompt(clients: list[dict]) -> str:
             f"  AI Summary: {intake.get('ai_summary', 'None')[:200]}\n"
         )
     return f"Here is the intake data for {len(clients)} clients:\n\n" + "\n".join(entries)
+
+
+# ── Growth Engine Prompts ──────────────────────────────────────────
+
+REVENUE_STRATEGY_PROMPT = """You are Frankie, the Creative Hotline's strategic brain — warm, direct, zero buzzwords.
+You're analyzing revenue data to recommend how to hit the $800K annual goal.
+This is a 2-person team doing 45-minute creative direction calls at $499-$1,495.
+
+Give exactly 5 prioritized recommendations. For each:
+- **What to do** (specific action, not vague)
+- **Why it matters** (grounded in the numbers)
+- **Expected impact** (revenue estimate if possible)
+- **Effort level** (Low / Medium / High)
+
+Consider: product mix optimization, new revenue streams (retainers, memberships),
+channel investment, pricing strategy, upsell conversion, and capacity constraints.
+Keep it under 500 words. No "leverage your synergies" nonsense."""
+
+
+TESTIMONIAL_GENERATION_PROMPT = """You are Frankie, writing a client testimonial based on their journey data.
+Write it as if the client is speaking — natural, specific, and brief (3-5 sentences).
+Include a specific result or transformation they experienced.
+No generic praise like "amazing experience." Make it sound like a real person texted it to a friend.
+Do not add quotation marks around the testimonial."""
+
+
+CASE_STUDY_PROMPT = """You are Frankie, writing a case study for The Creative Hotline's website.
+
+Structure:
+## The Problem
+[From intake data — what the client was dealing with, in their industry context]
+
+## The Approach
+[From action plan — what was recommended and why, without revealing proprietary methods]
+
+## The Result
+[From outcome data — what changed, specific results]
+
+Keep it 500-800 words. Be specific — use the client's industry, their actual challenge,
+the actual recommendations given. No "synergy" or "leverage." Just the story.
+Write in third person ("they" not "I")."""
+
+
+GROWTH_RECOMMENDATION_PROMPT = """You are Frankie, the Creative Hotline's strategic brain.
+Analyze these growth metrics and give 5 specific, prioritized recommendations
+for reaching the revenue goal faster.
+
+For each recommendation:
+1. **Action** — What to do (be specific)
+2. **Rationale** — Why, based on the data
+3. **Impact** — Expected revenue impact
+4. **Effort** — Low / Medium / High
+5. **Timeline** — This week / This month / This quarter
+
+Keep total response under 600 words. Be direct."""
+
+
+def build_testimonial_prompt(
+    client_name: str,
+    brand: str,
+    creative_emergency: str,
+    outcome_text: str,
+    product_purchased: str,
+) -> str:
+    """Build user message for testimonial generation."""
+    return f"""Generate a testimonial for this client.
+
+Client: {client_name}
+Brand: {brand}
+Their Challenge: {creative_emergency}
+Product: {product_purchased}
+What Changed After Working With Us: {outcome_text}
+"""
+
+
+def build_case_study_prompt(
+    client_name: str,
+    brand: str,
+    role: str,
+    creative_emergency: str,
+    action_plan_summary: str,
+    outcome_text: str,
+    product_purchased: str,
+) -> str:
+    """Build user message for case study generation."""
+    return f"""Write a case study for this client.
+
+Client: {client_name}
+Brand: {brand}
+Role: {role}
+Product Purchased: {product_purchased}
+
+THE PROBLEM (from intake):
+{creative_emergency}
+
+THE APPROACH (from action plan):
+{action_plan_summary}
+
+THE RESULT (from outcome):
+{outcome_text}
+"""
+
+
+def build_growth_analysis_prompt(
+    revenue_pace: dict,
+    goal: float,
+    channel_data: list[dict],
+    product_mix: dict,
+    upsell_rate_pct: float,
+) -> str:
+    """Build user message for growth strategy analysis."""
+    channel_summary = "\n".join(
+        f"  {ch.get('channel', 'Unknown')}: {ch.get('leads', 0)} leads, "
+        f"{ch.get('conversions', 0)} conversions, ${ch.get('revenue', 0):,.0f} revenue"
+        for ch in channel_data[:8]
+    )
+    product_summary = "\n".join(
+        f"  {name}: {info.get('count', 0)} sold, ${info.get('revenue', 0):,.0f}"
+        for name, info in product_mix.items()
+    )
+
+    return f"""Analyze this data and recommend how to hit ${goal:,.0f}/year.
+
+CURRENT PACE:
+  Monthly avg: ${revenue_pace.get('monthly_avg', 0):,.0f}
+  Annual pace: ${revenue_pace.get('annual_pace', 0):,.0f}
+  Gap to goal: ${goal - revenue_pace.get('annual_pace', 0):,.0f}
+
+CHANNEL PERFORMANCE:
+{channel_summary}
+
+PRODUCT MIX:
+{product_summary}
+
+UPSELL RATE: {upsell_rate_pct:.1f}%
+
+CONSTRAINTS:
+  - 2-person team (Jake + Megha)
+  - Max ~20 calls/week
+  - Each call = 45 minutes + prep + action plan delivery
+"""

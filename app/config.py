@@ -124,3 +124,21 @@ CHANNEL_COLORS = {
     "Direct": "#34495E",
     "Unknown": "#95A5A6",
 }
+
+# Revenue goal defaults
+REVENUE_GOAL_DEFAULT = 800_000
+MAX_CALLS_PER_WEEK = 20
+CALL_DURATION_MINUTES = 45
+
+# Proposed products (not yet in Stripe — for scenario modeling)
+PROPOSED_PRODUCTS = {
+    "Monthly Retainer": 2997,
+    "VIP Day": 3500,
+    "Monthly Membership": 197,
+}
+
+# Combined product catalog (existing + proposed)
+ALL_PRODUCTS = {**PRODUCT_TYPES, **PROPOSED_PRODUCTS}
+
+# NPS configuration
+NPS_SCALE = {"promoter": (9, 10), "passive": (7, 8), "detractor": (0, 6)}
