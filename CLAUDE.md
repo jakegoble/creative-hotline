@@ -163,5 +163,118 @@ Discovery (IG/Website/Referral)
 - For email template deployment, see `docs/email-deployment-guide.md`
 - For end-to-end testing, see `docs/e2e-test-plan.md`
 
+---
+
+## Command Center — Code Standards
+
+### Python & Compatibility
+- **Python 3.9** — all files use `from __future__ import annotations` for modern type hint syntax
+- Type hints on all function signatures (params + return)
+- Docstrings on public functions (one-liner for simple, Google-style for complex)
+- Max function length: ~50 lines. Extract helpers when exceeding this
+- Use `@dataclass` for structured data (see `config.py:Settings`)
+
+### Project Structure
+```
+app/
+├── main.py                  # Entry point — page config, CSS, sidebar, routing
+├── config.py                # Settings dataclass, load_settings(), validate_settings()
+├── pages/                   # Streamlit pages — one file per nav item (13 pages)
+│   ├── dashboard.py         # KPI overview
+│   ├── clients.py           # Client detail + timeline
+│   ├── pipeline.py          # Pipeline kanban view
+│   ├── action_plans.py      # Action Plan Studio (transcript + manual)
+│   ├── lead_scoring.py      # ICP scoring + tier breakdown
+│   ├── channel_performance.py
+│   ├── retargeting.py       # Re-engagement campaigns
+│   ├── conversion_paths.py  # Attribution + Sankey
+│   ├── revenue_goals.py     # $800K path + scenario modeling
+│   ├── funnel_analytics.py  # Micro-conversion funnel + A/B log
+│   ├── outcomes.py          # LTV, NPS, testimonials, referrals
+│   ├── health.py            # System health checks
+│   └── settings.py          # Config + demo mode toggle
+├── components/              # Reusable Plotly/Streamlit chart components (11)
+├── services/                # API clients + business logic
+│   ├── notion_client.py     # Notion API wrapper
+│   ├── stripe_client.py     # Stripe API wrapper
+│   ├── calendly_client.py   # Calendly API wrapper
+│   ├── claude_client.py     # Anthropic API wrapper
+│   ├── manychat_client.py   # ManyChat API wrapper
+│   ├── health_checker.py    # Multi-service health checks
+│   ├── cache_manager.py     # st.session_state caching
+│   └── demo_service.py      # Drop-in demo mode replacements
+├── utils/                   # Pure functions, no API calls
+│   ├── demo_data.py         # 15 demo clients + helpers
+│   ├── theme.py             # Global CSS injection
+│   ├── formatters.py        # Currency, date, percentage formatting
+│   ├── lead_scorer.py       # ICP scoring algorithm
+│   ├── segment_builder.py   # Client segmentation rules
+│   ├── attribution.py       # Channel attribution logic
+│   ├── keyword_extractor.py # Text analysis
+│   ├── ltv_calculator.py    # LTV + cohort analysis
+│   ├── revenue_modeler.py   # Scenario builder + projections
+│   ├── sequence_tracker.py  # Email sequence position mapping
+│   ├── referral_tracker.py  # Referral analytics
+│   ├── frankie_prompts.py   # Claude prompt templates
+│   ├── exporters.py         # PDF generation (reportlab)
+│   ├── plan_delivery.py     # Client HTML action plan pages
+│   └── transcript_processor.py  # Fireflies transcript parsing
+└── templates/               # HTML/email templates
+tests/
+├── conftest.py              # Shared fixtures (hot_payment, sample_payments, etc.)
+├── test_smoke.py            # Import smoke tests for all modules
+├── test_demo_data.py        # Demo data integrity tests
+├── test_*.py                # Unit tests per module (~194 tests total)
+docs/                        # Specs, postmortems, guides (40+ files)
+.streamlit/
+├── config.toml              # Theme config (warm bg + orange accent)
+└── secrets.toml.example     # Streamlit Cloud secrets template
+```
+
+### Architecture Rules
+- **Pages are thin** — pages call services and render components. No raw API calls in page files
+- **Services own API calls** — each external service has one client in `app/services/`
+- **Utils are pure** — `app/utils/` functions take data in, return data out. No `st.*` calls, no API calls
+- **Components are reusable** — `app/components/` render Plotly/Streamlit UI. Accept data as params
+- **Demo mode is transparent** — `demo_service.py` classes implement the same interface as real services. Pages don't know the difference
+- **Config via `_get_secret()`** — reads env vars first (local), then `st.secrets` (Cloud). Never hardcode keys
+- **Caching** — use `@st.cache_data(ttl=300)` for expensive computations. Use `st.session_state` for cross-page state
+- **CSS injection** — all styling goes through `app/utils/theme.py`. No inline `st.markdown("<style>...")` in pages
+
+### Testing Requirements
+- **Framework:** pytest with `tests/conftest.py` shared fixtures
+- **Run tests:** `python3 -m pytest tests/ -v`
+- **Mock external services** — never call real APIs in tests. Use `unittest.mock.patch` or fixture data
+- **Test file naming:** `tests/test_{module_name}.py`
+- **Import smoke tests** — `test_smoke.py` verifies all modules import without error
+- **Demo data tests** — `test_demo_data.py` validates data integrity (status coverage, email uniqueness, join correctness)
+- **Target:** maintain passing test suite. Run tests after any code change before committing
+
+### Git Workflow
+- **Branch naming:** `feature/short-description`, `fix/short-description`, `chore/short-description`
+- **Commits:** atomic, focused. One logical change per commit
+- **Message format:** imperative mood, lowercase start. Examples:
+  - `add transcript processing to Action Plan Studio`
+  - `fix pipeline stats calculation for demo mode`
+  - `update theme CSS for mobile sidebar`
+- **Never commit:** `.env`, `.streamlit/secrets.toml`, `__pycache__/`, `.DS_Store`
+- **Always run tests before committing**
+
+### Deploy Checklist (Streamlit Cloud)
+1. All tests pass locally (`python3 -m pytest tests/ -v`)
+2. `requirements.txt` is up to date
+3. `.streamlit/secrets.toml.example` documents all required secrets
+4. `streamlit_app.py` exists as Cloud entry point (imports `app.main`)
+5. No hardcoded API keys — all via `_get_secret()`
+6. Demo mode works without any API keys configured
+7. Mobile-responsive (test at 375px width)
+
+### Sync Rules with Cowork
+- Cowork (AI agent) manages n8n workflow fixes directly in the n8n Cloud UI
+- Claude Code manages: Command Center app, docs, specs, CLAUDE.md
+- When writing n8n fix specs, include exact node names, parameter values, and credential IDs
+- When Cowork reports a fix, update the "Resolved" section in this file and `docs/` as needed
+- n8n MCP tools are read-only (search, get details, execute) — no update/edit capability
+
 ## Cross Reference Search Rule
 When asked for a "cross reference search," run 4 parallel web searches comparing Claude/Anthropic, ChatGPT/OpenAI, Perplexity AI, and Gemini/Google AI perspectives, then synthesize consensus, differences, unique insights, and a best combined approach.
