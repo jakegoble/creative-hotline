@@ -8,10 +8,11 @@ from app.utils.segment_builder import build_all_segments, segment_summary
 from app.utils.lead_scorer import score_all_clients, get_tier_color
 from app.components.segment_cards import render_segment_cards, render_segment_detail
 from app.utils.formatters import format_currency
+from app.utils.ui import page_header, section_header, metric_row, empty_state, badge
 
 
 def render():
-    st.header("Retargeting & Segments")
+    page_header("Retargeting & Segments", "Segment builder and re-engagement queue.")
 
     notion = st.session_state.get("notion")
     if not notion:
@@ -31,28 +32,25 @@ def render():
 
     # ── Summary Bar ───────────────────────────────────────────────
 
-    s1, s2, s3, s4 = st.columns(4)
-    with s1:
-        st.metric("Total in Segments", summary["total_clients"])
-    with s2:
-        st.metric("Potential Revenue", format_currency(summary["total_value"]))
-    with s3:
-        st.metric("High Priority", summary["by_priority"].get("high", 0))
-    with s4:
-        st.metric("Segments Active", sum(1 for s in segments if s.count > 0))
+    metric_row([
+        {"label": "Total in Segments", "value": summary["total_clients"]},
+        {"label": "Potential Revenue", "value": format_currency(summary["total_value"])},
+        {"label": "High Priority", "value": summary["by_priority"].get("high", 0)},
+        {"label": "Segments Active", "value": sum(1 for s in segments if s.count > 0)},
+    ])
 
     st.divider()
 
     # ── Segment Overview Cards ────────────────────────────────────
 
-    st.subheader("Segment Overview")
+    section_header("Segment Overview")
     render_segment_cards(segments)
 
     st.divider()
 
     # ── Segment Detail ────────────────────────────────────────────
 
-    st.subheader("Segment Detail")
+    section_header("Segment Detail")
 
     segment_names = [s.name for s in segments]
     selected = st.selectbox("Select a segment", options=segment_names)
@@ -65,8 +63,7 @@ def render():
 
     # ── Re-engagement Queue ───────────────────────────────────────
 
-    st.subheader("Re-engagement Queue")
-    st.caption("Priority contacts to reach out to today, sorted by score and recency.")
+    section_header("Re-engagement Queue", "Priority contacts to reach out to today, sorted by score and recency.")
 
     # Collect all segment clients into a flat list, dedupe by email
     queue: dict[str, dict] = {}
@@ -83,7 +80,7 @@ def render():
                 }
 
     if not queue:
-        st.info("No high-priority re-engagement targets right now.")
+        empty_state("No high-priority re-engagement targets right now.")
     else:
         # Look up scores
         score_map = {}
@@ -112,10 +109,7 @@ def render():
                 st.markdown(f"**{name}**")
                 st.caption(email)
             with c2:
-                st.markdown(
-                    f'<span style="color:{tier_color}; font-weight:bold;">{score}/100</span>',
-                    unsafe_allow_html=True,
-                )
+                st.markdown(badge(f"{score}/100", color=tier_color), unsafe_allow_html=True)
             with c3:
                 st.caption(info["segment"])
             with c4:
@@ -125,7 +119,7 @@ def render():
 
     # ── Win-Back Analysis ─────────────────────────────────────────
 
-    st.subheader("Win-Back Analysis")
+    section_header("Win-Back Analysis")
     claude = st.session_state.get("claude")
     if not claude:
         st.info("Add ANTHROPIC_API_KEY to .env for AI win-back analysis.")

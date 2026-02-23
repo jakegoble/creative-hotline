@@ -16,10 +16,12 @@ from app.utils.keyword_extractor import (
 )
 from app.config import PIPELINE_STATUSES
 from app.utils.formatters import format_percentage
+from app.utils.ui import page_header, section_header, empty_state
+from app.utils import design_tokens as t
 
 
 def render():
-    st.header("Conversion Paths")
+    page_header("Conversion Paths", "Sankey flows, bottlenecks, and keyword themes.")
 
     notion = st.session_state.get("notion")
     if not notion:
@@ -30,13 +32,12 @@ def render():
     intakes = notion.get_all_intakes()
 
     if not payments:
-        st.info("No data yet.")
+        empty_state("No data yet.")
         return
 
     # ── Sankey Flow Diagram ───────────────────────────────────────
 
-    st.subheader("Client Flow Diagram")
-    st.caption("How clients move from lead source through the pipeline to outcome.")
+    section_header("Client Flow Diagram", "How clients move from lead source through the pipeline to outcome.")
 
     fig = render_sankey(payments)
     st.plotly_chart(fig, use_container_width=True)
@@ -45,8 +46,7 @@ def render():
 
     # ── Path Comparison by Source ─────────────────────────────────
 
-    st.subheader("Path Comparison by Lead Source")
-    st.caption("Average pipeline progression by channel.")
+    section_header("Path Comparison by Lead Source", "Average pipeline progression by channel.")
 
     # Group payments by source and compute how far they got
     source_progress: dict[str, dict[str, int]] = {}
@@ -80,14 +80,13 @@ def render():
             pivot = pivot[ordered_cols]
             st.dataframe(pivot, use_container_width=True)
     else:
-        st.info("No source data available.")
+        empty_state("No source data available.")
 
     st.divider()
 
     # ── Bottleneck Detection ──────────────────────────────────────
 
-    st.subheader("Bottleneck Detection")
-    st.caption("Where is the biggest drop-off in each channel?")
+    section_header("Bottleneck Detection", "Where is the biggest drop-off in each channel?")
 
     bottlenecks = []
     for source, stage_counts in source_progress.items():
@@ -119,7 +118,7 @@ def render():
         df = pd.DataFrame(bottlenecks)
         st.dataframe(df, use_container_width=True, hide_index=True)
     else:
-        st.info("Not enough data for bottleneck analysis.")
+        empty_state("Not enough data for bottleneck analysis.")
 
     st.divider()
 
@@ -129,31 +128,28 @@ def render():
         col1, col2 = st.columns(2)
 
         with col1:
-            st.subheader("Creative Themes")
-            st.caption("What are clients asking for help with?")
+            section_header("Creative Themes", "What are clients asking for help with?")
             themes = extract_themes(intakes)
             if themes:
                 theme_df = pd.DataFrame([
-                    {"Theme": t.theme, "Count": t.count, "% of Intakes": f"{t.percentage:.0f}%"}
-                    for t in themes
+                    {"Theme": th.theme, "Count": th.count, "% of Intakes": f"{th.percentage:.0f}%"}
+                    for th in themes
                 ])
                 fig = px.bar(
                     theme_df, x="Count", y="Theme", orientation="h",
-                    color_discrete_sequence=["#FF6B35"],
+                    color_discrete_sequence=[t.PRIMARY],
                 )
                 fig.update_layout(
-                    margin=dict(l=0, r=0, t=10, b=10),
                     height=300,
                     yaxis=dict(autorange="reversed"),
                     showlegend=False,
                 )
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No theme data yet.")
+                empty_state("No theme data yet.")
 
         with col2:
-            st.subheader("Pain Points")
-            st.caption("What are clients struggling with?")
+            section_header("Pain Points", "What are clients struggling with?")
             pain_points = extract_all_pain_points(intakes)
             if pain_points:
                 top_10 = dict(list(pain_points.items())[:10])
@@ -163,24 +159,23 @@ def render():
                 ])
                 fig = px.bar(
                     pp_df, x="Count", y="Pain Point", orientation="h",
-                    color_discrete_sequence=["#E74C3C"],
+                    color_discrete_sequence=[t.DANGER],
                 )
                 fig.update_layout(
-                    margin=dict(l=0, r=0, t=10, b=10),
                     height=300,
                     yaxis=dict(autorange="reversed"),
                     showlegend=False,
                 )
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No pain point data yet.")
+                empty_state("No pain point data yet.")
 
         st.divider()
 
         col3, col4 = st.columns(2)
 
         with col3:
-            st.subheader("Industry Breakdown")
+            section_header("Industry Breakdown")
             industries = get_industry_distribution(intakes)
             if industries:
                 ind_df = pd.DataFrame([
@@ -191,17 +186,13 @@ def render():
                     ind_df, values="Count", names="Industry",
                     color_discrete_sequence=px.colors.sequential.Oranges_r,
                 )
-                fig.update_layout(
-                    margin=dict(l=0, r=0, t=10, b=10),
-                    height=300,
-                )
+                fig.update_layout(height=300)
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No industry data yet.")
+                empty_state("No industry data yet.")
 
         with col4:
-            st.subheader("Outcome Demand")
-            st.caption("What do clients want from their calls?")
+            section_header("Outcome Demand", "What do clients want from their calls?")
             outcomes = get_outcome_demand(intakes)
             if outcomes:
                 out_df = pd.DataFrame([
@@ -210,16 +201,15 @@ def render():
                 ])
                 fig = px.bar(
                     out_df, x="Count", y="Outcome", orientation="h",
-                    color_discrete_sequence=["#4A90D9"],
+                    color_discrete_sequence=[t.INFO],
                 )
                 fig.update_layout(
-                    margin=dict(l=0, r=0, t=10, b=10),
                     height=300,
                     yaxis=dict(autorange="reversed"),
                     showlegend=False,
                 )
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No outcome data yet.")
+                empty_state("No outcome data yet.")
     else:
-        st.info("No intake data yet. Keyword themes and industry breakdown will appear once intake forms are submitted.")
+        empty_state("No intake data yet. Keyword themes and industry breakdown will appear once intake forms are submitted.")

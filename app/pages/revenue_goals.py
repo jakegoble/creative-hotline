@@ -26,10 +26,12 @@ from app.utils.attribution import channel_roi
 from app.utils.ltv_calculator import upsell_rate
 from app.components.growth_chart import render_growth_projection
 from app.components.scenario_cards import render_scenario_comparison, render_product_ladder
+from app.utils.ui import page_header, section_header, metric_row, stat_card, empty_state, data_card
+from app.utils import design_tokens as t
 
 
 def render():
-    st.header("Revenue Goals")
+    page_header("Revenue Goals", "$800K path calculator with scenario modeling.")
 
     notion = st.session_state.get("notion")
     stripe_svc = st.session_state.get("stripe")
@@ -43,7 +45,7 @@ def render():
 
     # ── Revenue Goal Dashboard ───────────────────────────────────
 
-    st.subheader("Goal Dashboard")
+    section_header("Goal Dashboard")
 
     col_goal, col_pace, col_gap, col_pct = st.columns(4)
 
@@ -69,9 +71,11 @@ def render():
     with col_pace:
         st.metric("Current Pace", format_currency(pace["annual_pace"]))
     with col_gap:
-        st.metric("Gap to Goal", format_currency(abs(gap)),
-                   delta=f"{'ahead' if gap <= 0 else 'behind'}",
-                   delta_color="normal" if gap <= 0 else "inverse")
+        st.metric(
+            "Gap to Goal", format_currency(abs(gap)),
+            delta=f"{'ahead' if gap <= 0 else 'behind'}",
+            delta_color="normal" if gap <= 0 else "inverse",
+        )
     with col_pct:
         st.metric("Progress", f"{pct:.0f}%")
 
@@ -82,8 +86,7 @@ def render():
 
     # ── Scenario Modeler ─────────────────────────────────────────
 
-    st.subheader("Scenario Modeler")
-    st.caption("Adjust the product mix to see different paths to your goal.")
+    section_header("Scenario Modeler", "Adjust the product mix to see different paths to your goal.")
 
     tab1, tab2, tab3 = st.tabs(["Current Mix", "With Retainer", "Custom"])
 
@@ -129,14 +132,14 @@ def render():
     st.divider()
 
     # Scenario comparison
-    st.subheader("Scenario Comparison")
+    section_header("Scenario Comparison")
     render_scenario_comparison([s.as_dict() for s in scenarios_list])
 
     st.divider()
 
     # ── Product Ladder ───────────────────────────────────────────
 
-    st.subheader("Product Value Ladder")
+    section_header("Product Value Ladder")
     ladder = product_ladder(payments, PROPOSED_PRODUCTS)
     render_product_ladder(ladder)
 
@@ -144,7 +147,7 @@ def render():
 
     # ── Monthly Milestones ───────────────────────────────────────
 
-    st.subheader("Monthly Milestones")
+    section_header("Monthly Milestones")
 
     growth_rate = st.slider(
         "Monthly growth rate",
@@ -170,27 +173,22 @@ def render():
 
     # Milestone grid
     cols = st.columns(4)
-    for i, t in enumerate(targets[:12]):
+    for i, tgt in enumerate(targets[:12]):
         with cols[i % 4]:
-            on_track = "on track" if t.on_track else "behind"
-            color = "#2ECC71" if t.on_track else "#E74C3C"
-            actual_str = format_currency(t.actual_revenue) if t.actual_revenue > 0 else "—"
-            st.markdown(
-                f'<div style="border-left:3px solid {color}; padding:6px 10px; '
-                f'background:#faf8f5; border-radius:4px; margin-bottom:6px;">'
-                f'<div style="font-size:12px; font-weight:bold;">{t.month}</div>'
-                f'<div style="font-size:11px; color:#888;">Target: {format_currency(t.target_revenue)}</div>'
-                f'<div style="font-size:11px;">Actual: {actual_str}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
+            color = t.SUCCESS if tgt.on_track else t.DANGER
+            actual_str = format_currency(tgt.actual_revenue) if tgt.actual_revenue > 0 else "\u2014"
+            stat_card(
+                label=tgt.month,
+                value=f"Target: {format_currency(tgt.target_revenue)}",
+                subtitle=f"Actual: {actual_str}",
+                accent_color=color,
             )
 
     st.divider()
 
     # ── Channel Investment Planner ───────────────────────────────
 
-    st.subheader("Channel Investment Planner")
-    st.caption("How many leads does each channel need to generate?")
+    section_header("Channel Investment Planner", "How many leads does each channel need to generate?")
 
     if payments:
         roi_data = channel_roi(payments)
@@ -199,33 +197,29 @@ def render():
         if plan:
             for ch in plan:
                 color = CHANNEL_COLORS.get(ch["channel"], "#95A5A6")
-                gap_pct = (ch["lead_gap"] / max(ch["leads_needed"], 1) * 100) if ch["leads_needed"] > 0 else 0
-
-                st.markdown(
-                    f'<div style="border-left:3px solid {color}; padding:8px 12px; '
-                    f'background:#faf8f5; border-radius:4px; margin-bottom:6px;">'
-                    f'<div style="display:flex; justify-content:space-between;">'
-                    f'<span style="font-weight:bold;">{ch["channel"]}</span>'
-                    f'<span style="font-size:12px; color:#888;">'
+                body_html = (
+                    f'<div class="ch-flex-between ch-mb-sm">'
+                    f'<span class="ch-font-semibold">{ch["channel"]}</span>'
+                    f'<span class="ch-text-sm ch-text-muted">'
                     f'{format_percentage(ch["conversion_rate"])} conv. rate</span>'
                     f'</div>'
-                    f'<div style="font-size:12px; margin-top:4px;">'
+                    f'<div class="ch-text-sm">'
                     f'Need: <b>{ch["leads_needed"]}</b> leads/yr '
                     f'&middot; Have: <b>{ch["current_leads"]}</b> '
-                    f'&middot; Gap: <b style="color:#E74C3C;">{ch["lead_gap"]}</b>'
-                    f'</div></div>',
-                    unsafe_allow_html=True,
+                    f'&middot; Gap: <b style="color:{t.DANGER};">{ch["lead_gap"]}</b>'
+                    f'</div>'
                 )
+                data_card(title="", body_html=body_html, accent_color=color)
         else:
-            st.info("Need more conversion data to plan channel investment.")
+            empty_state("Need more conversion data to plan channel investment.")
     else:
-        st.info("Connect Notion to see channel investment plan.")
+        empty_state("Connect Notion to see channel investment plan.")
 
     st.divider()
 
     # ── AI Growth Strategy ───────────────────────────────────────
 
-    st.subheader("AI Growth Strategy")
+    section_header("AI Growth Strategy")
 
     if claude and payments:
         if st.button("Generate Growth Recommendations", type="primary"):
@@ -246,6 +240,6 @@ def render():
         if "growth_analysis" in st.session_state:
             st.markdown(st.session_state["growth_analysis"])
     elif not claude:
-        st.info("Connect Claude API to get AI growth recommendations.")
+        empty_state("Connect Claude API to get AI growth recommendations.")
     else:
-        st.info("Need payment data to analyze growth strategy.")
+        empty_state("Need payment data to analyze growth strategy.")

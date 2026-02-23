@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import streamlit as st
 
+from app.utils import design_tokens as t
 from app.utils.formatters import format_currency
+from app.utils.ui import badge, empty_state
 
 
 def render_scenario_comparison(scenarios: list[dict]) -> None:
@@ -14,37 +16,36 @@ def render_scenario_comparison(scenarios: list[dict]) -> None:
     clients_per_month, calls_per_week, gap_to_goal, feasible.
     """
     if not scenarios:
-        st.info("No scenarios configured.")
+        empty_state("No scenarios configured.")
         return
 
     cols = st.columns(min(len(scenarios), 3))
 
     for col, scenario in zip(cols, scenarios[:3]):
         feasible = scenario.get("feasible", True)
-        badge_color = "#2ECC71" if feasible else "#E74C3C"
+        badge_color = t.SUCCESS if feasible else t.DANGER
         badge_text = "Feasible" if feasible else "Over Capacity"
         gap = scenario.get("gap_to_goal", 0)
-        gap_color = "#2ECC71" if gap <= 0 else "#E74C3C"
+        gap_color = t.SUCCESS if gap <= 0 else t.DANGER
         gap_text = "Goal Reached!" if gap <= 0 else f"${gap:,.0f} gap"
 
         with col:
             st.markdown(
-                f'<div style="border:1px solid #e0dcd8; border-top:3px solid {badge_color}; '
-                f'padding:16px; border-radius:6px; background:#faf8f5;">'
-                f'<div style="display:flex; justify-content:space-between; align-items:center;">'
-                f'<span style="font-weight:bold; font-size:15px;">{scenario.get("name", "Scenario")}</span>'
-                f'<span style="background:{badge_color}; color:white; padding:2px 8px; '
-                f'border-radius:10px; font-size:11px;">{badge_text}</span>'
+                f'<div class="ch-card ch-card--accent-top" style="--accent-color:{badge_color}">'
+                f'<div class="ch-flex-between">'
+                f'<span class="ch-font-bold" style="font-size:15px">'
+                f'{scenario.get("name", "Scenario")}</span>'
+                f'{badge(badge_text, badge_color)}'
                 f'</div>'
-                f'<div style="font-size:28px; font-weight:bold; color:#1a1a1a; margin:8px 0;">'
-                f'{format_currency(scenario.get("annual_revenue", 0))}<span style="font-size:13px; '
-                f'color:#888;">/yr</span></div>'
-                f'<div style="font-size:13px; color:#666; margin:4px 0;">'
+                f'<div class="ch-text-2xl ch-font-bold ch-mt-sm">'
+                f'{format_currency(scenario.get("annual_revenue", 0))}'
+                f'<span class="ch-text-sm ch-text-muted">/yr</span></div>'
+                f'<div class="ch-text-sm ch-text-secondary ch-mt-sm">'
                 f'{format_currency(scenario.get("monthly_revenue", 0))}/mo</div>'
-                f'<div style="font-size:13px; color:#666; margin:4px 0;">'
+                f'<div class="ch-text-sm ch-text-secondary">'
                 f'{scenario.get("clients_per_month", 0)} clients/mo '
                 f'&middot; {scenario.get("calls_per_week", 0)} calls/wk</div>'
-                f'<div style="font-size:13px; color:{gap_color}; font-weight:bold; margin-top:8px;">'
+                f'<div class="ch-text-sm ch-font-bold ch-mt-sm" style="color:{gap_color}">'
                 f'{gap_text}</div>'
                 f'</div>',
                 unsafe_allow_html=True,
@@ -58,7 +59,7 @@ def render_product_ladder(ladder_data: list[dict]) -> None:
     next_tier_conversion, proposed (bool).
     """
     if not ladder_data:
-        st.info("No product data.")
+        empty_state("No product data.")
         return
 
     max_rev = max((p["revenue"] for p in ladder_data), default=1) or 1
@@ -72,25 +73,26 @@ def render_product_ladder(ladder_data: list[dict]) -> None:
         proposed = item.get("proposed", False)
         conv = item.get("next_tier_conversion", 0)
 
-        border_color = "#95A5A6" if proposed else "#FF6B35"
-        bg = "#f0f0f0" if proposed else "#faf8f5"
-        label_extra = ' <span style="color:#95A5A6; font-size:10px;">(proposed)</span>' if proposed else ""
+        accent = t.BORDER_STRONG if proposed else t.PRIMARY
+        label_extra = (
+            f' <span class="ch-text-caption" style="font-size:10px">(proposed)</span>'
+            if proposed else ""
+        )
 
         st.markdown(
-            f'<div style="border-left:3px solid {border_color}; padding:8px 12px; '
-            f'background:{bg}; border-radius:4px; margin-bottom:8px;">'
-            f'<div style="display:flex; justify-content:space-between; align-items:center;">'
-            f'<span style="font-weight:bold; font-size:14px;">{product}{label_extra}</span>'
-            f'<span style="font-size:13px; color:#888;">${price:,}</span>'
+            f'<div class="ch-card ch-card--accent-left" style="--accent-color:{accent};padding:12px 16px">'
+            f'<div class="ch-flex-between">'
+            f'<span class="ch-font-bold ch-text-md">{product}{label_extra}</span>'
+            f'<span class="ch-text-sm ch-text-muted">${price:,}</span>'
             f'</div>'
-            f'<div style="background:#e8e4e0; border-radius:3px; height:20px; margin:6px 0; '
-            f'overflow:hidden;">'
-            f'<div style="background:{border_color}; height:100%; width:{bar_width}%; '
-            f'border-radius:3px; display:flex; align-items:center; padding-left:8px;">'
-            f'<span style="color:white; font-size:11px; font-weight:bold;">'
+            f'<div style="background:var(--border);border-radius:3px;height:20px;'
+            f'margin:6px 0;overflow:hidden">'
+            f'<div style="background:{accent};height:100%;width:{bar_width}%;'
+            f'border-radius:3px;display:flex;align-items:center;padding-left:8px">'
+            f'<span style="color:white;font-size:11px;font-weight:bold">'
             f'{format_currency(revenue)}</span>'
             f'</div></div>'
-            f'<div style="display:flex; justify-content:space-between; font-size:11px; color:#888;">'
+            f'<div class="ch-flex-between ch-text-xs ch-text-muted">'
             f'<span>{volume} sold</span>'
             f'<span>{conv:.0f}% upgrade to next tier</span>'
             f'</div></div>',

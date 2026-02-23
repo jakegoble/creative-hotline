@@ -7,13 +7,15 @@ from __future__ import annotations
 
 import streamlit as st
 
+from app.utils import design_tokens as t
 from app.utils.formatters import format_currency
+from app.utils.ui import badge, empty_state
 
 
 PRIORITY_COLORS = {
-    "high": "#E74C3C",
-    "medium": "#FF6B35",
-    "low": "#95A5A6",
+    "high": t.DANGER,
+    "medium": t.PRIMARY,
+    "low": t.BORDER_STRONG,
 }
 
 PRIORITY_LABELS = {
@@ -24,16 +26,11 @@ PRIORITY_LABELS = {
 
 
 def render_segment_cards(segments: list) -> None:
-    """Render segment overview cards in a 3-column grid.
-
-    Args:
-        segments: List of Segment objects from segment_builder.
-    """
+    """Render segment overview cards in a 3-column grid."""
     if not segments:
-        st.info("No segments to display.")
+        empty_state("No segments to display.")
         return
 
-    # 3-column layout
     cols = st.columns(3)
     for i, seg in enumerate(segments):
         col = cols[i % 3]
@@ -42,23 +39,17 @@ def render_segment_cards(segments: list) -> None:
 
 
 def render_segment_detail(segment, scored_clients: list[dict] | None = None) -> None:
-    """Render detailed view of a single segment with client list.
-
-    Args:
-        segment: A Segment object from segment_builder.
-        scored_clients: Optional scored client list for showing scores.
-    """
+    """Render detailed view of a single segment with client list."""
     if not segment:
         return
 
-    color = PRIORITY_COLORS.get(segment.priority, "#95A5A6")
+    color = PRIORITY_COLORS.get(segment.priority, t.BORDER_STRONG)
 
     st.markdown(
-        f'<div style="border-left:4px solid {color}; padding:12px 16px; '
-        f'background:#faf8f5; border-radius:4px; margin-bottom:16px;">'
-        f'<div style="font-size:18px; font-weight:bold;">{segment.name}</div>'
-        f'<div style="font-size:13px; color:#666; margin-top:4px;">{segment.description}</div>'
-        f'<div style="font-size:13px; color:{color}; margin-top:8px; font-weight:600;">'
+        f'<div class="ch-card ch-card--accent-left" style="--accent-color:{color}">'
+        f'<div class="ch-text-lg ch-font-bold">{segment.name}</div>'
+        f'<div class="ch-text-sm ch-text-secondary ch-mt-sm">{segment.description}</div>'
+        f'<div class="ch-text-sm ch-font-semibold ch-mt-sm" style="color:{color}">'
         f'Action: {segment.action}</div>'
         f'</div>',
         unsafe_allow_html=True,
@@ -68,7 +59,6 @@ def render_segment_detail(segment, scored_clients: list[dict] | None = None) -> 
         st.caption("No clients in this segment right now.")
         return
 
-    # Build score lookup if available
     score_map = {}
     if scored_clients:
         for sc in scored_clients:
@@ -76,13 +66,12 @@ def render_segment_detail(segment, scored_clients: list[dict] | None = None) -> 
             if email:
                 score_map[email] = sc.get("score", {}).get("total", 0)
 
-    # Client table
     for client in segment.clients:
         name = client.get("client_name") or client.get("email", "Unknown")
         email = client.get("email", "")
         status = client.get("status", "")
         amount = client.get("payment_amount", 0)
-        score = score_map.get(email.lower(), "—")
+        score = score_map.get(email.lower(), "\u2014")
 
         c1, c2, c3, c4 = st.columns([3, 2, 2, 1])
         with c1:
@@ -100,31 +89,28 @@ def render_segment_detail(segment, scored_clients: list[dict] | None = None) -> 
 
 def _render_card(segment) -> None:
     """Render a single segment card."""
-    color = PRIORITY_COLORS.get(segment.priority, "#95A5A6")
+    color = PRIORITY_COLORS.get(segment.priority, t.BORDER_STRONG)
     badge_label = PRIORITY_LABELS.get(segment.priority, "")
 
-    # Top 3 client names
     top_names = []
     for c in segment.clients[:3]:
         name = c.get("client_name") or c.get("email", "?").split("@")[0]
         top_names.append(name)
-    names_html = ", ".join(top_names) if top_names else "—"
+    names_html = ", ".join(top_names) if top_names else "\u2014"
     if segment.count > 3:
         names_html += f" +{segment.count - 3} more"
 
     st.markdown(
-        f'<div style="border:1px solid #e0e0e0; border-top:3px solid {color}; '
-        f'border-radius:8px; padding:16px; margin-bottom:12px; background:white;">'
-        f'<div style="display:flex; justify-content:space-between; align-items:center;">'
-        f'<span style="font-size:15px; font-weight:bold;">{segment.name}</span>'
-        f'<span style="background:{color}; color:white; padding:1px 8px; '
-        f'border-radius:10px; font-size:10px; font-weight:bold;">{badge_label}</span>'
+        f'<div class="ch-card ch-card--accent-top" style="--accent-color:{color}">'
+        f'<div class="ch-flex-between">'
+        f'<span class="ch-font-bold" style="font-size:15px">{segment.name}</span>'
+        f'{badge(badge_label, color)}'
         f'</div>'
-        f'<div style="font-size:28px; font-weight:bold; margin:8px 0; color:{color};">'
+        f'<div class="ch-text-2xl ch-font-bold ch-mt-sm" style="color:{color}">'
         f'{segment.count}</div>'
-        f'<div style="font-size:12px; color:#888;">clients</div>'
-        f'<div style="font-size:12px; color:#666; margin-top:8px;">{names_html}</div>'
-        f'<div style="font-size:11px; color:#888; margin-top:8px;">'
+        f'<div class="ch-text-xs ch-text-muted">clients</div>'
+        f'<div class="ch-text-xs ch-text-secondary ch-mt-sm">{names_html}</div>'
+        f'<div class="ch-text-xs ch-text-muted ch-mt-sm">'
         f'Est. value: {format_currency(segment.estimated_value)}</div>'
         f'</div>',
         unsafe_allow_html=True,

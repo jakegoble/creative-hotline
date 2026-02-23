@@ -1,8 +1,12 @@
 """Revenue projection component — trailing 30-day trend extrapolation."""
 
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 
 import plotly.graph_objects as go
+
+from app.utils.design_tokens import BORDER_DEFAULT, PRIMARY
 
 
 def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
@@ -16,7 +20,7 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
         fig.update_layout(
             annotations=[dict(text="No revenue data yet", showarrow=False,
                             xref="paper", yref="paper", x=0.5, y=0.5)],
-            height=300,
+            height=350,
         )
         return fig
 
@@ -31,7 +35,7 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
         y=revenues,
         mode="lines+markers",
         name="Revenue",
-        line=dict(color="#FF6B35", width=3),
+        line=dict(color=PRIMARY, width=3),
         marker=dict(size=8),
     ))
 
@@ -47,20 +51,16 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
                 y=[revenues[-1], avg_recent],
                 mode="lines+markers",
                 name="Projected",
-                line=dict(color="#FF6B35", width=2, dash="dot"),
+                line=dict(color=PRIMARY, width=2, dash="dot"),
                 marker=dict(size=8, symbol="diamond"),
             ))
         except ValueError:
             pass
 
     fig.update_layout(
-        margin=dict(l=0, r=0, t=10, b=10),
-        height=300,
-        font=dict(family="system-ui, -apple-system, sans-serif"),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        yaxis=dict(tickprefix="$", gridcolor="#f0f0f0"),
-        xaxis=dict(gridcolor="#f0f0f0"),
+        height=350,
+        yaxis=dict(tickprefix="$", gridcolor=BORDER_DEFAULT),
+        xaxis=dict(gridcolor=BORDER_DEFAULT),
         legend=dict(orientation="h", y=-0.15),
         hovermode="x unified",
     )

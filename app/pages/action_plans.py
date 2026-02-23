@@ -16,10 +16,11 @@ from app.utils.transcript_processor import (
     format_summary_for_display,
 )
 from app.utils.plan_delivery import generate_client_html, save_client_page
+from app.utils.ui import page_header, section_header, key_value_inline, empty_state
 
 
 def render():
-    st.header("Action Plan Studio")
+    page_header("Action Plan Studio", "Process transcripts, generate action plans, and deliver to clients.")
 
     notion = st.session_state.get("notion")
     claude = st.session_state.get("claude")
@@ -34,7 +35,7 @@ def render():
 
     merged = notion.get_merged_clients()
     if not merged:
-        st.info("No client records found.")
+        empty_state("No client records found.")
         return
 
     # ── Client Selector ───────────────────────────────────────────
@@ -48,7 +49,7 @@ def render():
     ]
 
     if not eligible:
-        st.info(
+        empty_state(
             "No clients ready for action plans. "
             "Clients need to be at 'Intake Complete' status or later."
         )
@@ -79,21 +80,21 @@ def render():
 
     # ── Client Brief ──────────────────────────────────────────────
 
-    st.subheader("Client Brief")
+    section_header("Client Brief")
 
     col1, col2 = st.columns(2)
 
     with col1:
-        st.markdown(f"**Name:** {payment.get('client_name') or '—'}")
-        st.markdown(f"**Email:** {payment.get('email') or '—'}")
-        st.markdown(f"**Product:** {payment.get('product_purchased') or '—'}")
-        st.markdown(f"**Amount:** {format_currency(payment.get('payment_amount', 0))}")
+        key_value_inline("Name", payment.get("client_name") or "—")
+        key_value_inline("Email", payment.get("email") or "—")
+        key_value_inline("Product", payment.get("product_purchased") or "—")
+        key_value_inline("Amount", format_currency(payment.get("payment_amount", 0)))
 
     with col2:
-        st.markdown(f"**Role:** {intake.get('role') or '—'}")
-        st.markdown(f"**Brand:** {intake.get('brand') or '—'}")
-        st.markdown(f"**Deadline:** {intake.get('deadline') or '—'}")
-        st.markdown(f"**Status:** {payment.get('status') or '—'}")
+        key_value_inline("Role", intake.get("role") or "—")
+        key_value_inline("Brand", intake.get("brand") or "—")
+        key_value_inline("Deadline", intake.get("deadline") or "—")
+        key_value_inline("Status", payment.get("status") or "—")
 
     if intake.get("creative_emergency"):
         with st.expander("Creative Emergency", expanded=True):
@@ -101,7 +102,7 @@ def render():
 
     outcomes = intake.get("desired_outcome", [])
     if outcomes:
-        st.markdown(f"**Desired Outcomes:** {', '.join(outcomes)}")
+        key_value_inline("Desired Outcomes", ", ".join(outcomes))
 
     if intake.get("ai_summary"):
         with st.expander("AI Intake Summary"):
@@ -283,7 +284,7 @@ def _render_plan_display(
     plan_text = st.session_state[plan_key]
     transcript_summary = st.session_state.get(transcript_key)
 
-    st.subheader("Generated Action Plan")
+    section_header("Generated Action Plan")
     st.markdown(plan_text)
     st.divider()
 

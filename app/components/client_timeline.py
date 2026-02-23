@@ -1,6 +1,6 @@
 """Visual client timeline component — shows full journey per client.
 
-Stages: DM/Lead → Payment → Booking → Intake → Call → Action Plan → Follow-Up
+Stages: DM/Lead -> Payment -> Booking -> Intake -> Call -> Action Plan -> Follow-Up
 Each stage shows source system, date, and key details.
 """
 
@@ -9,6 +9,7 @@ from __future__ import annotations
 import streamlit as st
 
 from app.config import PIPELINE_STATUSES
+from app.utils import design_tokens as tok
 from app.utils.formatters import format_date, format_currency, truncate
 
 
@@ -24,12 +25,7 @@ JOURNEY_STAGES = [
 
 
 def render_timeline(payment: dict, intake: dict | None = None) -> None:
-    """Render a vertical timeline showing a client's journey.
-
-    Args:
-        payment: Parsed payment record from Notion
-        intake: Parsed intake record from Notion (if available)
-    """
+    """Render a vertical timeline showing a client's journey."""
     current_status = payment.get("status", "")
     current_index = (
         PIPELINE_STATUSES.index(current_status)
@@ -42,34 +38,31 @@ def render_timeline(payment: dict, intake: dict | None = None) -> None:
         is_completed = current_index >= stage_index
         is_current = current_index == stage_index
 
-        # Determine visual state
         if is_current:
-            color = "#FF6B35"  # orange — active
+            color = tok.PRIMARY
             badge = "CURRENT"
         elif is_completed:
-            color = "#28a745"  # green — done
+            color = tok.SUCCESS
             badge = "DONE"
         else:
-            color = "#ccc"  # gray — future
+            color = tok.BORDER_STRONG
             badge = ""
 
-        # Build stage details
         details = _get_stage_details(stage["key"], payment, intake)
 
-        # Render stage
         col_line, col_content = st.columns([1, 11])
 
         with col_line:
             connector = (
-                '<div style="width:2px;height:40px;background:#e0e0e0;margin:0 auto;"></div>'
+                f'<div style="width:2px;height:40px;background:var(--border);margin:0 auto"></div>'
                 if stage != JOURNEY_STAGES[-1] else ""
             )
             st.markdown(
-                f'<div style="text-align:center;">'
+                f'<div style="text-align:center">'
                 f'<div style="width:32px;height:32px;border-radius:50%;'
                 f'background:{color};color:white;display:inline-flex;'
                 f'align-items:center;justify-content:center;font-weight:bold;'
-                f'font-size:14px;">{stage["icon"]}</div>'
+                f'font-size:14px">{stage["icon"]}</div>'
                 f'{connector}'
                 f'</div>',
                 unsafe_allow_html=True,
@@ -105,14 +98,14 @@ def _get_stage_details(key: str, payment: dict, intake: dict | None) -> list[str
         product = payment.get("product_purchased") or "Unknown product"
         date = format_date(payment.get("payment_date", ""))
         if amount > 0:
-            details.append(f"{product} — {format_currency(amount)}")
+            details.append(f"{product} \u2014 {format_currency(amount)}")
             details.append(f"Date: {date}")
             if payment.get("stripe_session_id"):
                 details.append(f"Stripe: {payment['stripe_session_id'][:20]}...")
 
     elif key == "booked":
         call_date = format_date(payment.get("call_date", ""))
-        if call_date != "—":
+        if call_date != "\u2014":
             details.append(f"Call date: {call_date}")
         if payment.get("calendly_link"):
             details.append(f"Calendly: {payment['calendly_link'][:50]}...")
@@ -130,7 +123,6 @@ def _get_stage_details(key: str, payment: dict, intake: dict | None) -> list[str
             details.append("No intake form received")
 
     elif key == "call":
-        # Call completion is tracked by status change
         if payment.get("status") in ("Call Complete", "Follow-Up Sent"):
             details.append("Call completed")
 
@@ -162,7 +154,7 @@ def render_client_card(payment: dict, intake: dict | None = None, show_score: bo
     with col2:
         st.caption(f"Status: {status}")
         if product and amount > 0:
-            st.caption(f"{product} — {format_currency(amount)}")
+            st.caption(f"{product} \u2014 {format_currency(amount)}")
         st.caption(f"Source: {source} | Joined: {created}")
 
     with col3:

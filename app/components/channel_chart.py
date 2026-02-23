@@ -8,6 +8,7 @@ from __future__ import annotations
 import plotly.graph_objects as go
 
 from app.config import LEAD_SOURCES
+from app.utils.design_tokens import BORDER_DEFAULT
 
 
 def _hex_to_rgba(hex_color: str, alpha: float = 0.3) -> str:
@@ -32,11 +33,7 @@ CHANNEL_COLORS = {
 
 
 def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
-    """Grouped bar chart comparing channels across metrics.
-
-    Args:
-        channel_metrics: Dict of {channel: {leads, conversions, revenue, avg_score, conversion_rate}}
-    """
+    """Grouped bar chart comparing channels across metrics."""
     if not channel_metrics:
         fig = go.Figure()
         fig.update_layout(
@@ -50,8 +47,6 @@ def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
     colors = [CHANNEL_COLORS.get(ch, "#95A5A6") for ch in channels]
 
     fig = go.Figure()
-
-    # Revenue bars
     fig.add_trace(go.Bar(
         name="Revenue ($)",
         x=channels,
@@ -64,11 +59,7 @@ def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
     fig.update_layout(
         barmode="group",
         height=350,
-        margin=dict(l=0, r=0, t=30, b=10),
-        font=dict(family="system-ui, -apple-system, sans-serif"),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        yaxis=dict(tickprefix="$", gridcolor="#f0f0f0"),
+        yaxis=dict(tickprefix="$", gridcolor=BORDER_DEFAULT),
         xaxis_tickangle=-45,
         showlegend=False,
     )
@@ -77,13 +68,7 @@ def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
 
 
 def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
-    """Radar/spider chart comparing channels on normalized metrics.
-
-    Each metric is normalized to 0-100 for fair comparison.
-
-    Args:
-        channel_metrics: Dict of {channel: {leads, conversions, revenue, avg_score, conversion_rate}}
-    """
+    """Radar/spider chart comparing channels on normalized metrics."""
     if not channel_metrics:
         fig = go.Figure()
         fig.update_layout(
@@ -95,7 +80,6 @@ def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
 
     categories = ["Lead Volume", "Conversion Rate", "Revenue", "Avg Score", "Deal Size"]
 
-    # Normalize each metric to 0-100
     metrics = list(channel_metrics.values())
     max_leads = max((m.get("leads", 0) for m in metrics), default=1) or 1
     max_revenue = max((m.get("revenue", 0) for m in metrics), default=1) or 1
@@ -112,7 +96,6 @@ def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
             m.get("avg_score", 0) / max_score * 100,
             m.get("avg_deal_size", 0) / max_deal * 100,
         ]
-        # Close the polygon
         values.append(values[0])
 
         color = CHANNEL_COLORS.get(channel, "#95A5A6")
@@ -132,8 +115,6 @@ def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
         ),
         height=400,
         margin=dict(l=40, r=40, t=30, b=30),
-        font=dict(family="system-ui, -apple-system, sans-serif"),
-        paper_bgcolor="rgba(0,0,0,0)",
         legend=dict(orientation="h", y=-0.1),
     )
 
@@ -141,11 +122,7 @@ def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
 
 
 def render_revenue_by_source(revenue_data: dict[str, dict[str, float]]) -> go.Figure:
-    """Stacked area chart of revenue by source over time.
-
-    Args:
-        revenue_data: Dict of {month: {source: revenue}} from attribution.get_revenue_by_source_over_time()
-    """
+    """Stacked area chart of revenue by source over time."""
     if not revenue_data:
         fig = go.Figure()
         fig.update_layout(
@@ -176,12 +153,8 @@ def render_revenue_by_source(revenue_data: dict[str, dict[str, float]]) -> go.Fi
 
     fig.update_layout(
         height=350,
-        margin=dict(l=0, r=0, t=10, b=10),
-        font=dict(family="system-ui, -apple-system, sans-serif"),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
-        yaxis=dict(tickprefix="$", gridcolor="#f0f0f0"),
-        xaxis=dict(gridcolor="#f0f0f0"),
+        yaxis=dict(tickprefix="$", gridcolor=BORDER_DEFAULT),
+        xaxis=dict(gridcolor=BORDER_DEFAULT),
         legend=dict(orientation="h", y=-0.15),
         hovermode="x unified",
     )

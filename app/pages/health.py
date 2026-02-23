@@ -3,10 +3,11 @@
 import streamlit as st
 
 from app.utils.formatters import format_relative_time
+from app.utils.ui import page_header, section_header, metric_row, empty_state
 
 
 def render():
-    st.header("System Health")
+    page_header("System Health", "Service status, latency monitoring, and cache diagnostics.")
 
     health_checker = st.session_state.get("health")
     if not health_checker:
@@ -27,11 +28,11 @@ def render():
 
     # ── Service Status Grid ──────────────────────────────────────
 
-    st.subheader("Service Status")
+    section_header("Service Status")
     statuses = health_checker.get_all_statuses()
 
     if not statuses:
-        st.info("Click 'Run Health Checks' to check all services.")
+        empty_state("Click 'Run Health Checks' to check all services.")
         return
 
     composite = health_checker.composite_score
@@ -57,24 +58,23 @@ def render():
 
     # ── Service Details ──────────────────────────────────────────
 
-    st.subheader("Service Details")
+    section_header("Service Details")
 
     for status in statuses:
         with st.expander(f"{status.status_emoji} {status.service} — {status.status_text}"):
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Status", "Healthy" if status.healthy else "Down")
-            with col2:
-                st.metric("Latency", f"{status.latency_ms:.0f}ms")
-            with col3:
-                age = status.age_seconds
-                if age < 60:
-                    age_str = f"{age:.0f}s ago"
-                elif age < 3600:
-                    age_str = f"{age / 60:.0f}m ago"
-                else:
-                    age_str = f"{age / 3600:.1f}h ago"
-                st.metric("Last Check", age_str)
+            age = status.age_seconds
+            if age < 60:
+                age_str = f"{age:.0f}s ago"
+            elif age < 3600:
+                age_str = f"{age / 60:.0f}m ago"
+            else:
+                age_str = f"{age / 3600:.1f}h ago"
+
+            metric_row([
+                {"label": "Status", "value": "Healthy" if status.healthy else "Down"},
+                {"label": "Latency", "value": f"{status.latency_ms:.0f}ms"},
+                {"label": "Last Check", "value": age_str},
+            ])
 
             if status.error:
                 st.code(status.error, language=None)
@@ -83,17 +83,15 @@ def render():
 
     # ── Cache Stats ──────────────────────────────────────────────
 
-    st.subheader("Cache Status")
+    section_header("Cache Status")
     from app.services.cache_manager import cache
     stats = cache.stats()
 
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        st.metric("Total Entries", stats["total_entries"])
-    with c2:
-        st.metric("Active", stats["active_entries"])
-    with c3:
-        st.metric("Expired", stats["expired_entries"])
+    metric_row([
+        {"label": "Total Entries", "value": str(stats["total_entries"])},
+        {"label": "Active", "value": str(stats["active_entries"])},
+        {"label": "Expired", "value": str(stats["expired_entries"])},
+    ])
 
     st.caption("Cache tiers:")
     for tier, count in stats["tiers"].items():

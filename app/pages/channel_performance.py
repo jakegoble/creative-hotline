@@ -21,10 +21,12 @@ from app.components.channel_chart import (
 )
 from app.components.heatmap import render_activity_heatmap
 from app.utils.formatters import format_currency, format_percentage
+from app.utils import design_tokens as t
+from app.utils.ui import page_header, section_header, stat_card, empty_state
 
 
 def render():
-    st.header("Channel Performance")
+    page_header("Channel Performance", "Attribution, ROI, and channel comparison across lead sources.")
 
     notion = st.session_state.get("notion")
     if not notion:
@@ -33,7 +35,7 @@ def render():
 
     payments = notion.get_all_payments()
     if not payments:
-        st.info("No payment data yet.")
+        empty_state("No payment data yet.")
         return
 
     merged = notion.get_merged_clients()
@@ -41,7 +43,7 @@ def render():
 
     # ── Channel ROI Cards ─────────────────────────────────────────
 
-    st.subheader("Channel ROI Overview")
+    section_header("Channel ROI Overview")
 
     roi_data = channel_roi(payments)
     if roi_data:
@@ -60,19 +62,15 @@ def render():
                     scores = source_scores[ch["channel"]]
                     avg_score = sum(scores) / len(scores)
 
-                st.markdown(
-                    f'<div style="border-top:3px solid {color}; padding:12px; '
-                    f'background:white; border-radius:8px; border:1px solid #e0e0e0;">'
-                    f'<div style="font-size:14px; font-weight:bold;">{ch["channel"]}</div>'
-                    f'<div style="font-size:24px; font-weight:bold; color:{color}; margin:4px 0;">'
-                    f'{format_currency(ch["revenue"])}</div>'
-                    f'<div style="font-size:12px; color:#666;">'
-                    f'{ch["leads"]} leads · {ch["conversions"]} converted · '
-                    f'{format_percentage(ch["conversion_rate"])} rate</div>'
-                    f'<div style="font-size:12px; color:#888; margin-top:4px;">'
-                    f'Avg score: {avg_score:.0f} · Deal: {format_currency(ch["avg_deal_size"])}</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
+                stat_card(
+                    label=ch["channel"],
+                    value=format_currency(ch["revenue"]),
+                    subtitle=(
+                        f"{ch['leads']} leads \u00b7 {ch['conversions']} converted \u00b7 "
+                        f"{format_percentage(ch['conversion_rate'])} rate \u00b7 "
+                        f"Avg score: {avg_score:.0f} \u00b7 Deal: {format_currency(ch['avg_deal_size'])}"
+                    ),
+                    accent_color=color,
                 )
 
         # Show remaining channels if > 4
@@ -80,7 +78,7 @@ def render():
             with st.expander(f"+ {len(roi_data) - 4} more channels"):
                 for ch in roi_data[4:]:
                     st.markdown(
-                        f"**{ch['channel']}** — {ch['leads']} leads, "
+                        f"**{ch['channel']}** \u2014 {ch['leads']} leads, "
                         f"{ch['conversions']} converted, {format_currency(ch['revenue'])}"
                     )
 
@@ -88,8 +86,7 @@ def render():
 
     # ── Attribution Model Comparison ──────────────────────────────
 
-    st.subheader("Attribution Model Comparison")
-    st.caption("See how different models attribute revenue credit across channels.")
+    section_header("Attribution Model Comparison", "See how different models attribute revenue credit across channels.")
 
     model_choice = st.selectbox(
         "Attribution Model",
@@ -132,20 +129,19 @@ def render():
 
     # ── Revenue by Channel Over Time ──────────────────────────────
 
-    st.subheader("Revenue by Channel Over Time")
+    section_header("Revenue by Channel Over Time")
     revenue_over_time = get_revenue_by_source_over_time(payments)
     if revenue_over_time:
         fig = render_revenue_by_source(revenue_over_time)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Need more data to show revenue trends by channel.")
+        empty_state("Need more data to show revenue trends by channel.")
 
     st.divider()
 
     # ── Activity Heatmap ──────────────────────────────────────────
 
-    st.subheader("Payment Activity Heatmap")
-    st.caption("When are clients paying? Useful for ad scheduling and content timing.")
+    section_header("Payment Activity Heatmap", "When are clients paying? Useful for ad scheduling and content timing.")
 
     fig = render_activity_heatmap(payments, date_field="created", title="Payment Activity by Day & Hour")
     st.plotly_chart(fig, use_container_width=True)
@@ -154,10 +150,10 @@ def render():
 
     # ── AI Channel Insights ───────────────────────────────────────
 
-    st.subheader("AI Channel Insights")
+    section_header("AI Channel Insights")
     claude = st.session_state.get("claude")
     if not claude:
-        st.info("Add ANTHROPIC_API_KEY to .env to enable AI channel analysis.")
+        empty_state("Add ANTHROPIC_API_KEY to .env to enable AI channel analysis.")
         return
 
     if st.button("Analyze Channels", type="primary"):

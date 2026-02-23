@@ -9,6 +9,8 @@ from datetime import datetime
 
 import plotly.graph_objects as go
 
+from app.utils.design_tokens import BG_MUTED, PRIMARY, PRIMARY_LIGHT
+
 
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 HOURS = list(range(24))
@@ -27,7 +29,6 @@ def render_activity_heatmap(
         date_field: The key to extract datetime from each event.
         title: Chart title.
     """
-    # Build the matrix: [day_of_week][hour] = count
     matrix = [[0 for _ in range(24)] for _ in range(7)]
 
     for event in events:
@@ -36,7 +37,7 @@ def render_activity_heatmap(
             continue
         try:
             dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-            day = dt.weekday()  # 0=Monday
+            day = dt.weekday()
             hour = dt.hour
             matrix[day][hour] += 1
         except (ValueError, TypeError):
@@ -47,7 +48,7 @@ def render_activity_heatmap(
         fig.update_layout(
             annotations=[dict(text="No activity data yet", showarrow=False,
                               xref="paper", yref="paper", x=0.5, y=0.5)],
-            height=300,
+            height=350,
         )
         return fig
 
@@ -56,11 +57,11 @@ def render_activity_heatmap(
         x=HOUR_LABELS,
         y=DAYS_OF_WEEK,
         colorscale=[
-            [0, "#faf8f5"],
+            [0, BG_MUTED],
             [0.25, "#FFD4B8"],
-            [0.5, "#FFA564"],
+            [0.5, PRIMARY_LIGHT],
             [0.75, "#FF8C50"],
-            [1.0, "#FF6B35"],
+            [1.0, PRIMARY],
         ],
         hovertemplate="%{y} %{x}: %{z} events<extra></extra>",
         showscale=True,
@@ -68,12 +69,8 @@ def render_activity_heatmap(
     ))
 
     fig.update_layout(
-        height=300,
-        margin=dict(l=0, r=0, t=30, b=10),
+        height=350,
         title=dict(text=title, font=dict(size=14)),
-        font=dict(family="system-ui, -apple-system, sans-serif"),
-        plot_bgcolor="rgba(0,0,0,0)",
-        paper_bgcolor="rgba(0,0,0,0)",
         xaxis=dict(dtick=3),
         yaxis=dict(autorange="reversed"),
     )

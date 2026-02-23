@@ -3,16 +3,17 @@
 import streamlit as st
 
 from app.config import load_settings
+from app.utils.ui import page_header, section_header, key_value_inline
 
 
 def render():
-    st.header("Settings")
+    page_header("Settings", "Configuration, API connections, and app preferences.")
 
     settings = load_settings()
 
     # ── Demo Mode ─────────────────────────────────────────────
 
-    st.subheader("Demo Mode")
+    section_header("Demo Mode")
     demo_on = st.toggle(
         "Show sample data on all pages",
         value=st.session_state.get("demo_mode", False),
@@ -30,7 +31,7 @@ def render():
 
     # ── Connection Status ────────────────────────────────────────
 
-    st.subheader("API Connections")
+    section_header("API Connections")
 
     connections = [
         ("Notion", bool(settings.NOTION_API_KEY), "NOTION_API_KEY"),
@@ -55,7 +56,7 @@ def render():
 
     # ── Database IDs ─────────────────────────────────────────────
 
-    st.subheader("Notion Databases")
+    section_header("Notion Databases")
     st.code(f"Payments DB: {settings.NOTION_PAYMENTS_DB}", language=None)
     st.code(f"Intake DB:   {settings.NOTION_INTAKE_DB}", language=None)
 
@@ -63,8 +64,8 @@ def render():
 
     # ── App Info ─────────────────────────────────────────────────
 
-    st.subheader("About")
-    st.caption("Creative Hotline Command Center v4.1")
+    section_header("About")
+    st.caption("Creative Hotline Command Center v5.0")
     st.caption("Built for Jake Goble & Megha")
     st.caption("Stack: Streamlit + Plotly + Notion + Stripe + Calendly + ManyChat + Claude")
 
@@ -72,7 +73,7 @@ def render():
 
     # ── Cache Management ─────────────────────────────────────────
 
-    st.subheader("Cache")
+    section_header("Cache")
     if st.button("Clear All Caches"):
         from app.services.cache_manager import cache
         cache.invalidate_all()

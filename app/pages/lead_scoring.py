@@ -5,10 +5,19 @@ import plotly.graph_objects as go
 
 from app.utils.lead_scorer import score_all_clients, get_tier_color, TIER_HOT, TIER_WARM, TIER_COOL
 from app.utils.formatters import format_currency
+from app.utils import design_tokens as t
+from app.utils.ui import (
+    page_header,
+    section_header,
+    stat_card,
+    empty_state,
+    badge,
+    progress_bar,
+)
 
 
 def render():
-    st.header("Lead Intelligence")
+    page_header("Lead Intelligence", "Scored leads with tier analysis and attribution insights.")
 
     notion = st.session_state.get("notion")
     if not notion:
@@ -17,7 +26,7 @@ def render():
 
     merged = notion.get_merged_clients()
     if not merged:
-        st.info("No client records found.")
+        empty_state("No client records found.")
         return
 
     scored = score_all_clients(merged)
@@ -32,14 +41,10 @@ def render():
     for col, (tier, count) in zip(cols, tiers.items()):
         color = get_tier_color(tier)
         with col:
-            st.markdown(
-                f'<div style="text-align:center; padding:12px; '
-                f'border-left:4px solid {color}; background:#faf8f5; '
-                f'border-radius:4px;">'
-                f'<div style="font-size:28px; font-weight:bold; color:{color};">{count}</div>'
-                f'<div style="font-size:13px; color:#666;">{tier} Leads</div>'
-                f'</div>',
-                unsafe_allow_html=True,
+            stat_card(
+                label=f"{tier} Leads",
+                value=str(count),
+                accent_color=color,
             )
 
     st.divider()
@@ -93,46 +98,37 @@ def render():
         with st.container():
             st.markdown(
                 f'<div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">'
-                f'<span style="background:{color}; color:white; padding:2px 10px; '
-                f'border-radius:12px; font-size:12px; font-weight:bold;">{tier}</span>'
+                f'{badge(tier, color=color)}'
                 f'<span style="font-size:18px; font-weight:bold;">{name}</span>'
-                f'<span style="font-size:14px; color:#666; margin-left:auto;">{total}/100</span>'
+                f'<span style="font-size:14px; color:{t.TEXT_MUTED}; margin-left:auto;">{total}/100</span>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
 
             # Score breakdown bar
             categories = [
-                ("Engagement", score["engagement"]["score"], score["engagement"]["max"], "#FF6B35"),
-                ("Velocity", score["velocity"]["score"], score["velocity"]["max"], "#4A90D9"),
-                ("Urgency", score["urgency"]["score"], score["urgency"]["max"], "#E74C3C"),
-                ("Source", score["source"]["score"], score["source"]["max"], "#2ECC71"),
+                ("Engagement", score["engagement"]["score"], score["engagement"]["max"], t.PRIMARY),
+                ("Velocity", score["velocity"]["score"], score["velocity"]["max"], t.INFO),
+                ("Urgency", score["urgency"]["score"], score["urgency"]["max"], t.DANGER),
+                ("Source", score["source"]["score"], score["source"]["max"], t.SUCCESS),
                 ("Upsell", score["upsell"]["score"], score["upsell"]["max"], "#9B59B6"),
             ]
 
             score_cols = st.columns(5)
             for col, (cat_name, cat_score, cat_max, cat_color) in zip(score_cols, categories):
                 with col:
-                    pct = cat_score / cat_max * 100 if cat_max > 0 else 0
-                    st.markdown(
-                        f'<div style="text-align:center;">'
-                        f'<div style="font-size:11px; color:#888;">{cat_name}</div>'
-                        f'<div style="font-size:16px; font-weight:bold; color:{cat_color};">'
-                        f'{cat_score}/{cat_max}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
+                    progress_bar(cat_score, cat_max, color=cat_color, label=cat_name, show_value=True)
 
             # Quick details
             detail_cols = st.columns(4)
             with detail_cols[0]:
-                st.caption(f"Product: {payment.get('product_purchased') or '—'}")
+                st.caption(f"Product: {payment.get('product_purchased') or '\u2014'}")
             with detail_cols[1]:
                 st.caption(f"Amount: {format_currency(payment.get('payment_amount', 0))}")
             with detail_cols[2]:
-                st.caption(f"Status: {payment.get('status') or '—'}")
+                st.caption(f"Status: {payment.get('status') or '\u2014'}")
             with detail_cols[3]:
-                st.caption(f"Source: {payment.get('lead_source') or '—'}")
+                st.caption(f"Source: {payment.get('lead_source') or '\u2014'}")
 
             # Expandable score reasons
             with st.expander("Score Details"):
@@ -145,7 +141,7 @@ def render():
 
     # ── Attribution Charts ────────────────────────────────────────
 
-    st.subheader("Lead Source Attribution")
+    section_header("Lead Source Attribution")
 
     col_chart1, col_chart2 = st.columns(2)
 
@@ -165,13 +161,12 @@ def render():
             y=avg_scores,
             text=[f"{s:.0f}" for s in avg_scores],
             textposition="outside",
-            marker_color="#FF6B35",
+            marker_color=t.PRIMARY,
         ))
         fig.update_layout(
             title="Avg Score by Lead Source",
             yaxis_title="Average Score",
             height=350,
-            margin=dict(t=40, b=40),
         )
         st.plotly_chart(fig, use_container_width=True)
 
@@ -179,7 +174,7 @@ def render():
     with col_chart2:
         tier_labels = list(tiers.keys())
         tier_values = list(tiers.values())
-        tier_colors = [get_tier_color(t) for t in tier_labels]
+        tier_colors = [get_tier_color(tier_l) for tier_l in tier_labels]
 
         fig = go.Figure(go.Pie(
             labels=tier_labels,
@@ -191,7 +186,6 @@ def render():
         fig.update_layout(
             title="Tier Distribution",
             height=350,
-            margin=dict(t=40, b=40),
             showlegend=False,
         )
         st.plotly_chart(fig, use_container_width=True)
@@ -199,11 +193,11 @@ def render():
     # ── ICP Analysis ──────────────────────────────────────────────
 
     st.divider()
-    st.subheader("Ideal Client Profile Analysis")
+    section_header("Ideal Client Profile Analysis")
 
     claude = st.session_state.get("claude")
     if not claude:
-        st.info("Add ANTHROPIC_API_KEY to .env to enable AI-powered ICP analysis.")
+        empty_state("Add ANTHROPIC_API_KEY to .env to enable AI-powered ICP analysis.")
         return
 
     if st.button("Run ICP Analysis", type="primary"):
@@ -217,7 +211,7 @@ def render():
     # ── Keyword Insights ──────────────────────────────────────────
 
     st.divider()
-    st.subheader("Keyword Insights")
+    section_header("Keyword Insights")
 
     intakes = [item.get("intake") for item in merged if item.get("intake")]
     if intakes:
@@ -226,21 +220,16 @@ def render():
         with st.expander("Top Creative Themes", expanded=False):
             themes = extract_themes(intakes)
             if themes:
-                for t in themes[:8]:
-                    pct_bar_width = min(t.percentage, 100)
-                    st.markdown(
-                        f'<div style="margin-bottom:8px;">'
-                        f'<div style="display:flex; justify-content:space-between;">'
-                        f'<span style="font-size:13px; font-weight:600;">{t.theme}</span>'
-                        f'<span style="font-size:12px; color:#888;">'
-                        f'{t.count} clients ({t.percentage:.0f}%)</span></div>'
-                        f'<div style="background:#f0f0f0; border-radius:4px; height:6px; margin-top:4px;">'
-                        f'<div style="background:#FF6B35; width:{pct_bar_width}%; '
-                        f'height:6px; border-radius:4px;"></div></div></div>',
-                        unsafe_allow_html=True,
+                for theme in themes[:8]:
+                    progress_bar(
+                        theme.count,
+                        max(th.count for th in themes),
+                        color=t.PRIMARY,
+                        label=theme.theme,
+                        show_value=True,
                     )
             else:
-                st.info("No theme data yet.")
+                empty_state("No theme data yet.")
 
         with st.expander("Industry Distribution", expanded=False):
             industries = get_industry_distribution(intakes)
@@ -254,9 +243,9 @@ def render():
                     ind_df, values="Count", names="Industry",
                     color_discrete_sequence=px_ind.colors.sequential.Oranges_r,
                 )
-                fig.update_layout(margin=dict(l=0, r=0, t=10, b=10), height=250)
+                fig.update_layout(height=250)
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No industry data yet.")
+                empty_state("No industry data yet.")
     else:
-        st.info("No intake data available for keyword analysis.")
+        empty_state("No intake data available for keyword analysis.")

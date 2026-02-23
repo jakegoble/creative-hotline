@@ -1,6 +1,6 @@
 """Sankey diagram for conversion flow visualization.
 
-Shows how clients flow from Lead Source → Pipeline Status → Outcome.
+Shows how clients flow from Lead Source -> Pipeline Status -> Outcome.
 """
 
 from __future__ import annotations
@@ -8,6 +8,7 @@ from __future__ import annotations
 import plotly.graph_objects as go
 
 from app.config import PIPELINE_STATUSES
+from app.utils.design_tokens import FONT_FAMILY, TEXT_PRIMARY
 
 
 # Outcome buckets
@@ -30,27 +31,20 @@ SOURCE_COLORS = {
 
 
 def render_sankey(payments: list[dict]) -> go.Figure:
-    """Build a Sankey diagram showing client flow through the pipeline.
-
-    Left nodes: Lead sources
-    Middle nodes: Pipeline statuses
-    Right nodes: Outcomes (Completed, In Progress, Stalled)
-    """
+    """Build a Sankey diagram showing client flow through the pipeline."""
     if not payments:
         fig = go.Figure()
         fig.update_layout(
             annotations=[dict(text="No data yet", showarrow=False,
                               xref="paper", yref="paper", x=0.5, y=0.5)],
-            height=400,
+            height=420,
         )
         return fig
 
-    # Collect unique sources
     sources = sorted(set(
         p.get("lead_source") or "Unknown" for p in payments
     ))
 
-    # Build node labels: sources + statuses + outcomes
     outcomes = ["Completed", "In Progress", "Stalled"]
     active_statuses = [
         s for s in PIPELINE_STATUSES
@@ -60,9 +54,8 @@ def render_sankey(payments: list[dict]) -> go.Figure:
     labels = sources + active_statuses + outcomes
     label_index = {label: i for i, label in enumerate(labels)}
 
-    # Build links
-    source_links = []  # source -> status
-    status_links = []  # status -> outcome
+    source_links = []
+    status_links = []
 
     for p in payments:
         src = p.get("lead_source") or "Unknown"
@@ -73,7 +66,6 @@ def render_sankey(payments: list[dict]) -> go.Figure:
 
         source_links.append((label_index[src], label_index[status]))
 
-        # Status -> Outcome
         if status in COMPLETED_STATUSES:
             status_links.append((label_index[status], label_index["Completed"]))
         elif status in IN_PROGRESS_STATUSES:
@@ -81,7 +73,6 @@ def render_sankey(payments: list[dict]) -> go.Figure:
         elif status in EARLY_STATUSES:
             status_links.append((label_index[status], label_index["Stalled"]))
 
-    # Aggregate link weights
     link_counts: dict[tuple[int, int], int] = {}
     for link in source_links + status_links:
         link_counts[link] = link_counts.get(link, 0) + 1
@@ -90,7 +81,6 @@ def render_sankey(payments: list[dict]) -> go.Figure:
     link_targets = [k[1] for k in link_counts]
     link_values = list(link_counts.values())
 
-    # Color links by source
     link_colors = []
     for src_idx, _ in link_counts:
         if src_idx < len(sources):
@@ -99,7 +89,6 @@ def render_sankey(payments: list[dict]) -> go.Figure:
         else:
             link_colors.append("rgba(200,200,200,0.3)")
 
-    # Node colors
     node_colors = []
     for label in labels:
         if label in SOURCE_COLORS:
@@ -130,19 +119,12 @@ def render_sankey(payments: list[dict]) -> go.Figure:
     ))
 
     fig.update_layout(
-        font=dict(
-            size=13,
-            family="Inter, system-ui, -apple-system, sans-serif",
-            color="#000000",
-        ),
         margin=dict(l=10, r=10, t=10, b=10),
-        height=450,
-        paper_bgcolor="rgba(0,0,0,0)",
+        height=420,
     )
 
-    # Bold black labels, no shadow
     fig.update_traces(
-        textfont=dict(size=13, color="#000000", family="Inter, system-ui, sans-serif"),
+        textfont=dict(size=13, color=TEXT_PRIMARY, family=FONT_FAMILY),
     )
 
     return fig

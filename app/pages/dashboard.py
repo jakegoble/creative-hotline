@@ -10,10 +10,12 @@ from app.components.revenue_forecast import render_revenue_chart
 from app.config import PIPELINE_STATUSES, CHANNEL_COLORS
 from app.utils.formatters import format_currency, format_percentage
 from app.utils.attribution import channel_roi
+from app.utils import design_tokens as t
+from app.utils.ui import page_header, section_header, metric_row, stat_card, empty_state
 
 
 def render():
-    st.header("Command Center")
+    page_header("Command Center", "Real-time overview of revenue, pipeline, and client activity.")
 
     notion = st.session_state.get("notion")
     stripe_svc = st.session_state.get("stripe")
@@ -36,12 +38,11 @@ def render():
     )
     total_paid = sum(1 for p in payments if p.get("payment_amount", 0) > 0)
     total_leads = len(payments)
-    lead_to_paid = (total_paid / total_leads * 100) if total_leads > 0 else 0
 
     completed = sum(1 for p in payments if p.get("status") in ("Call Complete", "Follow-Up Sent"))
     funnel_conversion = (completed / total_leads * 100) if total_leads > 0 else 0
 
-    health_score = health.composite_score if health else "—"
+    health_score = health.composite_score if health else "\u2014"
 
     # ── KPI Row ──────────────────────────────────────────────────
 
@@ -61,15 +62,15 @@ def render():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("Revenue Trend")
+        section_header("Revenue Trend", "Monthly revenue over the last 6 months")
         if monthly_revenue:
             fig = render_revenue_chart(monthly_revenue)
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("Connect Stripe to see revenue data.")
+            empty_state("Connect Stripe to see revenue data.")
 
     with col2:
-        st.subheader("Pipeline Funnel")
+        section_header("Pipeline Funnel", "Client progression through each stage")
         if pipeline:
             funnel_data = [
                 {"stage": stage, "count": pipeline.get(stage, 0)}
@@ -80,9 +81,9 @@ def render():
                 fig = render_funnel(funnel_data)
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.info("No pipeline data yet.")
+                empty_state("No pipeline data yet.")
         else:
-            st.info("Connect Notion to see pipeline data.")
+            empty_state("Connect Notion to see pipeline data.")
 
     st.divider()
 
@@ -91,7 +92,7 @@ def render():
     col3, col4 = st.columns(2)
 
     with col3:
-        st.subheader("Revenue by Product")
+        section_header("Revenue by Product", "Breakdown by product type")
         by_product = revenue_summary.get("by_product", {})
         if by_product:
             df = pd.DataFrame([
@@ -101,21 +102,20 @@ def render():
             fig = px.bar(
                 df, x="Revenue", y="Product", orientation="h",
                 text=df["Revenue"].apply(lambda x: format_currency(x)),
-                color_discrete_sequence=["#FF6B35"],
+                color_discrete_sequence=[t.PRIMARY],
             )
             fig.update_layout(
-                margin=dict(l=0, r=0, t=10, b=10),
-                height=250,
+                height=280,
                 showlegend=False,
                 yaxis=dict(autorange="reversed"),
             )
             fig.update_traces(textposition="auto")
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("No product data yet.")
+            empty_state("No product data yet.")
 
     with col4:
-        st.subheader("Lead Source Attribution")
+        section_header("Lead Source Attribution", "Revenue contribution by channel")
         source_data = {}
         for p in payments:
             source = p.get("lead_source") or "Unknown"
@@ -134,20 +134,16 @@ def render():
                 df, values="Revenue", names="Source",
                 color_discrete_sequence=px.colors.sequential.Oranges_r,
             )
-            fig.update_layout(
-                margin=dict(l=0, r=0, t=10, b=10),
-                height=250,
-            )
+            fig.update_layout(height=280)
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("No lead source data yet.")
+            empty_state("No lead source data yet.")
 
     st.divider()
 
     # ── Conversion Metrics ───────────────────────────────────────
 
-    st.subheader("Conversion Metrics")
-    m1, m2, m3, m4 = st.columns(4)
+    section_header("Conversion Metrics", "Step-by-step funnel conversion rates")
 
     paid_count = sum(1 for p in payments if p.get("status") != "Lead - Laylo")
     booked_count = sum(
@@ -159,24 +155,23 @@ def render():
         if p.get("status") in ("Intake Complete", "Ready for Call", "Call Complete", "Follow-Up Sent")
     )
 
-    with m1:
-        rate = (paid_count / total_leads * 100) if total_leads > 0 else 0
-        st.metric("Lead → Paid", f"{rate:.0f}%")
-    with m2:
-        rate = (booked_count / paid_count * 100) if paid_count > 0 else 0
-        st.metric("Paid → Booked", f"{rate:.0f}%")
-    with m3:
-        rate = (intake_count / booked_count * 100) if booked_count > 0 else 0
-        st.metric("Booked → Intake", f"{rate:.0f}%")
-    with m4:
-        rate = (completed / intake_count * 100) if intake_count > 0 else 0
-        st.metric("Intake → Complete", f"{rate:.0f}%")
+    r1 = (paid_count / total_leads * 100) if total_leads > 0 else 0
+    r2 = (booked_count / paid_count * 100) if paid_count > 0 else 0
+    r3 = (intake_count / booked_count * 100) if booked_count > 0 else 0
+    r4 = (completed / intake_count * 100) if intake_count > 0 else 0
+
+    metric_row([
+        {"label": "Lead \u2192 Paid", "value": f"{r1:.0f}%"},
+        {"label": "Paid \u2192 Booked", "value": f"{r2:.0f}%"},
+        {"label": "Booked \u2192 Intake", "value": f"{r3:.0f}%"},
+        {"label": "Intake \u2192 Complete", "value": f"{r4:.0f}%"},
+    ])
 
     st.divider()
 
     # ── Top Channels ──────────────────────────────────────────────
 
-    st.subheader("Top Channels")
+    section_header("Top Channels", "Highest-converting lead sources")
     if payments:
         roi_data = channel_roi(payments)
         top_3 = [ch for ch in roi_data if ch["conversions"] > 0][:3]
@@ -185,16 +180,11 @@ def render():
             for col, ch in zip(cols, top_3):
                 color = CHANNEL_COLORS.get(ch["channel"], "#95A5A6")
                 with col:
-                    st.markdown(
-                        f'<div style="border-left:3px solid {color}; padding:8px 12px; '
-                        f'background:#faf8f5; border-radius:4px;">'
-                        f'<div style="font-size:13px; font-weight:bold;">{ch["channel"]}</div>'
-                        f'<div style="font-size:20px; font-weight:bold; color:{color};">'
-                        f'{format_percentage(ch["conversion_rate"])} conv.</div>'
-                        f'<div style="font-size:11px; color:#888;">'
-                        f'{ch["leads"]} leads · {format_currency(ch["revenue"])}</div>'
-                        f'</div>',
-                        unsafe_allow_html=True,
+                    stat_card(
+                        label=ch["channel"],
+                        value=f"{format_percentage(ch['conversion_rate'])} conv.",
+                        subtitle=f"{ch['leads']} leads \u00b7 {format_currency(ch['revenue'])}",
+                        accent_color=color,
                     )
         else:
-            st.info("No converted channels yet.")
+            empty_state("No converted channels yet.")

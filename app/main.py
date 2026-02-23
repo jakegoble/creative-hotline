@@ -4,6 +4,7 @@ import streamlit as st
 
 from app.config import load_settings, validate_settings
 from app.utils.theme import inject_custom_css
+import app.utils.plotly_theme as _plotly_theme  # noqa: F401 — registers global template
 
 st.set_page_config(
     page_title="Creative Hotline Command Center",
@@ -95,9 +96,9 @@ def main():
 
         if st.session_state.get("demo_mode", False):
             st.markdown(
-                '<div style="background:#FF6B35;color:white;text-align:center;'
-                'padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;'
-                'margin-bottom:12px;">DEMO MODE</div>',
+                '<div style="background:var(--primary);color:white;text-align:center;'
+                'padding:4px 8px;border-radius:var(--radius-sm);font-size:var(--font-xs);'
+                'font-weight:600;margin-bottom:12px;">DEMO MODE</div>',
                 unsafe_allow_html=True,
             )
 
@@ -135,7 +136,7 @@ def main():
                 for w in _startup_warnings:
                     st.caption(f"— {w}")
 
-        st.caption("v4.1 | Built for Jake & Megha")
+        st.caption("v5.0 | Built for Jake & Megha")
 
     # Route to selected page
     if page == "Dashboard":

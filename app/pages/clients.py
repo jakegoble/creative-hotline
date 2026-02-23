@@ -4,10 +4,17 @@ import streamlit as st
 
 from app.components.client_timeline import render_timeline, render_client_card
 from app.utils.formatters import format_date, format_currency
+from app.utils.ui import (
+    page_header,
+    section_header,
+    metric_row,
+    empty_state,
+    key_value_inline,
+)
 
 
 def render():
-    st.header("Clients")
+    page_header("Clients", "Browse and manage your client roster.")
 
     notion = st.session_state.get("notion")
     if not notion:
@@ -17,7 +24,7 @@ def render():
     merged = notion.get_merged_clients()
 
     if not merged:
-        st.info("No client records found.")
+        empty_state("No client records found.")
         return
 
     # ── Filters ──────────────────────────────────────────────────
@@ -100,30 +107,26 @@ def _render_detail_view(merged: list[dict]):
     name = payment.get("client_name") or email
 
     # Back button
-    if st.button("← Back to Client List"):
+    if st.button("\u2190 Back to Client List"):
         st.session_state.selected_client_email = None
         st.rerun()
 
-    st.subheader(name)
-    st.caption(email)
+    section_header(name, email)
 
     # ── Quick Stats ──────────────────────────────────────────────
 
-    cols = st.columns(4)
-    with cols[0]:
-        st.metric("Status", payment.get("status", "Unknown"))
-    with cols[1]:
-        st.metric("Product", payment.get("product_purchased") or "—")
-    with cols[2]:
-        st.metric("Amount", format_currency(payment.get("payment_amount", 0)))
-    with cols[3]:
-        st.metric("Source", payment.get("lead_source") or "Unknown")
+    metric_row([
+        {"label": "Status", "value": payment.get("status", "Unknown")},
+        {"label": "Product", "value": payment.get("product_purchased") or "\u2014"},
+        {"label": "Amount", "value": format_currency(payment.get("payment_amount", 0))},
+        {"label": "Source", "value": payment.get("lead_source") or "Unknown"},
+    ])
 
     st.divider()
 
     # ── Journey Timeline ─────────────────────────────────────────
 
-    st.subheader("Journey Timeline")
+    section_header("Journey Timeline")
     render_timeline(payment, intake)
 
     st.divider()
@@ -131,20 +134,20 @@ def _render_detail_view(merged: list[dict]):
     # ── Intake Details ───────────────────────────────────────────
 
     if intake:
-        st.subheader("Intake Form")
+        section_header("Intake Form")
 
         detail_cols = st.columns(2)
         with detail_cols[0]:
-            st.markdown(f"**Role:** {intake.get('role') or '—'}")
-            st.markdown(f"**Brand:** {intake.get('brand') or '—'}")
-            st.markdown(f"**Website/IG:** {intake.get('website_ig') or '—'}")
-            st.markdown(f"**Deadline:** {intake.get('deadline') or '—'}")
-            st.markdown(f"**Constraints:** {intake.get('constraints') or '—'}")
+            key_value_inline("Role", intake.get('role') or '\u2014')
+            key_value_inline("Brand", intake.get('brand') or '\u2014')
+            key_value_inline("Website/IG", intake.get('website_ig') or '\u2014')
+            key_value_inline("Deadline", intake.get('deadline') or '\u2014')
+            key_value_inline("Constraints", intake.get('constraints') or '\u2014')
 
         with detail_cols[1]:
-            st.markdown(f"**Desired Outcome:** {', '.join(intake.get('desired_outcome', [])) or '—'}")
-            st.markdown(f"**What They've Tried:** {intake.get('what_tried') or '—'}")
-            st.markdown(f"**Action Plan Sent:** {'Yes' if intake.get('action_plan_sent') else 'No'}")
+            key_value_inline("Desired Outcome", ', '.join(intake.get('desired_outcome', [])) or '\u2014')
+            key_value_inline("What They've Tried", intake.get('what_tried') or '\u2014')
+            key_value_inline("Action Plan Sent", 'Yes' if intake.get('action_plan_sent') else 'No')
 
         if intake.get("creative_emergency"):
             st.markdown("**Creative Emergency:**")
@@ -154,8 +157,8 @@ def _render_detail_view(merged: list[dict]):
             st.markdown("**AI Intake Summary:**")
             st.success(intake["ai_summary"])
     else:
-        st.subheader("Intake Form")
-        st.info("No intake form submitted yet.")
+        section_header("Intake Form")
+        empty_state("No intake form submitted yet.")
 
     st.divider()
 

@@ -8,10 +8,12 @@ from app.components.funnel_chart import render_funnel
 from app.components.cohort_table import build_cohort_data
 from app.config import PIPELINE_STATUSES
 from app.utils.formatters import format_percentage
+from app.utils import design_tokens as t
+from app.utils.ui import page_header, section_header, empty_state
 
 
 def render():
-    st.header("Pipeline & Funnel")
+    page_header("Pipeline & Funnel", "Track client progression and identify drop-off points.")
 
     notion = st.session_state.get("notion")
     if not notion:
@@ -23,7 +25,7 @@ def render():
 
     # ── Full Funnel ──────────────────────────────────────────────
 
-    st.subheader("Customer Funnel")
+    section_header("Customer Funnel")
 
     funnel_data = [
         {"stage": stage, "count": pipeline.get(stage, 0)}
@@ -37,12 +39,11 @@ def render():
 
     # ── Drop-off Analysis ────────────────────────────────────────
 
-    st.subheader("Drop-off Analysis")
-    st.caption("Where are clients getting stuck?")
+    section_header("Drop-off Analysis", "Where are clients getting stuck?")
 
     total = len(payments)
     if total == 0:
-        st.info("No client data yet.")
+        empty_state("No client data yet.")
     else:
         dropoff_data = []
         prev_count = total
@@ -71,7 +72,6 @@ def render():
         for i, row in df.iterrows():
             with cols[i]:
                 is_worst = i == max_drop_idx and row["drop_rate"] > 0
-                color = "🔴" if is_worst else ""
                 st.metric(
                     label=row["stage"].replace(" - ", "\n"),
                     value=row["reached"],
@@ -93,12 +93,11 @@ def render():
 
     # ── Cohort Analysis ──────────────────────────────────────────
 
-    st.subheader("Cohort Analysis")
-    st.caption("Track each signup week's progression through the pipeline.")
+    section_header("Cohort Analysis", "Track each signup week's progression through the pipeline.")
 
     cohort_df = build_cohort_data(payments)
     if cohort_df.empty:
-        st.info("Not enough data for cohort analysis yet.")
+        empty_state("Not enough data for cohort analysis yet.")
     else:
         st.dataframe(
             cohort_df,
@@ -110,7 +109,7 @@ def render():
 
     # ── Status Distribution ──────────────────────────────────────
 
-    st.subheader("Current Status Distribution")
+    section_header("Current Status Distribution")
     status_counts = []
     for stage in PIPELINE_STATUSES:
         count = pipeline.get(stage, 0)
@@ -121,10 +120,9 @@ def render():
         df = pd.DataFrame(status_counts)
         fig = px.bar(
             df, x="Status", y="Count",
-            color_discrete_sequence=["#FF6B35"],
+            color_discrete_sequence=[t.PRIMARY],
         )
         fig.update_layout(
-            margin=dict(l=0, r=0, t=10, b=10),
             height=300,
             xaxis_tickangle=-45,
         )

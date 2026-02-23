@@ -17,6 +17,11 @@ from app.utils.sequence_tracker import (
     sequence_completion_rates,
     sequence_conversion_rates,
 )
+from app.utils.ui import (
+    page_header, section_header, stat_card, empty_state,
+    data_card, badge, progress_bar,
+)
+from app.utils import design_tokens as t
 
 
 AB_TEST_FILE = os.path.join("plans", "ab_tests.json")
@@ -84,7 +89,7 @@ def _chi_squared_significance(a_conv: int, a_total: int, b_conv: int, b_total: i
 
 
 def render():
-    st.header("Funnel Analytics")
+    page_header("Funnel Analytics", "Micro-conversion tracking, speed analysis, and A/B tests.")
 
     notion = st.session_state.get("notion")
 
@@ -94,12 +99,12 @@ def render():
 
     payments = notion.get_all_payments()
     if not payments:
-        st.info("No payment data yet.")
+        empty_state("No payment data yet.")
         return
 
     # ── Micro-Conversion Funnel ──────────────────────────────────
 
-    st.subheader("Pipeline Funnel")
+    section_header("Pipeline Funnel")
 
     # Filter controls
     col_src, col_prod = st.columns(2)
@@ -134,28 +139,18 @@ def render():
         count = sc["count"]
         drop = prev_count - count if i > 0 else 0
         drop_pct = (drop / prev_count * 100) if prev_count > 0 else 0
-        bar_pct = (count / total * 100) if total > 0 else 0
 
-        color = "#FF6B35" if bar_pct > 50 else "#FFA564" if bar_pct > 25 else "#FFD4BC"
-        st.markdown(
-            f'<div style="margin-bottom:4px;">'
-            f'<div style="display:flex; justify-content:space-between; font-size:13px;">'
-            f'<span style="font-weight:bold;">{sc["stage"]}</span>'
-            f'<span>{count} '
-            f'{"" if i == 0 else f"<span style=&quot;color:#E74C3C;&quot;>(-{drop}, {drop_pct:.0f}% drop)</span>"}'
-            f'</span></div>'
-            f'<div style="background:#e8e4e0; border-radius:3px; height:16px; overflow:hidden;">'
-            f'<div style="background:{color}; height:100%; width:{bar_pct:.0f}%; '
-            f'border-radius:3px;"></div></div></div>',
-            unsafe_allow_html=True,
-        )
+        color = t.PRIMARY if (count / total * 100 if total > 0 else 0) > 50 else t.PRIMARY_LIGHT if (count / total * 100 if total > 0 else 0) > 25 else "#FFD4BC"
+        drop_text = "" if i == 0 else f" (-{drop}, {drop_pct:.0f}% drop)"
+        label = f"{sc['stage']} \u2014 {count}{drop_text}"
+        progress_bar(count, total, color=color, label=label)
         prev_count = count
 
     st.divider()
 
     # ── Speed-to-Convert ─────────────────────────────────────────
 
-    st.subheader("Speed to Convert")
+    section_header("Speed to Convert")
 
     # Calculate time between key steps
     speed_metrics = {
@@ -189,11 +184,14 @@ def render():
             if days_list:
                 avg = sum(days_list) / len(days_list)
                 median = sorted(days_list)[len(days_list) // 2]
-                st.metric(label, f"{avg:.1f}d avg")
-                st.caption(f"Median: {median:.1f}d | n={len(days_list)}")
+                stat_card(
+                    label=label,
+                    value=f"{avg:.1f}d avg",
+                    subtitle=f"Median: {median:.1f}d | n={len(days_list)}",
+                    accent_color=t.PRIMARY,
+                )
             else:
-                st.metric(label, "—")
-                st.caption("No data")
+                stat_card(label=label, value="\u2014", subtitle="No data")
 
     # Speed histogram
     with st.expander("Time Distribution Details"):
@@ -202,17 +200,14 @@ def render():
                 fig = go.Figure(go.Histogram(
                     x=days_list,
                     nbinsx=10,
-                    marker_color="#FF6B35",
+                    marker_color=t.PRIMARY,
                     opacity=0.8,
                 ))
                 fig.update_layout(
                     title=label,
                     xaxis_title="Days",
                     yaxis_title="Clients",
-                    margin=dict(l=0, r=0, t=30, b=10),
                     height=200,
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    paper_bgcolor="rgba(0,0,0,0)",
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
@@ -220,7 +215,7 @@ def render():
 
     # ── Email Sequence Performance ───────────────────────────────
 
-    st.subheader("Email Sequence Performance")
+    section_header("Email Sequence Performance")
 
     seq_map = build_sequence_map(payments)
     comp_rates = sequence_completion_rates(payments)
@@ -231,19 +226,14 @@ def render():
         for col, (seq_name, rates) in zip(cols, comp_rates.items()):
             conv = conv_rates.get(seq_name, {})
             with col:
-                st.markdown(
-                    f'<div style="border:1px solid #e0dcd8; padding:12px; border-radius:6px; '
-                    f'background:#faf8f5;">'
-                    f'<div style="font-weight:bold; font-size:14px;">{seq_name}</div>'
-                    f'<div style="font-size:24px; font-weight:bold; color:#FF6B35; margin:4px 0;">'
-                    f'{rates["rate"]:.0f}%</div>'
-                    f'<div style="font-size:11px; color:#888;">Completion rate</div>'
-                    f'<div style="font-size:12px; margin-top:6px;">'
-                    f'{rates["entered"]} entered &middot; {rates["completed"]} completed</div>'
-                    f'<div style="font-size:12px; color:#2ECC71;">'
-                    f'{conv.get("conversion_rate", 0):.0f}% advanced to next stage</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
+                stat_card(
+                    label=seq_name,
+                    value=f"{rates['rate']:.0f}%",
+                    subtitle=(
+                        f"{rates['entered']} entered \u00b7 {rates['completed']} completed "
+                        f"\u00b7 {conv.get('conversion_rate', 0):.0f}% advanced"
+                    ),
+                    accent_color=t.PRIMARY,
                 )
 
         # Client position detail
@@ -254,13 +244,13 @@ def render():
                     status = "done" if pos.completed else f"step {pos.current_step}/{pos.total_steps}"
                     st.markdown(f"- {pos.client_name} ({pos.email}) — {status}")
     else:
-        st.info("No active email sequences detected.")
+        empty_state("No active email sequences detected.")
 
     st.divider()
 
     # ── A/B Test Log ─────────────────────────────────────────────
 
-    st.subheader("A/B Test Log")
+    section_header("A/B Test Log")
 
     tests = _load_ab_tests()
 
@@ -302,38 +292,35 @@ def render():
             a_rate = (a["conversions"] / a["total"] * 100) if a["total"] > 0 else 0
             b_rate = (b["conversions"] / b["total"] * 100) if b["total"] > 0 else 0
 
-            badge = (
-                f'<span style="background:#2ECC71; color:white; padding:2px 8px; '
-                f'border-radius:10px; font-size:11px;">Significant — {winner} wins</span>'
+            sig_badge = (
+                badge(f"Significant \u2014 {winner} wins", color=t.SUCCESS)
                 if sig and winner else
-                '<span style="background:#95A5A6; color:white; padding:2px 8px; '
-                'border-radius:10px; font-size:11px;">Not significant</span>'
+                badge("Not significant", color="#95A5A6")
             )
 
-            st.markdown(
-                f'<div style="border:1px solid #e0dcd8; padding:12px; border-radius:6px; '
-                f'background:#faf8f5; margin-bottom:8px;">'
-                f'<div style="display:flex; justify-content:space-between; align-items:center;">'
-                f'<span style="font-weight:bold;">{test["name"]}</span>'
-                f'<span>{badge} <span style="font-size:11px; color:#888;">{test.get("date", "")}</span></span>'
+            body_html = (
+                f'<div class="ch-flex-between" style="align-items:center;">'
+                f'<span class="ch-font-semibold">{test["name"]}</span>'
+                f'<span>{sig_badge} '
+                f'<span class="ch-text-xs ch-text-muted">{test.get("date", "")}</span></span>'
                 f'</div>'
-                f'<div style="display:flex; gap:20px; margin-top:8px; font-size:13px;">'
-                f'<div><b>A:</b> {a.get("desc", "")} — {a_rate:.1f}% ({a["conversions"]}/{a["total"]})</div>'
-                f'<div><b>B:</b> {b.get("desc", "")} — {b_rate:.1f}% ({b["conversions"]}/{b["total"]})</div>'
-                f'</div></div>',
-                unsafe_allow_html=True,
+                f'<div style="display:flex; gap:20px; margin-top:8px;" class="ch-text-sm">'
+                f'<div><b>A:</b> {a.get("desc", "")} \u2014 {a_rate:.1f}% ({a["conversions"]}/{a["total"]})</div>'
+                f'<div><b>B:</b> {b.get("desc", "")} \u2014 {b_rate:.1f}% ({b["conversions"]}/{b["total"]})</div>'
+                f'</div>'
             )
+            data_card(title="", body_html=body_html)
 
         # Test velocity
         st.caption(f"{len(tests)} tests logged total")
     else:
-        st.info("No A/B tests logged yet. Use the form above to track experiments.")
+        empty_state("No A/B tests logged yet. Use the form above to track experiments.")
 
     st.divider()
 
     # ── Bottleneck Alerts ────────────────────────────────────────
 
-    st.subheader("Bottleneck Alerts")
+    section_header("Bottleneck Alerts")
 
     if len(stage_counts) > 1:
         # Find biggest drop-off
@@ -368,4 +355,4 @@ def render():
         else:
             st.success("No significant bottlenecks detected.")
     else:
-        st.info("Need more pipeline data to detect bottlenecks.")
+        empty_state("Need more pipeline data to detect bottlenecks.")

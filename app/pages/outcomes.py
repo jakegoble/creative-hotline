@@ -24,6 +24,8 @@ from app.utils.referral_tracker import (
     referral_conversion_rate,
     referral_revenue_share,
 )
+from app.utils import design_tokens as t
+from app.utils.ui import page_header, section_header, metric_row, stat_card, empty_state
 
 
 OUTCOMES_DIR = os.path.join("plans", "outcomes")
@@ -56,7 +58,7 @@ def _save_outcome(outcome: dict) -> str:
 
 
 def render():
-    st.header("Outcomes & Testimonials")
+    page_header("Outcomes & Testimonials", "Track client results, NPS, testimonials, and referral intelligence.")
 
     notion = st.session_state.get("notion")
     claude = st.session_state.get("claude")
@@ -66,7 +68,7 @@ def render():
 
     # ── LTV Leaderboard ──────────────────────────────────────────
 
-    st.subheader("Client Lifetime Value")
+    section_header("Client Lifetime Value")
 
     if payments:
         ltv_data = calculate_ltv(payments)
@@ -74,41 +76,30 @@ def render():
         exp_data = expansion_revenue(payments)
 
         # Summary metrics
-        m1, m2, m3, m4 = st.columns(4)
-        with m1:
-            avg_ltv = sum(c.total_revenue for c in ltv_data) / len(ltv_data) if ltv_data else 0
-            st.metric("Avg LTV", format_currency(avg_ltv))
-        with m2:
-            st.metric("Upsell Rate", f"{upsell_data.get('upsell_rate', 0):.0f}%")
-        with m3:
-            st.metric("Expansion Revenue", format_currency(exp_data.get("expansion_revenue", 0)))
-        with m4:
-            st.metric("Expansion %", f"{exp_data.get('expansion_pct', 0):.0f}%")
+        avg_ltv = sum(c.total_revenue for c in ltv_data) / len(ltv_data) if ltv_data else 0
+        metric_row([
+            {"label": "Avg LTV", "value": format_currency(avg_ltv)},
+            {"label": "Upsell Rate", "value": f"{upsell_data.get('upsell_rate', 0):.0f}%"},
+            {"label": "Expansion Revenue", "value": format_currency(exp_data.get("expansion_revenue", 0))},
+            {"label": "Expansion %", "value": f"{exp_data.get('expansion_pct', 0):.0f}%"},
+        ])
 
         # LTV leaderboard
         with st.expander("Top Clients by LTV"):
             for i, client in enumerate(ltv_data[:10], 1):
                 products_str = ", ".join(client.products) if client.products else "—"
-                st.markdown(
-                    f'<div style="border-left:3px solid #FF6B35; padding:6px 10px; '
-                    f'background:#faf8f5; border-radius:4px; margin-bottom:4px;">'
-                    f'<div style="display:flex; justify-content:space-between;">'
-                    f'<span style="font-weight:bold;">#{i} {client.email}</span>'
-                    f'<span style="font-weight:bold; color:#FF6B35;">'
-                    f'{format_currency(client.total_revenue)}</span>'
-                    f'</div>'
-                    f'<div style="font-size:11px; color:#888;">'
-                    f'{client.purchase_count} purchases &middot; {products_str} '
-                    f'&middot; {client.days_as_client:.0f}d as client</div>'
-                    f'</div>',
-                    unsafe_allow_html=True,
+                stat_card(
+                    label=f"#{i} {client.email}",
+                    value=format_currency(client.total_revenue),
+                    subtitle=f"{client.purchase_count} purchases \u00b7 {products_str} \u00b7 {client.days_as_client:.0f}d as client",
+                    accent_color=t.PRIMARY,
                 )
 
         # LTV by source chart
         col1, col2 = st.columns(2)
 
         with col1:
-            st.markdown("**LTV by Lead Source**")
+            section_header("LTV by Lead Source")
             source_data = ltv_by_source(payments)
             if source_data:
                 df = pd.DataFrame([
@@ -118,18 +109,17 @@ def render():
                 fig = px.bar(
                     df, x="Avg LTV", y="Source", orientation="h",
                     text=df["Avg LTV"].apply(lambda x: format_currency(x)),
-                    color_discrete_sequence=["#FF6B35"],
+                    color_discrete_sequence=[t.PRIMARY],
                 )
                 fig.update_layout(
-                    margin=dict(l=0, r=0, t=10, b=10), height=250,
+                    height=250,
                     showlegend=False, yaxis=dict(autorange="reversed"),
-                    plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
                 )
                 fig.update_traces(textposition="auto")
                 st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            st.markdown("**LTV by Entry Product**")
+            section_header("LTV by Entry Product")
             product_data = ltv_by_entry_product(payments)
             if product_data:
                 df = pd.DataFrame([
@@ -139,38 +129,34 @@ def render():
                 fig = px.bar(
                     df, x="Avg LTV", y="Product", orientation="h",
                     text=df["Avg LTV"].apply(lambda x: format_currency(x)),
-                    color_discrete_sequence=["#FFA564"],
+                    color_discrete_sequence=[t.PRIMARY_LIGHT],
                 )
                 fig.update_layout(
-                    margin=dict(l=0, r=0, t=10, b=10), height=250,
+                    height=250,
                     showlegend=False, yaxis=dict(autorange="reversed"),
-                    plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
                 )
                 fig.update_traces(textposition="auto")
                 st.plotly_chart(fig, use_container_width=True)
 
         # Expansion revenue pie
         if exp_data.get("total_revenue", 0) > 0:
-            st.markdown("**Revenue Composition**")
+            section_header("Revenue Composition")
             fig = go.Figure(go.Pie(
                 labels=["New Client Revenue", "Expansion Revenue"],
                 values=[exp_data["new_revenue"], exp_data["expansion_revenue"]],
-                marker=dict(colors=["#FF6B35", "#FFA564"]),
+                marker=dict(colors=[t.PRIMARY, t.PRIMARY_LIGHT]),
                 hole=0.4,
             ))
-            fig.update_layout(
-                margin=dict(l=0, r=0, t=10, b=10), height=250,
-                plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
-            )
+            fig.update_layout(height=250)
             st.plotly_chart(fig, use_container_width=True)
     else:
-        st.info("Connect Notion to see LTV data.")
+        empty_state("Connect Notion to see LTV data.")
 
     st.divider()
 
     # ── Outcome Capture ──────────────────────────────────────────
 
-    st.subheader("Capture Client Outcome")
+    section_header("Capture Client Outcome")
 
     completed_clients = [
         p for p in payments
@@ -207,13 +193,13 @@ def render():
             else:
                 st.warning("Please enter the results achieved.")
     else:
-        st.info("No completed clients yet.")
+        empty_state("No completed clients yet.")
 
     st.divider()
 
     # ── NPS Tracker ──────────────────────────────────────────────
 
-    st.subheader("NPS Tracker")
+    section_header("NPS Tracker")
 
     if outcomes:
         nps_scores = [o.get("nps_score", 0) for o in outcomes if "nps_score" in o]
@@ -224,37 +210,33 @@ def render():
             total = len(nps_scores)
             nps = ((promoters - detractors) / total * 100) if total > 0 else 0
 
-            c1, c2, c3, c4 = st.columns(4)
-            with c1:
-                st.metric("NPS Score", f"{nps:.0f}")
-            with c2:
-                st.metric("Promoters (9-10)", f"{promoters}")
-            with c3:
-                st.metric("Passives (7-8)", f"{passives}")
-            with c4:
-                st.metric("Detractors (0-6)", f"{detractors}")
+            metric_row([
+                {"label": "NPS Score", "value": f"{nps:.0f}"},
+                {"label": "Promoters (9-10)", "value": f"{promoters}"},
+                {"label": "Passives (7-8)", "value": f"{passives}"},
+                {"label": "Detractors (0-6)", "value": f"{detractors}"},
+            ])
 
             # Distribution chart
             fig = go.Figure(go.Histogram(
                 x=nps_scores, nbinsx=11,
-                marker_color="#FF6B35", opacity=0.85,
+                marker_color=t.PRIMARY, opacity=0.85,
             ))
             fig.update_layout(
                 xaxis_title="Score", yaxis_title="Count",
-                margin=dict(l=0, r=0, t=10, b=10), height=200,
-                plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)",
+                height=200,
             )
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("No NPS scores recorded yet.")
+            empty_state("No NPS scores recorded yet.")
     else:
-        st.info("Capture client outcomes above to start tracking NPS.")
+        empty_state("Capture client outcomes above to start tracking NPS.")
 
     st.divider()
 
     # ── Testimonial Generator ────────────────────────────────────
 
-    st.subheader("Testimonial Generator")
+    section_header("Testimonial Generator")
 
     if outcomes and claude:
         outcome_options = {
@@ -283,15 +265,15 @@ def render():
             st.markdown(f'> *"{st.session_state["generated_testimonial"]}"*')
             st.markdown(f"**— {outcome['client_name']}**")
     elif not outcomes:
-        st.info("Capture client outcomes first, then generate testimonials.")
+        empty_state("Capture client outcomes first, then generate testimonials.")
     else:
-        st.info("Connect Claude API to generate testimonials.")
+        empty_state("Connect Claude API to generate testimonials.")
 
     st.divider()
 
     # ── Case Study Builder ───────────────────────────────────────
 
-    st.subheader("Case Study Builder")
+    section_header("Case Study Builder")
 
     if outcomes and claude:
         outcome_options_cs = {
@@ -335,32 +317,36 @@ def render():
                     mime="application/pdf",
                 )
     elif not outcomes:
-        st.info("Capture client outcomes first.")
+        empty_state("Capture client outcomes first.")
     else:
-        st.info("Connect Claude API to build case studies.")
+        empty_state("Connect Claude API to build case studies.")
 
     st.divider()
 
     # ── Referral Intelligence ────────────────────────────────────
 
-    st.subheader("Referral Intelligence")
+    section_header("Referral Intelligence")
 
     if payments:
         ref_conv = referral_conversion_rate(payments)
         ref_share = referral_revenue_share(payments)
 
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            st.metric("Referral Conversion",
-                       f"{ref_conv.get('referral_conversion', 0):.0f}%",
-                       delta=f"vs {ref_conv.get('other_conversion', 0):.0f}% others")
-        with c2:
-            st.metric("Referral Avg Deal",
-                       format_currency(ref_conv.get("referral_avg_deal", 0)),
-                       delta=f"vs {format_currency(ref_conv.get('other_avg_deal', 0))} others")
-        with c3:
-            st.metric("Referral Revenue Share",
-                       f"{ref_share.get('referral_pct', 0):.0f}%")
+        metric_row([
+            {
+                "label": "Referral Conversion",
+                "value": f"{ref_conv.get('referral_conversion', 0):.0f}%",
+                "delta": f"vs {ref_conv.get('other_conversion', 0):.0f}% others",
+            },
+            {
+                "label": "Referral Avg Deal",
+                "value": format_currency(ref_conv.get("referral_avg_deal", 0)),
+                "delta": f"vs {format_currency(ref_conv.get('other_avg_deal', 0))} others",
+            },
+            {
+                "label": "Referral Revenue Share",
+                "value": f"{ref_share.get('referral_pct', 0):.0f}%",
+            },
+        ])
 
         if ref_conv.get("referral_leads", 0) > 0:
             st.success(
@@ -370,6 +356,6 @@ def render():
                 f"percentage point** advantage."
             )
         else:
-            st.info("No referral data yet. Track referral sources in Notion to see insights.")
+            empty_state("No referral data yet. Track referral sources in Notion to see insights.")
     else:
-        st.info("Connect Notion to see referral data.")
+        empty_state("Connect Notion to see referral data.")
