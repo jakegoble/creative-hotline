@@ -67,6 +67,9 @@ def main():
                 "Pipeline",
                 "Action Plans",
                 "Lead Scoring",
+                "Channel Performance",
+                "Retargeting",
+                "Conversion Paths",
                 "System Health",
                 "Settings",
             ],
@@ -80,7 +83,7 @@ def main():
             cache.invalidate_all()
             st.rerun()
 
-        st.caption(f"v1.0 | Built for Jake & Megha")
+        st.caption(f"v2.0 | Built for Jake & Megha")
 
     # Route to selected page
     if page == "Dashboard":
@@ -97,6 +100,15 @@ def main():
         render()
     elif page == "Lead Scoring":
         from app.pages.lead_scoring import render
+        render()
+    elif page == "Channel Performance":
+        from app.pages.channel_performance import render
+        render()
+    elif page == "Retargeting":
+        from app.pages.retargeting import render
+        render()
+    elif page == "Conversion Paths":
+        from app.pages.conversion_paths import render
         render()
     elif page == "System Health":
         from app.pages.health import render

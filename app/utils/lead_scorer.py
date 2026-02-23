@@ -31,13 +31,26 @@ def score_client(payment: dict, intake: dict | None) -> dict:
     source = _score_source(payment)
     upsell = _score_upsell(intake, payment)
 
-    total = (
+    base_total = (
         engagement["score"]
         + velocity["score"]
         + urgency["score"]
         + source["score"]
         + upsell["score"]
     )
+
+    # Apply modifiers
+    frequency = _frequency_bonus(payment)
+    total = base_total + frequency["bonus"]
+
+    negative = _apply_negative_signals(total, payment, intake)
+    total = negative["adjusted_score"]
+
+    recency = _apply_recency_decay(total, payment)
+    total = recency["adjusted_score"]
+
+    # Clamp to 0-100
+    total = max(0, min(100, total))
 
     if total >= TIER_HOT:
         tier = "Hot"
@@ -56,6 +69,9 @@ def score_client(payment: dict, intake: dict | None) -> dict:
         "urgency": urgency,
         "source": source,
         "upsell": upsell,
+        "frequency": frequency,
+        "recency": recency,
+        "negative": negative,
     }
 
 
@@ -348,6 +364,101 @@ def _score_upsell(intake: dict | None, payment: dict) -> dict:
             reasons.append(f"{len(outcomes)} desired outcomes")
 
     return {"score": min(points, 10), "max": 10, "reason": "; ".join(reasons) or "Low upsell signal"}
+
+
+# ── Score Modifiers ────────────────────────────────────────────────
+
+
+def _frequency_bonus(payment: dict) -> dict:
+    """Frequency bonus — up to 5 points for repeat/high-tier purchases."""
+    product = payment.get("product_purchased", "")
+    amount = payment.get("payment_amount", 0)
+
+    if product in ("3-Pack Sprint", "3-Session Clarity Sprint") or amount >= 1495:
+        return {"bonus": 5, "reason": "Sprint/repeat purchaser"}
+    if product == "Standard Call" or (amount >= 699 and amount < 1495):
+        return {"bonus": 2, "reason": "Standard tier client"}
+    return {"bonus": 0, "reason": ""}
+
+
+def _apply_recency_decay(score: float, payment: dict) -> dict:
+    """Recency decay — multiplier based on how recently the lead was active.
+
+    <7 days: 1.0x, 7-14 days: 0.95x, 14-30 days: 0.85x, >30 days: 0.7x.
+    """
+    created = payment.get("created", "")
+    if not created:
+        return {"adjusted_score": score, "multiplier": 1.0, "reason": "No date"}
+
+    try:
+        created_dt = _parse_date(created)
+        now = datetime.now()
+        days = (now - created_dt).total_seconds() / 86400
+
+        if days < 7:
+            mult = 1.0
+            reason = f"Active ({days:.0f}d ago)"
+        elif days < 14:
+            mult = 0.95
+            reason = f"Recent ({days:.0f}d ago)"
+        elif days < 30:
+            mult = 0.85
+            reason = f"Aging ({days:.0f}d ago)"
+        else:
+            mult = 0.7
+            reason = f"Stale ({days:.0f}d ago)"
+
+        return {
+            "adjusted_score": round(score * mult),
+            "multiplier": mult,
+            "reason": reason,
+        }
+    except (ValueError, TypeError):
+        return {"adjusted_score": score, "multiplier": 1.0, "reason": "Parse error"}
+
+
+def _apply_negative_signals(score: float, payment: dict, intake: dict | None) -> dict:
+    """Detect red flags that cap the score at 40.
+
+    Triggers: stale >30 days with no pipeline progress, or lead with
+    zero engagement (no intake, no booking, no payment) after 14 days.
+    """
+    created = payment.get("created", "")
+    status = payment.get("status", "")
+    amount = payment.get("payment_amount", 0)
+
+    if not created:
+        return {"adjusted_score": score, "capped": False, "reason": ""}
+
+    try:
+        created_dt = _parse_date(created)
+        now = datetime.now()
+        days = (now - created_dt).total_seconds() / 86400
+    except (ValueError, TypeError):
+        return {"adjusted_score": score, "capped": False, "reason": ""}
+
+    # Stale lead with zero progress
+    if (
+        status == "Lead - Laylo"
+        and amount == 0
+        and not intake
+        and days > 30
+    ):
+        return {
+            "adjusted_score": min(score, 40),
+            "capped": True,
+            "reason": "Stale 30d+ with no progress",
+        }
+
+    # Paid but completely stalled (no booking after 14 days)
+    if status == "Paid - Needs Booking" and days > 14:
+        return {
+            "adjusted_score": min(score, 40),
+            "capped": True,
+            "reason": "Paid but stalled 14d+",
+        }
+
+    return {"adjusted_score": score, "capped": False, "reason": ""}
 
 
 # ── Helpers ────────────────────────────────────────────────────────

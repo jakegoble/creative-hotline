@@ -213,3 +213,50 @@ def render():
 
     if "icp_analysis" in st.session_state:
         st.markdown(st.session_state["icp_analysis"])
+
+    # ── Keyword Insights ──────────────────────────────────────────
+
+    st.divider()
+    st.subheader("Keyword Insights")
+
+    intakes = [item.get("intake") for item in merged if item.get("intake")]
+    if intakes:
+        from app.utils.keyword_extractor import extract_themes, get_industry_distribution
+
+        with st.expander("Top Creative Themes", expanded=False):
+            themes = extract_themes(intakes)
+            if themes:
+                for t in themes[:8]:
+                    pct_bar_width = min(t.percentage, 100)
+                    st.markdown(
+                        f'<div style="margin-bottom:8px;">'
+                        f'<div style="display:flex; justify-content:space-between;">'
+                        f'<span style="font-size:13px; font-weight:600;">{t.theme}</span>'
+                        f'<span style="font-size:12px; color:#888;">'
+                        f'{t.count} clients ({t.percentage:.0f}%)</span></div>'
+                        f'<div style="background:#f0f0f0; border-radius:4px; height:6px; margin-top:4px;">'
+                        f'<div style="background:#FF6B35; width:{pct_bar_width}%; '
+                        f'height:6px; border-radius:4px;"></div></div></div>',
+                        unsafe_allow_html=True,
+                    )
+            else:
+                st.info("No theme data yet.")
+
+        with st.expander("Industry Distribution", expanded=False):
+            industries = get_industry_distribution(intakes)
+            if industries:
+                import plotly.express as px_ind
+                import pandas as pd_ind
+                ind_df = pd_ind.DataFrame([
+                    {"Industry": k, "Count": v} for k, v in industries.items()
+                ])
+                fig = px_ind.pie(
+                    ind_df, values="Count", names="Industry",
+                    color_discrete_sequence=px_ind.colors.sequential.Oranges_r,
+                )
+                fig.update_layout(margin=dict(l=0, r=0, t=10, b=10), height=250)
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("No industry data yet.")
+    else:
+        st.info("No intake data available for keyword analysis.")

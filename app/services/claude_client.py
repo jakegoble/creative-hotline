@@ -78,6 +78,23 @@ class ClaudeService:
             logger.error(f"Claude action plan generation failed: {e}")
             return f"Error generating action plan: {e}"
 
+    def generate_text(self, prompt: str, max_tokens: int = 1500) -> str:
+        """Generic text generation with a simple prompt.
+
+        Used by channel analysis, win-back strategy, and other features
+        that need Frankie-voiced responses without specific system prompts.
+        """
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=max_tokens,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Claude text generation failed: {e}")
+            return f"Error: {e}"
+
     def analyze_icp(self, clients: list[dict]) -> str:
         """Analyze all client data to generate Ideal Client Profile.
 

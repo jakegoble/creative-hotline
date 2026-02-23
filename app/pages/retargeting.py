@@ -1,0 +1,163 @@
+"""Retargeting & Segments — segment builder + re-engagement queue."""
+
+from __future__ import annotations
+
+import streamlit as st
+
+from app.utils.segment_builder import build_all_segments, segment_summary
+from app.utils.lead_scorer import score_all_clients, get_tier_color
+from app.components.segment_cards import render_segment_cards, render_segment_detail
+from app.utils.formatters import format_currency
+
+
+def render():
+    st.header("Retargeting & Segments")
+
+    notion = st.session_state.get("notion")
+    if not notion:
+        st.warning("Notion not connected. Add NOTION_API_KEY to .env.")
+        return
+
+    payments = notion.get_all_payments()
+    if not payments:
+        st.info("No payment data yet.")
+        return
+
+    merged = notion.get_merged_clients()
+    scored = score_all_clients(merged)
+
+    segments = build_all_segments(payments, scores=scored)
+    summary = segment_summary(segments)
+
+    # ── Summary Bar ───────────────────────────────────────────────
+
+    s1, s2, s3, s4 = st.columns(4)
+    with s1:
+        st.metric("Total in Segments", summary["total_clients"])
+    with s2:
+        st.metric("Potential Revenue", format_currency(summary["total_value"]))
+    with s3:
+        st.metric("High Priority", summary["by_priority"].get("high", 0))
+    with s4:
+        st.metric("Segments Active", sum(1 for s in segments if s.count > 0))
+
+    st.divider()
+
+    # ── Segment Overview Cards ────────────────────────────────────
+
+    st.subheader("Segment Overview")
+    render_segment_cards(segments)
+
+    st.divider()
+
+    # ── Segment Detail ────────────────────────────────────────────
+
+    st.subheader("Segment Detail")
+
+    segment_names = [s.name for s in segments]
+    selected = st.selectbox("Select a segment", options=segment_names)
+
+    selected_seg = next((s for s in segments if s.name == selected), None)
+    if selected_seg:
+        render_segment_detail(selected_seg, scored_clients=scored)
+
+    st.divider()
+
+    # ── Re-engagement Queue ───────────────────────────────────────
+
+    st.subheader("Re-engagement Queue")
+    st.caption("Priority contacts to reach out to today, sorted by score and recency.")
+
+    # Collect all segment clients into a flat list, dedupe by email
+    queue: dict[str, dict] = {}
+    for seg in segments:
+        if seg.priority != "high":
+            continue
+        for client in seg.clients:
+            email = client.get("email", "")
+            if email and email not in queue:
+                queue[email] = {
+                    "client": client,
+                    "segment": seg.name,
+                    "action": seg.action,
+                }
+
+    if not queue:
+        st.info("No high-priority re-engagement targets right now.")
+    else:
+        # Look up scores
+        score_map = {}
+        for sc in scored:
+            email = (sc.get("payment", {}).get("email") or "").lower()
+            if email:
+                score_map[email] = sc.get("score", {}).get("total", 0)
+
+        # Sort by score descending
+        sorted_queue = sorted(
+            queue.items(),
+            key=lambda x: score_map.get(x[0].lower(), 0),
+            reverse=True,
+        )
+
+        for email, info in sorted_queue:
+            client = info["client"]
+            name = client.get("client_name") or email
+            score = score_map.get(email.lower(), 0)
+            tier_color = get_tier_color(
+                "Hot" if score >= 80 else "Warm" if score >= 50 else "Cool" if score >= 25 else "Cold"
+            )
+
+            c1, c2, c3, c4 = st.columns([3, 2, 2, 3])
+            with c1:
+                st.markdown(f"**{name}**")
+                st.caption(email)
+            with c2:
+                st.markdown(
+                    f'<span style="color:{tier_color}; font-weight:bold;">{score}/100</span>',
+                    unsafe_allow_html=True,
+                )
+            with c3:
+                st.caption(info["segment"])
+            with c4:
+                st.caption(info["action"])
+
+    st.divider()
+
+    # ── Win-Back Analysis ─────────────────────────────────────────
+
+    st.subheader("Win-Back Analysis")
+    claude = st.session_state.get("claude")
+    if not claude:
+        st.info("Add ANTHROPIC_API_KEY to .env for AI win-back analysis.")
+        return
+
+    stale_segments = [s for s in segments if s.name in ("Stale Leads", "Window Shoppers")]
+    stale_count = sum(s.count for s in stale_segments)
+
+    if stale_count == 0:
+        st.success("No stale leads right now — great job keeping the pipeline moving!")
+        return
+
+    if st.button("Generate Win-Back Strategy", type="primary"):
+        context_lines = []
+        for seg in stale_segments:
+            context_lines.append(f"- {seg.name}: {seg.count} clients")
+            for c in seg.clients[:5]:
+                source = c.get("lead_source", "unknown")
+                status = c.get("status", "")
+                context_lines.append(f"  - {c.get('email', '?')} (source: {source}, status: {status})")
+
+        prompt = (
+            "You are Frankie, the Creative Hotline's brand voice — warm, witty, confident, zero buzzwords. "
+            "You have stale leads who showed interest but haven't converted. "
+            "Analyze these segments and suggest specific win-back messaging and tactics. "
+            "Give me 3 concrete re-engagement approaches, each with a sample DM or email hook.\n\n"
+            "Stale segments:\n" + "\n".join(context_lines)
+        )
+
+        with st.spinner("Frankie is crafting your win-back strategy..."):
+            analysis = claude.generate_text(prompt)
+        st.session_state["winback_analysis"] = analysis
+
+    if "winback_analysis" in st.session_state:
+        st.markdown(st.session_state["winback_analysis"])

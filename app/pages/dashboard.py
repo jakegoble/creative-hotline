@@ -7,8 +7,9 @@ import pandas as pd
 from app.components.kpi_cards import render_kpi_row
 from app.components.funnel_chart import render_funnel
 from app.components.revenue_forecast import render_revenue_chart
-from app.config import PIPELINE_STATUSES
-from app.utils.formatters import format_currency
+from app.config import PIPELINE_STATUSES, CHANNEL_COLORS
+from app.utils.formatters import format_currency, format_percentage
+from app.utils.attribution import channel_roi
 
 
 def render():
@@ -170,3 +171,30 @@ def render():
     with m4:
         rate = (completed / intake_count * 100) if intake_count > 0 else 0
         st.metric("Intake → Complete", f"{rate:.0f}%")
+
+    st.divider()
+
+    # ── Top Channels ──────────────────────────────────────────────
+
+    st.subheader("Top Channels")
+    if payments:
+        roi_data = channel_roi(payments)
+        top_3 = [ch for ch in roi_data if ch["conversions"] > 0][:3]
+        if top_3:
+            cols = st.columns(len(top_3))
+            for col, ch in zip(cols, top_3):
+                color = CHANNEL_COLORS.get(ch["channel"], "#95A5A6")
+                with col:
+                    st.markdown(
+                        f'<div style="border-left:3px solid {color}; padding:8px 12px; '
+                        f'background:#faf8f5; border-radius:4px;">'
+                        f'<div style="font-size:13px; font-weight:bold;">{ch["channel"]}</div>'
+                        f'<div style="font-size:20px; font-weight:bold; color:{color};">'
+                        f'{format_percentage(ch["conversion_rate"])} conv.</div>'
+                        f'<div style="font-size:11px; color:#888;">'
+                        f'{ch["leads"]} leads · {format_currency(ch["revenue"])}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+        else:
+            st.info("No converted channels yet.")

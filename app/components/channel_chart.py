@@ -1,0 +1,183 @@
+"""Multi-metric channel comparison charts.
+
+Provides grouped bar and radar charts for comparing lead sources.
+"""
+
+from __future__ import annotations
+
+import plotly.graph_objects as go
+
+from app.config import LEAD_SOURCES
+
+
+# Consistent channel colors
+CHANNEL_COLORS = {
+    "IG DM": "#FF6B35",
+    "IG Comment": "#FF8C50",
+    "IG Story": "#FFA564",
+    "Meta Ad": "#6495ED",
+    "LinkedIn": "#0077B5",
+    "Website": "#2ECC71",
+    "Referral": "#9B59B6",
+    "Direct": "#34495E",
+    "Unknown": "#95A5A6",
+}
+
+
+def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
+    """Grouped bar chart comparing channels across metrics.
+
+    Args:
+        channel_metrics: Dict of {channel: {leads, conversions, revenue, avg_score, conversion_rate}}
+    """
+    if not channel_metrics:
+        fig = go.Figure()
+        fig.update_layout(
+            annotations=[dict(text="No channel data", showarrow=False,
+                              xref="paper", yref="paper", x=0.5, y=0.5)],
+            height=350,
+        )
+        return fig
+
+    channels = list(channel_metrics.keys())
+    colors = [CHANNEL_COLORS.get(ch, "#95A5A6") for ch in channels]
+
+    fig = go.Figure()
+
+    # Revenue bars
+    fig.add_trace(go.Bar(
+        name="Revenue ($)",
+        x=channels,
+        y=[m.get("revenue", 0) for m in channel_metrics.values()],
+        marker_color=[c for c in colors],
+        text=[f"${m.get('revenue', 0):,.0f}" for m in channel_metrics.values()],
+        textposition="outside",
+    ))
+
+    fig.update_layout(
+        barmode="group",
+        height=350,
+        margin=dict(l=0, r=0, t=30, b=10),
+        font=dict(family="system-ui, -apple-system, sans-serif"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        yaxis=dict(tickprefix="$", gridcolor="#f0f0f0"),
+        xaxis_tickangle=-45,
+        showlegend=False,
+    )
+
+    return fig
+
+
+def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
+    """Radar/spider chart comparing channels on normalized metrics.
+
+    Each metric is normalized to 0-100 for fair comparison.
+
+    Args:
+        channel_metrics: Dict of {channel: {leads, conversions, revenue, avg_score, conversion_rate}}
+    """
+    if not channel_metrics:
+        fig = go.Figure()
+        fig.update_layout(
+            annotations=[dict(text="No data", showarrow=False,
+                              xref="paper", yref="paper", x=0.5, y=0.5)],
+            height=400,
+        )
+        return fig
+
+    categories = ["Lead Volume", "Conversion Rate", "Revenue", "Avg Score", "Deal Size"]
+
+    # Normalize each metric to 0-100
+    metrics = list(channel_metrics.values())
+    max_leads = max((m.get("leads", 0) for m in metrics), default=1) or 1
+    max_revenue = max((m.get("revenue", 0) for m in metrics), default=1) or 1
+    max_score = max((m.get("avg_score", 0) for m in metrics), default=1) or 1
+    max_deal = max((m.get("avg_deal_size", 0) for m in metrics), default=1) or 1
+
+    fig = go.Figure()
+
+    for channel, m in channel_metrics.items():
+        values = [
+            m.get("leads", 0) / max_leads * 100,
+            m.get("conversion_rate", 0),
+            m.get("revenue", 0) / max_revenue * 100,
+            m.get("avg_score", 0) / max_score * 100,
+            m.get("avg_deal_size", 0) / max_deal * 100,
+        ]
+        # Close the polygon
+        values.append(values[0])
+
+        color = CHANNEL_COLORS.get(channel, "#95A5A6")
+        fig.add_trace(go.Scatterpolar(
+            r=values,
+            theta=categories + [categories[0]],
+            fill="toself",
+            name=channel,
+            line=dict(color=color),
+            fillcolor=color.replace("#", "rgba(") + ")" if "#" in color else color,
+            opacity=0.3,
+        ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(visible=True, range=[0, 100], showticklabels=False),
+            angularaxis=dict(tickfont=dict(size=11)),
+        ),
+        height=400,
+        margin=dict(l=40, r=40, t=30, b=30),
+        font=dict(family="system-ui, -apple-system, sans-serif"),
+        paper_bgcolor="rgba(0,0,0,0)",
+        legend=dict(orientation="h", y=-0.1),
+    )
+
+    return fig
+
+
+def render_revenue_by_source(revenue_data: dict[str, dict[str, float]]) -> go.Figure:
+    """Stacked area chart of revenue by source over time.
+
+    Args:
+        revenue_data: Dict of {month: {source: revenue}} from attribution.get_revenue_by_source_over_time()
+    """
+    if not revenue_data:
+        fig = go.Figure()
+        fig.update_layout(
+            annotations=[dict(text="No revenue data", showarrow=False,
+                              xref="paper", yref="paper", x=0.5, y=0.5)],
+            height=350,
+        )
+        return fig
+
+    months = sorted(revenue_data.keys())
+    all_sources = set()
+    for monthly in revenue_data.values():
+        all_sources.update(monthly.keys())
+
+    fig = go.Figure()
+    for source in sorted(all_sources):
+        values = [revenue_data.get(m, {}).get(source, 0) for m in months]
+        color = CHANNEL_COLORS.get(source, "#95A5A6")
+        fig.add_trace(go.Scatter(
+            x=months,
+            y=values,
+            mode="lines",
+            name=source,
+            stackgroup="revenue",
+            line=dict(color=color),
+            hovertemplate="%{x}: $%{y:,.0f}<extra>" + source + "</extra>",
+        ))
+
+    fig.update_layout(
+        height=350,
+        margin=dict(l=0, r=0, t=10, b=10),
+        font=dict(family="system-ui, -apple-system, sans-serif"),
+        plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="rgba(0,0,0,0)",
+        yaxis=dict(tickprefix="$", gridcolor="#f0f0f0"),
+        xaxis=dict(gridcolor="#f0f0f0"),
+        legend=dict(orientation="h", y=-0.15),
+        hovermode="x unified",
+    )
+
+    return fig

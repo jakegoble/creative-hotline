@@ -108,3 +108,19 @@ DESIRED_OUTCOMES = [
 CACHE_HOT = 60
 CACHE_WARM = 300
 CACHE_COLD = 1800
+
+# Attribution models
+ATTRIBUTION_MODELS = ["first_touch", "last_touch", "linear", "time_decay"]
+
+# Channel colors for consistent visualization across all charts
+CHANNEL_COLORS = {
+    "IG DM": "#FF6B35",
+    "IG Comment": "#FF8C50",
+    "IG Story": "#FFA564",
+    "Meta Ad": "#6495ED",
+    "LinkedIn": "#0077B5",
+    "Website": "#2ECC71",
+    "Referral": "#9B59B6",
+    "Direct": "#34495E",
+    "Unknown": "#95A5A6",
+}
