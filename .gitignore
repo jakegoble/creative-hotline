@@ -2,6 +2,14 @@
 .DS_Store
 Thumbs.db
 
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
 # Claude Code
 .claude/
 
@@ -12,6 +20,7 @@ Thumbs.db
 .env
 .env.*
 !.env.example
+.streamlit/secrets.toml
 
 # Node
 node_modules/
@@ -26,3 +35,12 @@ npm-debug.log*
 
 # Logs
 *.log
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Runtime generated
+plans/outcomes/
+plans/pages/

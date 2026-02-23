@@ -2,9 +2,6 @@
 
 import plotly.graph_objects as go
 
-from app.config import COLOR_PRIMARY
-
-
 COLOR_PRIMARY = "#FF6B35"
 
 

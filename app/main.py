@@ -2,7 +2,8 @@
 
 import streamlit as st
 
-from app.config import load_settings
+from app.config import load_settings, validate_settings
+from app.utils.theme import inject_custom_css
 
 st.set_page_config(
     page_title="Creative Hotline Command Center",
@@ -11,11 +12,38 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+inject_custom_css()
+
 settings = load_settings()
+_startup_warnings = validate_settings(settings)
+
+
+def _init_demo_services():
+    """Initialize demo service layer for Demo Mode."""
+    from app.services.demo_service import (
+        DemoNotionService,
+        DemoStripeService,
+        DemoCalendlyService,
+        DemoClaudeService,
+    )
+    from app.services.health_checker import HealthChecker
+
+    st.session_state.notion = DemoNotionService()
+    st.session_state.stripe = DemoStripeService()
+    st.session_state.calendly = DemoCalendlyService()
+    st.session_state.manychat = None
+    st.session_state.claude = DemoClaudeService()
+    st.session_state.health = HealthChecker()
+    st.session_state.services_initialized = True
 
 
 def init_services():
     """Initialize all service clients (cached in session state)."""
+    if st.session_state.get("demo_mode", False):
+        if not st.session_state.get("services_initialized"):
+            _init_demo_services()
+        return
+
     if "services_initialized" in st.session_state:
         return
 
@@ -59,13 +87,21 @@ def main():
         st.caption("Command Center")
         st.divider()
 
+        if st.session_state.get("demo_mode", False):
+            st.markdown(
+                '<div style="background:#FF6B35;color:white;text-align:center;'
+                'padding:4px 8px;border-radius:6px;font-size:12px;font-weight:600;'
+                'margin-bottom:12px;">DEMO MODE</div>',
+                unsafe_allow_html=True,
+            )
+
         page = st.radio(
             "Navigate",
             options=[
                 "Dashboard",
                 "Clients",
                 "Pipeline",
-                "Action Plans",
+                "Action Plan Studio",
                 "Lead Scoring",
                 "Channel Performance",
                 "Retargeting",
@@ -84,9 +120,16 @@ def main():
         if st.button("Refresh All Data", use_container_width=True):
             from app.services.cache_manager import cache
             cache.invalidate_all()
+            st.session_state.pop("services_initialized", None)
             st.rerun()
 
-        st.caption(f"v3.0 | Built for Jake & Megha")
+        # Show config warnings (not in demo mode)
+        if _startup_warnings and not st.session_state.get("demo_mode", False):
+            with st.expander("Config Warnings", expanded=False):
+                for w in _startup_warnings:
+                    st.caption(f"— {w}")
+
+        st.caption("v4.1 | Built for Jake & Megha")
 
     # Route to selected page
     if page == "Dashboard":
@@ -98,7 +141,7 @@ def main():
     elif page == "Pipeline":
         from app.pages.pipeline import render
         render()
-    elif page == "Action Plans":
+    elif page == "Action Plan Studio":
         from app.pages.action_plans import render
         render()
     elif page == "Lead Scoring":

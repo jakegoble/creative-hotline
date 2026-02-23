@@ -196,6 +196,113 @@ def build_icp_prompt(clients: list[dict]) -> str:
     return f"Here is the intake data for {len(clients)} clients:\n\n" + "\n".join(entries)
 
 
+# ── Transcript Processing Prompts ────────────────────────────────────
+
+TRANSCRIPT_PROCESSING_PROMPT = """You are analyzing a transcript from a 45-minute creative direction call
+at The Creative Hotline. Extract structured information from the conversation.
+
+Return ONLY valid JSON (no markdown, no explanation) with exactly these keys:
+
+{
+    "key_themes": ["theme1", "theme2", ...],
+    "decisions_made": ["decision1", "decision2", ...],
+    "recommendations_given": ["recommendation1", ...],
+    "action_items_discussed": ["action1", "action2", ...],
+    "client_concerns": ["concern1", "concern2", ...],
+    "notable_quotes": ["exact quote from client", ...],
+    "word_count": 0
+}
+
+Rules:
+- key_themes: 3-5 high-level themes from the conversation (e.g., "brand positioning," "content calendar")
+- decisions_made: Specific decisions reached ON the call (not aspirational — actual "we agreed to X")
+- recommendations_given: Concrete advice Jake/Megha gave (tools, strategies, timelines)
+- action_items_discussed: Things the client should DO after the call
+- client_concerns: Worries, hesitations, or pain points the client expressed
+- notable_quotes: 2-4 direct quotes from the client that capture their situation (verbatim)
+- word_count: Count all words in the full transcript
+
+Keep each list item to 1-2 sentences max. Be specific — use names, brands, and tools mentioned.
+If a section has no relevant content, use an empty list.
+Return ONLY the JSON object."""
+
+
+def build_transcript_processing_prompt(raw_transcript: str) -> str:
+    """Build the user message for transcript processing."""
+    word_count = len(raw_transcript.split())
+    return f"""Process this call transcript ({word_count:,} words).
+
+--- TRANSCRIPT ---
+{raw_transcript}
+--- END TRANSCRIPT ---"""
+
+
+def build_action_plan_from_transcript_prompt(
+    client_name: str,
+    brand: str,
+    role: str,
+    creative_emergency: str,
+    desired_outcome: str,
+    what_tried: str,
+    deadline: str,
+    constraints: str,
+    ai_summary: str,
+    transcript_summary: dict,
+    product_purchased: str,
+    payment_amount: float,
+) -> str:
+    """Build user message for action plan using structured transcript data."""
+    today = datetime.now().strftime("%B %d, %Y")
+
+    themes = "\n".join(f"- {t}" for t in transcript_summary.get("key_themes", []))
+    decisions = "\n".join(f"- {d}" for d in transcript_summary.get("decisions_made", []))
+    recommendations = "\n".join(f"- {r}" for r in transcript_summary.get("recommendations_given", []))
+    action_items = "\n".join(f"- {a}" for a in transcript_summary.get("action_items_discussed", []))
+    concerns = "\n".join(f"- {c}" for c in transcript_summary.get("client_concerns", []))
+    quotes = "\n".join(f'- "{q}"' for q in transcript_summary.get("notable_quotes", []))
+
+    return f"""Generate an action plan for this client.
+
+TODAY'S DATE: {today}
+
+--- INTAKE DATA (pre-call) ---
+Name: {client_name}
+Brand: {brand}
+Role: {role}
+Creative Emergency: {creative_emergency}
+Desired Outcome: {desired_outcome}
+What They've Tried: {what_tried}
+Deadline: {deadline}
+Constraints: {constraints}
+
+--- AI INTAKE SUMMARY (from pre-call analysis) ---
+{ai_summary}
+
+--- CALL TRANSCRIPT ANALYSIS ---
+
+Key Themes:
+{themes}
+
+Decisions Made on Call:
+{decisions}
+
+Recommendations Given:
+{recommendations}
+
+Action Items Discussed:
+{action_items}
+
+Client Concerns:
+{concerns}
+
+Notable Client Quotes:
+{quotes}
+
+--- PRODUCT PURCHASED ---
+{product_purchased} (${payment_amount:.0f})
+"""
+
+
 # ── Growth Engine Prompts ──────────────────────────────────────────
 
 REVENUE_STRATEGY_PROMPT = """You are Frankie, the Creative Hotline's strategic brain — warm, direct, zero buzzwords.

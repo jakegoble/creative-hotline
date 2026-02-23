@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Hotline — Command Center Demo Report</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --orange: #FF6B35;
+    --orange-dark: #E55A24;
+    --orange-light: #FF8C5A;
+    --bg: #f7f5f2;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --border: #f0ede8;
+    --border-hover: #e0dcd8;
+    --success: #28a745;
+    --blue: #4A90D9;
+    --purple: #9B59B6;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* ── Header ──────────────────────────── */
+  .header {
+    text-align: center;
+    margin-bottom: 40px;
+  }
+  .header .brand {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--orange);
+    margin-bottom: 8px;
+  }
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .header .meta {
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  .header .divider {
+    width: 60px;
+    height: 3px;
+    background: var(--orange);
+    margin: 16px auto 0;
+    border-radius: 2px;
+  }
+
+  /* ── KPI Cards ───────────────────────── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .kpi-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+  .kpi-card .label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .kpi-card .value {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .kpi-card .value.orange { color: var(--orange); }
+  .kpi-card .value.success { color: var(--success); }
+
+  /* ── Section ─────────────────────────── */
+  .section {
+    margin-bottom: 32px;
+  }
+  .section h2 {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+
+  /* ── Charts ──────────────────────────── */
+  .chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 32px;
+  }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .chart-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+  .chart-card canvas {
+    max-height: 260px;
+  }
+
+  /* ── Funnel ──────────────────────────── */
+  .funnel { margin-bottom: 32px; }
+  .funnel-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .funnel-label {
+    width: 180px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-align: right;
+    padding-right: 16px;
+    flex-shrink: 0;
+  }
+  .funnel-track {
+    flex: 1;
+    height: 32px;
+    background: var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+  .funnel-fill {
+    height: 100%;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    transition: width 0.6s ease;
+  }
+  .funnel-fill.small-text { font-size: 11px; padding-right: 6px; }
+
+  /* ── Table ───────────────────────────── */
+  .table-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    margin-bottom: 32px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  thead th {
+    background: #faf8f5;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:nth-child(even) { background: #faf8f5; }
+
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .badge-sent { background: #e8f5e9; color: #2e7d32; }
+  .badge-complete { background: #e3f2fd; color: #1565c0; }
+  .badge-ready { background: #fff3e0; color: #e65100; }
+  .badge-intake { background: #f3e5f5; color: #7b1fa2; }
+  .badge-booked { background: #fce4ec; color: #c62828; }
+  .badge-paid { background: #fff8e1; color: #f57f17; }
+  .badge-lead { background: #f5f5f5; color: #757575; }
+
+  /* ── Tier Distribution ───────────────── */
+  .tier-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .tier-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .tier-card .tier-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .tier-card .tier-count {
+    font-size: 36px;
+    font-weight: 700;
+  }
+  .tier-card .tier-range {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .tier-hot .tier-label { color: #FF6B35; }
+  .tier-hot .tier-count { color: #FF6B35; }
+  .tier-warm .tier-label { color: #FFA500; }
+  .tier-warm .tier-count { color: #FFA500; }
+  .tier-cool .tier-label { color: #4A90D9; }
+  .tier-cool .tier-count { color: #4A90D9; }
+  .tier-cold .tier-label { color: #999; }
+  .tier-cold .tier-count { color: #999; }
+
+  /* ── Footer ──────────────────────────── */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--text-muted);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+  .footer a { color: var(--orange); text-decoration: none; }
+
+  /* ── Mobile ──────────────────────────── */
+  @media (max-width: 768px) {
+    .chart-grid { grid-template-columns: 1fr; }
+    .tier-grid { grid-template-columns: repeat(2, 1fr); }
+    .funnel-label { width: 120px; font-size: 11px; }
+    .header h1 { font-size: 24px; }
+    .kpi-card .value { font-size: 22px; }
+    table { font-size: 12px; }
+    thead th, tbody td { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand">THE CREATIVE HOTLINE</div>
+    <h1>Command Center — Demo Report</h1>
+    <div class="meta">Sample data &middot; 15 clients &middot; Generated Feb 2026</div>
+    <div class="divider"></div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="label">Total Revenue</div>
+      <div class="value orange">$10,475</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Active Clients</div>
+      <div class="value">13</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Booking Rate</div>
+      <div class="value">72%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Avg Time to Book</div>
+      <div class="value">18.5h</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Funnel Conversion</div>
+      <div class="value">40%</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">System Health</div>
+      <div class="value success">Green</div>
+    </div>
+  </div>
+
+  <!-- Charts Row -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Revenue Trend (6 Months)</h3>
+      <canvas id="revenueChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Revenue by Product</h3>
+      <canvas id="productChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Pipeline Funnel -->
+  <div class="section">
+    <h2>Pipeline Funnel</h2>
+    <div class="funnel">
+      <div class="funnel-bar">
+        <div class="funnel-label">Lead - Laylo</div>
+        <div class="funnel-track">
+          <div class="funnel-fill" style="width:100%;background:linear-gradient(90deg,#FF6B35,#FF8C5A);">15</div>
+        </div>
+      </div>
+      <div class="funnel-bar">
+        <div class="funnel-label">Paid - Needs Booking</div>
+        <div class="funnel-track">
+          <div class="funnel-fill" style="width:87%;background:linear-gradient(90deg,#FF7A4D,#FF9966);">13</div>
+        </div>
+      </div>
+      <div class="funnel-bar">
+        <div class="funnel-label">Booked - Needs Intake</div>
+        <div class="funnel-track">
+          <div class="funnel-fill" style="width:73%;background:linear-gradient(90deg,#FF8C5A,#FFAA7F);">11</div>
+        </div>
+      </div>
+      <div class="funnel-bar">
+        <div class="funnel-label">Intake Complete</div>
+        <div class="funnel-track">
+          <div class="funnel-fill" style="width:60%;background:linear-gradient(90deg,#FF9E6E,#FFBB96);">9</div>
+        </div>
+      </div>
+      <div class="funnel-bar">
+        <div class="funnel-label">Ready for Call</div>
+        <div class="funnel-track">
+          <div class="funnel-fill" style="width:53%;background:linear-gradient(90deg,#FFB080,#FFCCAA);">8</div>
+        </div>
+      </div>
+      <div class="funnel-bar">
+        <div class="funnel-label">Call Complete</div>
+        <div class="funnel-track">
+          <div class="funnel-fill small-text" style="width:40%;background:linear-gradient(90deg,#FFC299,#FFD4BC);">6</div>
+        </div>
+      </div>
+      <div class="funnel-bar">
+        <div class="funnel-label">Follow-Up Sent</div>
+        <div class="funnel-track">
+          <div class="funnel-fill small-text" style="width:20%;background:linear-gradient(90deg,#FFD4BC,#FFE4D6);">3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lead Source + Donut Chart -->
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Lead Source Attribution</h3>
+      <canvas id="sourceChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Conversion by Stage</h3>
+      <canvas id="conversionChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Client Table -->
+  <div class="section">
+    <h2>Client Pipeline</h2>
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th>
+            <th>Product</th>
+            <th>Amount</th>
+            <th>Source</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Sarah Chen</td><td>Standard Call</td><td>$699</td><td>Referral</td><td><span class="badge badge-sent">Follow-Up Sent</span></td></tr>
+          <tr><td>Marcus Rivera</td><td>3-Session Sprint</td><td>$1,495</td><td>LinkedIn</td><td><span class="badge badge-sent">Follow-Up Sent</span></td></tr>
+          <tr><td>Anika Shaw</td><td>First Call</td><td>$499</td><td>Direct</td><td><span class="badge badge-sent">Follow-Up Sent</span></td></tr>
+          <tr><td>Priya Kaur</td><td>First Call</td><td>$499</td><td>IG DM</td><td><span class="badge badge-complete">Call Complete</span></td></tr>
+          <tr><td>Tyler Brooks</td><td>Standard Call</td><td>$699</td><td>Website</td><td><span class="badge badge-complete">Call Complete</span></td></tr>
+          <tr><td>Oscar Delgado</td><td>First Call</td><td>$499</td><td>Website</td><td><span class="badge badge-complete">Call Complete</span></td></tr>
+          <tr><td>Jenna Morales</td><td>3-Session Sprint</td><td>$1,495</td><td>Referral</td><td><span class="badge badge-ready">Ready for Call</span></td></tr>
+          <tr><td>David Kim</td><td>Standard Call</td><td>$699</td><td>Meta Ad</td><td><span class="badge badge-intake">Intake Complete</span></td></tr>
+          <tr><td>Amara Osei</td><td>First Call</td><td>$499</td><td>IG Comment</td><td><span class="badge badge-intake">Intake Complete</span></td></tr>
+          <tr><td>Naomi Tanaka</td><td>Standard Call</td><td>$699</td><td>IG DM</td><td><span class="badge badge-booked">Booked</span></td></tr>
+          <tr><td>Elijah Washington</td><td>3-Session Sprint</td><td>$1,495</td><td>Referral</td><td><span class="badge badge-booked">Booked</span></td></tr>
+          <tr><td>Lucia Ferreira</td><td>First Call</td><td>$499</td><td>Meta Ad</td><td><span class="badge badge-paid">Paid</span></td></tr>
+          <tr><td>Raj Patel</td><td>Standard Call</td><td>$699</td><td>LinkedIn</td><td><span class="badge badge-paid">Paid</span></td></tr>
+          <tr><td>Mia Rossi</td><td>—</td><td>$0</td><td>IG Story</td><td><span class="badge badge-lead">Lead</span></td></tr>
+          <tr><td>Jordan Ellis</td><td>—</td><td>$0</td><td>IG DM</td><td><span class="badge badge-lead">Lead</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Lead Score Tier Distribution -->
+  <div class="section">
+    <h2>Lead Score Distribution</h2>
+    <div class="tier-grid">
+      <div class="tier-card tier-hot">
+        <div class="tier-label">Hot</div>
+        <div class="tier-count">4</div>
+        <div class="tier-range">Score 80-100</div>
+      </div>
+      <div class="tier-card tier-warm">
+        <div class="tier-label">Warm</div>
+        <div class="tier-count">5</div>
+        <div class="tier-range">Score 50-79</div>
+      </div>
+      <div class="tier-card tier-cool">
+        <div class="tier-label">Cool</div>
+        <div class="tier-count">4</div>
+        <div class="tier-range">Score 25-49</div>
+      </div>
+      <div class="tier-card tier-cold">
+        <div class="tier-label">Cold</div>
+        <div class="tier-count">2</div>
+        <div class="tier-range">Score 0-24</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="https://www.thecreativehotline.com">The Creative Hotline</a> &middot;
+    Command Center v4.1 &middot;
+    Built for Jake &amp; Megha
+  </div>
+
+</div>
+
+<script>
+  // Chart defaults
+  Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+  Chart.defaults.color = '#666666';
+
+  // Revenue Trend
+  new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb'],
+      datasets: [{
+        label: 'Revenue',
+        data: [1497, 2695, 3194, 4692, 5889, 7086],
+        backgroundColor: 'rgba(255, 107, 53, 0.8)',
+        borderColor: '#FF6B35',
+        borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => '$' + ctx.parsed.y.toLocaleString() }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { callback: v => '$' + (v/1000).toFixed(0) + 'k' },
+          grid: { color: 'rgba(0,0,0,0.04)' }
+        },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Revenue by Product
+  new Chart(document.getElementById('productChart'), {
+    type: 'bar',
+    data: {
+      labels: ['First Call ($499)', 'Standard Call ($699)', '3-Session Sprint ($1,495)'],
+      datasets: [{
+        label: 'Revenue',
+        data: [2495, 3495, 4485],
+        backgroundColor: ['rgba(255,107,53,0.7)', 'rgba(255,140,80,0.7)', 'rgba(255,165,100,0.7)'],
+        borderColor: ['#FF6B35', '#FF8C50', '#FFA564'],
+        borderWidth: 1,
+        borderRadius: 6,
+        barPercentage: 0.5,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => '$' + ctx.parsed.x.toLocaleString() }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { callback: v => '$' + (v/1000).toFixed(1) + 'k' },
+          grid: { color: 'rgba(0,0,0,0.04)' }
+        },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+
+  // Lead Source Attribution (Donut)
+  new Chart(document.getElementById('sourceChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['IG DM', 'Referral', 'LinkedIn', 'Website', 'Meta Ad', 'IG Comment', 'IG Story', 'Direct'],
+      datasets: [{
+        data: [3, 3, 2, 2, 2, 1, 1, 1],
+        backgroundColor: [
+          '#FF6B35', '#9B59B6', '#0077B5', '#2ECC71',
+          '#6495ED', '#FF8C50', '#FFA564', '#34495E'
+        ],
+        borderWidth: 2,
+        borderColor: '#ffffff',
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      cutout: '55%',
+      plugins: {
+        legend: {
+          position: 'right',
+          labels: { boxWidth: 12, padding: 12, font: { size: 12 } }
+        }
+      }
+    }
+  });
+
+  // Conversion by Stage
+  new Chart(document.getElementById('conversionChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Lead→Paid', 'Paid→Booked', 'Booked→Intake', 'Intake→Complete'],
+      datasets: [{
+        label: 'Conversion %',
+        data: [87, 85, 82, 67],
+        backgroundColor: 'rgba(255, 107, 53, 0.15)',
+        borderColor: '#FF6B35',
+        borderWidth: 2,
+        borderRadius: 6,
+        barPercentage: 0.5,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => ctx.parsed.y + '%' }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100,
+          ticks: { callback: v => v + '%' },
+          grid: { color: 'rgba(0,0,0,0.04)' }
+        },
+        x: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

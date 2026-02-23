@@ -45,29 +45,65 @@ class Settings:
 
     # Brand
     COLOR_PRIMARY: str = "#FF6B35"
+    COLOR_PRIMARY_DARK: str = "#E55A24"
+    COLOR_PRIMARY_LIGHT: str = "#FF8C5A"
     COLOR_BG: str = "#f7f5f2"
+    COLOR_BG_CARD: str = "#ffffff"
+    COLOR_BG_SIDEBAR: str = "#141414"
     COLOR_TEXT: str = "#1a1a1a"
+    COLOR_TEXT_SECONDARY: str = "#666666"
+    COLOR_TEXT_MUTED: str = "#999999"
+    COLOR_BORDER: str = "#f0ede8"
+    COLOR_BORDER_HOVER: str = "#e0dcd8"
+
+
+def _get_secret(key: str, default: str = "") -> str:
+    """Get a secret from env vars OR Streamlit secrets (Cloud deployment)."""
+    val = os.getenv(key, "")
+    if val:
+        return val
+    try:
+        import streamlit as st
+        if hasattr(st, "secrets") and key in st.secrets:
+            return str(st.secrets[key])
+    except Exception:
+        pass
+    return default
 
 
 def load_settings() -> Settings:
-    """Load settings from environment variables."""
+    """Load settings from environment variables or Streamlit secrets."""
     return Settings(
-        NOTION_API_KEY=os.getenv("NOTION_API_KEY", os.getenv("NOTION_API_TOKEN", "")),
-        NOTION_PAYMENTS_DB=os.getenv("NOTION_PAYMENTS_DB", "3030e73ffadc80bcb9dde15f51a9caf2"),
-        NOTION_INTAKE_DB=os.getenv("NOTION_INTAKE_DB", "2f60e73ffadc806bbf5ddca2f5c256a3"),
-        STRIPE_SECRET_KEY=os.getenv("STRIPE_SECRET_KEY", ""),
-        STRIPE_WEBHOOK_SECRET=os.getenv("STRIPE_WEBHOOK_SECRET", ""),
-        CALENDLY_API_KEY=os.getenv("CALENDLY_API_KEY", ""),
-        CALENDLY_EVENT_TYPE_URI=os.getenv("CALENDLY_EVENT_TYPE_URI", ""),
-        CALENDLY_ORG_URI=os.getenv("CALENDLY_ORG_URI", ""),
-        MANYCHAT_API_KEY=os.getenv("MANYCHAT_API_KEY", ""),
-        ANTHROPIC_API_KEY=os.getenv("ANTHROPIC_API_KEY", ""),
-        ANTHROPIC_MODEL=os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929"),
-        N8N_BASE_URL=os.getenv("N8N_BASE_URL", "https://creativehotline.app.n8n.cloud"),
-        N8N_API_KEY=os.getenv("N8N_API_KEY", ""),
-        APP_PASSWORD=os.getenv("APP_PASSWORD", ""),
-        LOG_LEVEL=os.getenv("LOG_LEVEL", "INFO"),
+        NOTION_API_KEY=_get_secret("NOTION_API_KEY", _get_secret("NOTION_API_TOKEN")),
+        NOTION_PAYMENTS_DB=_get_secret("NOTION_PAYMENTS_DB", "3030e73ffadc80bcb9dde15f51a9caf2"),
+        NOTION_INTAKE_DB=_get_secret("NOTION_INTAKE_DB", "2f60e73ffadc806bbf5ddca2f5c256a3"),
+        STRIPE_SECRET_KEY=_get_secret("STRIPE_SECRET_KEY"),
+        STRIPE_WEBHOOK_SECRET=_get_secret("STRIPE_WEBHOOK_SECRET"),
+        CALENDLY_API_KEY=_get_secret("CALENDLY_API_KEY"),
+        CALENDLY_EVENT_TYPE_URI=_get_secret("CALENDLY_EVENT_TYPE_URI"),
+        CALENDLY_ORG_URI=_get_secret("CALENDLY_ORG_URI"),
+        MANYCHAT_API_KEY=_get_secret("MANYCHAT_API_KEY"),
+        ANTHROPIC_API_KEY=_get_secret("ANTHROPIC_API_KEY"),
+        ANTHROPIC_MODEL=_get_secret("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929"),
+        N8N_BASE_URL=_get_secret("N8N_BASE_URL", "https://creativehotline.app.n8n.cloud"),
+        N8N_API_KEY=_get_secret("N8N_API_KEY"),
+        APP_PASSWORD=_get_secret("APP_PASSWORD"),
+        LOG_LEVEL=_get_secret("LOG_LEVEL", "INFO"),
     )
+
+
+def validate_settings(settings: Settings) -> list:
+    """Validate critical settings and return list of warnings."""
+    warnings = []
+    if not settings.NOTION_API_KEY:
+        warnings.append("NOTION_API_KEY not set — Notion features disabled")
+    if not settings.STRIPE_SECRET_KEY:
+        warnings.append("STRIPE_SECRET_KEY not set — Revenue data disabled")
+    if not settings.ANTHROPIC_API_KEY:
+        warnings.append("ANTHROPIC_API_KEY not set — AI features disabled")
+    if not settings.CALENDLY_API_KEY:
+        warnings.append("CALENDLY_API_KEY not set — Booking data disabled")
+    return warnings
 
 
 # Pipeline statuses in lifecycle order

@@ -11,11 +11,14 @@ from app.utils.frankie_prompts import (
     TESTIMONIAL_GENERATION_PROMPT,
     CASE_STUDY_PROMPT,
     GROWTH_RECOMMENDATION_PROMPT,
+    TRANSCRIPT_PROCESSING_PROMPT,
     build_action_plan_prompt,
     build_icp_prompt,
     build_testimonial_prompt,
     build_case_study_prompt,
     build_growth_analysis_prompt,
+    build_transcript_processing_prompt,
+    build_action_plan_from_transcript_prompt,
 )
 
 logger = logging.getLogger(__name__)
@@ -83,6 +86,68 @@ class ClaudeService:
             return response.content[0].text
         except Exception as e:
             logger.error(f"Claude action plan generation failed: {e}")
+            return f"Error generating action plan: {e}"
+
+    def process_transcript(self, raw_transcript: str) -> str:
+        """Send a call transcript to Claude for structured extraction.
+
+        Returns raw JSON string that TranscriptProcessor parses.
+        """
+        user_message = build_transcript_processing_prompt(raw_transcript)
+
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=4096,
+                system=TRANSCRIPT_PROCESSING_PROMPT,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Claude transcript processing failed: {e}")
+            return f"Error processing transcript: {e}"
+
+    def generate_action_plan_from_transcript(
+        self,
+        client_name: str,
+        brand: str,
+        role: str,
+        creative_emergency: str,
+        desired_outcome: str,
+        what_tried: str,
+        deadline: str,
+        constraints: str,
+        ai_summary: str,
+        transcript_summary: dict,
+        product_purchased: str,
+        payment_amount: float,
+    ) -> str:
+        """Generate a Frankie-voiced action plan using transcript analysis."""
+        user_message = build_action_plan_from_transcript_prompt(
+            client_name=client_name,
+            brand=brand,
+            role=role,
+            creative_emergency=creative_emergency,
+            desired_outcome=desired_outcome,
+            what_tried=what_tried,
+            deadline=deadline,
+            constraints=constraints,
+            ai_summary=ai_summary,
+            transcript_summary=transcript_summary,
+            product_purchased=product_purchased,
+            payment_amount=payment_amount,
+        )
+
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=2048,
+                system=ACTION_PLAN_SYSTEM_PROMPT,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Claude action plan (transcript) generation failed: {e}")
             return f"Error generating action plan: {e}"
 
     def generate_text(self, prompt: str, max_tokens: int = 1500) -> str:

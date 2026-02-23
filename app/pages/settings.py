@@ -1,4 +1,4 @@
-"""Settings page — configuration status and preferences."""
+"""Settings page — configuration status, demo mode, and preferences."""
 
 import streamlit as st
 
@@ -9,6 +9,24 @@ def render():
     st.header("Settings")
 
     settings = load_settings()
+
+    # ── Demo Mode ─────────────────────────────────────────────
+
+    st.subheader("Demo Mode")
+    demo_on = st.toggle(
+        "Show sample data on all pages",
+        value=st.session_state.get("demo_mode", False),
+        help="When enabled, all pages show realistic sample data instead of live API data.",
+    )
+    if demo_on != st.session_state.get("demo_mode", False):
+        st.session_state.demo_mode = demo_on
+        st.session_state.pop("services_initialized", None)
+        st.rerun()
+
+    if st.session_state.get("demo_mode", False):
+        st.info("Demo Mode is ON. All data shown is sample data. Toggle off to see live data.")
+
+    st.divider()
 
     # ── Connection Status ────────────────────────────────────────
 
@@ -46,7 +64,7 @@ def render():
     # ── App Info ─────────────────────────────────────────────────
 
     st.subheader("About")
-    st.caption("Creative Hotline Command Center v1.0")
+    st.caption("Creative Hotline Command Center v4.1")
     st.caption("Built for Jake Goble & Megha")
     st.caption("Stack: Streamlit + Plotly + Notion + Stripe + Calendly + ManyChat + Claude")
 
