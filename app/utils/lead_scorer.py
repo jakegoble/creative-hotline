@@ -465,12 +465,14 @@ def _apply_negative_signals(score: float, payment: dict, intake: dict | None) ->
 
 
 def _parse_date(date_str: str) -> datetime:
-    """Parse ISO date string (handles both date-only and datetime formats)."""
-    date_str = date_str.strip()
-    for fmt in ("%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%d"):
+    """Parse ISO date string, always returns naive (tz-unaware) datetime."""
+    date_str = date_str.strip().rstrip("Z")
+    # Strip timezone offset (+00:00, +0000) if present after the date portion
+    if "+" in date_str[10:]:
+        date_str = date_str[:date_str.rindex("+")]
+    for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"):
         try:
-            return datetime.strptime(date_str[:len(fmt) + 5], fmt)
+            return datetime.strptime(date_str, fmt)
         except ValueError:
             continue
-    # Final fallback: just parse the date portion
     return datetime.strptime(date_str[:10], "%Y-%m-%d")

@@ -130,10 +130,19 @@ def render_sankey(payments: list[dict]) -> go.Figure:
     ))
 
     fig.update_layout(
-        font=dict(size=12, family="system-ui, -apple-system, sans-serif"),
+        font=dict(
+            size=13,
+            family="Inter, system-ui, -apple-system, sans-serif",
+            color="#000000",
+        ),
         margin=dict(l=10, r=10, t=10, b=10),
         height=450,
         paper_bgcolor="rgba(0,0,0,0)",
+    )
+
+    # Bold black labels, no shadow
+    fig.update_traces(
+        textfont=dict(size=13, color="#000000", family="Inter, system-ui, sans-serif"),
     )
 
     return fig
