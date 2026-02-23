@@ -59,6 +59,7 @@ def init_services():
     from app.services.calendly_client import CalendlyService
     from app.services.manychat_client import ManyChatService
     from app.services.claude_client import ClaudeService
+    from app.services.fireflies_client import FirefliesService
     from app.services.health_checker import HealthChecker
 
     st.session_state.notion = (
@@ -80,6 +81,10 @@ def init_services():
     st.session_state.claude = (
         ClaudeService(settings.ANTHROPIC_API_KEY, settings.ANTHROPIC_MODEL)
         if settings.ANTHROPIC_API_KEY else None
+    )
+    st.session_state.fireflies = (
+        FirefliesService(settings.FIREFLIES_API_KEY)
+        if settings.FIREFLIES_API_KEY else None
     )
     st.session_state.health = HealthChecker()
     st.session_state.services_initialized = True

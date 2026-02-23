@@ -7,7 +7,7 @@ from datetime import datetime
 import streamlit as st
 
 from app.utils.exporters import generate_premium_pdf, save_action_plan_version
-from app.utils.formatters import format_currency
+from app.utils.formatters import format_currency, format_date
 from app.utils.transcript_processor import (
     TranscriptSummary,
     parse_transcript_response,
@@ -116,7 +116,16 @@ def render():
     plan_key = f"action_plan_{email}"
     transcript_key = f"transcript_summary_{email}"
 
-    tab_transcript, tab_manual = st.tabs(["Paste Transcript", "Manual Notes"])
+    fireflies = st.session_state.get("fireflies")
+
+    if fireflies:
+        tab_fireflies, tab_transcript, tab_manual = st.tabs(
+            ["Fireflies", "Paste Transcript", "Manual Notes"],
+        )
+        with tab_fireflies:
+            _render_fireflies_tab(payment, intake, claude, fireflies, plan_key, transcript_key)
+    else:
+        tab_transcript, tab_manual = st.tabs(["Paste Transcript", "Manual Notes"])
 
     with tab_transcript:
         _render_transcript_tab(payment, intake, claude, plan_key, transcript_key)
@@ -128,6 +137,170 @@ def render():
 
     if plan_key in st.session_state:
         _render_plan_display(plan_key, transcript_key, payment, intake)
+
+
+def _render_fireflies_tab(
+    payment: dict, intake: dict, claude, fireflies, plan_key: str, transcript_key: str,
+) -> None:
+    """Fireflies tab — auto-pull transcripts from Fireflies AI."""
+    email = payment.get("email", "")
+
+    st.caption(
+        "Select a call recording from Fireflies AI. "
+        "The transcript will be pulled automatically and processed."
+    )
+
+    # Fetch recent transcripts
+    ff_list_key = "fireflies_list"
+    if ff_list_key not in st.session_state:
+        with st.spinner("Loading transcripts from Fireflies..."):
+            st.session_state[ff_list_key] = fireflies.list_transcripts(limit=30)
+
+    transcripts = st.session_state[ff_list_key]
+
+    col_refresh, _ = st.columns([1, 3])
+    with col_refresh:
+        if st.button("Refresh List", key="ff_refresh"):
+            from app.services.cache_manager import cache
+            cache.invalidate("fireflies_transcripts_30")
+            st.session_state.pop(ff_list_key, None)
+            st.rerun()
+
+    if not transcripts:
+        empty_state("No transcripts found in Fireflies. Record a call first.")
+        return
+
+    # Build display options
+    transcript_options = {}
+    for t in transcripts:
+        date_str = format_date(t.get("date", ""))
+        dur = t.get("duration_min", 0)
+        title = t.get("title", "Untitled")
+        participants = ", ".join(t.get("participants", [])[:3])
+        label = f"{title} — {date_str} ({dur:.0f} min)"
+        if participants:
+            label += f" — {participants}"
+        transcript_options[label] = t
+
+    selected_ff = st.selectbox(
+        "Select Transcript",
+        options=list(transcript_options.keys()),
+        key=f"ff_select_{email}",
+        help="Showing your most recent Fireflies transcripts.",
+    )
+
+    if not selected_ff:
+        return
+
+    selected_transcript = transcript_options[selected_ff]
+    transcript_id = selected_transcript["id"]
+
+    # Show Fireflies summary if available
+    ff_detail_key = f"ff_detail_{transcript_id}"
+
+    if st.button(
+        "Pull Transcript",
+        type="primary",
+        use_container_width=True,
+        key=f"ff_pull_{email}",
+    ):
+        with st.spinner("Fetching full transcript from Fireflies..."):
+            detail = fireflies.get_transcript(transcript_id)
+        if not detail:
+            st.error("Failed to fetch transcript. Check your Fireflies API key.")
+            return
+        st.session_state[ff_detail_key] = detail
+        st.rerun()
+
+    if ff_detail_key not in st.session_state:
+        return
+
+    detail = st.session_state[ff_detail_key]
+    ff_summary = detail.get("summary", {})
+
+    # Show Fireflies' own AI summary
+    if ff_summary.get("short_summary"):
+        with st.expander("Fireflies AI Summary", expanded=True):
+            st.write(ff_summary["short_summary"])
+            if ff_summary.get("action_items"):
+                st.markdown("**Action Items:**")
+                for item in ff_summary["action_items"]:
+                    st.markdown(f"- {item}")
+            if ff_summary.get("keywords"):
+                st.caption(f"Keywords: {', '.join(ff_summary['keywords'][:10])}")
+
+    # Build the full transcript text
+    raw_text = fireflies.get_transcript_text(transcript_id)
+    if not raw_text:
+        st.warning("Transcript has no sentence data.")
+        return
+
+    wc = count_words(raw_text)
+    duration = estimate_call_duration(wc)
+    st.caption(f"{wc:,} words — ~{duration} min call")
+
+    with st.expander("View Full Transcript"):
+        st.text(raw_text[:5000] + ("..." if len(raw_text) > 5000 else ""))
+
+    st.divider()
+
+    # Process through Claude (same pipeline as paste tab)
+    if st.button(
+        "Process with Claude",
+        use_container_width=True,
+        key=f"ff_process_{email}",
+    ):
+        with st.spinner("Analyzing transcript..."):
+            json_response = claude.process_transcript(raw_text)
+        if json_response.startswith("Error"):
+            st.error(json_response)
+            return
+        summary = parse_transcript_response(json_response)
+        summary.word_count = wc
+        st.session_state[transcript_key] = summary
+        st.rerun()
+
+    # Show processed summary + generate button (same as paste tab)
+    if transcript_key in st.session_state:
+        summary = st.session_state[transcript_key]
+        sections = format_summary_for_display(summary)
+
+        st.success(
+            f"Transcript processed — {len(summary.key_themes)} themes, "
+            f"{len(summary.action_items_discussed)} action items extracted."
+        )
+        for section_name, items in sections.items():
+            with st.expander(section_name):
+                for item in items:
+                    st.markdown(f"- {item}")
+
+        st.divider()
+        if st.button(
+            "Generate Action Plan",
+            type="primary",
+            use_container_width=True,
+            key=f"gen_from_fireflies_{email}",
+        ):
+            with st.spinner("Frankie is writing the action plan..."):
+                plan = claude.generate_action_plan_from_transcript(
+                    client_name=payment.get("client_name", ""),
+                    brand=intake.get("brand", ""),
+                    role=intake.get("role", ""),
+                    creative_emergency=intake.get("creative_emergency", ""),
+                    desired_outcome=", ".join(intake.get("desired_outcome", [])),
+                    what_tried=intake.get("what_tried", ""),
+                    deadline=intake.get("deadline", ""),
+                    constraints=intake.get("constraints", ""),
+                    ai_summary=intake.get("ai_summary", ""),
+                    transcript_summary=summary.as_dict(),
+                    product_purchased=payment.get("product_purchased", ""),
+                    payment_amount=payment.get("payment_amount", 0),
+                )
+            if plan.startswith("Error"):
+                st.error(plan)
+                return
+            st.session_state[plan_key] = plan
+            st.rerun()
 
 
 def _render_transcript_tab(

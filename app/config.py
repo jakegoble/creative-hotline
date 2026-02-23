@@ -30,6 +30,9 @@ class Settings:
     ANTHROPIC_API_KEY: str = ""
     ANTHROPIC_MODEL: str = "claude-sonnet-4-5-20250929"
 
+    # Fireflies AI (call transcripts)
+    FIREFLIES_API_KEY: str = ""
+
     # n8n (health checks)
     N8N_BASE_URL: str = "https://creativehotline.app.n8n.cloud"
     N8N_API_KEY: str = ""
@@ -85,6 +88,7 @@ def load_settings() -> Settings:
         MANYCHAT_API_KEY=_get_secret("MANYCHAT_API_KEY"),
         ANTHROPIC_API_KEY=_get_secret("ANTHROPIC_API_KEY"),
         ANTHROPIC_MODEL=_get_secret("ANTHROPIC_MODEL", "claude-sonnet-4-5-20250929"),
+        FIREFLIES_API_KEY=_get_secret("FIREFLIES_API_KEY"),
         N8N_BASE_URL=_get_secret("N8N_BASE_URL", "https://creativehotline.app.n8n.cloud"),
         N8N_API_KEY=_get_secret("N8N_API_KEY"),
         APP_PASSWORD=_get_secret("APP_PASSWORD"),

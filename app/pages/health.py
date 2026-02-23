@@ -22,6 +22,7 @@ def render():
             "Stripe": st.session_state.get("stripe"),
             "Calendly": st.session_state.get("calendly"),
             "ManyChat": st.session_state.get("manychat"),
+            "Fireflies": st.session_state.get("fireflies"),
         }
         with st.spinner("Checking services..."):
             health_checker.check_all(services)
