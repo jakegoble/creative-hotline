@@ -39,6 +39,12 @@ def _init_demo_services():
 
 def init_services():
     """Initialize all service clients (cached in session state)."""
+    # Auto-enable demo mode when no API keys are configured
+    if "demo_mode" not in st.session_state:
+        if not any([settings.NOTION_API_KEY, settings.STRIPE_SECRET_KEY,
+                     settings.CALENDLY_API_KEY, settings.ANTHROPIC_API_KEY]):
+            st.session_state.demo_mode = True
+
     if st.session_state.get("demo_mode", False):
         if not st.session_state.get("services_initialized"):
             _init_demo_services()
