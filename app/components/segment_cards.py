@@ -103,7 +103,7 @@ def _render_card(segment) -> None:
     st.markdown(
         f'<div class="ch-card ch-card--accent-top" style="--accent-color:{color}">'
         f'<div class="ch-flex-between">'
-        f'<span class="ch-font-bold" style="font-size:15px">{segment.name}</span>'
+        f'<span class="ch-font-bold" style="font-size:{t.FONT_SIZE_LG}px">{segment.name}</span>'
         f'{badge(badge_label, color)}'
         f'</div>'
         f'<div class="ch-text-2xl ch-font-bold ch-mt-sm" style="color:{color}">'

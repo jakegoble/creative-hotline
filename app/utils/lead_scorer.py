@@ -14,10 +14,10 @@ import re
 from datetime import datetime
 
 
-# Score tier thresholds
-TIER_HOT = 80
-TIER_WARM = 50
-TIER_COOL = 25
+# Score tier thresholds (aligned with CLAUDE.md docs)
+TIER_HOT = 70
+TIER_WARM = 40
+TIER_COOL = 20
 
 
 def score_client(payment: dict, intake: dict | None) -> dict:
@@ -46,8 +46,13 @@ def score_client(payment: dict, intake: dict | None) -> dict:
     negative = _apply_negative_signals(total, payment, intake)
     total = negative["adjusted_score"]
 
-    recency = _apply_recency_decay(total, payment)
-    total = recency["adjusted_score"]
+    # Skip recency decay if negative signals already capped the score
+    # to avoid double-penalizing stale leads
+    if negative.get("capped"):
+        recency = {"adjusted_score": total, "multiplier": 1.0, "reason": "Skipped (negative cap active)"}
+    else:
+        recency = _apply_recency_decay(total, payment)
+        total = recency["adjusted_score"]
 
     # Clamp to 0-100
     total = max(0, min(100, total))
@@ -297,14 +302,12 @@ def _score_source(payment: dict) -> dict:
     Referrals and returning clients score highest.
     """
     source = payment.get("lead_source", "")
-    status = payment.get("status", "")
 
-    # Check if returning client (has prior purchases — approximated by Sprint purchase)
-    product = payment.get("product_purchased", "")
-    is_returning = product in ("3-Pack Sprint", "3-Session Clarity Sprint")
-
-    if is_returning:
-        return {"score": 15, "max": 15, "reason": "Returning/high-tier client"}
+    # Check if returning client using purchase_count (set by LTV/merge logic)
+    # Falls back to checking if they have multiple linked records
+    purchase_count = payment.get("purchase_count", 1)
+    if purchase_count > 1:
+        return {"score": 15, "max": 15, "reason": f"Returning client ({purchase_count} purchases)"}
 
     source_scores = {
         "Referral": 14,
@@ -374,10 +377,10 @@ def _frequency_bonus(payment: dict) -> dict:
     product = payment.get("product_purchased", "")
     amount = payment.get("payment_amount", 0)
 
-    if product in ("3-Pack Sprint", "3-Session Clarity Sprint") or amount >= 1495:
+    if product == "3-Session Clarity Sprint" or amount >= 1495:
         return {"bonus": 5, "reason": "Sprint/repeat purchaser"}
-    if product == "Standard Call" or (amount >= 699 and amount < 1495):
-        return {"bonus": 2, "reason": "Standard tier client"}
+    if product == "Single Call" or (amount >= 699 and amount < 1495):
+        return {"bonus": 2, "reason": "Single Call tier client"}
     return {"bonus": 0, "reason": ""}
 
 

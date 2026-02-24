@@ -47,83 +47,83 @@ If you want hands-on help, the 3-Session Sprint exists for exactly that.
 # ── HTML Generation ──────────────────────────────────────────────
 
 def test_generate_html_returns_string():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert isinstance(html, str)
     assert len(html) > 500
 
 
 def test_generate_html_contains_doctype():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "<!DOCTYPE html>" in html
 
 
 def test_generate_html_contains_client_name():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "Sarah" in html
 
 
 def test_generate_html_contains_brand_name():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "Studio Lumen" in html
 
 
 def test_generate_html_contains_brand_colors():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "#FF6B35" in html
 
 
 def test_generate_html_contains_checkboxes():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert 'type="checkbox"' in html
     # Should have 3 checkboxes (3 action items in "What to Do Next")
     assert html.count('class="action-check"') == 3
 
 
 def test_generate_html_contains_calendly_link():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "calendly.com/soscreativehotline" in html
 
 
 def test_generate_html_custom_calendly():
     html = generate_client_html(
-        "Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN,
+        "Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN,
         calendly_url="https://calendly.com/custom/link",
     )
     assert "calendly.com/custom/link" in html
 
 
 def test_generate_html_contains_progress_bar():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "progress" in html
     assert "progress-fill" in html
 
 
 def test_generate_html_contains_javascript():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "localStorage" in html
 
 
 def test_generate_html_mobile_responsive():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "viewport" in html
     assert "max-width: 600px" in html
 
 
 def test_generate_html_contains_signoff():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "Frankie" in html
     assert "signoff" in html
 
 
 def test_generate_html_contains_bullet_list():
-    html = generate_client_html("Sarah Chen", "Studio Lumen", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "Studio Lumen", "Single Call", SAMPLE_PLAN)
     assert "<ul>" in html
     assert "<li>" in html
     assert "Coolors.co" in html
 
 
 def test_generate_html_no_brand():
-    html = generate_client_html("Sarah Chen", "", "Standard Call", SAMPLE_PLAN)
+    html = generate_client_html("Sarah Chen", "", "Single Call", SAMPLE_PLAN)
     assert "<!DOCTYPE html>" in html
     assert "Sarah" in html
 

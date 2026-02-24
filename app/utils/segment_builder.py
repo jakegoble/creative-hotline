@@ -37,6 +37,19 @@ class Segment:
 
 # ── Segment Definitions ──────────────────────────────────────────
 
+# Conversion probability per segment (used for estimated_value)
+CONVERSION_PROBABILITIES = {
+    "Stale Leads": 0.15,
+    "Window Shoppers": 0.08,
+    "Booking Ghosts": 0.85,
+    "Intake Dropoffs": 0.90,
+    "Comeback Kids": 0.20,
+    "High-Value Prospects": 0.25,
+}
+
+# Minimum days after call before suggesting upsell
+COMEBACK_MIN_DAYS = 7
+
 SEGMENT_DEFS = [
     {
         "name": "Stale Leads",
@@ -68,7 +81,7 @@ SEGMENT_DEFS = [
     },
     {
         "name": "Comeback Kids",
-        "description": "Call complete, good candidates for 3-Pack upsell",
+        "description": f"Call complete {COMEBACK_MIN_DAYS}+ days ago, good candidates for 3-Pack upsell",
         "action": "Send upsell follow-up with Sprint offer",
         "priority": "medium",
         "value_per_client": 1495,
@@ -112,7 +125,8 @@ def build_all_segments(
     for seg_def in SEGMENT_DEFS:
         name = seg_def["name"]
         clients = _match_segment(name, payments, score_map, now)
-        estimated_value = len(clients) * seg_def["value_per_client"]
+        conv_prob = CONVERSION_PROBABILITIES.get(name, 1.0)
+        estimated_value = len(clients) * seg_def["value_per_client"] * conv_prob
 
         segments.append(Segment(
             name=name,
@@ -244,14 +258,20 @@ def _match_intake_dropoffs(payments: list[dict], now: datetime) -> list[dict]:
 
 
 def _match_comeback_kids(payments: list[dict], now: datetime) -> list[dict]:
-    """Call Complete, single call product (not Sprint)."""
+    """Call Complete, single call product (not Sprint), COMEBACK_MIN_DAYS+ since call."""
     results = []
     for p in payments:
         if p.get("status") != "Call Complete":
             continue
         product = p.get("product_purchased", "")
-        if product in ("3-Pack Sprint", "3-Session Clarity Sprint"):
+        if product == "3-Session Clarity Sprint":
             continue  # Already on highest tier
+        # Wait at least COMEBACK_MIN_DAYS after call before suggesting upsell
+        call_date = p.get("call_date", "")
+        if call_date:
+            days_since_call = _days_since_date(call_date, now)
+            if days_since_call is not None and days_since_call < COMEBACK_MIN_DAYS:
+                continue
         results.append(p)
     return results
 
@@ -277,14 +297,26 @@ def _match_high_value_prospects(
 def _days_since_created(payment: dict, now: datetime) -> float | None:
     """Calculate days since the payment record was created."""
     created = payment.get("created", "")
-    if not created:
+    return _days_since_date(created, now)
+
+
+def _days_since_date(date_str: str, now: datetime) -> float | None:
+    """Calculate days between a date string and now."""
+    if not date_str:
         return None
     try:
-        created_dt = datetime.fromisoformat(created.replace("Z", "+00:00"))
-        if created_dt.tzinfo:
-            now_aware = now.astimezone(created_dt.tzinfo)
+        # Handle both ISO datetime and date-only strings
+        if "T" in date_str:
+            dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        else:
+            dt = datetime.strptime(date_str[:10], "%Y-%m-%d")
+            # Make timezone-unaware to match now
+            return (now - dt).total_seconds() / 86400
+
+        if dt.tzinfo:
+            now_aware = now.astimezone(dt.tzinfo)
         else:
             now_aware = now
-        return (now_aware - created_dt).total_seconds() / 86400
+        return (now_aware - dt).total_seconds() / 86400
     except (ValueError, TypeError):
         return None

@@ -32,11 +32,11 @@ PAYMENTS = [
         "lead_source": "IG DM",
         "status": "Call Complete",
     },
-    # Client B: 1 purchase (Standard Call)
+    # Client B: 1 purchase (Single Call)
     {
         "email": "bob@test.com",
         "payment_amount": 699,
-        "product_purchased": "Standard Call",
+        "product_purchased": "Single Call",
         "payment_date": "2026-01-20",
         "created": "2026-01-18T14:00:00.000Z",
         "lead_source": "Referral",
@@ -97,7 +97,7 @@ def test_calculate_ltv_tracks_products():
 def test_calculate_ltv_case_insensitive():
     payments = [
         {"email": "Test@EXAMPLE.com", "payment_amount": 499, "product_purchased": "First Call", "payment_date": "2026-01-01", "created": "2026-01-01"},
-        {"email": "test@example.com", "payment_amount": 699, "product_purchased": "Standard Call", "payment_date": "2026-02-01", "created": "2026-01-01"},
+        {"email": "test@example.com", "payment_amount": 699, "product_purchased": "Single Call", "payment_date": "2026-02-01", "created": "2026-01-01"},
     ]
     result = calculate_ltv(payments)
     assert len(result) == 1

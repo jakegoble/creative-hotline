@@ -68,9 +68,14 @@ def test_attribute_first_touch():
 
 def test_attribute_linear():
     result = attribute_conversions(PAYMENTS, model="linear")
+    # In a single-channel pipeline, linear gives 100% credit (same as first/last touch)
+    # because pipeline stages are NOT independent marketing touchpoints
     assert result["Referral"].revenue == 1495
     assert result["Referral"].paid_count == 1
     assert result["Referral"].conversion_rate == 100.0
+    # Linear = first_touch for single-channel attribution
+    ft = attribute_conversions(PAYMENTS, model="first_touch")
+    assert result["Referral"].revenue == ft["Referral"].revenue
 
 
 def test_attribute_time_decay():

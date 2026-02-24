@@ -1,14 +1,23 @@
 """Client lifetime value and cohort economics calculator.
 
-Groups payments by email to calculate per-client LTV, then slices
-by source, entry product, and signup cohort.
+Groups payments by email to calculate per-client revenue to date,
+then slices by source, entry product, and signup cohort. Includes
+projected LTV using observed upsell rates.
+
+Note: With small client counts (<20), these metrics are directional
+rather than statistically significant. Cohort analysis requires
+MIN_COHORT_SIZE clients per bucket to be meaningful.
 """
 
 from __future__ import annotations
 
+import statistics
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
+
+# Minimum clients in a cohort before stats are meaningful
+MIN_COHORT_SIZE = 5
 
 
 @dataclass
@@ -20,6 +29,7 @@ class ClientLTV:
     last_purchase_date: str
     products: list[str] = field(default_factory=list)
     days_as_client: float = 0.0
+    projected_ltv: float = 0.0
 
     def as_dict(self) -> dict:
         return {
@@ -30,6 +40,7 @@ class ClientLTV:
             "last_purchase_date": self.last_purchase_date,
             "products": self.products,
             "days_as_client": self.days_as_client,
+            "projected_ltv": self.projected_ltv,
         }
 
 
@@ -40,6 +51,8 @@ class CohortLTV:
     total_revenue: float
     avg_ltv: float
     upsell_count: int
+    median_ltv: float = 0.0
+    sample_sufficient: bool = False
 
     def as_dict(self) -> dict:
         return {
@@ -47,7 +60,9 @@ class CohortLTV:
             "client_count": self.client_count,
             "total_revenue": self.total_revenue,
             "avg_ltv": self.avg_ltv,
+            "median_ltv": self.median_ltv,
             "upsell_count": self.upsell_count,
+            "sample_sufficient": self.sample_sufficient,
         }
 
 
@@ -78,9 +93,21 @@ def _group_by_email(payments: list[dict]) -> dict[str, list[dict]]:
 
 
 def calculate_ltv(payments: list[dict]) -> list[ClientLTV]:
-    """Calculate per-client lifetime value. Returns sorted by revenue desc."""
+    """Calculate per-client revenue to date and projected LTV.
+
+    projected_ltv = total_revenue * (1 + upsell_probability) where
+    upsell_probability comes from the observed upsell rate across
+    all clients. For single-purchase clients, this adds the expected
+    value of a future purchase.
+    """
     groups = _group_by_email(payments)
     now = datetime.now()
+
+    # Compute observed upsell rate for projection
+    total_clients = len(groups)
+    multi_purchase = sum(1 for recs in groups.values() if len(recs) > 1)
+    upsell_prob = multi_purchase / total_clients if total_clients > 0 else 0.0
+
     results = []
 
     for email, records in groups.items():
@@ -98,6 +125,9 @@ def calculate_ltv(payments: list[dict]) -> list[ClientLTV]:
         last = dates[-1].strftime("%Y-%m-%d") if dates else ""
         days = (now - dates[0]).days if dates else 0.0
 
+        # Projected LTV: current revenue + expected future value
+        projected = total * (1 + upsell_prob) if len(records) == 1 else total
+
         results.append(ClientLTV(
             email=email,
             total_revenue=total,
@@ -106,6 +136,7 @@ def calculate_ltv(payments: list[dict]) -> list[ClientLTV]:
             last_purchase_date=last,
             products=products,
             days_as_client=days,
+            projected_ltv=round(projected, 2),
         ))
 
     results.sort(key=lambda c: c.total_revenue, reverse=True)
@@ -113,7 +144,7 @@ def calculate_ltv(payments: list[dict]) -> list[ClientLTV]:
 
 
 def ltv_by_source(payments: list[dict]) -> dict[str, dict]:
-    """Average LTV per lead source."""
+    """Average and median LTV per lead source."""
     groups = _group_by_email(payments)
     source_ltvs: dict[str, list[float]] = defaultdict(list)
 
@@ -126,8 +157,10 @@ def ltv_by_source(payments: list[dict]) -> dict[str, dict]:
     for source, ltvs in source_ltvs.items():
         result[source] = {
             "avg_ltv": sum(ltvs) / len(ltvs),
+            "median_ltv": statistics.median(ltvs) if ltvs else 0,
             "client_count": len(ltvs),
             "total_revenue": sum(ltvs),
+            "sample_sufficient": len(ltvs) >= MIN_COHORT_SIZE,
         }
     return result
 
@@ -159,7 +192,12 @@ def ltv_by_entry_product(payments: list[dict]) -> dict[str, dict]:
 
 
 def ltv_by_cohort(payments: list[dict]) -> list[CohortLTV]:
-    """LTV by signup month cohort."""
+    """LTV by signup month cohort.
+
+    Cohorts with fewer than MIN_COHORT_SIZE clients are still returned
+    but flagged with sample_sufficient=False to indicate the stats
+    are directional only.
+    """
     groups = _group_by_email(payments)
     cohort_data: dict[str, list[dict]] = defaultdict(list)
 
@@ -177,12 +215,15 @@ def ltv_by_cohort(payments: list[dict]) -> list[CohortLTV]:
     for month in sorted(cohort_data.keys()):
         clients = cohort_data[month]
         ltvs = [c["ltv"] for c in clients]
+        sufficient = len(clients) >= MIN_COHORT_SIZE
         results.append(CohortLTV(
             cohort_month=month,
             client_count=len(clients),
             total_revenue=sum(ltvs),
             avg_ltv=sum(ltvs) / len(ltvs),
+            median_ltv=statistics.median(ltvs) if ltvs else 0,
             upsell_count=sum(1 for c in clients if c["upsold"]),
+            sample_sufficient=sufficient,
         ))
     return results
 
@@ -241,13 +282,28 @@ def expansion_revenue(payments: list[dict]) -> dict:
 def payback_period(
     payments: list[dict], channel_costs: dict[str, float] | None = None
 ) -> dict[str, dict]:
-    """Months to recoup CAC per channel."""
+    """Payback analysis per channel.
+
+    For high-ticket consultancies, revenue arrives in lump-sum payments
+    (not monthly subscriptions). "Immediate payback" means the first
+    purchase covers the CAC. "Full LTV payback" considers all future
+    purchases.
+    """
     if not channel_costs:
         return {}
 
     source_data = ltv_by_source(payments)
-    result = {}
 
+    # Compute average first-purchase value per source
+    groups = _group_by_email(payments)
+    source_first_vals: dict[str, list[float]] = defaultdict(list)
+    for email, records in groups.items():
+        source = records[0].get("lead_source") or "Unknown"
+        sorted_recs = sorted(records, key=lambda r: r.get("payment_date") or r.get("created") or "")
+        first_val = sorted_recs[0].get("payment_amount", 0) or 0
+        source_first_vals[source].append(first_val)
+
+    result = {}
     for channel, cost in channel_costs.items():
         if cost <= 0:
             continue
@@ -256,16 +312,29 @@ def payback_period(
         client_count = channel_info.get("client_count", 0)
         cac = cost / client_count if client_count > 0 else cost
 
-        if avg_ltv > 0:
-            months = cac / (avg_ltv / 12)
+        # First-purchase payback: does the first sale cover CAC?
+        first_vals = source_first_vals.get(channel, [])
+        avg_first_purchase = sum(first_vals) / len(first_vals) if first_vals else 0
+        immediate_payback = avg_first_purchase >= cac
+
+        # For lump-sum businesses, payback is either immediate (first sale)
+        # or requires multiple purchases
+        if avg_first_purchase >= cac:
+            payback_months = 0  # Immediate — first purchase covers CAC
+        elif avg_ltv > 0:
+            # Estimated months until cumulative revenue covers CAC
+            # based on purchase frequency
+            payback_months = cac / (avg_ltv / 12) if avg_ltv > 0 else None
         else:
-            months = None
+            payback_months = None
 
         result[channel] = {
-            "cac": cac,
+            "cac": round(cac, 2),
             "avg_ltv": avg_ltv,
+            "avg_first_purchase": round(avg_first_purchase, 2),
             "client_count": client_count,
-            "payback_months": months,
+            "immediate_payback": immediate_payback,
+            "payback_months": round(payback_months, 1) if payback_months is not None else None,
         }
 
     return result

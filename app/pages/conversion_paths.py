@@ -184,7 +184,7 @@ def render():
                 ])
                 fig = px.pie(
                     ind_df, values="Count", names="Industry",
-                    color_discrete_sequence=px.colors.sequential.Oranges_r,
+                    color_discrete_sequence=t.CHART_COLORS,
                 )
                 fig.update_layout(height=300)
                 st.plotly_chart(fig, use_container_width=True)

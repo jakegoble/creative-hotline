@@ -711,13 +711,544 @@ For each workflow, replace `{{ EVENT_TYPE }}` and adjust the data table rows as 
                   </td>
                 </tr>
               </table>
-              <p style="margin: 30px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Either way, rooting for you.</p>
+              <p style="margin: 30px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Either way, go make something good.</p>
               <p style="margin: 16px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
             </td>
           </tr>
           <tr>
             <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
               <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 11. Intake Confirmation
+
+**Workflow:** WF3 — Tally Intake → Claude Analysis (future addition)
+**Trigger:** Immediately after Tally form submission is processed
+**Purpose:** Confirm intake was received, build anticipation for the call
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Got it — already have ideas` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Got it — already have ideas</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Your intake form just came through — thank you for being thorough. Seriously, the more you give us, the better your call is going to be.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">We're already reviewing what you shared. By the time we get on the call, we'll have done our homework so we can skip the surface-level stuff and get right into the work.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Nothing else you need to do right now. Just show up ready to talk — we'll handle the rest.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Talk soon,<br>Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 12. Pre-Call Prep
+
+**Workflow:** Future — triggered day before call (needs call date logic)
+**Trigger:** 24 hours before scheduled call date
+**Purpose:** Help client prepare, improve call quality
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Tomorrow's call — here's how to get the most out of it` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tomorrow's call</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Your call is tomorrow and we've already reviewed your intake. Wanted to share a few things that'll help us make the most of the 45 minutes.</p>
+              <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; line-height: 1.6; color: #1a1a1a;">Quick prep list:</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px 0;">
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Have your laptop or phone handy — we might look at your site or IG together</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Bring one example of something in your space that you love (a competitor, a campaign, a brand that nails it)</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Think about the ONE thing that would make the biggest difference if you figured it out tomorrow</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333;">Have a pen and paper nearby — you'll want to jot things down</td>
+                </tr>
+              </table>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">That's it. No homework, no pre-reading. Just come as you are with those few things in mind.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">See you on the call,<br>Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 13. 30-Day Check-In
+
+**Workflow:** Future — not yet built
+**Trigger:** 30 days after Action Plan Sent = true
+**Purpose:** Close the loop, gather outcome data, open door for rebooking
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `It's been a month — what happened?` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>It's been a month</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. It's been about a month since your action plan landed and I'm genuinely curious — what happened?</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Did you launch the thing? Did the rebrand come together? Did you scrap step three and do something better instead? Any of those would be great to hear.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">This isn't a pitch — I just like knowing how things turned out. If you have 30 seconds, hit reply and let me know. Even one sentence is great.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">And if you've got a new problem on your plate, you know where to find us.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 14. Testimonial Request
+
+**Workflow:** Future — not yet built
+**Trigger:** 14-21 days after Action Plan Sent = true
+**Purpose:** Collect social proof for website and marketing
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Quick favor (takes 30 seconds)` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick favor</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. If the call and action plan helped, I have a small ask — would you write a sentence or two about the experience?</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Nothing fancy. Literally what you'd text a friend if they asked "was it worth it?" That's the kind of honest feedback that actually helps other people decide if this is for them.</p>
+              <p style="margin: 0 0 30px 0; font-size: 16px; line-height: 1.6; color: #333333;">Just hit reply with your thoughts. First name and what you do is all we'd use alongside it — no last names, no pressure.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">If it didn't help, I'd honestly want to know that too. Either way, thanks for trying us out.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 15. Referral Ask
+
+**Workflow:** Future — not yet built
+**Trigger:** 21-30 days after Action Plan Sent = true (after testimonial request)
+**Purpose:** Drive referrals, reward existing clients
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Know someone who's stuck?` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Know someone who's stuck?</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Quick one — if you know someone who's stuck on a creative problem and could use a clear plan, send them our way.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Just forward them the link below. If they book a call, you get $50 off your next session with us. No codes, no hoops — we'll handle it.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" style="border-radius: 6px; background-color: #FF6B35;">
+                    <a href="https://www.thecreativehotline.com" target="_blank" style="display: inline-block; padding: 16px 36px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">Share The Creative Hotline</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 30px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">No pressure at all. Just figured if it helped you, it might help someone in your circle too.</p>
+              <p style="margin: 16px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 16. Sprint Session 1 Recap
+
+**Workflow:** Future — manual trigger or status-based
+**Trigger:** After Sprint Session 1 is marked complete
+**Purpose:** Recap session, set homework for Session 2
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Session 1 done — here's your homework` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session 1 done</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline — Sprint</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 600; color: #FF6B35;">SESSION 1 OF 3 COMPLETE</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Good first session. We covered a lot of ground and now you've got a direction. Your action plan is being built and you'll have it within 24 hours.</p>
+              <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; line-height: 1.6; color: #1a1a1a;">Before Session 2, try to:</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px 0;">
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Start on step one from your action plan (even if it's rough)</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Write down any questions that come up as you dig in</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333;">Note what felt easy and what felt like a wall — we'll address both</td>
+                </tr>
+              </table>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Session 2 is where we get into execution — we'll look at what you've done, adjust the plan, and tackle the next layer. The more you've tried between now and then, the sharper that session will be.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">See you next time,<br>Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline — 3-Session Clarity Sprint<br>Questions between sessions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 17. Sprint Session 2 Recap
+
+**Workflow:** Future — manual trigger or status-based
+**Trigger:** After Sprint Session 2 is marked complete
+**Purpose:** Recap session, set up final session focus
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Session 2 done — one more to go` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Session 2 done</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline — Sprint</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 600; color: #FF6B35;">SESSION 2 OF 3 COMPLETE</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. We're deep in it now. Session 2 is usually where things start clicking — you can see the strategy coming together, and the things that felt fuzzy after Session 1 are sharpening up.</p>
+              <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; line-height: 1.6; color: #1a1a1a;">Before our final session:</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px 0;">
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Keep executing on the updated plan — focus on the items we flagged as highest-impact</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Think about what you want your 90-day roadmap to look like — we'll build it together in Session 3</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333;">Bring any early results — even small ones. They help us calibrate what's working.</td>
+                </tr>
+              </table>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Session 3 is the capstone — we'll finalize your strategy, build a 90-day roadmap, and make sure you leave with everything you need to keep moving without us. Your updated action plan will arrive within 24 hours.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Almost there,<br>Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline — 3-Session Clarity Sprint<br>Questions between sessions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 18. Sprint Completion
+
+**Workflow:** Future — after Session 3 action plan is delivered
+**Trigger:** After Sprint Session 3 is marked complete + action plan sent
+**Purpose:** Celebrate completion, deliver final summary, open door for future work
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Sprint complete — your 90-day roadmap is here` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sprint complete</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline — Sprint</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 4px 0; font-size: 13px; font-weight: 600; color: #FF6B35;">ALL 3 SESSIONS COMPLETE</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Three sessions down and you've got a full strategy, a tested action plan, and a 90-day roadmap. That's the whole package.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Your final action plan — with everything from all three sessions rolled into one document — is attached. It includes your 90-day roadmap with milestones so you can keep yourself on track without us hovering.</p>
+              <p style="margin: 0 0 8px 0; font-size: 16px; font-weight: 600; line-height: 1.6; color: #1a1a1a;">What you leave with:</p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 20px 0;">
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">Your complete action plan (all 3 sessions consolidated)</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333; border-bottom: 1px solid #eee;">90-day roadmap with month-by-month milestones</td>
+                </tr>
+                <tr>
+                  <td style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333333;">Tools and resources tailored to your situation</td>
+                </tr>
+              </table>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">If you need a gut check 3 months from now, or a new problem comes up, or you just want to talk through how things are going — book a single session anytime. The door's always open.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                <tr>
+                  <td align="center" style="border-radius: 6px; background-color: #FF6B35;">
+                    <a href="https://www.thecreativehotline.com" target="_blank" style="display: inline-block; padding: 16px 36px; font-size: 16px; font-weight: 600; color: #ffffff; text-decoration: none; border-radius: 6px;">Book a Future Session</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin: 30px 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">Go make something good,<br>Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline — 3-Session Clarity Sprint<br>Questions? Just reply to this email.</p>
             </td>
           </tr>
         </table>

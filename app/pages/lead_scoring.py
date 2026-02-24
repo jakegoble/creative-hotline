@@ -111,7 +111,7 @@ def render():
                 ("Velocity", score["velocity"]["score"], score["velocity"]["max"], t.INFO),
                 ("Urgency", score["urgency"]["score"], score["urgency"]["max"], t.DANGER),
                 ("Source", score["source"]["score"], score["source"]["max"], t.SUCCESS),
-                ("Upsell", score["upsell"]["score"], score["upsell"]["max"], "#9B59B6"),
+                ("Upsell", score["upsell"]["score"], score["upsell"]["max"], "#8B5CF6"),
             ]
 
             score_cols = st.columns(5)
@@ -241,7 +241,7 @@ def render():
                 ])
                 fig = px_ind.pie(
                     ind_df, values="Count", names="Industry",
-                    color_discrete_sequence=px_ind.colors.sequential.Oranges_r,
+                    color_discrete_sequence=t.CHART_COLORS,
                 )
                 fig.update_layout(height=250)
                 st.plotly_chart(fig, use_container_width=True)

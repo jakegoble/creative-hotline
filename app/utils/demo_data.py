@@ -25,7 +25,7 @@ DEMO_PAYMENTS = [
     # Follow-Up Sent (2)
     {
         "id": "demo-p01", "client_name": "Sarah Chen", "email": "sarah@studiolumen.com",
-        "phone": "+1-310-555-1234", "payment_amount": 699, "product_purchased": "Standard Call",
+        "phone": "+1-310-555-1234", "payment_amount": 699, "product_purchased": "Single Call",
         "payment_date": _date_ago(18), "status": "Follow-Up Sent", "call_date": _date_ago(12),
         "calendly_link": "", "lead_source": "Referral", "stripe_session_id": "cs_demo_01",
         "linked_intake_id": "demo-i01", "booking_reminder_sent": True,
@@ -53,7 +53,7 @@ DEMO_PAYMENTS = [
     },
     {
         "id": "demo-p04", "client_name": "Tyler Brooks", "email": "tyler@ironbarkdesign.com",
-        "phone": "+1-512-555-4567", "payment_amount": 699, "product_purchased": "Standard Call",
+        "phone": "+1-512-555-4567", "payment_amount": 699, "product_purchased": "Single Call",
         "payment_date": _date_ago(8), "status": "Call Complete", "call_date": _date_ago(2),
         "calendly_link": "", "lead_source": "Website", "stripe_session_id": "cs_demo_04",
         "linked_intake_id": "demo-i04", "booking_reminder_sent": True,
@@ -73,7 +73,7 @@ DEMO_PAYMENTS = [
     # Intake Complete (2)
     {
         "id": "demo-p06", "client_name": "David Kim", "email": "david@halcyonstudios.com",
-        "phone": "+1-323-555-6789", "payment_amount": 699, "product_purchased": "Standard Call",
+        "phone": "+1-323-555-6789", "payment_amount": 699, "product_purchased": "Single Call",
         "payment_date": _date_ago(6), "status": "Intake Complete", "call_date": _date_ago(-3),
         "calendly_link": "https://calendly.com/soscreativehotline/call", "lead_source": "Meta Ad",
         "stripe_session_id": "cs_demo_06", "linked_intake_id": "demo-i06",
@@ -92,7 +92,7 @@ DEMO_PAYMENTS = [
     # Booked - Needs Intake (2)
     {
         "id": "demo-p08", "client_name": "Naomi Tanaka", "email": "naomi@kintsugibrands.com",
-        "phone": "+1-503-555-8901", "payment_amount": 699, "product_purchased": "Standard Call",
+        "phone": "+1-503-555-8901", "payment_amount": 699, "product_purchased": "Single Call",
         "payment_date": _date_ago(4), "status": "Booked - Needs Intake",
         "call_date": _date_ago(-2), "calendly_link": "https://calendly.com/soscreativehotline/call",
         "lead_source": "IG DM", "stripe_session_id": "cs_demo_08",
@@ -122,7 +122,7 @@ DEMO_PAYMENTS = [
     },
     {
         "id": "demo-p11", "client_name": "Raj Patel", "email": "raj@neonlabcreative.com",
-        "phone": "+1-646-555-1230", "payment_amount": 699, "product_purchased": "Standard Call",
+        "phone": "+1-646-555-1230", "payment_amount": 699, "product_purchased": "Single Call",
         "payment_date": _date_ago(6), "status": "Paid - Needs Booking",
         "call_date": "", "calendly_link": "", "lead_source": "LinkedIn",
         "stripe_session_id": "cs_demo_11", "linked_intake_id": "",
@@ -181,7 +181,7 @@ DEMO_INTAKES = [
         "what_tried": "Hired freelance designer, got 3 concepts, none felt right. Pinterest mood boards. Team input was conflicting.",
         "deadline": "3 weeks — launch March 15",
         "constraints": "Budget locked at $25k. Can't change the name.",
-        "intake_status": "Complete",
+        "intake_status": "Submitted",
         "ai_summary": "Strong upsell candidate — urgent rebrand, team misalignment, budget available for Sprint. Multiple touch points needed.",
         "action_plan_sent": True, "call_date": _date_ago(12),
         "linked_payment_id": "demo-p01", "created": _ago(19), "url": "",
@@ -195,7 +195,7 @@ DEMO_INTAKES = [
         "what_tried": "Generic marketing templates. Hired a social media manager but they didn't understand the brand.",
         "deadline": "6 weeks to launch",
         "constraints": "Small team (3 people). $40k total budget for launch.",
-        "intake_status": "Complete",
+        "intake_status": "Submitted",
         "ai_summary": "Ideal Sprint client — product launch, clear deadline, budget allocated. Founder-led, needs strategic direction across multiple channels.",
         "action_plan_sent": True, "call_date": _date_ago(18),
         "linked_payment_id": "demo-p02", "created": _ago(26), "url": "",
@@ -209,7 +209,7 @@ DEMO_INTAKES = [
         "what_tried": "DIY rebrand with Canva. Got positive feedback but it doesn't feel premium.",
         "deadline": "No hard deadline, but Q2 event coming up",
         "constraints": "Bootstrapped. Budget for design work is limited.",
-        "intake_status": "Complete",
+        "intake_status": "Submitted",
         "ai_summary": "Good candidate for repositioning conversation. Outgrown current brand, luxury market aspirations. May benefit from Sprint after initial call.",
         "action_plan_sent": False, "call_date": _date_ago(3),
         "linked_payment_id": "demo-p03", "created": _ago(11), "url": "",
@@ -223,8 +223,8 @@ DEMO_INTAKES = [
         "what_tried": "Tried trending audio, Reels, carousels. Engagement dropped 40% in 3 months.",
         "deadline": "Want to fix this before our busy season in April",
         "constraints": "One-person marketing team. Can't hire more staff.",
-        "intake_status": "Complete",
-        "ai_summary": "Content strategy overhaul needed. Classic case of 'doing everything, nothing working.' Needs focused 90-day plan. Good for Standard Call.",
+        "intake_status": "Submitted",
+        "ai_summary": "Content strategy overhaul needed. Classic case of 'doing everything, nothing working.' Needs focused 90-day plan. Good for Single Call.",
         "action_plan_sent": False, "call_date": _date_ago(2),
         "linked_payment_id": "demo-p04", "created": _ago(9), "url": "",
     },
@@ -237,7 +237,7 @@ DEMO_INTAKES = [
         "what_tried": "Read positioning books. Tried to write new messaging ourselves. It all sounds generic.",
         "deadline": "Need the pivot done by end of March",
         "constraints": "Revenue will dip during transition. Need to keep some B2C work while building B2B.",
-        "intake_status": "Complete",
+        "intake_status": "Submitted",
         "ai_summary": "Complex pivot with revenue risk. Multi-session Sprint is ideal — can't solve this in one call. Brand, messaging, GTM all need work.",
         "action_plan_sent": False, "call_date": _date_ago(-1),
         "linked_payment_id": "demo-p05", "created": _ago(8), "url": "",
@@ -251,7 +251,7 @@ DEMO_INTAKES = [
         "what_tried": "A/B tested headlines, changed CTA buttons, redesigned hero section. Nothing moved the needle.",
         "deadline": "Running paid ads now — bleeding money every day this isn't fixed",
         "constraints": "Co-founder disagrees on the problem. Need an outside perspective.",
-        "intake_status": "Complete",
+        "intake_status": "Submitted",
         "ai_summary": "Urgent — running ads to a broken funnel. Messaging-market fit issue, not design. High urgency. Strong candidate for immediate action.",
         "action_plan_sent": False, "call_date": _date_ago(-3),
         "linked_payment_id": "demo-p06", "created": _ago(7), "url": "",
@@ -265,7 +265,7 @@ DEMO_INTAKES = [
         "what_tried": "Started building a course but got overwhelmed. Tried consulting but underpriced it.",
         "deadline": "Want to launch something by end of Q1",
         "constraints": "Solo creator. No team. Limited tech skills.",
-        "intake_status": "Complete",
+        "intake_status": "Submitted",
         "ai_summary": "Creator monetization path — perfect First Call topic. Needs clarity on product-market fit before building anything. Quick win potential.",
         "action_plan_sent": False, "call_date": _date_ago(-4),
         "linked_payment_id": "demo-p07", "created": _ago(6), "url": "",
@@ -279,8 +279,8 @@ DEMO_INTAKES = [
         "what_tried": "Did some spec shoots. Updated website. Still getting wedding inquiries only.",
         "deadline": "No hard deadline but I'm burning out on weddings",
         "constraints": "Can't stop wedding revenue immediately. Need a transition plan.",
-        "intake_status": "Complete",
-        "ai_summary": "Career pivot within creative field. Needs repositioning + portfolio curation strategy. Good Standard Call follow-up opportunity.",
+        "intake_status": "Submitted",
+        "ai_summary": "Career pivot within creative field. Needs repositioning + portfolio curation strategy. Good Single Call follow-up opportunity.",
         "action_plan_sent": True, "call_date": _date_ago(24),
         "linked_payment_id": "demo-p14", "created": _ago(31), "url": "",
     },
@@ -293,7 +293,7 @@ DEMO_INTAKES = [
         "what_tried": "Hired a VA. Tried project management tools. Problem is the business model, not the tools.",
         "deadline": "Want to hit $50k/month by end of year",
         "constraints": "Team of 4. Don't want to hire more until systems are in place.",
-        "intake_status": "Complete",
+        "intake_status": "Submitted",
         "ai_summary": "Agency scaling bottleneck — classic founder trap. Needs productized service model. Sprint potential if initial call shows fit.",
         "action_plan_sent": False, "call_date": _date_ago(7),
         "linked_payment_id": "demo-p15", "created": _ago(15), "url": "",
@@ -312,17 +312,17 @@ DEMO_MONTHLY_REVENUE = [
 ]
 
 DEMO_REVENUE_SUMMARY = {
-    "total_revenue": 7086.00,
-    "session_count": 12,
-    "avg_deal_size": 590.50,
+    "total_revenue": 10475.00,
+    "session_count": 13,
+    "avg_deal_size": 805.77,
     "by_product": {
         "First Call": {"count": 5, "revenue": 2495},
-        "Standard Call": {"count": 5, "revenue": 3495},
+        "Single Call": {"count": 5, "revenue": 3495},
         "3-Session Clarity Sprint": {"count": 3, "revenue": 4485},
     },
 }
 
-DEMO_BOOKING_RATE = {"rate": 72.0, "booked": 9, "cancelled": 0, "total": 13}
+DEMO_BOOKING_RATE = {"rate": 84.6, "booked": 11, "cancelled": 1, "total": 13}
 DEMO_AVG_TIME_TO_BOOK = 18.5
 
 

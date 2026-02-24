@@ -19,7 +19,7 @@ PAYMENT_HOT = {
     "client_name": "Sarah Chen",
     "email": "sarah@example.com",
     "payment_amount": 699,
-    "product_purchased": "Standard Call",
+    "product_purchased": "Single Call",
     "payment_date": "2026-02-18",
     "status": "Intake Complete",
     "call_date": "2026-02-20",
@@ -131,9 +131,16 @@ def test_source_unknown():
 
 
 def test_source_sprint_client():
-    sprint = {**PAYMENT_HOT, "product_purchased": "3-Pack Sprint"}
+    # Sprint product alone no longer implies "returning" — needs purchase_count > 1
+    sprint = {**PAYMENT_HOT, "product_purchased": "3-Session Clarity Sprint"}
     result = _score_source(sprint)
-    assert result["score"] == 15
+    # Without purchase_count > 1, scores based on lead_source (Referral = 14)
+    assert result["score"] == 14
+
+    # With purchase_count > 1, scores as returning client
+    returning = {**sprint, "purchase_count": 2}
+    result2 = _score_source(returning)
+    assert result2["score"] == 15
 
 
 # ── Upsell Tests ──────────────────────────────────────────────────

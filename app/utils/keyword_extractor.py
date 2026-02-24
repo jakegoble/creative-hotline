@@ -136,7 +136,7 @@ def extract_themes(intakes: list[dict]) -> list[ThemeResult]:
 
         for theme, keywords in CREATIVE_THEMES.items():
             for kw in keywords:
-                if kw in text:
+                if _keyword_match(kw, text):
                     theme_counts[theme].add(kw)
 
     total = len(intakes)
@@ -147,7 +147,7 @@ def extract_themes(intakes: list[dict]) -> list[ThemeResult]:
             count = 0
             for intake in intakes:
                 text = _get_intake_text(intake).lower()
-                if any(kw in text for kw in CREATIVE_THEMES[theme]):
+                if any(_keyword_match(kw, text) for kw in CREATIVE_THEMES[theme]):
                     count += 1
 
             results.append(ThemeResult(
@@ -170,7 +170,7 @@ def extract_pain_points(intake: dict) -> list[str]:
     if not text:
         return []
 
-    return [pp for pp in PAIN_POINT_KEYWORDS if pp in text]
+    return [pp for pp in PAIN_POINT_KEYWORDS if _keyword_match(pp, text)]
 
 
 def extract_all_pain_points(intakes: list[dict]) -> dict[str, int]:
@@ -200,7 +200,7 @@ def get_industry_distribution(intakes: list[dict]) -> dict[str, int]:
 
         matched = False
         for industry, keywords in INDUSTRY_KEYWORDS.items():
-            if any(kw in combined for kw in keywords):
+            if any(_keyword_match(kw, combined) for kw in keywords):
                 counts[industry] = counts.get(industry, 0) + 1
                 matched = True
                 break  # One industry per client
@@ -228,6 +228,22 @@ def get_outcome_demand(intakes: list[dict]) -> dict[str, int]:
 
 
 # ── Helpers ───────────────────────────────────────────────────────
+
+
+def _keyword_match(keyword: str, text: str) -> bool:
+    """Check if keyword matches in text using substring or word-prefix matching.
+
+    Handles morphological variants like 'launched' matching 'launch'
+    by checking if any word in the text starts with the keyword.
+    """
+    if keyword in text:
+        return True
+    # Word-prefix check: does any word start with this keyword?
+    # Handles: "launching" matches "launch", "rebranded" matches "rebrand"
+    if len(keyword) >= 4:  # Only for keywords long enough to be meaningful
+        words = text.split()
+        return any(w.startswith(keyword) for w in words)
+    return False
 
 
 def _get_intake_text(intake: dict) -> str:

@@ -11,6 +11,7 @@ import plotly.io as pio
 
 from app.utils.design_tokens import (
     BG_CARD,
+    BG_MUTED,
     BORDER_DEFAULT,
     CHART_COLORS,
     FONT_FAMILY,
@@ -30,7 +31,7 @@ _TEMPLATE = go.layout.Template(
         ),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=0, r=0, t=30, b=20),
+        margin=dict(l=8, r=8, t=36, b=28),
         colorway=CHART_COLORS,
         hoverlabel=dict(
             bgcolor=BG_CARD,
@@ -42,27 +43,36 @@ _TEMPLATE = go.layout.Template(
             ),
         ),
         xaxis=dict(
-            gridcolor=BORDER_DEFAULT,
+            gridcolor=BG_MUTED,
             gridwidth=1,
             linecolor=BORDER_DEFAULT,
             zerolinecolor=BORDER_DEFAULT,
-            tickfont=dict(size=FONT_SIZE_XS),
+            tickfont=dict(size=FONT_SIZE_XS, color=TEXT_SECONDARY),
         ),
         yaxis=dict(
-            gridcolor=BORDER_DEFAULT,
+            gridcolor=BG_MUTED,
             gridwidth=1,
             linecolor=BORDER_DEFAULT,
             zerolinecolor=BORDER_DEFAULT,
-            tickfont=dict(size=FONT_SIZE_XS),
+            tickfont=dict(size=FONT_SIZE_XS, color=TEXT_SECONDARY),
         ),
         bargap=0.3,
         legend=dict(
-            font=dict(size=FONT_SIZE_SM),
+            font=dict(size=FONT_SIZE_SM, color=TEXT_SECONDARY),
             bgcolor="rgba(0,0,0,0)",
             borderwidth=0,
             orientation="h",
             yanchor="bottom",
             y=1.02,
+        ),
+        title=dict(
+            font=dict(
+                family=FONT_FAMILY,
+                size=FONT_SIZE_MD,
+                color=TEXT_PRIMARY,
+            ),
+            x=0,
+            xanchor="left",
         ),
     )
 )

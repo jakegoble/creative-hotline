@@ -95,11 +95,11 @@ def render():
     with tab1:
         st.markdown("**Current product lineup**")
         c1_first = st.slider("First Call ($499)/mo", 0, 50, 8, key="s1_first")
-        c1_std = st.slider("Standard Call ($699)/mo", 0, 50, 5, key="s1_std")
+        c1_std = st.slider("Single Call ($699)/mo", 0, 50, 5, key="s1_std")
         c1_sprint = st.slider("3-Session Sprint ($1,495)/mo", 0, 20, 2, key="s1_sprint")
         s1 = build_scenario("Current Mix", {
             "First Call": {"price": 499, "monthly_volume": c1_first},
-            "Standard Call": {"price": 699, "monthly_volume": c1_std},
+            "Single Call": {"price": 699, "monthly_volume": c1_std},
             "3-Session Clarity Sprint": {"price": 1495, "monthly_volume": c1_sprint},
         }, annual_goal)
         scenarios_list.append(s1)
@@ -107,12 +107,12 @@ def render():
     with tab2:
         st.markdown("**Add a monthly retainer tier**")
         c2_first = st.slider("First Call ($499)/mo", 0, 50, 6, key="s2_first")
-        c2_std = st.slider("Standard Call ($699)/mo", 0, 50, 4, key="s2_std")
+        c2_std = st.slider("Single Call ($699)/mo", 0, 50, 4, key="s2_std")
         c2_sprint = st.slider("3-Session Sprint ($1,495)/mo", 0, 20, 2, key="s2_sprint")
         c2_retainer = st.slider("Monthly Retainer ($2,997)/mo", 0, 20, 3, key="s2_retainer")
         s2 = build_scenario("With Retainer", {
             "First Call": {"price": 499, "monthly_volume": c2_first},
-            "Standard Call": {"price": 699, "monthly_volume": c2_std},
+            "Single Call": {"price": 699, "monthly_volume": c2_std},
             "3-Session Clarity Sprint": {"price": 1495, "monthly_volume": c2_sprint},
             "Monthly Retainer": {"price": 2997, "monthly_volume": c2_retainer},
         }, annual_goal)
@@ -196,7 +196,7 @@ def render():
 
         if plan:
             for ch in plan:
-                color = CHANNEL_COLORS.get(ch["channel"], "#95A5A6")
+                color = CHANNEL_COLORS.get(ch["channel"], "#94A3B8")
                 body_html = (
                     f'<div class="ch-flex-between ch-mb-sm">'
                     f'<span class="ch-font-semibold">{ch["channel"]}</span>'

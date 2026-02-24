@@ -2,6 +2,13 @@
 
 Supports 4 models: First Touch, Last Touch, Linear, Time Decay.
 All models use the lead_source field from Payments DB records.
+
+For a single-channel consultancy pipeline (one lead source per client),
+first_touch, last_touch, and linear all give 100% credit to the source
+channel — because pipeline stages (paid, booked, intake) are NOT
+independent marketing touchpoints.
+
+Time decay weights by recency of the payment event.
 """
 
 from __future__ import annotations
@@ -16,6 +23,9 @@ ATTRIBUTION_MODELS = ["first_touch", "last_touch", "linear", "time_decay"]
 # Half-life for time decay model (days)
 TIME_DECAY_HALF_LIFE = 7.0
 
+# Minimum leads per channel before conversion_rate is considered reliable
+MIN_SAMPLE_SIZE = 10
+
 
 @dataclass
 class ChannelMetrics:
@@ -25,6 +35,7 @@ class ChannelMetrics:
     revenue: float = 0.0
     avg_deal_size: float = 0.0
     conversion_rate: float = 0.0
+    sample_sufficient: bool = False
 
     def as_dict(self) -> dict:
         return {
@@ -34,6 +45,7 @@ class ChannelMetrics:
             "revenue": round(self.revenue, 2),
             "avg_deal_size": round(self.avg_deal_size, 2),
             "conversion_rate": round(self.conversion_rate, 1),
+            "sample_sufficient": self.sample_sufficient,
         }
 
 
@@ -75,6 +87,7 @@ def attribute_conversions(
             ch.avg_deal_size = ch.revenue / ch.paid_count
         if ch.lead_count > 0:
             ch.conversion_rate = (ch.paid_count / ch.lead_count) * 100
+        ch.sample_sufficient = ch.lead_count >= MIN_SAMPLE_SIZE
 
     return channels
 
@@ -120,6 +133,7 @@ def channel_roi(
             "roi": round(roi, 1) if roi is not None else None,
             "conversion_rate": round(m.conversion_rate, 1),
             "avg_deal_size": round(m.avg_deal_size, 2),
+            "sample_sufficient": m.sample_sufficient,
         })
 
     return results
@@ -155,39 +169,21 @@ def get_revenue_by_source_over_time(payments: list[dict]) -> dict[str, dict[str,
 def _compute_credit(payment: dict, model: str) -> float:
     """Compute the credit multiplier for a single payment.
 
-    For a consultancy with a simple pipeline (source → payment → booking → call),
-    the touchpoints are limited. First/Last touch models give 100% credit.
-    Linear distributes evenly. Time decay weighs recent touchpoints more.
+    In a single-channel consultancy pipeline, each client has ONE lead source.
+    Pipeline stages (paid, booked, intake, call) are conversion events within
+    that single channel — NOT independent marketing touchpoints. Therefore
+    first_touch, last_touch, and linear all give 100% credit to the source.
+
+    Time decay weights by recency of the payment event, useful for comparing
+    recent vs older channel performance.
     """
-    if model == "first_touch":
-        return 1.0
-
-    if model == "last_touch":
-        return 1.0
-
-    # Count touchpoints based on pipeline progression
-    touchpoints = _count_touchpoints(payment)
-
-    if model == "linear":
-        # Full credit (we're attributing to the source already)
+    if model in ("first_touch", "last_touch", "linear"):
         return 1.0
 
     if model == "time_decay":
         return _time_decay_weight(payment)
 
     return 1.0
-
-
-def _count_touchpoints(payment: dict) -> int:
-    """Count how many pipeline stages this payment has passed through."""
-    count = 1  # Lead source is always a touchpoint
-    if payment.get("payment_amount", 0) > 0:
-        count += 1
-    if payment.get("call_date"):
-        count += 1
-    if payment.get("linked_intake_id"):
-        count += 1
-    return count
 
 
 def _time_decay_weight(payment: dict) -> float:

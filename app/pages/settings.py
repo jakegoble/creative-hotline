@@ -3,7 +3,7 @@
 import streamlit as st
 
 from app.config import load_settings
-from app.utils.ui import page_header, section_header, key_value_inline
+from app.utils.ui import page_header, section_header, key_value_inline, labeled_divider
 
 
 def render():
@@ -27,7 +27,7 @@ def render():
     if st.session_state.get("demo_mode", False):
         st.info("Demo Mode is ON. All data shown is sample data. Toggle off to see live data.")
 
-    st.divider()
+    labeled_divider("")
 
     # ── Connection Status ────────────────────────────────────────
 
@@ -39,6 +39,7 @@ def render():
         ("Calendly", bool(settings.CALENDLY_API_KEY), "CALENDLY_API_KEY"),
         ("ManyChat", bool(settings.MANYCHAT_API_KEY), "MANYCHAT_API_KEY"),
         ("Claude AI", bool(settings.ANTHROPIC_API_KEY), "ANTHROPIC_API_KEY"),
+        ("Fireflies", bool(settings.FIREFLIES_API_KEY), "FIREFLIES_API_KEY"),
         ("n8n", bool(settings.N8N_API_KEY), "N8N_API_KEY"),
     ]
 
@@ -52,7 +53,7 @@ def render():
             if connected:
                 st.caption(f"`{env_var}` = ****{_mask(getattr(settings, env_var, ''))}")
 
-    st.divider()
+    labeled_divider("")
 
     # ── Database IDs ─────────────────────────────────────────────
 
@@ -60,7 +61,7 @@ def render():
     st.code(f"Payments DB: {settings.NOTION_PAYMENTS_DB}", language=None)
     st.code(f"Intake DB:   {settings.NOTION_INTAKE_DB}", language=None)
 
-    st.divider()
+    labeled_divider("")
 
     # ── App Info ─────────────────────────────────────────────────
 
@@ -69,7 +70,7 @@ def render():
     st.caption("Built for Jake Goble & Megha")
     st.caption("Stack: Streamlit + Plotly + Notion + Stripe + Calendly + ManyChat + Claude")
 
-    st.divider()
+    labeled_divider("")
 
     # ── Cache Management ─────────────────────────────────────────
 

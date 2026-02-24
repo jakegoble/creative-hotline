@@ -254,6 +254,43 @@ def generate_client_html(
             header h1 {{ font-size: 22px; }}
             .action-item {{ padding: 12px; }}
         }}
+
+        /* Print styles */
+        @media print {{
+            body {{ background: white; }}
+            .container {{ max-width: 100%; padding: 0; }}
+            .progress-track, .progress-label {{ display: none; }}
+            .cta {{ display: none; }}
+            .action-check {{ display: none; }}
+            .action-item {{
+                border: 1px solid #ccc;
+                page-break-inside: avoid;
+            }}
+            .action-item.checked {{ opacity: 1; }}
+            .action-item.checked .action-text {{ text-decoration: none; }}
+            .print-btn {{ display: none; }}
+            footer {{ margin-top: 24px; }}
+            a {{ color: var(--text); text-decoration: none; }}
+            a::after {{ content: " (" attr(href) ")"; font-size: 12px; color: var(--gray); }}
+            main h2 {{ page-break-after: avoid; }}
+        }}
+
+        .print-btn {{
+            display: inline-block;
+            margin-top: 12px;
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--light-gray);
+            border-radius: 6px;
+            color: var(--gray);
+            font-size: 13px;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }}
+        .print-btn:hover {{
+            border-color: var(--orange);
+            color: var(--orange);
+        }}
     </style>
 </head>
 <body>
@@ -274,6 +311,8 @@ def generate_client_html(
             <a href="{calendly_url}" class="cta-button" target="_blank" rel="noopener">
                 Book a Follow-Up Call
             </a>
+            <br>
+            <button class="print-btn" onclick="window.print()">Save / Print this plan</button>
         </div>
         <footer>
             <p>
@@ -325,12 +364,17 @@ def generate_client_html(
 </html>"""
 
 
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
 def save_client_page(
     email: str,
     html_content: str,
-    output_dir: str = "plans/pages",
+    output_dir: str = "",
 ) -> str:
     """Save client HTML page to disk. Returns the file path."""
+    if not output_dir:
+        output_dir = os.path.join(_PROJECT_ROOT, "plans", "pages")
     os.makedirs(output_dir, exist_ok=True)
     slug = email.split("@")[0].replace(".", "-")
     date = datetime.now().strftime("%Y-%m-%d")

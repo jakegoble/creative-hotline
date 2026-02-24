@@ -56,7 +56,7 @@ def render():
         cols = st.columns(min(len(roi_data), 4))
         for i, ch in enumerate(roi_data[:4]):
             with cols[i]:
-                color = CHANNEL_COLORS.get(ch["channel"], "#95A5A6")
+                color = CHANNEL_COLORS.get(ch["channel"], "#94A3B8")
                 avg_score = 0
                 if ch["channel"] in source_scores:
                     scores = source_scores[ch["channel"]]

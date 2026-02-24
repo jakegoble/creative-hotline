@@ -16,7 +16,8 @@ import time
 from dataclasses import dataclass, field
 from typing import Any
 
-SIGNAL_FILE = os.path.join(os.path.dirname(__file__), "..", "..", "plans", ".cache_signal.json")
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SIGNAL_FILE = os.path.join(_PROJECT_ROOT, "plans", ".cache_signal.json")
 
 
 @dataclass

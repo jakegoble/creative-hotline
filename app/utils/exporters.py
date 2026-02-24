@@ -23,6 +23,8 @@ from reportlab.platypus import (
 
 
 # Brand colors
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 ORANGE = colors.HexColor("#FF6B35")
 DARK_TEXT = colors.HexColor("#1a1a1a")
 LIGHT_BG = colors.HexColor("#faf8f5")
@@ -166,12 +168,14 @@ def generate_premium_pdf(
 def save_action_plan_version(
     email: str,
     action_plan_text: str,
-    plans_dir: str = "plans",
+    plans_dir: str = "",
 ) -> str:
     """Save an action plan as a versioned JSON file.
 
     Returns the file path.
     """
+    if not plans_dir:
+        plans_dir = os.path.join(_PROJECT_ROOT, "plans")
     os.makedirs(plans_dir, exist_ok=True)
     today = datetime.now().strftime("%Y-%m-%d")
     slug = email.split("@")[0].replace(".", "-")

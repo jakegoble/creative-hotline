@@ -41,7 +41,7 @@ If you want hands-on help, the 3-Session Sprint exists for exactly that.
 
 
 def test_generate_pdf_returns_bytes():
-    pdf = generate_action_plan_pdf("Sarah Chen", "Standard Call", SAMPLE_PLAN)
+    pdf = generate_action_plan_pdf("Sarah Chen", "Single Call", SAMPLE_PLAN)
     assert isinstance(pdf, bytes)
     assert len(pdf) > 100
     assert pdf[:5] == b"%PDF-"

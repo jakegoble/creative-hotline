@@ -37,6 +37,7 @@ _CSS = f"""
     --primary-light: {t.PRIMARY_LIGHT};
     --primary-subtle: {t.PRIMARY_SUBTLE};
     --primary-muted: {t.PRIMARY_MUTED};
+    --accent-secondary: {t.ACCENT_SECONDARY};
 
     --bg-page: {t.BG_PAGE};
     --bg-card: {t.BG_CARD};
@@ -62,6 +63,7 @@ _CSS = f"""
     --info: {t.INFO};
     --info-bg: {t.INFO_BG};
 
+    --shadow-xs: {t.SHADOW_XS};
     --shadow-sm: {t.SHADOW_SM};
     --shadow-md: {t.SHADOW_MD};
     --shadow-lg: {t.SHADOW_LG};
@@ -93,29 +95,67 @@ html, body, [class*="css"] {{
     font-family: var(--font-family);
 }}
 
+/* ── Hide Default Streamlit Chrome ─────────────────────────────── */
+#MainMenu {{visibility: hidden;}}
+footer {{visibility: hidden;}}
+header[data-testid="stHeader"] {{
+    background: rgba(250, 249, 247, 0.85) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+}}
+div[data-testid="stDecoration"] {{display: none;}}
+
 /* ── Sidebar ───────────────────────────────────────────────────── */
 section[data-testid="stSidebar"] {{
     background-color: var(--bg-sidebar);
     border-right: none;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.15);
 }}
 
 section[data-testid="stSidebar"] * {{
-    color: #e0e0e0 !important;
+    color: #D6D3D1 !important;
 }}
 
-section[data-testid="stSidebar"] .stMarkdown h3 {{
+/* Sidebar nav section headers (st.navigation groups) */
+section[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"],
+section[data-testid="stSidebar"] .stMarkdown h3,
+section[data-testid="stSidebar"] [data-testid="stSidebarNavSeparator"] span {{
     color: var(--primary) !important;
-    font-weight: var(--weight-bold);
-    letter-spacing: 1px;
-    font-size: 15px;
+    font-weight: var(--weight-bold) !important;
+    letter-spacing: 0.5px;
+    font-size: 11px !important;
+    text-transform: uppercase;
 }}
 
+/* Sidebar nav links (st.navigation items) */
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"] {{
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+    margin: 1px 0;
+}}
+
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"]:hover {{
+    background: rgba(255, 107, 53, 0.1) !important;
+}}
+
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"][aria-current="page"] {{
+    background: rgba(255, 107, 53, 0.15) !important;
+    border-left: 3px solid var(--primary) !important;
+}}
+
+section[data-testid="stSidebar"] [data-testid="stSidebarNavLink"][aria-current="page"] span {{
+    color: white !important;
+    font-weight: var(--weight-semibold) !important;
+}}
+
+/* Sidebar radio fallback (legacy) */
 section[data-testid="stSidebar"] .stRadio > div {{
     gap: 2px;
 }}
 
 section[data-testid="stSidebar"] .stRadio label {{
-    padding: var(--space-sm) var(--space-md);
+    padding: 10px var(--space-md);
     border-radius: var(--radius-sm);
     transition: var(--transition);
     font-size: var(--font-md);
@@ -123,19 +163,19 @@ section[data-testid="stSidebar"] .stRadio label {{
 }}
 
 section[data-testid="stSidebar"] .stRadio label:hover {{
-    background: rgba(255, 107, 53, 0.12);
+    background: rgba(255, 107, 53, 0.1);
 }}
 
 section[data-testid="stSidebar"] .stRadio label[data-checked="true"],
 section[data-testid="stSidebar"] .stRadio [aria-checked="true"] {{
-    background: rgba(255, 107, 53, 0.18) !important;
+    background: rgba(255, 107, 53, 0.15) !important;
     color: var(--primary) !important;
 }}
 
 section[data-testid="stSidebar"] .stButton > button {{
-    background: var(--primary-muted);
+    background: rgba(255, 107, 53, 0.12);
     color: var(--primary) !important;
-    border: 1px solid rgba(255, 107, 53, 0.3);
+    border: 1px solid rgba(255, 107, 53, 0.25);
     border-radius: var(--radius-sm);
     font-weight: var(--weight-semibold);
     transition: var(--transition);
@@ -147,13 +187,13 @@ section[data-testid="stSidebar"] .stButton > button:hover {{
 }}
 
 section[data-testid="stSidebar"] hr {{
-    border-color: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.06) !important;
     margin: var(--space-md) 0;
 }}
 
 section[data-testid="stSidebar"] .stCaption,
 section[data-testid="stSidebar"] small {{
-    color: #888 !important;
+    color: #78716C !important;
 }}
 
 /* ── Metric Cards ──────────────────────────────────────────────── */
@@ -161,8 +201,8 @@ section[data-testid="stSidebar"] small {{
 [data-testid="metric-container"] {{
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-md) 20px;
+    border-radius: var(--radius-md);
+    padding: 20px 24px;
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
 }}
@@ -170,14 +210,14 @@ section[data-testid="stSidebar"] small {{
 [data-testid="stMetric"]:hover,
 [data-testid="metric-container"]:hover {{
     box-shadow: var(--shadow-md);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
 }}
 
 [data-testid="stMetricLabel"] {{
     font-size: var(--font-xs) !important;
     font-weight: var(--weight-semibold);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     color: var(--text-muted) !important;
 }}
 
@@ -185,19 +225,27 @@ section[data-testid="stSidebar"] small {{
     font-size: var(--font-2xl) !important;
     font-weight: var(--weight-bold);
     color: var(--text-primary) !important;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.02em;
 }}
 
 [data-testid="stMetricDelta"] {{
     font-size: var(--font-xs) !important;
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
 }}
 
 /* ── Chart Containers ──────────────────────────────────────────── */
 [data-testid="stPlotlyChart"] {{
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition);
+}}
+
+[data-testid="stPlotlyChart"]:hover {{
     box-shadow: var(--shadow-sm);
 }}
 
@@ -208,12 +256,14 @@ section[data-testid="stSidebar"] small {{
     font-size: var(--font-md);
     padding: var(--space-sm) var(--space-lg);
     transition: var(--transition);
-    border: 1px solid var(--border-hover);
+    border: 1px solid var(--border);
 }}
 
 .stButton > button:hover {{
     border-color: var(--primary);
     color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }}
 
 .stButton > button[kind="primary"],
@@ -221,12 +271,14 @@ section[data-testid="stSidebar"] small {{
     background-color: var(--primary);
     color: white !important;
     border: none;
+    box-shadow: 0 1px 3px rgba(255, 107, 53, 0.3);
 }}
 
 .stButton > button[kind="primary"]:hover,
 .stButton > button[data-testid="baseButton-primary"]:hover {{
     background-color: var(--primary-dark);
     color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
 }}
 
 /* ── Form Inputs ───────────────────────────────────────────────── */
@@ -234,8 +286,8 @@ section[data-testid="stSidebar"] small {{
 .stTextArea > div > div > textarea,
 .stNumberInput > div > div > input {{
     border-radius: var(--radius-sm) !important;
-    border: 1px solid var(--border-hover) !important;
-    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border) !important;
+    padding: 10px var(--space-md);
     font-size: var(--font-md);
     transition: var(--transition);
 }}
@@ -244,7 +296,7 @@ section[data-testid="stSidebar"] small {{
 .stTextArea > div > div > textarea:focus,
 .stNumberInput > div > div > input:focus {{
     border-color: var(--primary) !important;
-    box-shadow: 0 0 0 2px var(--primary-subtle) !important;
+    box-shadow: 0 0 0 3px var(--primary-subtle) !important;
 }}
 
 .stSelectbox > div > div {{
@@ -253,7 +305,7 @@ section[data-testid="stSidebar"] small {{
 
 /* ── Expanders ─────────────────────────────────────────────────── */
 [data-testid="stExpander"] {{
-    background: var(--bg-muted);
+    background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -262,6 +314,7 @@ section[data-testid="stSidebar"] small {{
 
 [data-testid="stExpander"]:hover {{
     border-color: var(--border-hover);
+    box-shadow: var(--shadow-xs);
 }}
 
 [data-testid="stExpander"] summary {{
@@ -274,7 +327,7 @@ section[data-testid="stSidebar"] small {{
 hr {{
     border: none !important;
     border-top: 1px solid var(--border) !important;
-    margin: var(--space-lg) 0 !important;
+    margin: var(--space-xl) 0 !important;
 }}
 
 /* ── Tables / DataFrames ───────────────────────────────────────── */
@@ -286,6 +339,7 @@ hr {{
 
 .stDataFrame table {{
     font-size: 13px;
+    font-variant-numeric: tabular-nums;
 }}
 
 .stDataFrame thead th {{
@@ -307,11 +361,12 @@ hr {{
 /* ── Tabs ──────────────────────────────────────────────────────── */
 .stTabs [data-baseweb="tab-list"] {{
     gap: var(--space-xs);
+    border-bottom: 1px solid var(--border);
 }}
 
 .stTabs [data-baseweb="tab"] {{
     border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-    padding: var(--space-sm) 20px;
+    padding: 10px 20px;
     font-weight: var(--weight-semibold);
     font-size: var(--font-md);
 }}
@@ -325,31 +380,36 @@ hr {{
     font-weight: var(--weight-bold);
     color: var(--text-primary);
     font-size: var(--font-2xl);
+    letter-spacing: -0.025em;
 }}
 
 .stApp h2 {{
     font-weight: var(--weight-bold);
     color: var(--text-primary);
     font-size: var(--font-xl);
+    letter-spacing: -0.015em;
 }}
 
 .stApp h3 {{
     font-weight: var(--weight-semibold);
     color: var(--text-primary);
     font-size: var(--font-lg);
+    letter-spacing: -0.01em;
 }}
 
 /* ── Download Buttons ──────────────────────────────────────────── */
 .stDownloadButton > button {{
     border-radius: var(--radius-sm);
     font-weight: var(--weight-semibold);
-    border: 1px solid var(--border-hover);
+    border: 1px solid var(--border);
     transition: var(--transition);
 }}
 
 .stDownloadButton > button:hover {{
     border-color: var(--primary);
     color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
 }}
 
 /* ── Progress Bar ──────────────────────────────────────────────── */
@@ -367,22 +427,40 @@ hr {{
    COMPONENT CLASSES — used by ui.py and inline HTML in pages
    ═══════════════════════════════════════════════════════════════ */
 
-/* ── Card ──────────────────────────────────────────────────────── */
+/* ── Card (base) ──────────────────────────────────────────────── */
 .ch-card {{
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
-    padding: var(--space-lg);
-    box-shadow: var(--shadow-sm);
+    padding: 20px 24px;
     transition: var(--transition);
     margin-bottom: var(--space-sm);
 }}
 
 .ch-card:hover {{
-    box-shadow: var(--shadow-md);
     border-color: var(--border-hover);
 }}
 
+/* ── Card Elevation Tiers ─────────────────────────────────────── */
+.ch-card--elevated {{
+    box-shadow: var(--shadow-sm);
+}}
+
+.ch-card--elevated:hover {{
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}}
+
+.ch-card--floating {{
+    box-shadow: var(--shadow-lg);
+    border-color: transparent;
+}}
+
+.ch-card--floating:hover {{
+    box-shadow: 0 16px 32px rgba(0,0,0,0.1), 0 6px 12px rgba(0,0,0,0.06);
+}}
+
+/* ── Card Accent Variants ─────────────────────────────────────── */
 .ch-card--accent-left {{
     border-left: 3px solid var(--accent-color, var(--primary));
 }}
@@ -393,6 +471,7 @@ hr {{
 
 .ch-card--flat {{
     box-shadow: none;
+    border-color: var(--border);
 }}
 
 .ch-card--flat:hover {{
@@ -403,16 +482,44 @@ hr {{
 .ch-badge {{
     display: inline-flex;
     align-items: center;
-    padding: 2px 10px;
+    padding: 3px 10px;
     border-radius: var(--radius-full);
     font-size: var(--font-xs);
     font-weight: var(--weight-semibold);
     line-height: 1.4;
+    letter-spacing: 0.01em;
 }}
 
 .ch-badge--outline {{
     background: transparent;
     border: 1px solid currentColor;
+}}
+
+/* ── Delta Badge ──────────────────────────────────────────────── */
+.ch-delta {{
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    font-size: var(--font-xs);
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
+    padding: 2px 8px;
+    border-radius: var(--radius-full);
+}}
+
+.ch-delta--up {{
+    color: var(--success);
+    background: var(--success-bg);
+}}
+
+.ch-delta--down {{
+    color: var(--danger);
+    background: var(--danger-bg);
+}}
+
+.ch-delta--neutral {{
+    color: var(--text-muted);
+    background: var(--bg-muted);
 }}
 
 /* ── Section Header ────────────────────────────────────────────── */
@@ -426,6 +533,7 @@ hr {{
     font-size: var(--font-xl) !important;
     font-weight: var(--weight-bold) !important;
     color: var(--text-primary) !important;
+    letter-spacing: -0.015em;
 }}
 
 .ch-section-header h3 {{
@@ -433,6 +541,7 @@ hr {{
     font-size: var(--font-lg) !important;
     font-weight: var(--weight-semibold) !important;
     color: var(--text-primary) !important;
+    letter-spacing: -0.01em;
 }}
 
 .ch-section-header p {{
@@ -449,9 +558,10 @@ hr {{
 
 .ch-page-header h1 {{
     margin-bottom: 4px !important;
-    font-size: var(--font-2xl) !important;
+    font-size: 30px !important;
     font-weight: var(--weight-bold) !important;
     color: var(--text-primary) !important;
+    letter-spacing: -0.025em;
 }}
 
 .ch-page-header p {{
@@ -463,16 +573,16 @@ hr {{
 
 /* ── Progress Bar (inline) ─────────────────────────────────────── */
 .ch-progress {{
-    background: var(--border);
-    border-radius: 3px;
+    background: var(--bg-muted);
+    border-radius: 4px;
     height: 6px;
     overflow: hidden;
 }}
 
 .ch-progress-fill {{
     height: 100%;
-    border-radius: 3px;
-    transition: width 0.3s ease;
+    border-radius: 4px;
+    transition: width 0.4s ease;
 }}
 
 /* ── Key-Value Display ─────────────────────────────────────────── */
@@ -480,7 +590,7 @@ hr {{
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    padding: var(--space-sm) 0;
+    padding: 10px 0;
     border-bottom: 1px solid var(--border);
 }}
 
@@ -499,6 +609,7 @@ hr {{
     color: var(--text-primary);
     font-weight: var(--weight-semibold);
     text-align: right;
+    font-variant-numeric: tabular-nums;
 }}
 
 /* ── Empty State ───────────────────────────────────────────────── */
@@ -509,14 +620,145 @@ hr {{
 }}
 
 .ch-empty-icon {{
-    font-size: 32px;
-    margin-bottom: var(--space-sm);
-    opacity: 0.5;
+    font-size: 36px;
+    margin-bottom: var(--space-md);
+    opacity: 0.4;
 }}
 
 .ch-empty-message {{
     font-size: var(--font-md);
     line-height: 1.5;
+}}
+
+/* ── Status Dot ────────────────────────────────────────────────── */
+.ch-dot {{
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--text-caption);
+}}
+
+.ch-dot--active {{
+    background: var(--success);
+    box-shadow: 0 0 0 3px var(--success-bg);
+    animation: ch-pulse 2s ease-in-out infinite;
+}}
+
+.ch-dot--warning {{
+    background: var(--warning);
+    box-shadow: 0 0 0 3px var(--warning-bg);
+}}
+
+.ch-dot--danger {{
+    background: var(--danger);
+    box-shadow: 0 0 0 3px var(--danger-bg);
+}}
+
+@keyframes ch-pulse {{
+    0%, 100% {{ opacity: 1; }}
+    50% {{ opacity: 0.5; }}
+}}
+
+/* ── Labeled Divider ───────────────────────────────────────────── */
+.ch-divider {{
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin: var(--space-xl) 0;
+    color: var(--text-caption);
+    font-size: var(--font-xs);
+    font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}}
+
+.ch-divider::before,
+.ch-divider::after {{
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+}}
+
+/* ── Skeleton Loading ──────────────────────────────────────────── */
+@keyframes ch-shimmer {{
+    0% {{ background-position: -200% 0; }}
+    100% {{ background-position: 200% 0; }}
+}}
+
+.ch-skeleton {{
+    background: linear-gradient(90deg,
+        var(--bg-muted) 25%,
+        var(--bg-hover) 50%,
+        var(--bg-muted) 75%
+    );
+    background-size: 200% 100%;
+    animation: ch-shimmer 1.5s ease-in-out infinite;
+    border-radius: var(--radius-sm);
+}}
+
+.ch-skeleton--text {{
+    height: 14px;
+    margin-bottom: var(--space-sm);
+}}
+
+.ch-skeleton--heading {{
+    height: 28px;
+    width: 60%;
+    margin-bottom: var(--space-md);
+}}
+
+.ch-skeleton--card {{
+    height: 120px;
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-sm);
+}}
+
+/* ── KPI Hero Card ─────────────────────────────────────────────── */
+.ch-kpi-hero {{
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+}}
+
+.ch-kpi-hero:hover {{
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+}}
+
+.ch-kpi-hero__label {{
+    font-size: var(--font-xs);
+    font-weight: var(--weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    margin-bottom: var(--space-xs);
+}}
+
+.ch-kpi-hero__value {{
+    font-size: var(--font-3xl);
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.1;
+}}
+
+.ch-kpi-hero__footer {{
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-top: var(--space-sm);
+}}
+
+/* ── Tabular Nums Utility ──────────────────────────────────────── */
+.ch-numeric {{
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
 }}
 
 /* ── Utility Classes ───────────────────────────────────────────── */
@@ -547,7 +789,7 @@ hr {{
 
 .ch-uppercase {{
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
 }}
 
 .ch-mt-sm {{ margin-top: var(--space-sm); }}
@@ -576,7 +818,7 @@ hr {{
     }}
 
     [data-testid="stPlotlyChart"] {{
-        padding: var(--space-sm);
+        padding: var(--space-md);
     }}
 
     .ch-card {{
@@ -585,6 +827,14 @@ hr {{
 
     .ch-page-header h1 {{
         font-size: var(--font-xl) !important;
+    }}
+
+    .ch-kpi-hero {{
+        padding: 20px;
+    }}
+
+    .ch-kpi-hero__value {{
+        font-size: var(--font-2xl);
     }}
 }}
 
@@ -604,7 +854,14 @@ hr {{
 }}
 
 ::-webkit-scrollbar-thumb:hover {{
-    background: #b0aca6;
+    background: #A8A29E;
+}}
+
+/* ── Focus Rings (accessibility) ───────────────────────────────── */
+*:focus-visible {{
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
 }}
 </style>
 """

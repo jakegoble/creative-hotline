@@ -9,7 +9,7 @@ from app.components.cohort_table import build_cohort_data
 from app.config import PIPELINE_STATUSES
 from app.utils.formatters import format_percentage
 from app.utils import design_tokens as t
-from app.utils.ui import page_header, section_header, empty_state
+from app.utils.ui import page_header, section_header, empty_state, labeled_divider
 
 
 def render():
@@ -35,7 +35,7 @@ def render():
     fig = render_funnel([d for d in funnel_data if d["count"] > 0] or funnel_data)
     st.plotly_chart(fig, use_container_width=True)
 
-    st.divider()
+    labeled_divider("Drop-off Analysis")
 
     # ── Drop-off Analysis ────────────────────────────────────────
 
@@ -89,7 +89,7 @@ def render():
                     f"didn't reach this stage."
                 )
 
-    st.divider()
+    labeled_divider("Cohort Analysis")
 
     # ── Cohort Analysis ──────────────────────────────────────────
 
@@ -105,7 +105,7 @@ def render():
             hide_index=True,
         )
 
-    st.divider()
+    labeled_divider("Distribution")
 
     # ── Status Distribution ──────────────────────────────────────
 

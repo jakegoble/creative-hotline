@@ -24,7 +24,8 @@ from app.utils.ui import (
 from app.utils import design_tokens as t
 
 
-AB_TEST_FILE = os.path.join("plans", "ab_tests.json")
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+AB_TEST_FILE = os.path.join(_PROJECT_ROOT, "plans", "ab_tests.json")
 
 
 def _load_ab_tests() -> list[dict]:
@@ -102,6 +103,9 @@ def render():
         empty_state("No payment data yet.")
         return
 
+    intakes = notion.get_all_intakes()
+    intake_by_email = {i.get("email", "").lower(): i for i in intakes if i.get("email")}
+
     # ── Micro-Conversion Funnel ──────────────────────────────────
 
     section_header("Pipeline Funnel")
@@ -140,7 +144,8 @@ def render():
         drop = prev_count - count if i > 0 else 0
         drop_pct = (drop / prev_count * 100) if prev_count > 0 else 0
 
-        color = t.PRIMARY if (count / total * 100 if total > 0 else 0) > 50 else t.PRIMARY_LIGHT if (count / total * 100 if total > 0 else 0) > 25 else "#FFD4BC"
+        pct_of_total = count / total * 100 if total > 0 else 0
+        color = t.PRIMARY if pct_of_total > 50 else t.PRIMARY_LIGHT if pct_of_total > 25 else t.WARNING
         drop_text = "" if i == 0 else f" (-{drop}, {drop_pct:.0f}% drop)"
         label = f"{sc['stage']} \u2014 {count}{drop_text}"
         progress_bar(count, total, color=color, label=label)
@@ -175,6 +180,22 @@ def render():
             d = days_between(payment_date, call_date)
             if d is not None and d >= 0:
                 speed_metrics["Paid → Booked"].append(d)
+
+        # Booked → Intake: use payment_date as booking proxy, intake created as intake date
+        email = (p.get("email") or "").lower()
+        intake = intake_by_email.get(email)
+        if intake and payment_date and amount > 0:
+            intake_created = intake.get("created", "")
+            if intake_created:
+                d = days_between(payment_date, intake_created)
+                if d is not None and d >= 0:
+                    speed_metrics["Booked → Intake"].append(d)
+
+            # Intake → Call: intake created to call date
+            if intake_created and call_date:
+                d = days_between(intake_created, call_date)
+                if d is not None and d >= 0:
+                    speed_metrics["Intake → Call"].append(d)
 
     col1, col2, col3, col4 = st.columns(4)
     metric_cols = [col1, col2, col3, col4]
@@ -295,7 +316,7 @@ def render():
             sig_badge = (
                 badge(f"Significant \u2014 {winner} wins", color=t.SUCCESS)
                 if sig and winner else
-                badge("Not significant", color="#95A5A6")
+                badge("Not significant", color="#94A3B8")
             )
 
             body_html = (

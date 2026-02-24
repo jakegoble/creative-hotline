@@ -1,7 +1,7 @@
 """Stripe API client — source of truth for revenue.
 
 Payment happens at Calendly booking via Stripe integration.
-Products: First Call ($499), Standard Call ($699), Sprint ($1,495).
+Products: First Call ($499), Single Call ($699), Sprint ($1,495).
 """
 
 from __future__ import annotations

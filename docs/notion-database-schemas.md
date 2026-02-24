@@ -1,7 +1,7 @@
 # Notion Database Schemas — The Creative Hotline
 
-**Date:** 2026-02-21
-**Verified via:** Notion MCP (`notion-fetch`) + n8n workflow backup cross-reference
+**Date:** 2026-02-24 (re-verified)
+**Verified via:** Notion MCP (`notion-fetch`) live queries + n8n workflow backup cross-reference
 **Space ID:** `0f4e4f76-f116-4626-a1b9-9d4e980c97b3`
 
 ---
@@ -20,7 +20,7 @@
 | Email | `email` | — | WF1, WF4 | WF2, WF3, WF5, WF6, WF7 |
 | Phone | `phone_number` | — | WF1 | — |
 | Payment Amount | `number` (dollar format) | — | WF1, WF4 (sets 0) | — |
-| Product Purchased | `select` | "First Call", "Standard Call", "3-Pack Sprint", "3-Session Clarity Sprint" | WF1 (null bug), WF4 (type mismatch) | — |
+| Product Purchased | `select` | **"First Call"** ($499), **"Single Call"** ($699, renamed from "Standard Call"), **"3-Session Clarity Sprint"** ($1,495). Legacy: "Standard Call", "3-Pack Sprint" | WF1 (fixed — metadata-first mapping), WF4 (type mismatch) | — |
 | Payment Date | `date` | — | WF1 | WF5 |
 | Stripe Session ID | `rich_text` | — | WF1 | — |
 | Status | `select` | See pipeline statuses below | WF1, WF2, WF3, WF4 | WF5, WF6, WF7 |
@@ -79,7 +79,7 @@
 | Desired Outcome | `multi_select` | "A clear decision", "Direction I can trust", "A short action plan", "Stronger positioning", "Someone to tell me the truth" | WF3 (type mismatch — maps as select) |
 | What They've Tried | `rich_text` | — | WF3 |
 | Deadline | `rich_text` | — | WF3 |
-| Constraints / Avoid | `rich_text` | — | WF3 |
+| Constraints / Avoid | `rich_text` | Note: CLAUDE.md previously documented this as just "Constraints" — live name includes "/ Avoid" | WF3 |
 | Intake Status | `select` | "Not Started", "Submitted" | WF3 |
 | AI Intake Summary | `rich_text` | Claude AI analysis output | WF3 |
 | Action Plan Sent | `checkbox` | Set manually after plan delivered | Manual (WF9 future) |

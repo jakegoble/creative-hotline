@@ -37,13 +37,13 @@ def _intake():
 
 
 def test_frequency_bonus_sprint():
-    payment = _payment(amount=1495, product="3-Pack Sprint")
+    payment = _payment(amount=1495, product="3-Session Clarity Sprint")
     result = score_client(payment, _intake())
     assert result["frequency"]["bonus"] == 5
 
 
 def test_frequency_bonus_standard():
-    payment = _payment(amount=699, product="Standard Call")
+    payment = _payment(amount=699, product="Single Call")
     result = score_client(payment, _intake())
     assert result["frequency"]["bonus"] == 2
 
@@ -70,13 +70,16 @@ def test_recency_week_old():
 
 
 def test_recency_aging():
-    payment = _payment(days_ago=20)
+    # Use Intake Complete status so negative cap doesn't trigger
+    payment = _payment(days_ago=20, status="Intake Complete")
     result = score_client(payment, _intake())
     assert result["recency"]["multiplier"] == 0.85
 
 
 def test_recency_stale():
-    payment = _payment(days_ago=45)
+    # Use Call Complete status so negative cap doesn't trigger
+    # (negative cap only applies to Lead - Laylo and Paid - Needs Booking)
+    payment = _payment(days_ago=45, status="Call Complete")
     result = score_client(payment, _intake())
     assert result["recency"]["multiplier"] == 0.7
 
@@ -108,7 +111,7 @@ def test_no_negative_healthy_client():
 
 def test_score_clamped_0_100():
     # Even with bonuses, should never exceed 100
-    payment = _payment(days_ago=1, amount=1495, product="3-Pack Sprint", status="Call Complete")
+    payment = _payment(days_ago=1, amount=1495, product="3-Session Clarity Sprint", status="Call Complete")
     result = score_client(payment, _intake())
     assert 0 <= result["total"] <= 100
 

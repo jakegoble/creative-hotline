@@ -28,47 +28,50 @@ WEIGHT_MEDIUM = 500
 WEIGHT_SEMIBOLD = 600
 WEIGHT_BOLD = 700
 
-# ── Colors ────────────────────────────────────────────────────────
+# ── Colors — warm stone palette ───────────────────────────────────
 PRIMARY = "#FF6B35"
 PRIMARY_DARK = "#E55A24"
 PRIMARY_LIGHT = "#FF8C5A"
 PRIMARY_SUBTLE = "rgba(255, 107, 53, 0.08)"
 PRIMARY_MUTED = "rgba(255, 107, 53, 0.15)"
 
-BG_PAGE = "#f7f5f2"
-BG_CARD = "#ffffff"
-BG_SIDEBAR = "#141414"
-BG_MUTED = "#faf8f5"
-BG_HOVER = "#f5f2ee"
+ACCENT_SECONDARY = "#8B5CF6"  # Violet-500 — charts, badges, variety
 
-TEXT_PRIMARY = "#1a1a1a"
-TEXT_SECONDARY = "#555555"
-TEXT_MUTED = "#888888"
-TEXT_CAPTION = "#aaaaaa"
+BG_PAGE = "#FAF9F7"
+BG_CARD = "#FFFFFF"
+BG_SIDEBAR = "#1C1917"  # Warm charcoal (stone-900)
+BG_MUTED = "#F5F5F4"  # Stone-100
+BG_HOVER = "#EFEDEB"
 
-BORDER_DEFAULT = "#f0ede8"
-BORDER_HOVER = "#e0dcd8"
-BORDER_STRONG = "#d0ccc6"
+TEXT_PRIMARY = "#1C1917"  # Stone-900
+TEXT_SECONDARY = "#78716C"  # Stone-500
+TEXT_MUTED = "#A8A29E"  # Stone-400
+TEXT_CAPTION = "#D6D3D1"  # Stone-300
 
-# Semantic
-SUCCESS = "#2ECC71"
-SUCCESS_BG = "rgba(46, 204, 113, 0.08)"
-WARNING = "#F39C12"
-WARNING_BG = "rgba(243, 156, 18, 0.08)"
-DANGER = "#E74C3C"
-DANGER_BG = "rgba(231, 76, 60, 0.08)"
-INFO = "#4A90D9"
-INFO_BG = "rgba(74, 144, 217, 0.08)"
+BORDER_DEFAULT = "#E7E5E4"  # Stone-200
+BORDER_HOVER = "#D6D3D1"  # Stone-300
+BORDER_STRONG = "#C4C0BC"
 
-# ── Shadows (3-tier elevation) ────────────────────────────────────
-SHADOW_SM = "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06)"
-SHADOW_MD = "0 4px 6px rgba(0,0,0,0.04), 0 2px 4px rgba(0,0,0,0.06)"
-SHADOW_LG = "0 10px 15px rgba(0,0,0,0.04), 0 4px 6px rgba(0,0,0,0.06)"
+# Semantic — modern Tailwind palette
+SUCCESS = "#22C55E"  # Green-500
+SUCCESS_BG = "rgba(34, 197, 94, 0.08)"
+WARNING = "#F59E0B"  # Amber-500
+WARNING_BG = "rgba(245, 158, 11, 0.08)"
+DANGER = "#EF4444"  # Red-500
+DANGER_BG = "rgba(239, 68, 68, 0.08)"
+INFO = "#3B82F6"  # Blue-500
+INFO_BG = "rgba(59, 130, 246, 0.08)"
+
+# ── Shadows (4-tier elevation) ────────────────────────────────────
+SHADOW_XS = "0 1px 2px rgba(0,0,0,0.04)"
+SHADOW_SM = "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)"
+SHADOW_MD = "0 4px 8px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04)"
+SHADOW_LG = "0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04)"
 
 # ── Border radius ─────────────────────────────────────────────────
-RADIUS_SM = 6
-RADIUS_MD = 10
-RADIUS_LG = 14
+RADIUS_SM = 8
+RADIUS_MD = 12
+RADIUS_LG = 16
 RADIUS_FULL = 9999
 
 # ── Transitions ───────────────────────────────────────────────────
@@ -77,6 +80,38 @@ TRANSITION_DEFAULT = "all 0.2s ease"
 
 # ── Chart palette ─────────────────────────────────────────────────
 CHART_COLORS = [
-    PRIMARY, "#4A90D9", "#2ECC71", "#9B59B6",
-    "#F39C12", "#E74C3C", "#1ABC9C", "#34495E",
+    PRIMARY, "#3B82F6", "#22C55E", "#8B5CF6",
+    "#F59E0B", "#EF4444", "#14B8A6", "#475569",
 ]
+
+# Channel-to-color mapping (used by channel_chart, sankey_chart, etc.)
+CHANNEL_COLORS_MAP: dict[str, str] = {
+    "IG DM": PRIMARY,
+    "IG Comment": "#FF8C50",
+    "IG Story": "#FFA564",
+    "Meta Ad": "#6366F1",
+    "LinkedIn": "#0077B5",
+    "Website": SUCCESS,
+    "Referral": "#8B5CF6",
+    "Direct": "#475569",
+    "Unknown": "#94A3B8",
+}
+
+# Scenario / projection overlay colors
+SCENARIO_COLORS = ["#3B82F6", "#8B5CF6", "#475569"]
+
+# 5-stop heatmap colorscale (light → PRIMARY)
+HEATMAP_SCALE = [
+    [0, BG_MUTED],
+    [0.25, "#FFD4B8"],
+    [0.5, "#FF8C5A"],
+    [0.75, "#FF8C50"],
+    [1.0, PRIMARY],
+]
+
+
+def hex_to_rgba(hex_color: str, alpha: float = 1.0) -> str:
+    """Convert a hex color string to an rgba() CSS string."""
+    h = hex_color.lstrip("#")
+    r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    return f"rgba({r},{g},{b},{alpha})"

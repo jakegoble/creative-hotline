@@ -49,8 +49,15 @@ def stat_card(
     value: str,
     subtitle: str = "",
     accent_color: str = "",
+    delta: str = "",
+    delta_direction: str = "",
 ) -> None:
-    """Render an accent-bordered stat card (left accent by default)."""
+    """Render an elevated stat card with optional delta badge.
+
+    Args:
+        delta: Change value to display (e.g. "+12.5%")
+        delta_direction: "up", "down", or "neutral" for color styling
+    """
     style = f' style="--accent-color:{accent_color}"' if accent_color else ""
     color_style = f' style="color:{accent_color}"' if accent_color else ""
     sub = (
@@ -58,10 +65,21 @@ def stat_card(
         if subtitle
         else ""
     )
+    delta_html = ""
+    if delta:
+        direction = delta_direction or ("up" if delta.startswith("+") else "down" if delta.startswith("-") else "neutral")
+        arrow = "\u2191" if direction == "up" else "\u2193" if direction == "down" else ""
+        delta_html = (
+            f'<span class="ch-delta ch-delta--{direction}">'
+            f"{arrow} {escape(delta)}</span>"
+        )
     st.markdown(
-        f'<div class="ch-card ch-card--accent-left"{style}>'
-        f'<div class="ch-text-sm ch-text-muted ch-uppercase">{escape(label)}</div>'
-        f'<div class="ch-text-2xl ch-font-bold"{color_style}>{escape(value)}</div>'
+        f'<div class="ch-card ch-card--elevated ch-card--accent-left"{style}>'
+        f'<div class="ch-text-xs ch-text-muted ch-uppercase">{escape(label)}</div>'
+        f'<div class="ch-flex-center ch-gap-sm">'
+        f'<span class="ch-text-2xl ch-font-bold ch-numeric"{color_style}>{escape(value)}</span>'
+        f"{delta_html}"
+        f"</div>"
         f"{sub}"
         f"</div>",
         unsafe_allow_html=True,
@@ -73,6 +91,8 @@ def stat_card_top(
     value: str,
     subtitle: str = "",
     accent_color: str = "",
+    delta: str = "",
+    delta_direction: str = "",
 ) -> None:
     """Render a stat card with top accent border."""
     style = f' style="--accent-color:{accent_color}"' if accent_color else ""
@@ -82,10 +102,21 @@ def stat_card_top(
         if subtitle
         else ""
     )
+    delta_html = ""
+    if delta:
+        direction = delta_direction or ("up" if delta.startswith("+") else "down" if delta.startswith("-") else "neutral")
+        arrow = "\u2191" if direction == "up" else "\u2193" if direction == "down" else ""
+        delta_html = (
+            f'<span class="ch-delta ch-delta--{direction}">'
+            f"{arrow} {escape(delta)}</span>"
+        )
     st.markdown(
-        f'<div class="ch-card ch-card--accent-top"{style}>'
-        f'<div class="ch-text-sm ch-text-muted ch-uppercase">{escape(label)}</div>'
-        f'<div class="ch-text-2xl ch-font-bold"{color_style}>{escape(value)}</div>'
+        f'<div class="ch-card ch-card--elevated ch-card--accent-top"{style}>'
+        f'<div class="ch-text-xs ch-text-muted ch-uppercase">{escape(label)}</div>'
+        f'<div class="ch-flex-center ch-gap-sm">'
+        f'<span class="ch-text-2xl ch-font-bold ch-numeric"{color_style}>{escape(value)}</span>'
+        f"{delta_html}"
+        f"</div>"
         f"{sub}"
         f"</div>",
         unsafe_allow_html=True,
@@ -105,9 +136,45 @@ def data_card(
     style = f' style="--accent-color:{accent_color}"' if accent_color else ""
     accent_cls = " ch-card--accent-left" if accent_color else ""
     st.markdown(
-        f'<div class="ch-card{accent_cls}"{style}>'
+        f'<div class="ch-card ch-card--elevated{accent_cls}"{style}>'
         f'<div class="ch-text-sm ch-font-semibold ch-mb-sm">{escape(title)}</div>'
         f"{body_html}"
+        f"</div>",
+        unsafe_allow_html=True,
+    )
+
+
+# ── KPI Hero Card ─────────────────────────────────────────────────
+
+
+def kpi_hero(
+    label: str,
+    value: str,
+    delta: str = "",
+    delta_direction: str = "",
+    subtitle: str = "",
+) -> None:
+    """Render a large featured KPI card for dashboard hero sections."""
+    delta_html = ""
+    if delta:
+        direction = delta_direction or ("up" if delta.startswith("+") else "down" if delta.startswith("-") else "neutral")
+        arrow = "\u2191" if direction == "up" else "\u2193" if direction == "down" else ""
+        delta_html = (
+            f'<span class="ch-delta ch-delta--{direction}">'
+            f"{arrow} {escape(delta)}</span>"
+        )
+    subtitle_html = (
+        f'<span class="ch-text-sm ch-text-muted">{escape(subtitle)}</span>'
+        if subtitle
+        else ""
+    )
+    st.markdown(
+        f'<div class="ch-kpi-hero">'
+        f'<div class="ch-kpi-hero__label">{escape(label)}</div>'
+        f'<div class="ch-kpi-hero__value">{escape(value)}</div>'
+        f'<div class="ch-kpi-hero__footer">'
+        f"{delta_html}{subtitle_html}"
+        f"</div>"
         f"</div>",
         unsafe_allow_html=True,
     )
@@ -191,7 +258,7 @@ def progress_bar(
         label_html = (
             f'<div class="ch-flex-between ch-mb-sm">'
             f'<span class="ch-text-sm ch-font-semibold">{escape(label)}</span>'
-            f'<span class="ch-text-xs ch-text-muted">{val_text}</span>'
+            f'<span class="ch-text-xs ch-text-muted ch-numeric">{val_text}</span>'
             f"</div>"
         )
     st.markdown(
@@ -237,3 +304,51 @@ def empty_state(message: str, icon: str = "") -> None:
         f"</div>",
         unsafe_allow_html=True,
     )
+
+
+# ── Status Dot ─────────────────────────────────────────────────────
+
+
+def status_dot(status: str = "inactive") -> str:
+    """Return HTML for a small colored status indicator dot.
+
+    Args:
+        status: "active" (green pulse), "warning" (amber), "danger" (red),
+                or "inactive" (gray)
+    """
+    modifier = ""
+    if status == "active":
+        modifier = " ch-dot--active"
+    elif status == "warning":
+        modifier = " ch-dot--warning"
+    elif status == "danger":
+        modifier = " ch-dot--danger"
+    return f'<span class="ch-dot{modifier}"></span>'
+
+
+def render_status_dot(status: str = "inactive") -> None:
+    """Render a status dot directly."""
+    st.markdown(status_dot(status), unsafe_allow_html=True)
+
+
+# ── Labeled Divider ────────────────────────────────────────────────
+
+
+def labeled_divider(label: str) -> None:
+    """Render a horizontal line with a centered text label."""
+    st.markdown(
+        f'<div class="ch-divider">{escape(label)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+# ── Skeleton Loading ───────────────────────────────────────────────
+
+
+def skeleton_card(count: int = 1) -> None:
+    """Render shimmer-animated loading placeholder cards."""
+    cards = ''.join(
+        '<div class="ch-skeleton ch-skeleton--card"></div>'
+        for _ in range(count)
+    )
+    st.markdown(cards, unsafe_allow_html=True)

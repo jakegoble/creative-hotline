@@ -121,12 +121,17 @@ PIPELINE_STATUSES = [
     "Follow-Up Sent",
 ]
 
-# Product types
+# Product types (canonical names)
 PRODUCT_TYPES = {
     "First Call": 499,
-    "Standard Call": 699,
-    "3-Pack Sprint": 1495,
+    "Single Call": 699,
     "3-Session Clarity Sprint": 1495,
+}
+
+# Legacy product names → canonical name mapping
+LEGACY_ALIASES = {
+    "Standard Call": "Single Call",
+    "3-Pack Sprint": "3-Session Clarity Sprint",
 }
 
 # Lead sources
@@ -157,12 +162,12 @@ CHANNEL_COLORS = {
     "IG DM": "#FF6B35",
     "IG Comment": "#FF8C50",
     "IG Story": "#FFA564",
-    "Meta Ad": "#6495ED",
+    "Meta Ad": "#6366F1",
     "LinkedIn": "#0077B5",
-    "Website": "#2ECC71",
-    "Referral": "#9B59B6",
-    "Direct": "#34495E",
-    "Unknown": "#95A5A6",
+    "Website": "#22C55E",
+    "Referral": "#8B5CF6",
+    "Direct": "#475569",
+    "Unknown": "#94A3B8",
 }
 
 # Revenue goal defaults

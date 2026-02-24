@@ -6,7 +6,7 @@ from datetime import datetime
 
 import plotly.graph_objects as go
 
-from app.utils.design_tokens import BORDER_DEFAULT, DANGER, PRIMARY, PRIMARY_SUBTLE, SUCCESS
+from app.utils.design_tokens import BORDER_DEFAULT, DANGER, PRIMARY, PRIMARY_SUBTLE, SCENARIO_COLORS, SUCCESS
 
 
 def render_growth_projection(
@@ -96,7 +96,7 @@ def render_growth_projection(
             annotation_position="bottom right",
         )
 
-    scenario_colors = ["#6495ED", "#9B59B6", "#34495E"]
+    scenario_colors = SCENARIO_COLORS
     if scenarios:
         for i, scenario in enumerate(scenarios[:3]):
             color = scenario_colors[i % len(scenario_colors)]

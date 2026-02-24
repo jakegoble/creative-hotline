@@ -41,7 +41,7 @@ PAYMENTS = [
     # Comeback kid: call complete, single call
     _make_payment("Call Complete", amount=499, days_ago=14, product="First Call", email="comeback@test.com"),
     # NOT a comeback kid: already on Sprint
-    _make_payment("Call Complete", amount=1495, days_ago=14, product="3-Pack Sprint", email="sprint@test.com"),
+    _make_payment("Call Complete", amount=1495, days_ago=14, product="3-Session Clarity Sprint", email="sprint@test.com"),
     # Recent lead (too new for stale)
     _make_payment("Lead - Laylo", amount=0, days_ago=2, email="fresh@test.com"),
     # Healthy client mid-pipeline
@@ -137,8 +137,8 @@ def test_segment_summary():
 def test_segment_estimated_value():
     seg = get_segment("Comeback Kids", PAYMENTS)
     assert seg is not None
-    # 1 client * $1495 = $1495
-    assert seg.estimated_value == 1495.0
+    # 1 client * $1495 * 0.20 conversion probability = $299
+    assert seg.estimated_value == 1495.0 * 0.20
 
 
 def test_empty_payments():

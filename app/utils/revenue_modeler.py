@@ -1,11 +1,12 @@
 """Revenue scenario modeling and goal tracking.
 
 Calculates paths to $800K with product mix scenarios, monthly targets,
-channel investment requirements, and current pace analysis.
+channel investment requirements, capacity analysis, and current pace.
 """
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -13,16 +14,16 @@ from app.config import PRODUCT_TYPES
 
 
 # Products that involve scheduled calls (affects capacity calculation)
-CALL_PRODUCTS = {"First Call", "Standard Call", "3-Session Clarity Sprint", "3-Pack Sprint"}
+CALL_PRODUCTS = {"First Call", "Single Call", "3-Session Clarity Sprint"}
 CALLS_PER_PRODUCT = {
     "First Call": 1,
-    "Standard Call": 1,
+    "Single Call": 1,
     "3-Session Clarity Sprint": 3,
-    "3-Pack Sprint": 3,
 }
 
 # Default team capacity
 DEFAULT_MAX_CALLS_PER_WEEK = 20
+WEEKS_PER_MONTH = 4.345  # 365.25 / 12 / 7
 
 
 @dataclass
@@ -96,7 +97,7 @@ def build_scenario(
         monthly_calls += calls
 
     annual_rev = monthly_rev * 12
-    calls_per_week = monthly_calls / 4.33  # avg weeks per month
+    calls_per_week = monthly_calls / WEEKS_PER_MONTH
 
     return Scenario(
         name=name,
@@ -298,6 +299,7 @@ def current_pace(monthly_revenue_data: list[dict]) -> dict:
             "monthly_avg": 0,
             "annual_pace": 0,
             "months_of_data": 0,
+            "confidence": "none",
         }
 
     # Use most recent 3 months (or whatever is available)
@@ -307,8 +309,146 @@ def current_pace(monthly_revenue_data: list[dict]) -> dict:
 
     avg = sum(revenues) / len(revenues) if revenues else 0
 
+    # Confidence band based on data volume
+    n = len(monthly_revenue_data)
+    if n >= 12:
+        confidence = "high"
+    elif n >= 6:
+        confidence = "moderate"
+    elif n >= 3:
+        confidence = "low"
+    else:
+        confidence = "very_low"
+
+    # Standard deviation for confidence interval
+    if len(revenues) >= 2:
+        variance = sum((r - avg) ** 2 for r in revenues) / (len(revenues) - 1)
+        std_dev = math.sqrt(variance)
+        annual_low = round((avg - std_dev) * 12, 2)
+        annual_high = round((avg + std_dev) * 12, 2)
+    else:
+        annual_low = round(avg * 12, 2)
+        annual_high = round(avg * 12, 2)
+
     return {
         "monthly_avg": round(avg, 2),
         "annual_pace": round(avg * 12, 2),
-        "months_of_data": len(monthly_revenue_data),
+        "annual_pace_low": max(0, annual_low),
+        "annual_pace_high": annual_high,
+        "months_of_data": n,
+        "confidence": confidence,
     }
+
+
+def capacity_reality_check(
+    annual_goal: float = 800_000,
+    max_calls_per_week: int = DEFAULT_MAX_CALLS_PER_WEEK,
+    call_products: dict[str, int] | None = None,
+) -> dict:
+    """Calculate the revenue ceiling from call-based products alone.
+
+    Shows whether the annual goal is achievable with current team capacity
+    and identifies the gap that must be filled by non-call revenue streams.
+
+    Args:
+        annual_goal: Revenue target (default $800K).
+        max_calls_per_week: Team call capacity per week.
+        call_products: Override product prices {name: price}. Defaults to PRODUCT_TYPES.
+    """
+    prices = call_products or dict(PRODUCT_TYPES)
+    max_calls_per_month = max_calls_per_week * WEEKS_PER_MONTH
+
+    # Calculate revenue ceiling for each call product at full capacity
+    product_ceilings = []
+    for product, price in sorted(prices.items(), key=lambda x: x[1]):
+        calls_per_sale = CALLS_PER_PRODUCT.get(product, 0)
+        if calls_per_sale <= 0:
+            continue
+        max_sales_per_month = max_calls_per_month / calls_per_sale
+        annual_ceiling = max_sales_per_month * price * 12
+        product_ceilings.append({
+            "product": product,
+            "price": price,
+            "calls_per_sale": calls_per_sale,
+            "max_monthly_sales": round(max_sales_per_month, 1),
+            "annual_ceiling": round(annual_ceiling),
+        })
+
+    # Realistic blended ceiling: weighted average assuming a product mix
+    # Use revenue-weighted average price per call
+    if product_ceilings:
+        avg_revenue_per_call = sum(
+            p["price"] / p["calls_per_sale"] for p in product_ceilings
+        ) / len(product_ceilings)
+        blended_annual = max_calls_per_month * avg_revenue_per_call * 12
+    else:
+        avg_revenue_per_call = 0
+        blended_annual = 0
+
+    gap = annual_goal - blended_annual
+    achievable = gap <= 0
+
+    return {
+        "max_calls_per_week": max_calls_per_week,
+        "max_calls_per_month": round(max_calls_per_month, 1),
+        "product_ceilings": product_ceilings,
+        "avg_revenue_per_call": round(avg_revenue_per_call),
+        "blended_annual_ceiling": round(blended_annual),
+        "annual_goal": annual_goal,
+        "gap_to_goal": round(max(0, gap)),
+        "achievable_with_calls_only": achievable,
+        "utilization_needed": round(
+            (annual_goal / blended_annual * 100) if blended_annual > 0 else 0, 1
+        ),
+    }
+
+
+def gap_closer(
+    annual_goal: float = 800_000,
+    call_revenue_ceiling: float | None = None,
+    max_calls_per_week: int = DEFAULT_MAX_CALLS_PER_WEEK,
+    non_call_products: dict[str, int] | None = None,
+) -> list[dict]:
+    """Calculate how many non-call product sales are needed to close the gap.
+
+    For each non-call product, shows how many monthly sales would bridge
+    the difference between call revenue ceiling and the annual goal.
+
+    Args:
+        annual_goal: Revenue target.
+        call_revenue_ceiling: Pre-computed ceiling. If None, computed via
+            capacity_reality_check().
+        max_calls_per_week: Team capacity (used if ceiling not provided).
+        non_call_products: {name: monthly_price}. Defaults to config PROPOSED_PRODUCTS.
+    """
+    if call_revenue_ceiling is None:
+        check = capacity_reality_check(annual_goal, max_calls_per_week)
+        call_revenue_ceiling = check["blended_annual_ceiling"]
+
+    gap = annual_goal - call_revenue_ceiling
+    if gap <= 0:
+        return []
+
+    from app.config import PROPOSED_PRODUCTS
+    products = non_call_products or dict(PROPOSED_PRODUCTS)
+
+    options = []
+    for product, monthly_price in sorted(products.items(), key=lambda x: x[1], reverse=True):
+        if monthly_price <= 0:
+            continue
+        # For recurring products (retainer/membership), price is monthly
+        annual_per_client = monthly_price * 12
+        clients_needed = math.ceil(gap / annual_per_client)
+        monthly_revenue_from_product = clients_needed * monthly_price
+
+        options.append({
+            "product": product,
+            "monthly_price": monthly_price,
+            "annual_per_client": annual_per_client,
+            "clients_needed": clients_needed,
+            "monthly_revenue_added": monthly_revenue_from_product,
+            "annual_revenue_added": monthly_revenue_from_product * 12,
+            "gap_remaining": round(max(0, gap - monthly_revenue_from_product * 12)),
+        })
+
+    return options

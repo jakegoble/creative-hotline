@@ -28,7 +28,8 @@ from app.utils import design_tokens as t
 from app.utils.ui import page_header, section_header, metric_row, stat_card, empty_state
 
 
-OUTCOMES_DIR = os.path.join("plans", "outcomes")
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+OUTCOMES_DIR = os.path.join(_PROJECT_ROOT, "plans", "outcomes")
 
 
 def _load_outcomes() -> list[dict]:

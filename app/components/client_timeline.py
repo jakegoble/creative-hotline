@@ -62,7 +62,7 @@ def render_timeline(payment: dict, intake: dict | None = None) -> None:
                 f'<div style="width:32px;height:32px;border-radius:50%;'
                 f'background:{color};color:white;display:inline-flex;'
                 f'align-items:center;justify-content:center;font-weight:bold;'
-                f'font-size:14px">{stage["icon"]}</div>'
+                f'font-size:{tok.FONT_SIZE_MD}px">{stage["icon"]}</div>'
                 f'{connector}'
                 f'</div>',
                 unsafe_allow_html=True,

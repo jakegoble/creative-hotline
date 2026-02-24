@@ -196,15 +196,31 @@ class ManyChatService:
             return 0
         return len(self._csv_data)
 
-    def get_ig_to_booking_rate(self, days: int = 30) -> float:
-        """Calculate IG DM to Calendly booking conversion rate.
-        Requires both ManyChat subscriber data and Notion payment data.
-        Returns 0.0 if insufficient data.
+    def get_ig_to_booking_rate(self, days: int = 30, payments: list[dict] | None = None) -> float:
+        """Calculate IG DM subscriber to booking conversion rate.
+
+        Cross-references ManyChat subscriber emails with Notion payment records
+        to find how many IG DM subscribers ended up booking a call.
+
+        Args:
+            days: Look-back window for new subscribers.
+            payments: Notion payment records (must be passed by the caller).
+
+        Returns:
+            Conversion rate as a percentage (0-100), or 0.0 if insufficient data.
         """
         new_subs = self.get_new_subscribers(days=days)
-        if not new_subs:
+        if not new_subs or not payments:
             return 0.0
-        # This is a placeholder — actual calculation needs cross-referencing
-        # ManyChat emails with Notion Payments DB records.
-        # The dashboard page should handle the join logic.
-        return 0.0
+
+        sub_emails = {s.get("email", "").lower() for s in new_subs if s.get("email")}
+        if not sub_emails:
+            return 0.0
+
+        booked = sum(
+            1 for p in payments
+            if p.get("email", "").lower() in sub_emails
+            and p.get("call_date")
+        )
+
+        return (booked / len(sub_emails)) * 100

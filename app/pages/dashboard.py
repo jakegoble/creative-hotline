@@ -11,7 +11,10 @@ from app.config import PIPELINE_STATUSES, CHANNEL_COLORS
 from app.utils.formatters import format_currency, format_percentage
 from app.utils.attribution import channel_roi
 from app.utils import design_tokens as t
-from app.utils.ui import page_header, section_header, metric_row, stat_card, empty_state
+from app.utils.ui import (
+    page_header, section_header, metric_row, stat_card,
+    empty_state, kpi_hero, labeled_divider,
+)
 
 
 def render():
@@ -44,10 +47,36 @@ def render():
 
     health_score = health.composite_score if health else "\u2014"
 
-    # ── KPI Row ──────────────────────────────────────────────────
+    total_revenue = revenue_summary.get("total_revenue", 0)
+
+    # ── Hero KPI Row (bento grid) ─────────────────────────────────
+
+    hero_col, side_col = st.columns([2, 1], gap="medium")
+
+    with hero_col:
+        kpi_hero(
+            label="Total Revenue (30d)",
+            value=format_currency(total_revenue),
+            subtitle="Stripe payments this period",
+        )
+
+    with side_col:
+        st.markdown(
+            f'<div class="ch-card ch-card--elevated" style="margin-bottom:8px;padding:16px 20px">'
+            f'<div class="ch-text-xs ch-text-muted ch-uppercase">Active Clients</div>'
+            f'<div class="ch-text-2xl ch-font-bold ch-numeric">{active_clients}</div>'
+            f'</div>'
+            f'<div class="ch-card ch-card--elevated" style="padding:16px 20px">'
+            f'<div class="ch-text-xs ch-text-muted ch-uppercase">Funnel Conversion</div>'
+            f'<div class="ch-text-2xl ch-font-bold ch-numeric">{funnel_conversion:.0f}%</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+    # ── Additional KPIs ───────────────────────────────────────────
 
     render_kpi_row({
-        "total_revenue": revenue_summary.get("total_revenue", 0),
+        "total_revenue": total_revenue,
         "active_clients": active_clients,
         "booking_rate": booking_rate.get("rate", 0),
         "avg_time_to_book": avg_time,
@@ -55,11 +84,11 @@ def render():
         "system_health": health_score,
     })
 
-    st.divider()
+    labeled_divider("Performance")
 
     # ── Charts Row 1: Revenue + Pipeline ─────────────────────────
 
-    col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2, gap="medium")
 
     with col1:
         section_header("Revenue Trend", "Monthly revenue over the last 6 months")
@@ -85,11 +114,11 @@ def render():
         else:
             empty_state("Connect Notion to see pipeline data.")
 
-    st.divider()
+    labeled_divider("Breakdown")
 
     # ── Charts Row 2: Revenue by Product + Lead Source ───────────
 
-    col3, col4 = st.columns(2)
+    col3, col4 = st.columns(2, gap="medium")
 
     with col3:
         section_header("Revenue by Product", "Breakdown by product type")
@@ -105,7 +134,7 @@ def render():
                 color_discrete_sequence=[t.PRIMARY],
             )
             fig.update_layout(
-                height=280,
+                height=300,
                 showlegend=False,
                 yaxis=dict(autorange="reversed"),
             )
@@ -132,14 +161,14 @@ def render():
             ])
             fig = px.pie(
                 df, values="Revenue", names="Source",
-                color_discrete_sequence=px.colors.sequential.Oranges_r,
+                color_discrete_sequence=t.CHART_COLORS,
             )
-            fig.update_layout(height=280)
+            fig.update_layout(height=300)
             st.plotly_chart(fig, use_container_width=True)
         else:
             empty_state("No lead source data yet.")
 
-    st.divider()
+    labeled_divider("Conversions")
 
     # ── Conversion Metrics ───────────────────────────────────────
 
@@ -167,7 +196,7 @@ def render():
         {"label": "Intake \u2192 Complete", "value": f"{r4:.0f}%"},
     ])
 
-    st.divider()
+    labeled_divider("Channels")
 
     # ── Top Channels ──────────────────────────────────────────────
 
@@ -176,9 +205,9 @@ def render():
         roi_data = channel_roi(payments)
         top_3 = [ch for ch in roi_data if ch["conversions"] > 0][:3]
         if top_3:
-            cols = st.columns(len(top_3))
+            cols = st.columns(len(top_3), gap="medium")
             for col, ch in zip(cols, top_3):
-                color = CHANNEL_COLORS.get(ch["channel"], "#95A5A6")
+                color = CHANNEL_COLORS.get(ch["channel"], "#94A3B8")
                 with col:
                     stat_card(
                         label=ch["channel"],

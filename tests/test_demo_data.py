@@ -31,7 +31,7 @@ def test_all_pipeline_statuses_covered():
 
 def test_all_products_covered():
     products = {p["product_purchased"] for p in DEMO_PAYMENTS if p["payment_amount"] > 0}
-    for product in ("First Call", "Standard Call", "3-Session Clarity Sprint"):
+    for product in ("First Call", "Single Call", "3-Session Clarity Sprint"):
         assert product in products, f"Missing product: {product}"
 
 

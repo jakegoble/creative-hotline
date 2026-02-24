@@ -3,7 +3,7 @@
 import streamlit as st
 
 from app.utils.formatters import format_relative_time
-from app.utils.ui import page_header, section_header, metric_row, empty_state
+from app.utils.ui import page_header, section_header, metric_row, empty_state, labeled_divider
 
 
 def render():
@@ -22,7 +22,9 @@ def render():
             "Stripe": st.session_state.get("stripe"),
             "Calendly": st.session_state.get("calendly"),
             "ManyChat": st.session_state.get("manychat"),
+            "Claude AI": st.session_state.get("claude"),
             "Fireflies": st.session_state.get("fireflies"),
+            "n8n": st.session_state.get("n8n"),
         }
         with st.spinner("Checking services..."):
             health_checker.check_all(services)
@@ -55,7 +57,7 @@ def render():
             if status.error:
                 st.caption(f"Error: {status.error[:100]}")
 
-    st.divider()
+    labeled_divider("Details")
 
     # ── Service Details ──────────────────────────────────────────
 
@@ -80,7 +82,7 @@ def render():
             if status.error:
                 st.code(status.error, language=None)
 
-    st.divider()
+    labeled_divider("Cache")
 
     # ── Cache Stats ──────────────────────────────────────────────
 

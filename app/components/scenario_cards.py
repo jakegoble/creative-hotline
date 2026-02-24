@@ -33,7 +33,7 @@ def render_scenario_comparison(scenarios: list[dict]) -> None:
             st.markdown(
                 f'<div class="ch-card ch-card--accent-top" style="--accent-color:{badge_color}">'
                 f'<div class="ch-flex-between">'
-                f'<span class="ch-font-bold" style="font-size:15px">'
+                f'<span class="ch-font-bold" style="font-size:{t.FONT_SIZE_LG}px">'
                 f'{scenario.get("name", "Scenario")}</span>'
                 f'{badge(badge_text, badge_color)}'
                 f'</div>'
@@ -75,7 +75,7 @@ def render_product_ladder(ladder_data: list[dict]) -> None:
 
         accent = t.BORDER_STRONG if proposed else t.PRIMARY
         label_extra = (
-            f' <span class="ch-text-caption" style="font-size:10px">(proposed)</span>'
+            f' <span class="ch-text-caption" style="font-size:{t.FONT_SIZE_XS}px">(proposed)</span>'
             if proposed else ""
         )
 
@@ -89,7 +89,7 @@ def render_product_ladder(ladder_data: list[dict]) -> None:
             f'margin:6px 0;overflow:hidden">'
             f'<div style="background:{accent};height:100%;width:{bar_width}%;'
             f'border-radius:3px;display:flex;align-items:center;padding-left:8px">'
-            f'<span style="color:white;font-size:11px;font-weight:bold">'
+            f'<span style="color:white;font-size:{t.FONT_SIZE_XS}px;font-weight:bold">'
             f'{format_currency(revenue)}</span>'
             f'</div></div>'
             f'<div class="ch-flex-between ch-text-xs ch-text-muted">'

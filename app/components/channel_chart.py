@@ -8,28 +8,9 @@ from __future__ import annotations
 import plotly.graph_objects as go
 
 from app.config import LEAD_SOURCES
-from app.utils.design_tokens import BORDER_DEFAULT
+from app.utils.design_tokens import BORDER_DEFAULT, CHANNEL_COLORS_MAP, FONT_SIZE_XS, hex_to_rgba
 
-
-def _hex_to_rgba(hex_color: str, alpha: float = 0.3) -> str:
-    """Convert hex color to rgba string."""
-    hex_color = hex_color.lstrip("#")
-    r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
-    return f"rgba({r},{g},{b},{alpha})"
-
-
-# Consistent channel colors
-CHANNEL_COLORS = {
-    "IG DM": "#FF6B35",
-    "IG Comment": "#FF8C50",
-    "IG Story": "#FFA564",
-    "Meta Ad": "#6495ED",
-    "LinkedIn": "#0077B5",
-    "Website": "#2ECC71",
-    "Referral": "#9B59B6",
-    "Direct": "#34495E",
-    "Unknown": "#95A5A6",
-}
+CHANNEL_COLORS = CHANNEL_COLORS_MAP
 
 
 def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
@@ -44,7 +25,7 @@ def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
         return fig
 
     channels = list(channel_metrics.keys())
-    colors = [CHANNEL_COLORS.get(ch, "#95A5A6") for ch in channels]
+    colors = [CHANNEL_COLORS.get(ch, CHANNEL_COLORS["Unknown"]) for ch in channels]
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -98,20 +79,20 @@ def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
         ]
         values.append(values[0])
 
-        color = CHANNEL_COLORS.get(channel, "#95A5A6")
+        color = CHANNEL_COLORS.get(channel, CHANNEL_COLORS["Unknown"])
         fig.add_trace(go.Scatterpolar(
             r=values,
             theta=categories + [categories[0]],
             fill="toself",
             name=channel,
             line=dict(color=color),
-            fillcolor=_hex_to_rgba(color, 0.3) if "#" in color else color,
+            fillcolor=hex_to_rgba(color, 0.3) if "#" in color else color,
         ))
 
     fig.update_layout(
         polar=dict(
             radialaxis=dict(visible=True, range=[0, 100], showticklabels=False),
-            angularaxis=dict(tickfont=dict(size=11)),
+            angularaxis=dict(tickfont=dict(size=FONT_SIZE_XS)),
         ),
         height=400,
         margin=dict(l=40, r=40, t=30, b=30),
@@ -140,7 +121,7 @@ def render_revenue_by_source(revenue_data: dict[str, dict[str, float]]) -> go.Fi
     fig = go.Figure()
     for source in sorted(all_sources):
         values = [revenue_data.get(m, {}).get(source, 0) for m in months]
-        color = CHANNEL_COLORS.get(source, "#95A5A6")
+        color = CHANNEL_COLORS.get(source, CHANNEL_COLORS["Unknown"])
         fig.add_trace(go.Scatter(
             x=months,
             y=values,

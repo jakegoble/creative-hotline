@@ -14,7 +14,7 @@ def hot_payment():
         "email": "sarah@example.com",
         "phone": "+1-310-555-1234",
         "payment_amount": 699,
-        "product_purchased": "Standard Call",
+        "product_purchased": "Single Call",
         "payment_date": "2026-02-18",
         "status": "Intake Complete",
         "call_date": "2026-02-20",

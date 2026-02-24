@@ -9,7 +9,7 @@ from datetime import datetime
 
 import plotly.graph_objects as go
 
-from app.utils.design_tokens import BG_MUTED, PRIMARY, PRIMARY_LIGHT
+from app.utils.design_tokens import FONT_SIZE_MD, HEATMAP_SCALE, PRIMARY
 
 
 DAYS_OF_WEEK = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -56,13 +56,7 @@ def render_activity_heatmap(
         z=matrix,
         x=HOUR_LABELS,
         y=DAYS_OF_WEEK,
-        colorscale=[
-            [0, BG_MUTED],
-            [0.25, "#FFD4B8"],
-            [0.5, PRIMARY_LIGHT],
-            [0.75, "#FF8C50"],
-            [1.0, PRIMARY],
-        ],
+        colorscale=HEATMAP_SCALE,
         hovertemplate="%{y} %{x}: %{z} events<extra></extra>",
         showscale=True,
         colorbar=dict(title="Events", thickness=15),
@@ -70,7 +64,7 @@ def render_activity_heatmap(
 
     fig.update_layout(
         height=350,
-        title=dict(text=title, font=dict(size=14)),
+        title=dict(text=title, font=dict(size=FONT_SIZE_MD)),
         xaxis=dict(dtick=3),
         yaxis=dict(autorange="reversed"),
     )

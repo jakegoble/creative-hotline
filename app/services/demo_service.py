@@ -200,3 +200,45 @@ class DemoClaudeService:
 
     def analyze_growth(self, metrics: dict) -> str:
         return "Based on current trajectory, focus on referral partnerships and LinkedIn outreach."
+
+
+class DemoFirefliesService:
+    """Returns demo transcript data instead of calling Fireflies API."""
+
+    def is_healthy(self) -> bool:
+        return True
+
+    def list_transcripts(self, limit: int = 10) -> list:
+        from datetime import datetime, timedelta
+        return [
+            {
+                "id": "demo-ff-01",
+                "title": "Creative Hotline Call — Sarah Chen",
+                "date": (datetime.now() - timedelta(days=12)).isoformat(),
+                "duration": 42,
+                "participants": ["Jake Goble", "Sarah Chen"],
+                "summary": "Discussed Studio Lumen rebrand, team alignment, color palette decisions.",
+            },
+            {
+                "id": "demo-ff-02",
+                "title": "Creative Hotline Call — Marcus Rivera",
+                "date": (datetime.now() - timedelta(days=18)).isoformat(),
+                "duration": 48,
+                "participants": ["Jake Goble", "Marcus Rivera"],
+                "summary": "Product launch strategy for Riviera Collective, content plan, channel priorities.",
+            },
+        ]
+
+    def get_transcript(self, transcript_id: str) -> dict | None:
+        transcripts = {t["id"]: t for t in self.list_transcripts()}
+        return transcripts.get(transcript_id)
+
+    def get_transcript_text(self, transcript_id: str) -> str | None:
+        return "This is demo transcript text. Connect Fireflies API for real call transcripts."
+
+
+class DemoN8nService:
+    """Returns healthy status for n8n in demo mode."""
+
+    def is_healthy(self) -> bool:
+        return True

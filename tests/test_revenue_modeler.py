@@ -7,6 +7,8 @@ from app.utils.revenue_modeler import (
     monthly_targets,
     channel_investment_plan,
     current_pace,
+    capacity_reality_check,
+    gap_closer,
 )
 
 # ── Fixtures ──────────────────────────────────────────────────────
@@ -14,7 +16,7 @@ from app.utils.revenue_modeler import (
 PAYMENTS = [
     {"email": "a@test.com", "payment_amount": 499, "product_purchased": "First Call", "payment_date": "2026-01-15", "created": "2026-01-10", "lead_source": "IG DM"},
     {"email": "a@test.com", "payment_amount": 1495, "product_purchased": "3-Session Clarity Sprint", "payment_date": "2026-02-01", "created": "2026-01-10", "lead_source": "IG DM"},
-    {"email": "b@test.com", "payment_amount": 699, "product_purchased": "Standard Call", "payment_date": "2026-01-20", "created": "2026-01-18", "lead_source": "Referral"},
+    {"email": "b@test.com", "payment_amount": 699, "product_purchased": "Single Call", "payment_date": "2026-01-20", "created": "2026-01-18", "lead_source": "Referral"},
     {"email": "c@test.com", "payment_amount": 499, "product_purchased": "First Call", "payment_date": "2026-02-05", "created": "2026-02-03", "lead_source": "Website"},
 ]
 
@@ -37,7 +39,7 @@ CHANNEL_METRICS = [
 def test_build_scenario_basic():
     mix = {
         "First Call": {"price": 499, "monthly_volume": 10},
-        "Standard Call": {"price": 699, "monthly_volume": 5},
+        "Single Call": {"price": 699, "monthly_volume": 5},
     }
     s = build_scenario("Test", mix)
     expected_monthly = 499 * 10 + 699 * 5
@@ -77,7 +79,7 @@ def test_build_scenario_gap():
 
 def test_compare_scenarios():
     s1 = build_scenario("A", {"First Call": {"price": 499, "monthly_volume": 10}})
-    s2 = build_scenario("B", {"Standard Call": {"price": 699, "monthly_volume": 10}})
+    s2 = build_scenario("B", {"Single Call": {"price": 699, "monthly_volume": 10}})
     result = compare_scenarios([s1, s2])
     assert result["best"] == "B"  # higher revenue
     assert len(result["scenarios"]) == 2
@@ -94,7 +96,7 @@ def test_product_ladder_existing():
     ladder = product_ladder(PAYMENTS)
     products = [p["product"] for p in ladder]
     assert "First Call" in products
-    assert "Standard Call" in products
+    assert "Single Call" in products
     # Should be sorted by price ascending
     prices = [p["price"] for p in ladder]
     assert prices == sorted(prices)
@@ -162,3 +164,58 @@ def test_current_pace_empty():
     pace = current_pace([])
     assert pace["monthly_avg"] == 0
     assert pace["annual_pace"] == 0
+
+
+def test_current_pace_confidence():
+    pace = current_pace(MONTHLY_REVENUE)
+    assert pace["confidence"] == "low"  # 4 months of data
+    assert "annual_pace_low" in pace
+    assert "annual_pace_high" in pace
+    assert pace["annual_pace_low"] <= pace["annual_pace"]
+    assert pace["annual_pace_high"] >= pace["annual_pace"]
+
+
+# ── Capacity Reality Check ─────────────────────────────────────
+
+
+def test_capacity_reality_check_not_achievable():
+    result = capacity_reality_check(annual_goal=800_000, max_calls_per_week=20)
+    assert not result["achievable_with_calls_only"]
+    assert result["gap_to_goal"] > 0
+    assert result["blended_annual_ceiling"] > 0
+    assert len(result["product_ceilings"]) > 0
+
+
+def test_capacity_reality_check_achievable():
+    # With 100 calls/week, should be achievable
+    result = capacity_reality_check(annual_goal=100_000, max_calls_per_week=20)
+    assert result["achievable_with_calls_only"]
+    assert result["gap_to_goal"] == 0
+
+
+def test_capacity_reality_check_custom_products():
+    products = {"Premium Call": 2000}
+    result = capacity_reality_check(
+        annual_goal=800_000,
+        max_calls_per_week=20,
+        call_products=products,
+    )
+    # Premium Call not in CALLS_PER_PRODUCT, so no call products
+    assert len(result["product_ceilings"]) == 0
+
+
+# ── Gap Closer ──────────────────────────────────────────────────
+
+
+def test_gap_closer_returns_options():
+    options = gap_closer(annual_goal=800_000)
+    assert len(options) > 0
+    for opt in options:
+        assert "product" in opt
+        assert "clients_needed" in opt
+        assert opt["clients_needed"] > 0
+
+
+def test_gap_closer_no_gap():
+    options = gap_closer(annual_goal=100_000)
+    assert options == []  # Goal achievable with calls alone

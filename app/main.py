@@ -26,6 +26,8 @@ def _init_demo_services():
         DemoStripeService,
         DemoCalendlyService,
         DemoClaudeService,
+        DemoFirefliesService,
+        DemoN8nService,
     )
     from app.services.health_checker import HealthChecker
 
@@ -34,6 +36,8 @@ def _init_demo_services():
     st.session_state.calendly = DemoCalendlyService()
     st.session_state.manychat = None
     st.session_state.claude = DemoClaudeService()
+    st.session_state.fireflies = DemoFirefliesService()
+    st.session_state.n8n = DemoN8nService()
     st.session_state.health = HealthChecker()
     st.session_state.services_initialized = True
 
@@ -60,6 +64,7 @@ def init_services():
     from app.services.manychat_client import ManyChatService
     from app.services.claude_client import ClaudeService
     from app.services.fireflies_client import FirefliesService
+    from app.services.n8n_client import N8nService
     from app.services.health_checker import HealthChecker
 
     st.session_state.notion = (
@@ -86,48 +91,123 @@ def init_services():
         FirefliesService(settings.FIREFLIES_API_KEY)
         if settings.FIREFLIES_API_KEY else None
     )
+    st.session_state.n8n = (
+        N8nService(settings.N8N_BASE_URL, settings.N8N_API_KEY)
+        if settings.N8N_API_KEY else None
+    )
     st.session_state.health = HealthChecker()
     st.session_state.services_initialized = True
+
+
+# ── Page imports (lazy, for st.navigation) ──────────────────────
+
+
+def _dashboard():
+    from app.pages.dashboard import render
+    render()
+
+
+def _clients():
+    from app.pages.clients import render
+    render()
+
+
+def _pipeline():
+    from app.pages.pipeline import render
+    render()
+
+
+def _action_plans():
+    from app.pages.action_plans import render
+    render()
+
+
+def _lead_scoring():
+    from app.pages.lead_scoring import render
+    render()
+
+
+def _channel_performance():
+    from app.pages.channel_performance import render
+    render()
+
+
+def _retargeting():
+    from app.pages.retargeting import render
+    render()
+
+
+def _conversion_paths():
+    from app.pages.conversion_paths import render
+    render()
+
+
+def _revenue_goals():
+    from app.pages.revenue_goals import render
+    render()
+
+
+def _funnel_analytics():
+    from app.pages.funnel_analytics import render
+    render()
+
+
+def _outcomes():
+    from app.pages.outcomes import render
+    render()
+
+
+def _health():
+    from app.pages.health import render
+    render()
+
+
+def _settings():
+    from app.pages.settings import render
+    render()
 
 
 def main():
     init_services()
 
-    # Sidebar
-    with st.sidebar:
-        st.markdown("### THE CREATIVE HOTLINE")
-        st.caption("Command Center")
-        st.divider()
+    # ── Navigation ──────────────────────────────────────────────
+    pages = {
+        "Overview": [
+            st.Page(_dashboard, title="Dashboard", icon=":material/dashboard:", default=True),
+            st.Page(_clients, title="Clients", icon=":material/people:"),
+            st.Page(_pipeline, title="Pipeline", icon=":material/filter_alt:"),
+            st.Page(_action_plans, title="Action Plan Studio", icon=":material/edit_note:"),
+        ],
+        "Analytics": [
+            st.Page(_lead_scoring, title="Lead Scoring", icon=":material/star:"),
+            st.Page(_channel_performance, title="Channel Performance", icon=":material/bar_chart:"),
+            st.Page(_retargeting, title="Retargeting", icon=":material/replay:"),
+            st.Page(_conversion_paths, title="Conversion Paths", icon=":material/route:"),
+        ],
+        "Growth": [
+            st.Page(_revenue_goals, title="Revenue Goals", icon=":material/trending_up:"),
+            st.Page(_funnel_analytics, title="Funnel Analytics", icon=":material/filter_list:"),
+            st.Page(_outcomes, title="Outcomes", icon=":material/emoji_events:"),
+        ],
+        "System": [
+            st.Page(_health, title="System Health", icon=":material/monitor_heart:"),
+            st.Page(_settings, title="Settings", icon=":material/settings:"),
+        ],
+    }
 
+    nav = st.navigation(pages)
+
+    # Sidebar branding (below nav)
+    with st.sidebar:
+        st.markdown("---")
         if st.session_state.get("demo_mode", False):
             st.markdown(
-                '<div style="background:var(--primary);color:white;text-align:center;'
-                'padding:4px 8px;border-radius:var(--radius-sm);font-size:var(--font-xs);'
-                'font-weight:600;margin-bottom:12px;">DEMO MODE</div>',
+                '<div style="background:#FF6B35;color:white;text-align:center;'
+                'padding:6px 12px;border-radius:8px;font-size:11px;'
+                'font-weight:700;letter-spacing:0.5px;margin-bottom:12px;">'
+                'DEMO MODE</div>',
                 unsafe_allow_html=True,
             )
-
-        page = st.radio(
-            "Navigate",
-            options=[
-                "Dashboard",
-                "Clients",
-                "Pipeline",
-                "Action Plan Studio",
-                "Lead Scoring",
-                "Channel Performance",
-                "Retargeting",
-                "Conversion Paths",
-                "Revenue Goals",
-                "Funnel Analytics",
-                "Outcomes & Testimonials",
-                "System Health",
-                "Settings",
-            ],
-            label_visibility="collapsed",
-        )
-
-        st.divider()
 
         if st.button("Refresh All Data", use_container_width=True):
             from app.services.cache_manager import cache
@@ -143,46 +223,7 @@ def main():
 
         st.caption("v5.0 | Built for Jake & Megha")
 
-    # Route to selected page
-    if page == "Dashboard":
-        from app.pages.dashboard import render
-        render()
-    elif page == "Clients":
-        from app.pages.clients import render
-        render()
-    elif page == "Pipeline":
-        from app.pages.pipeline import render
-        render()
-    elif page == "Action Plan Studio":
-        from app.pages.action_plans import render
-        render()
-    elif page == "Lead Scoring":
-        from app.pages.lead_scoring import render
-        render()
-    elif page == "Channel Performance":
-        from app.pages.channel_performance import render
-        render()
-    elif page == "Retargeting":
-        from app.pages.retargeting import render
-        render()
-    elif page == "Conversion Paths":
-        from app.pages.conversion_paths import render
-        render()
-    elif page == "Revenue Goals":
-        from app.pages.revenue_goals import render
-        render()
-    elif page == "Funnel Analytics":
-        from app.pages.funnel_analytics import render
-        render()
-    elif page == "Outcomes & Testimonials":
-        from app.pages.outcomes import render
-        render()
-    elif page == "System Health":
-        from app.pages.health import render
-        render()
-    elif page == "Settings":
-        from app.pages.settings import render
-        render()
+    nav.run()
 
 
 if __name__ == "__main__":
