@@ -13,8 +13,14 @@ import streamlit as st
 
 from app.utils import design_tokens as t
 
+# Google Fonts — must be a <link> tag, NOT @import inside <style>.
+# @import inside dynamically injected <style> blocks is ignored by browsers
+# when it appears after any other CSS rules.
+_FONTS = '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">'
+
 # Build the CSS string using design tokens — no hardcoded values.
 _CSS = f"""
+{_FONTS}
 <style>
 /* ── CSS Custom Properties ─────────────────────────────────────── */
 :root {{
@@ -223,8 +229,6 @@ _CSS = f"""
 }}
 
 /* ── Typography ────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
 html, body, [class*="css"] {{
     font-family: var(--font-family);
 }}
