@@ -52,11 +52,11 @@ PRIMARY_MUTED = "rgba(255, 107, 53, 0.15)"
 
 ACCENT_SECONDARY = "#8B5CF6"  # Violet-500 — charts, badges, variety
 
-BG_PAGE = "#FAF9F7"
+BG_PAGE = "#F3F2F0"  # Noticeably off-white so cards pop
 BG_CARD = "#FFFFFF"
 BG_SIDEBAR = "#1C1917"  # Warm charcoal (stone-900)
-BG_MUTED = "#F5F5F4"  # Stone-100
-BG_HOVER = "#EFEDEB"
+BG_MUTED = "#ECEAE8"  # Muted areas (hover, table headers, code blocks)
+BG_HOVER = "#E5E3E1"  # Interactive hover states
 
 TEXT_PRIMARY = "#1C1917"  # Stone-900
 TEXT_SECONDARY = "#57534E"  # Stone-600 (darkened for better contrast)

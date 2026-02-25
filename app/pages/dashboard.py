@@ -9,7 +9,10 @@ from app.components.revenue_forecast import render_revenue_chart
 from app.config import PIPELINE_STATUSES
 from app.utils.formatters import format_currency, format_percentage
 from app.utils import design_tokens as t
-from app.utils.ui import page_header, section_header, empty_state, activity_feed
+from app.utils.ui import (
+    page_header, section_header, empty_state, activity_feed,
+    kpi_hero, stat_card,
+)
 from app.utils.activity_feed import build_activity_feed
 
 
@@ -51,16 +54,50 @@ def render():
 
     booking_pct = format_percentage(booking_rate.get("rate", 0))
 
-    # ── KPI Row ──────────────────────────────────────────────────
+    # ── Hero KPI Bento ───────────────────────────────────────────
+    # Bento grid: hero revenue card (left) + 2x2 supporting stats (right)
 
-    k1, k2, k3, k4, k5 = st.columns(5, gap="medium")
-    k1.metric("Revenue (30d)", format_currency(total_revenue))
-    k2.metric("Active Clients", active_clients)
-    k3.metric("Funnel Conversion", f"{funnel_conversion:.0f}%")
-    k4.metric("Booking Rate", booking_pct)
-    k5.metric("Needs Action", needs_action)
+    hero_col, right_col = st.columns([2, 3], gap="medium")
 
-    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
+    with hero_col:
+        kpi_hero(
+            label="Revenue (30d)",
+            value=format_currency(total_revenue),
+            subtitle=f"{total_leads} total leads",
+        )
+
+    with right_col:
+        r1, r2 = st.columns(2, gap="small")
+        with r1:
+            stat_card(
+                label="Active Clients",
+                value=str(active_clients),
+                subtitle=f"{total_leads} total leads in pipeline",
+                accent_color=t.INFO,
+            )
+        with r2:
+            stat_card(
+                label="Funnel Conversion",
+                value=f"{funnel_conversion:.0f}%",
+                subtitle=f"{completed} completed of {total_leads}",
+                accent_color=t.SUCCESS,
+            )
+        r3, r4 = st.columns(2, gap="small")
+        with r3:
+            stat_card(
+                label="Booking Rate",
+                value=booking_pct,
+                subtitle=f"Avg time to book: {time_display}",
+                accent_color=t.PRIMARY,
+            )
+        with r4:
+            action_color = t.WARNING if needs_action > 0 else t.SUCCESS
+            stat_card(
+                label="Needs Action",
+                value=str(needs_action),
+                subtitle="Awaiting booking or intake",
+                accent_color=action_color,
+            )
 
     # ── Charts Row 1: Revenue + Pipeline ─────────────────────────
 
@@ -142,9 +179,8 @@ def render():
         else:
             empty_state("No lead source data yet.")
 
-    # ── Activity Feed (compact) ──────────────────────────────────
+    # ── Activity Feed ────────────────────────────────────────────
 
-    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
     section_header("Recent Activity")
     intakes = notion.get_all_intakes() if notion else []
     events = build_activity_feed(payments, intakes, limit=6)

@@ -264,7 +264,7 @@ html, body, [class*="css"] {{
 #MainMenu {{visibility: hidden;}}
 footer {{visibility: hidden;}}
 header[data-testid="stHeader"] {{
-    background: rgba(250, 249, 247, 0.85) !important;
+    background: rgba(243, 242, 240, 0.85) !important;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
