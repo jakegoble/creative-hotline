@@ -1,5 +1,7 @@
 """Claude API client — action plan generation and ICP analysis."""
 
+from __future__ import annotations
+
 import logging
 
 import anthropic
@@ -11,6 +13,7 @@ from app.utils.frankie_prompts import (
     UPSELL_DETECTION_PROMPT,
     PRE_CALL_BRIEFING_PROMPT,
     REVENUE_STRATEGY_PROMPT,
+    SPRINT_ROADMAP_PROMPT,
     TESTIMONIAL_GENERATION_PROMPT,
     CASE_STUDY_PROMPT,
     TRANSCRIPT_PROCESSING_PROMPT,
@@ -19,6 +22,7 @@ from app.utils.frankie_prompts import (
     build_intake_analysis_prompt,
     build_upsell_detection_prompt,
     build_pre_call_briefing_prompt,
+    build_sprint_roadmap_prompt,
     build_testimonial_prompt,
     build_case_study_prompt,
     build_growth_analysis_prompt,
@@ -359,6 +363,36 @@ class ClaudeService:
         except Exception as e:
             logger.error(f"Claude case study generation failed: {e}")
             return f"Error: {e}"
+
+    def generate_sprint_roadmap(
+        self,
+        client_name: str,
+        brand: str,
+        session_1_plan: str,
+        session_2_plan: str,
+        session_3_plan: str,
+        key_themes: list[str] | None = None,
+    ) -> str:
+        """Generate a 90-day roadmap from all Sprint session plans."""
+        user_message = build_sprint_roadmap_prompt(
+            client_name=client_name,
+            brand=brand,
+            session_1_plan=session_1_plan,
+            session_2_plan=session_2_plan,
+            session_3_plan=session_3_plan,
+            key_themes=key_themes,
+        )
+        try:
+            response = self._client.messages.create(
+                model=self._model,
+                max_tokens=2048,
+                system=SPRINT_ROADMAP_PROMPT,
+                messages=[{"role": "user", "content": user_message}],
+            )
+            return response.content[0].text
+        except Exception as e:
+            logger.error(f"Claude sprint roadmap generation failed: {e}")
+            return f"Error generating roadmap: {e}"
 
     def analyze_growth(self, metrics: dict) -> str:
         """Analyze growth metrics and recommend strategies."""

@@ -3,7 +3,7 @@
 import streamlit as st
 
 from app.config import load_settings, validate_settings
-from app.utils.theme import inject_custom_css
+from app.utils.theme import inject_custom_css, inject_dark_mode
 import app.utils.plotly_theme as _plotly_theme  # noqa: F401 — registers global template
 
 st.set_page_config(
@@ -209,6 +209,16 @@ def main():
                 unsafe_allow_html=True,
             )
 
+        # Dark mode toggle
+        dark_on = st.toggle(
+            "Dark Mode",
+            value=st.session_state.get("dark_mode", False),
+            key="dark_mode_toggle",
+        )
+        if dark_on != st.session_state.get("dark_mode", False):
+            st.session_state.dark_mode = dark_on
+            st.rerun()
+
         if st.button("Refresh All Data", use_container_width=True):
             from app.services.cache_manager import cache
             cache.invalidate_all()
@@ -221,7 +231,10 @@ def main():
                 for w in _startup_warnings:
                     st.caption(f"— {w}")
 
-        st.caption("v5.0 | Built for Jake & Megha")
+        st.caption("v5.1 | Built for Jake & Megha")
+
+    # Inject dark mode JS based on toggle state
+    inject_dark_mode(st.session_state.get("dark_mode", False))
 
     nav.run()
 

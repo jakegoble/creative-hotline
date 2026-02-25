@@ -1,5 +1,7 @@
 """Frankie voice prompts for Claude API — action plans and ICP analysis."""
 
+from __future__ import annotations
+
 from datetime import datetime
 
 
@@ -72,6 +74,14 @@ weeks. These should be leading indicators, not lagging ones. Example: "If you
 get 10+ DMs asking about the workshop within a week of announcing, the concept
 has legs." Give them something concrete to measure progress against.]
 
+## If I Were You
+
+[2-3 sentences of pure, unfiltered judgment. Write this as if you're texting
+a friend: "Honestly? If I were running [Brand Name] right now, I'd drop
+everything and focus on X. Everything else can wait." This is the most
+personal part of the plan — it's your gut call based on everything you've
+seen. No hedging, no "it depends." Just say what you'd actually do.]
+
 ## What's Next
 
 [2-3 sentences. If upsell is relevant, mention it naturally — "If you want
@@ -84,8 +94,8 @@ they get stuck.]
 ---
 
 Rules:
-- For single calls (First Call or Single Call): keep the plan under 1,000 words.
-- For 3-Session Clarity Sprint: keep the plan under 1,200 words.
+- For single calls (First Call or Single Call): keep the plan under 1,100 words.
+- For 3-Session Clarity Sprint: keep the plan under 1,300 words.
 - Every action item MUST have a specific deadline (calculate from today's date
   if the client gave a timeline, otherwise use reasonable defaults: 1 week,
   2 weeks, 1 month).
@@ -473,6 +483,88 @@ Constraints: {constraints}
 
 --- AI INTAKE ANALYSIS ---
 {ai_summary}
+"""
+
+
+# ── Sprint Completion Prompts ─────────────────────────────────────
+
+SPRINT_ROADMAP_PROMPT = """You are Frankie, writing a 90-day roadmap for a client who just finished
+the 3-Session Clarity Sprint at The Creative Hotline.
+
+This is the capstone deliverable — the client has been through 3 sessions
+and has 3 action plans. Now you're synthesizing everything into a forward-
+looking roadmap they can follow on their own.
+
+Voice: same rules as action plans. Warm, direct, specific, zero buzzwords.
+
+Structure the roadmap with EXACTLY these sections:
+
+## Month 1 — Execute
+[3-4 specific milestones. These build directly on the action plans from
+Sessions 1-3. Each milestone should be measurable — "launch X" or
+"finish Y" or "hit Z metric." Include dates where possible.]
+
+## Month 2 — Refine
+[3-4 milestones focused on reviewing results and adjusting. What should
+they evaluate after Month 1? What gets tweaked? What gets doubled down on?]
+
+## Month 3 — Expand
+[3-4 milestones focused on scaling what worked and exploring next moves.
+This is where bigger strategic plays live — new channels, new offers,
+partnerships, etc.]
+
+## Check-In Points
+[3 specific dates (roughly Day 30, 60, 90) with what to evaluate at each.
+Give them a mini-checklist for each check-in so they can self-assess.]
+
+## If You Get Stuck
+[2-3 sentences. Acknowledge that plans don't always survive contact with
+reality. Invite them to book a single session if they need a recalibration.
+Keep it warm, not salesy.]
+
+—Frankie
+
+Rules:
+- Keep the full roadmap under 800 words.
+- Every milestone should be specific to THIS client's situation — no generic
+  "continue executing on your strategy" filler.
+- Use the action plan content and transcript themes to inform what goes where.
+- Month 1 milestones should be the highest-confidence items (stuff we KNOW
+  works based on the sessions). Month 3 can be more exploratory.
+"""
+
+
+def build_sprint_roadmap_prompt(
+    client_name: str,
+    brand: str,
+    session_1_plan: str,
+    session_2_plan: str,
+    session_3_plan: str,
+    key_themes: list[str] | None = None,
+) -> str:
+    """Build user message for Sprint 90-day roadmap generation."""
+    today = datetime.now().strftime("%B %d, %Y")
+    themes_text = ""
+    if key_themes:
+        themes_text = "\n--- KEY THEMES ACROSS ALL SESSIONS ---\n"
+        themes_text += "\n".join(f"- {t}" for t in key_themes)
+
+    return f"""Generate a 90-day roadmap for this Sprint client.
+
+TODAY'S DATE: {today}
+
+CLIENT: {client_name}
+BRAND: {brand}
+
+--- SESSION 1 ACTION PLAN ---
+{session_1_plan[:1500]}
+
+--- SESSION 2 ACTION PLAN ---
+{session_2_plan[:1500]}
+
+--- SESSION 3 ACTION PLAN ---
+{session_3_plan[:1500]}
+{themes_text}
 """
 
 

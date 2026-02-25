@@ -1,13 +1,13 @@
 # Client Onboarding Checklist — The Creative Hotline
 
-**Date:** 2026-02-21
+**Date:** 2026-02-24 (updated)
 **Purpose:** Step-by-step verification that a new client flows correctly through the full automation stack.
 
 ---
 
 ## Pre-Flight: Before the Client Arrives
 
-- [ ] n8n instance is active and all 7 workflows are running
+- [ ] n8n instance is active and all 5 workflows are running (WF1-4 + Daily Follow-Up Engine)
 - [ ] SMTP credentials are valid (test send from hello@creativehotline.com)
 - [ ] Notion API integration is connected to both databases
 - [ ] Stripe webhook is configured and pointing to WF1 production URL
@@ -125,19 +125,21 @@
 
 These run automatically. Verify they fire correctly:
 
-### WF5: Paid But Never Booked (Daily 9am)
+### Daily Follow-Up Engine (consolidated WF5+6+7, live Feb 23)
+
+**Paid But Never Booked:**
 - [ ] Fires if status = "Paid - Needs Booking" AND record is 48+ hours old
 - [ ] Sends booking reminder email to customer
 - [ ] Sends stale-booking alert to team
 - [ ] Booking Reminder Sent checkbox gets set (prevents repeat)
 
-### WF6: Booked But No Intake (Daily 8am)
+**Booked But No Intake:**
 - [ ] Fires if status = "Booked - Needs Intake" AND call within 24 hours
 - [ ] Sends intake reminder email with Tally link (https://tally.so/r/b5W1JE)
 - [ ] Sends missing-intake alert to team
 - [ ] Intake Reminder Sent checkbox gets set (prevents repeat)
 
-### WF7: Lead Nurture (Daily 10am)
+**Lead Nurture:**
 - [ ] Fires if status = "Lead - Laylo" AND record is 3-7 days old
 - [ ] Sends nurture email to lead
 - [ ] Sends nurture alert to team

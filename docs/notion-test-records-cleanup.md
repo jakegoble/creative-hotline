@@ -1,6 +1,6 @@
 # Notion Test Records Cleanup Plan
 
-**Date:** 2026-02-21
+**Date:** 2026-02-24 (updated)
 **Status:** Plan only — DO NOT execute without Jake's confirmation
 **Databases:** Payments DB (`3030e73ffadc80bcb9dde15f51a9caf2`) + Intake DB (`2f60e73ffadc806bbf5ddca2f5c256a3`)
 
@@ -12,7 +12,7 @@
 
 | # | Client Name | Email | Status | Amount | Product | Stripe ID | Test? | Action |
 |---|------------|-------|--------|--------|---------|-----------|-------|--------|
-| 1 | Jake Goble | jake@radanimal.co | Paid - Needs Booking | $499 | Standard Call | `cs_test_a1qiEv...` | **YES** — `cs_test_` prefix = Stripe test mode | Archive or delete |
+| 1 | Jake Goble | jake@radanimal.co | Paid - Needs Booking | $499 | Single Call (was "Standard Call") | `cs_test_a1qiEv...` | **YES** — `cs_test_` prefix = Stripe test mode | Archive or delete |
 
 **Observations:**
 - Only 1 record found in Payments DB via search

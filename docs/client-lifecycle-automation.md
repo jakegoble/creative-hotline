@@ -1,6 +1,6 @@
 # Client Lifecycle Automation Map
 
-**Date:** 2026-02-21
+**Date:** 2026-02-24 (updated)
 **Purpose:** Documents the full client journey from first interaction through post-call follow-up, mapping which automations fire at each stage.
 
 ---
@@ -19,8 +19,8 @@
            Laylo     Needs    Needs    Complete            Sent
                      Booking  Intake
 
- Follow-up automations run daily:
-   WF5 (48hrs no booking) ─── WF6 (24hrs no intake) ─── WF7 (3-7 day nurture)
+ Follow-up automations run daily (consolidated into Daily Follow-Up Engine):
+   Paid no booking (48hrs) ─── Booked no intake (24hrs) ─── Lead nurture (3-7 days)
 ```
 
 ---
@@ -207,10 +207,8 @@ The call happens via Calendly's built-in video call link. Post-call, the team ma
 | Payment | WF1 (Stripe → Calendly) | Active (product name null) |
 | Booking | WF2 (Calendly → Payments) | Active |
 | Intake + AI | WF3 (Tally → Claude) | Active |
-| Follow-up: Unbooked | WF5 (daily 9am) | Active (dedup partial) |
-| Follow-up: No Intake | WF6 (daily 8am) | Active (dedup partial) |
-| Follow-up: Lead Nurture | WF7 (daily 10am) | Active (no dedup) |
-| Post-Call | WF9 (deleted) | Rebuild in progress |
+| Follow-up: All 3 | Daily Follow-Up Engine (consolidated WF5+6+7) | Active (dedup partial) |
+| Post-Call | WF9 (deleted) | Rebuild pending |
 | Retention | None | Not built |
 
 **Automated touchpoints per customer:** Up to 5 emails + 5 team alerts across the lifecycle.

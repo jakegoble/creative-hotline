@@ -110,6 +110,26 @@ HEATMAP_SCALE = [
 ]
 
 
+# ── Dark Mode Overrides ───────────────────────────────────────────
+DARK_BG_PAGE = "#0C0A09"       # Stone-950
+DARK_BG_CARD = "#1C1917"       # Stone-900
+DARK_BG_SIDEBAR = "#0C0A09"    # Stone-950
+DARK_BG_MUTED = "#292524"      # Stone-800
+DARK_BG_HOVER = "#44403C"      # Stone-700
+
+DARK_TEXT_PRIMARY = "#FAFAF9"   # Stone-50
+DARK_TEXT_SECONDARY = "#A8A29E"  # Stone-400
+DARK_TEXT_MUTED = "#78716C"     # Stone-500
+DARK_TEXT_CAPTION = "#57534E"   # Stone-600
+
+DARK_BORDER_DEFAULT = "#292524"  # Stone-800
+DARK_BORDER_HOVER = "#44403C"   # Stone-700
+DARK_BORDER_STRONG = "#57534E"  # Stone-600
+
+DARK_SHADOW_SM = "0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2)"
+DARK_SHADOW_MD = "0 4px 8px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2)"
+
+
 def hex_to_rgba(hex_color: str, alpha: float = 1.0) -> str:
     """Convert a hex color string to an rgba() CSS string."""
     h = hex_color.lstrip("#")

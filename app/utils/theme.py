@@ -84,6 +84,78 @@ _CSS = f"""
     --transition-fast: {t.TRANSITION_FAST};
 }}
 
+/* ── Dark Mode Overrides ──────────────────────────────────────── */
+.dark-mode {{
+    --bg-page: {t.DARK_BG_PAGE};
+    --bg-card: {t.DARK_BG_CARD};
+    --bg-sidebar: {t.DARK_BG_SIDEBAR};
+    --bg-muted: {t.DARK_BG_MUTED};
+    --bg-hover: {t.DARK_BG_HOVER};
+
+    --text-primary: {t.DARK_TEXT_PRIMARY};
+    --text-secondary: {t.DARK_TEXT_SECONDARY};
+    --text-muted: {t.DARK_TEXT_MUTED};
+    --text-caption: {t.DARK_TEXT_CAPTION};
+
+    --border: {t.DARK_BORDER_DEFAULT};
+    --border-hover: {t.DARK_BORDER_HOVER};
+    --border-strong: {t.DARK_BORDER_STRONG};
+
+    --shadow-sm: {t.DARK_SHADOW_SM};
+    --shadow-md: {t.DARK_SHADOW_MD};
+}}
+
+.dark-mode .stApp {{
+    background-color: {t.DARK_BG_PAGE} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+.dark-mode header[data-testid="stHeader"] {{
+    background: rgba(12, 10, 9, 0.85) !important;
+}}
+
+.dark-mode [data-testid="stSidebar"] {{
+    background-color: {t.DARK_BG_PAGE} !important;
+    border-right-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+
+.dark-mode [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] {{
+    color: {t.DARK_TEXT_PRIMARY};
+}}
+
+.dark-mode [data-testid="stMetricLabel"],
+.dark-mode [data-testid="stMetricValue"],
+.dark-mode [data-testid="stMetricDelta"] {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+.dark-mode [data-testid="stExpander"] {{
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+
+.dark-mode .ch-card {{
+    background: {t.DARK_BG_CARD};
+    border-color: {t.DARK_BORDER_DEFAULT};
+}}
+
+.dark-mode .ch-kpi-hero {{
+    background: {t.DARK_BG_CARD};
+    border-color: {t.DARK_BORDER_DEFAULT};
+}}
+
+.dark-mode .ch-client-header {{
+    background: {t.DARK_BG_CARD};
+    border-color: {t.DARK_BORDER_DEFAULT};
+}}
+
+.dark-mode .ch-feed-item:hover {{
+    background: {t.DARK_BG_MUTED};
+}}
+
+.dark-mode ::-webkit-scrollbar-thumb {{
+    background: {t.DARK_BORDER_STRONG};
+}}
+
 /* ── Typography ────────────────────────────────────────────────── */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
@@ -857,6 +929,171 @@ hr {{
     background: #A8A29E;
 }}
 
+/* ── Activity Feed ─────────────────────────────────────────────── */
+.ch-feed {{
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}}
+
+.ch-feed-item {{
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    transition: background 150ms ease;
+}}
+
+.ch-feed-item:last-child {{
+    border-bottom: none;
+}}
+
+.ch-feed-item:hover {{
+    background: var(--bg-muted);
+}}
+
+.ch-feed-icon {{
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}}
+
+.ch-feed-content {{
+    flex: 1;
+    min-width: 0;
+}}
+
+.ch-feed-title {{
+    font-size: var(--font-sm);
+    font-weight: var(--weight-medium);
+    color: var(--text-primary);
+    line-height: 1.4;
+}}
+
+.ch-feed-subtitle {{
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}}
+
+.ch-feed-time {{
+    font-size: 11px;
+    color: var(--text-caption);
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+}}
+
+/* ── Client 360 ───────────────────────────────────────────────── */
+.ch-client-header {{
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: var(--space-lg);
+}}
+
+.ch-client-avatar {{
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: var(--weight-bold);
+    color: white;
+    flex-shrink: 0;
+}}
+
+.ch-client-info {{
+    flex: 1;
+}}
+
+.ch-client-name {{
+    font-size: var(--font-xl);
+    font-weight: var(--weight-bold);
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+}}
+
+.ch-client-email {{
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+}}
+
+.ch-client-badges {{
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}}
+
+.ch-timeline-event {{
+    display: flex;
+    gap: 16px;
+    padding: 16px 0;
+    position: relative;
+}}
+
+.ch-timeline-line {{
+    position: absolute;
+    left: 15px;
+    top: 44px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+}}
+
+.ch-timeline-dot {{
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    z-index: 1;
+}}
+
+.ch-timeline-body {{
+    flex: 1;
+    padding-bottom: 8px;
+}}
+
+.ch-timeline-title {{
+    font-size: var(--font-sm);
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+}}
+
+.ch-timeline-detail {{
+    font-size: var(--font-xs);
+    color: var(--text-muted);
+    margin-top: 2px;
+}}
+
+.ch-timeline-time {{
+    font-size: 11px;
+    color: var(--text-caption);
+    font-variant-numeric: tabular-nums;
+}}
+
 /* ── Focus Rings (accessibility) ───────────────────────────────── */
 *:focus-visible {{
     outline: 2px solid var(--primary);
@@ -867,6 +1104,39 @@ hr {{
 """
 
 
+_DARK_MODE_JS = """
+<script>
+(function() {
+    const isDark = window.parent.document.querySelector('.dark-mode');
+    // Check if Streamlit has set dark mode via session state
+    // This script is re-injected on every rerun, so we read the flag from a data attribute
+    const flag = document.currentScript?.getAttribute('data-dark');
+    if (flag === 'true' && !isDark) {
+        window.parent.document.documentElement.classList.add('dark-mode');
+        window.parent.document.body.classList.add('dark-mode');
+        const app = window.parent.document.querySelector('.stApp');
+        if (app) app.classList.add('dark-mode');
+    } else if (flag === 'false') {
+        window.parent.document.documentElement.classList.remove('dark-mode');
+        window.parent.document.body.classList.remove('dark-mode');
+        const app = window.parent.document.querySelector('.stApp');
+        if (app) app.classList.remove('dark-mode');
+    }
+})();
+</script>
+"""
+
+
 def inject_custom_css() -> None:
     """Inject global CSS overrides. Call once in main.py after set_page_config."""
     st.markdown(_CSS, unsafe_allow_html=True)
+
+
+def inject_dark_mode(enabled: bool) -> None:
+    """Toggle dark mode by adding/removing .dark-mode class via JS."""
+    flag = "true" if enabled else "false"
+    js = _DARK_MODE_JS.replace(
+        "document.currentScript?.getAttribute('data-dark')",
+        f"'{flag}'",
+    )
+    st.markdown(js, unsafe_allow_html=True)

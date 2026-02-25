@@ -44,5 +44,6 @@ htmlcov/
 # Runtime generated
 plans/outcomes/
 plans/pages/
+plans/templates/
 data/
 scripts/

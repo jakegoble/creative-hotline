@@ -26,9 +26,11 @@ The Creative Hotline is a creative consultancy run by Jake Goble and Megha. Clie
 **ID:** `3030e73ffadc80bcb9dde15f51a9caf2`
 Every customer and lead gets a record here. Pipeline source of truth.
 
-**Key properties:** Client Name (title), Email, Phone, Payment Amount, Product Purchased (select), Payment Date, Stripe Session ID, Status (select), Call Date, Calendly Link, Linked Intake (relation), Lead Source (select), Booking Reminder Sent (checkbox), Intake Reminder Sent (checkbox), Nurture Email Sent (checkbox), Thank You Sent (checkbox)
+**Key properties:** Client Name (title), Email (email), Phone (phone_number), Payment Amount (number), Product Purchased (select), Payment Date (date), Stripe Session ID (rich_text), Status (select), Call Date (date), Calendly Link (url), Linked Intake (relation → Intake DB), Lead Source (select), Days to Convert (formula), Created (created_time), Booking Reminder Sent (checkbox), Intake Reminder Sent (checkbox), Nurture Email Sent (checkbox), Thank You Sent (checkbox)
 
-**Product Purchased options:** "First Call", "Single Call", "3-Pack Sprint", "3-Session Clarity Sprint"
+**Product Purchased options:** "First Call" ($499), "Single Call" ($699), "3-Session Clarity Sprint" ($1,495). Legacy aliases: "Standard Call" → Single Call, "3-Pack Sprint" → 3-Session Clarity Sprint
+
+**Lead Source options:** "IG DM", "IG Comment", "IG Story", "Meta Ad", "LinkedIn", "Website", "Referral", "Direct"
 
 **Pipeline statuses:**
 - `Lead - Laylo` → Signed up via IG keyword, hasn't paid
@@ -43,7 +45,7 @@ Every customer and lead gets a record here. Pipeline source of truth.
 **ID:** `2f60e73ffadc806bbf5ddca2f5c256a3`
 Pre-call questionnaire responses + AI analysis.
 
-**Key properties:** Client Name, Email, Role, Brand, Website/IG, Creative Emergency, Desired Outcome, What They've Tried, Deadline, Constraints, Intake Status, AI Intake Summary, Action Plan Sent (checkbox), Linked Payment (relation)
+**Key properties:** Client Name (title), Email (email), Role (rich_text — NOT select), Brand (rich_text), Website / IG (url), Creative Emergency (rich_text), Desired Outcome (multi_select — NOT select), What They've Tried (rich_text), Deadline (rich_text), Constraints / Avoid (rich_text), Intake Status (select: "Not Started", "Submitted"), AI Intake Summary (rich_text), Action Plan Sent (checkbox), Call Date (date), Linked Payment (relation → Payments DB)
 
 ### Notion Space & Key Pages
 - **Space ID:** `0f4e4f76-f116-4626-a1b9-9d4e980c97b3`

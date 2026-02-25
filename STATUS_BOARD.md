@@ -2,7 +2,7 @@
 <!-- PROTOCOL: All 10 agents MUST read this file at session start and update their section
      at session end. See CLAUDE.md, DECISIONS.md, and docs/agent-roles.md for full protocol. -->
 
-> Last updated: 2026-02-24 by Command Center Engineer (COS briefing: Daily Follow-Up Engine LIVE, new priorities)
+> Last updated: 2026-02-24 by Growth Intelligence Analyst (benchmarks module + capacity ceiling UI + sample warnings)
 
 ---
 
@@ -13,7 +13,7 @@
 | Command Center version | v5.0 |
 | Total modules | 75+ |
 | Total pages | 13 |
-| Total tests | 400 (all passing) |
+| Total tests | 427 (all passing) |
 | n8n active workflows | **5** (WF1-4 + Daily Follow-Up Engine — all live and branded) |
 | n8n plan | Upgraded (no longer trial) |
 | Streamlit Cloud | Deployed |
@@ -141,53 +141,61 @@
 - **Pending**:
   - [ ] Fix CLAUDE.md: workflow count, Daily Follow-Up Engine status
 
-## Growth Intelligence Analyst (GROWTH) — Last active: Feb 24
-- **Current focus**: All P0-P3 analytics fixes implemented and tested
-- **Test status**: 400/400 passing (6 new tests added)
+## Growth Intelligence Analyst (GROWTH) — Last active: Feb 24 (session 2)
+- **Current focus**: Benchmarks module built, capacity ceiling + sample warnings wired into pages
+- **Test status**: 427/427 passing (27 new benchmarks tests)
 - **Blockers**: None
 - **Completed since last update**:
-  - [x] Deep audit of all 8 analytics modules (attribution, lead_scorer, ltv_calculator, revenue_modeler, segment_builder, referral_tracker, sequence_tracker, keyword_extractor)
-  - [x] Validated $800K revenue path model — **max call revenue ~$527K at 20 calls/week; ~$275K gap requires non-call products**
-  - [x] Researched small-N attribution, LTV, lead scoring, and cohort best practices
-  - [x] Identified 11 priority issues across modules (1 critical, 5 high, 5 medium)
-  - [x] **P0 DONE**: `capacity_reality_check()` + `gap_closer()` in revenue_modeler.py — shows $527K call ceiling, calculates non-call products needed to bridge gap
-  - [x] **P0 DONE**: `current_pace()` now includes confidence bands (annual_pace_low/high) and confidence level (none/very_low/low/moderate/high)
-  - [x] **P1 DONE**: lead_scorer.py — tier thresholds lowered to 70/40/20, fixed double-penalization bug (negative cap now skips recency decay), fixed Sprint detection (uses purchase_count>1 not product type)
-  - [x] **P1+P2 DONE**: attribution.py — linear model fixed (all single-channel models give 100% credit), added MIN_SAMPLE_SIZE=10 + sample_sufficient flag on ChannelMetrics
-  - [x] **P2 DONE**: ltv_calculator.py — added projected_ltv (observed × (1+upsell_prob)), median_ltv + sample_sufficient on cohorts, fixed payback_period to use first-purchase-based payback, added MIN_COHORT_SIZE=5
-  - [x] **P3 DONE**: segment_builder.py — added CONVERSION_PROBABILITIES weighting to estimated_value, added COMEBACK_MIN_DAYS=7 wait time
-  - [x] **P3 DONE**: keyword_extractor.py — added word-prefix matching (_keyword_match) for morphological variants
-  - [x] Updated tests: test_attribution, test_lead_scorer, test_lead_scorer_v2, test_segment_builder, test_revenue_modeler (6 new tests for capacity functions)
-  - [x] Full suite: 400 tests passing
+  - [x] Deep audit of all 8 analytics modules — 11 issues found, all P0-P3 fixed
+  - [x] Validated $800K revenue path — max call revenue ~$527K; ~$275K gap needs non-call products
+  - [x] All 6 module fixes: revenue_modeler, lead_scorer, attribution, ltv_calculator, segment_builder, keyword_extractor
+  - [x] **NEW: `app/utils/benchmarks.py`** — industry benchmarks module with 20+ constants sourced from First Page Sage, Consulting Success, ActiveCampaign, etc.
+    - Conversion benchmarks (lead-to-paid 20%, show rate 92%, intake completion 75%, upsell 20%)
+    - CAC benchmarks by channel (Referral $100, IG DM $200, Website $300, Meta Ad $800)
+    - LTV benchmarks (first-year $910, LTV:CAC target 3:1, referral rate 30%)
+    - Revenue mix by scale ($500K: 70% calls / $800K: 52% calls / $1M: 40% calls)
+    - Funnel stage benchmarks (6 stages with target rates)
+    - `compare_to_benchmark()`, `compare_funnel()`, `compare_channel_cac()`, `revenue_ceiling_summary()`, `sample_size_warning()`
+  - [x] **Wired capacity ceiling into Revenue Goals page** — shows $527K ceiling, gap to goal, utilization %, and gap closer product cards with industry revenue mix reference
+  - [x] **Wired sample warnings into Channel Performance** — low-confidence channels flagged with warning icon, caption for N<10, attribution sample size context
+  - [x] 27 new tests for benchmarks module (test_benchmarks.py)
+  - [x] Smoke test updated to include benchmarks module
+  - [x] Full suite: 427 tests passing
 - **Pending**:
-  - [ ] Wire `capacity_reality_check()` into Revenue Goals page UI (show ceiling banner + gap closer recommendations)
-  - [ ] Wire `sample_sufficient` flag into Channel Performance + Conversion Paths pages (show warning when N<10)
   - [ ] Wire `projected_ltv` and `median_ltv` into Outcomes page
-  - [ ] Add quarterly cohort grouping to ltv_calculator.py (currently monthly only)
-  - [ ] Add `safe_rate()` helper for consistent min-N thresholds across all module outputs
+  - [ ] Wire `compare_funnel()` benchmarks into Funnel Analytics page (show benchmark lines)
+  - [ ] Wire `compare_channel_cac()` into Channel Performance page (show CAC vs benchmark)
+  - [ ] Add quarterly cohort grouping to ltv_calculator.py
+  - [ ] Wire `ltv_by_cohort()` + `payback_period()` into Outcomes page
+  - [ ] Add benchmark reference lines to Plotly charts (conversion rate vs industry avg)
 
-## Creative Director / Frankie (FRANK) — Last active: Feb 24
-- **Current focus**: Full content pipeline audit + implementation complete
-- **Blockers**: Frankie email templates written but not deployed to n8n (needs Automation Architect)
+## Creative Director / Frankie (FRANK) — Last active: Feb 24 (session 3)
+- **Current focus**: All content pipeline work complete — 20 email templates, 8 prompts, landing pages, Sprint PDF, Brand Voice Guide
+- **Blockers**: Frankie email templates written but not deployed to n8n (needs Conductor)
 - **Completed since last update**:
   - [x] Full audit of all prompt templates for Frankie voice consistency
   - [x] Full audit of action plan prompt quality — identified 6 gaps
   - [x] Mapped all client touchpoints — identified 6 pipeline stage gaps
   - [x] Reviewed all 10 email templates — graded A/A- across the board
-  - [x] Upgraded ACTION_PLAN_SYSTEM_PROMPT: added Quick Win, What to Ignore, How You'll Know It's Working sections + priority ranking + industry benchmarks + Sprint-specific rules
-  - [x] Created INTAKE_ANALYSIS_PROMPT (internal briefing from intake data)
-  - [x] Created UPSELL_DETECTION_PROMPT (structured JSON output with signals)
-  - [x] Created PRE_CALL_BRIEFING_PROMPT (call prep for Jake/Megha)
+  - [x] Upgraded ACTION_PLAN_SYSTEM_PROMPT: Quick Win, What to Ignore, How You'll Know It's Working, **"If I Were You"** (pure gut-call section), priority ranking, industry benchmarks, Sprint-specific rules
+  - [x] Created INTAKE_ANALYSIS_PROMPT, UPSELL_DETECTION_PROMPT, PRE_CALL_BRIEFING_PROMPT, SPRINT_ROADMAP_PROMPT
   - [x] Strengthened CASE_STUDY_PROMPT with full voice rules
-  - [x] Added 3 new ClaudeService methods: analyze_intake(), detect_upsell(), generate_pre_call_briefing()
-  - [x] Wrote 8 new email templates (#11-18): Intake Confirmation, Pre-Call Prep, 30-Day Check-In, Testimonial Request, Referral Ask, Sprint Session 1 Recap, Sprint Session 2 Recap, Sprint Completion
+  - [x] Added 4 new ClaudeService methods: analyze_intake(), detect_upsell(), generate_pre_call_briefing(), generate_sprint_roadmap()
+  - [x] Wrote **10 new email templates** (#11-20): Intake Confirmation, Pre-Call Prep, 30-Day Check-In, Testimonial Request, Referral Ask, Sprint Session 1/2/3 Recaps, Sprint Upgrade Offer (Day 14 credit toward Sprint), Value-Add (Day 45-60 pure goodwill)
   - [x] Fixed email #10 "rooting for you" → "go make something good"
   - [x] Added print stylesheet + Save/Print button to client HTML page
-  - [x] All 272 tests still passing
+  - [x] **LANDING PAGE COPY (Critical Path #1)** — wrote full /strategy-call and /premium-sprint copy for Builder: `handoffs/frank-to-builder-20260224-strategy-call-copy.md` + `handoffs/frank-to-builder-20260224-premium-sprint-copy.md`
+  - [x] **Sprint completion PDF** — `generate_sprint_completion_pdf()` in exporters.py: cover page, TOC, 3 session plans, 90-day roadmap section, multi-session appendix
+  - [x] **Sprint roadmap prompt** — SPRINT_ROADMAP_PROMPT + build_sprint_roadmap_prompt() + ClaudeService.generate_sprint_roadmap()
+  - [x] **Frankie Brand Voice Guide** — `docs/frankie-brand-voice-guide.md`: voice rules, banned words, sign-offs, tone matrix, formatting rules, product names, examples, agent usage matrix
+  - [x] Competitive consultancy research — identified "If I Were You" as highest-value content type, Sprint upgrade path as key revenue lever
+  - [x] Fixed Python 3.9 compatibility (from __future__ import annotations)
+  - [x] All 400 tests passing
 - **Pending**:
-  - [ ] Sprint completion PDF template (consolidated 3-session doc with 90-day roadmap)
   - [ ] PDF cover page visual enhancement (brand monogram/watermark)
-  - [ ] n8n template deployment (depends on Automation Architect fixing WF bugs first)
+  - [ ] n8n template deployment (depends on Conductor implementing WF fixes first)
+  - [ ] ManyChat Knowledge Base voice audit (ensure KB entries match Frankie voice guide)
+  - [ ] Loom walkthrough process doc for Jake/Megha (record 5-min video walking through action plan)
 
 ## Platform Reliability / SRE (SRE) — Last active: Feb 24
 - **Test count**: 394 tests, all passing (4.31s)
@@ -226,6 +234,10 @@
     - 400/400 tests passing after migration
   - [x] Updated `docs/notion-database-schemas.md` + `docs/data-readiness-report.md`
   - [x] Notion CRM best practice recommendations (6 immediate, 4 medium-term)
+  - [x] Updated CLAUDE.md Notion schemas: added property types, Days to Convert, Created, Call Date, Lead Source options, Intake Status options, fixed "Constraints" → "Constraints / Avoid"
+  - [x] Updated `docs/client-onboarding-checklist.md`: workflow count 7→5, WF5/6/7 → Daily Follow-Up Engine
+  - [x] Updated `docs/client-lifecycle-automation.md`: consolidated WF5/6/7 references, summary table
+  - [x] Updated `docs/notion-test-records-cleanup.md`: "Standard Call" → "Single Call"
 - **Pending**:
   - [ ] Add "Days in Stage" formula property to Payments DB
   - [ ] Add "Last Contact Date" property to Payments DB
@@ -262,6 +274,17 @@
 - WF1 customer email is now branded with Frankie template (Conductor deployed)
 - Template deployment complete across all 5 workflows
 
+### From Creative Director → The Builder (Feb 24) — UNBLOCKING
+- **Landing page copy is READY.** Builder was blocked on Frankie for /strategy-call and /premium-sprint copy.
+- `/strategy-call` copy: `handoffs/frank-to-builder-20260224-strategy-call-copy.md` — hero, how it works, who it's for, what you get, pricing (all 3 products), FAQ (6 questions), final CTA, builder notes
+- `/premium-sprint` copy: `handoffs/frank-to-builder-20260224-premium-sprint-copy.md` — hero, problem section, 3-session breakdown, what's included, who it's for, comparison table, pricing, FAQ (6 questions), final CTA, builder notes
+- Both files include meta tags, CTA links (direct to Stripe), and implementation notes for Builder
+- **Frankie Brand Voice Guide** for reference: `docs/frankie-brand-voice-guide.md`
+
+### From Creative Director → All Agents (Feb 24)
+- **Brand Voice Guide published**: `docs/frankie-brand-voice-guide.md` — single source of truth for Frankie voice. All agents writing client-facing copy should reference this.
+- Canonical product names: First Call ($499), Single Call ($699), 3-Session Clarity Sprint ($1,495). Never say "Standard Call" or "3-Pack Sprint."
+
 ### From CRM & Data Ops → Automation Architect / Conductor (Feb 24, updated)
 - **Full data readiness report**: `docs/data-readiness-report.md` — 12 discrepancies ranked by severity
 - ~~WF1 product mapping~~ → **RESOLVED** (WF1 fixed, code migrated: "Single Call" is canonical $699 product)
@@ -280,13 +303,14 @@
 - `docs/notion-database-schemas.md` may be stale — verify against live Notion
 - "3-Pack Sprint" vs "3-Session Clarity Sprint" naming needs resolution
 
-### From Growth Intelligence → Command Center Engineer (Feb 24)
+### From Growth Intelligence → Command Center Engineer (Feb 24, updated)
 - **6 modules updated** — lead_scorer, attribution, ltv_calculator, revenue_modeler, segment_builder, keyword_extractor
-- `revenue_modeler.py` has new `capacity_reality_check()` + `gap_closer()` — needs UI wiring in Revenue Goals page (show ceiling banner, gap closer cards)
-- `attribution.py` ChannelMetrics now has `sample_sufficient` flag — wire into Channel Performance + Conversion Paths pages (show low-confidence warning when N<10)
-- `ltv_calculator.py` now has `projected_ltv` + `median_ltv` — wire into Outcomes page LTV displays
-- `lead_scorer.py` tier thresholds changed: Hot=70 (was 80), Warm=40 (was 50), Cool=20 (was 25) — Lead Scoring page should show updated thresholds in legend
-- Test count: 394 → 400 (6 new tests for capacity functions)
+- **NEW: `app/utils/benchmarks.py`** — industry benchmarks module. Any page can import `compare_to_benchmark()`, `sample_size_warning()`, constants like `CAC_BY_CHANNEL`, `FUNNEL_BENCHMARKS`, `REVENUE_MIX`
+- ~~`capacity_reality_check()` needs UI wiring~~ → **DONE** — wired into Revenue Goals page (ceiling banner, gap closer cards, revenue mix reference)
+- ~~`sample_sufficient` needs page warnings~~ → **DONE** — wired into Channel Performance page (low-N warning icons + captions)
+- `ltv_calculator.py` still has `projected_ltv` + `median_ltv` — needs wiring into Outcomes page
+- `lead_scorer.py` tier thresholds changed: Hot=70 (was 80), Warm=40 (was 50), Cool=20 (was 25)
+- Test count: 400 → 427 (27 new benchmarks tests)
 
 ### From Command Center Engineer → Growth Intelligence
 - ~~Linear attribution was fixed (Feb 23) — now returns `1/touchpoints` not `1.0`~~ → Fully resolved by Growth (linear now returns 1.0 for single-channel)

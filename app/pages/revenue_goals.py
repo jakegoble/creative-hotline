@@ -21,9 +21,12 @@ from app.utils.revenue_modeler import (
     monthly_targets,
     channel_investment_plan,
     current_pace,
+    capacity_reality_check,
+    gap_closer,
 )
 from app.utils.attribution import channel_roi
 from app.utils.ltv_calculator import upsell_rate
+from app.utils.benchmarks import REVENUE_MIX, sample_size_warning
 from app.components.growth_chart import render_growth_projection
 from app.components.scenario_cards import render_scenario_comparison, render_product_ladder
 from app.utils.ui import page_header, section_header, metric_row, stat_card, empty_state, data_card
@@ -81,6 +84,72 @@ def render():
 
     # Progress bar
     st.progress(min(pct / 100, 1.0))
+
+    # Confidence note
+    warning = sample_size_warning(pace["months_of_data"], "revenue pace")
+    if warning:
+        st.caption(f"*{warning}*")
+
+    st.divider()
+
+    # ── Capacity Reality Check ────────────────────────────────────
+
+    section_header("Capacity Reality Check", "Can your team's call capacity alone hit the revenue goal?")
+
+    cap = capacity_reality_check(annual_goal)
+
+    col_ceil, col_gap, col_util = st.columns(3)
+    with col_ceil:
+        stat_card(
+            label="Call Revenue Ceiling",
+            value=format_currency(cap["blended_annual_ceiling"]),
+            subtitle=f"{cap['max_calls_per_week']} calls/week \u00b7 ~{format_currency(cap['avg_revenue_per_call'])}/call avg",
+            accent_color=t.PRIMARY,
+        )
+    with col_gap:
+        gap_color = t.SUCCESS if cap["achievable_with_calls_only"] else t.DANGER
+        stat_card(
+            label="Gap to Goal (Calls Only)",
+            value=format_currency(cap["gap_to_goal"]),
+            subtitle="Covered" if cap["achievable_with_calls_only"] else "Needs non-call products",
+            accent_color=gap_color,
+        )
+    with col_util:
+        util_color = t.SUCCESS if cap["utilization_needed"] <= 100 else t.DANGER
+        stat_card(
+            label="Utilization Needed",
+            value=f"{cap['utilization_needed']}%",
+            subtitle="of call capacity" if cap["utilization_needed"] <= 100 else "exceeds capacity",
+            accent_color=util_color,
+        )
+
+    if not cap["achievable_with_calls_only"]:
+        # Show gap closer options
+        options = gap_closer(annual_goal)
+        if options:
+            st.markdown(f"**Non-call products needed to close the ${cap['gap_to_goal']:,.0f} gap:**")
+            opt_cols = st.columns(min(len(options), 3))
+            for i, opt in enumerate(options):
+                with opt_cols[i % len(opt_cols)]:
+                    data_card(
+                        title=opt["product"],
+                        body_html=(
+                            f'<div class="ch-text-sm">'
+                            f'<b>{opt["clients_needed"]}</b> clients at '
+                            f'<b>{format_currency(opt["monthly_price"])}</b>/mo<br>'
+                            f'= {format_currency(opt["annual_revenue_added"])}/yr added'
+                            f'</div>'
+                        ),
+                        accent_color=t.PRIMARY_LIGHT,
+                    )
+
+        # Revenue mix context
+        with st.expander("Industry revenue mix by scale"):
+            for tier, mix in REVENUE_MIX.items():
+                st.markdown(
+                    f"**${tier}/yr:** {mix['calls']:.0%} calls \u00b7 "
+                    f"{mix['packages']:.0%} packages \u00b7 {mix['other']:.0%} other"
+                )
 
     st.divider()
 

@@ -352,3 +352,38 @@ def skeleton_card(count: int = 1) -> None:
         for _ in range(count)
     )
     st.markdown(cards, unsafe_allow_html=True)
+
+
+# ── Activity Feed ─────────────────────────────────────────────────
+
+
+def activity_feed(events: list, max_items: int = 10) -> None:
+    """Render a live activity feed from ActivityEvent objects.
+
+    Each event shows an icon, title, subtitle, and relative timestamp.
+    """
+    from app.utils.activity_feed import format_activity_time
+
+    if not events:
+        empty_state("No recent activity.")
+        return
+
+    items_html = ""
+    for event in events[:max_items]:
+        time_str = format_activity_time(event.timestamp)
+        items_html += (
+            f'<div class="ch-feed-item">'
+            f'<div class="ch-feed-icon" style="background:{event.color}">'
+            f'{event.icon}</div>'
+            f'<div class="ch-feed-content">'
+            f'<div class="ch-feed-title">{escape(event.title)}</div>'
+            f'<div class="ch-feed-subtitle">{escape(event.subtitle)}</div>'
+            f'</div>'
+            f'<div class="ch-feed-time">{escape(time_str)}</div>'
+            f'</div>'
+        )
+
+    st.markdown(
+        f'<div class="ch-feed">{items_html}</div>',
+        unsafe_allow_html=True,
+    )

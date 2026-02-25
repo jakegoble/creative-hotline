@@ -16,7 +16,10 @@ from app.utils.transcript_processor import (
     format_summary_for_display,
 )
 from app.utils.plan_delivery import generate_client_html, save_client_page
-from app.utils.ui import page_header, section_header, key_value_inline, empty_state
+from app.utils.template_library import (
+    list_templates, save_template, get_categories, PlanTemplate,
+)
+from app.utils.ui import page_header, section_header, key_value_inline, empty_state, labeled_divider
 
 
 def render():
@@ -119,19 +122,24 @@ def render():
     fireflies = st.session_state.get("fireflies")
 
     if fireflies:
-        tab_fireflies, tab_transcript, tab_manual = st.tabs(
-            ["Fireflies", "Paste Transcript", "Manual Notes"],
+        tab_fireflies, tab_transcript, tab_manual, tab_templates = st.tabs(
+            ["Fireflies", "Paste Transcript", "Manual Notes", "Templates"],
         )
         with tab_fireflies:
             _render_fireflies_tab(payment, intake, claude, fireflies, plan_key, transcript_key)
     else:
-        tab_transcript, tab_manual = st.tabs(["Paste Transcript", "Manual Notes"])
+        tab_transcript, tab_manual, tab_templates = st.tabs(
+            ["Paste Transcript", "Manual Notes", "Templates"],
+        )
 
     with tab_transcript:
         _render_transcript_tab(payment, intake, claude, plan_key, transcript_key)
 
     with tab_manual:
         _render_manual_tab(payment, intake, claude, plan_key)
+
+    with tab_templates:
+        _render_templates_tab(payment, intake, plan_key)
 
     # ── Display Generated Plan ────────────────────────────────────
 
@@ -553,3 +561,86 @@ def _render_plan_display(
         if st.button("Save Edits", key="save_edits"):
             st.session_state[plan_key] = edited
             st.rerun()
+
+    # ── Save as Template ──────────────────────────────────────────
+
+    with st.expander("Save as Template"):
+        st.caption("Save this plan as a reusable template for future clients.")
+        tpl_name = st.text_input("Template name", key="tpl_name")
+        tpl_desc = st.text_input("Description", key="tpl_desc")
+        tpl_category = st.selectbox("Category", options=get_categories(), key="tpl_cat")
+        tpl_tags = st.text_input("Tags (comma-separated)", key="tpl_tags")
+
+        if st.button("Save Template", key="save_tpl"):
+            if not tpl_name:
+                st.warning("Please enter a template name.")
+            else:
+                tpl = PlanTemplate(
+                    id=f"tpl-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                    name=tpl_name,
+                    description=tpl_desc or "",
+                    category=tpl_category or "general",
+                    product_tier=payment.get("product_purchased", ""),
+                    plan_text=plan_text,
+                    tags=[t.strip() for t in tpl_tags.split(",") if t.strip()] if tpl_tags else [],
+                    original_client=payment.get("client_name", ""),
+                    original_brand=(intake or {}).get("brand", ""),
+                )
+                path = save_template(tpl)
+                st.success(f"Template saved: {tpl_name}")
+
+
+def _render_templates_tab(payment: dict, intake: dict, plan_key: str) -> None:
+    """Template library tab — browse and apply plan templates."""
+    email = payment.get("email", "")
+
+    st.caption(
+        "Browse proven plan templates. Select one to use as a starting point, "
+        "then customize for this client."
+    )
+
+    templates = list_templates()
+
+    if not templates:
+        empty_state("No templates available yet.")
+        return
+
+    # Category filter
+    categories = ["All"] + get_categories()
+    selected_cat = st.selectbox("Filter by category", categories, key="tpl_filter_cat")
+
+    if selected_cat != "All":
+        templates = [t for t in templates if t.category == selected_cat]
+
+    if not templates:
+        empty_state(f"No templates in '{selected_cat}' category.")
+        return
+
+    # Template cards
+    for tpl in templates:
+        with st.container():
+            col_info, col_action = st.columns([4, 1])
+
+            with col_info:
+                tag_str = " ".join(f"`{tag}`" for tag in tpl.tags[:4]) if tpl.tags else ""
+                st.markdown(f"**{tpl.name}**")
+                st.caption(tpl.description)
+                if tag_str:
+                    st.markdown(tag_str)
+                st.caption(f"Category: {tpl.category} | Tier: {tpl.product_tier}")
+
+            with col_action:
+                if st.button("Use", key=f"use_tpl_{tpl.id}"):
+                    # Replace placeholder names with current client
+                    client_name = payment.get("client_name", "Client")
+                    brand = (intake or {}).get("brand", "")
+                    customized = tpl.plan_text
+                    if client_name:
+                        customized = customized.replace("your", f"{client_name}'s", 1)
+                    st.session_state[plan_key] = customized
+                    st.rerun()
+
+            with st.expander("Preview", expanded=False):
+                st.markdown(tpl.plan_text)
+
+            st.divider()

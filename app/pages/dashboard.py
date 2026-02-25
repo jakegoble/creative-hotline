@@ -13,8 +13,9 @@ from app.utils.attribution import channel_roi
 from app.utils import design_tokens as t
 from app.utils.ui import (
     page_header, section_header, metric_row, stat_card,
-    empty_state, kpi_hero, labeled_divider,
+    empty_state, kpi_hero, labeled_divider, activity_feed,
 )
+from app.utils.activity_feed import build_activity_feed
 
 
 def render():
@@ -83,6 +84,37 @@ def render():
         "funnel_conversion": funnel_conversion,
         "system_health": health_score,
     })
+
+    labeled_divider("Recent Activity")
+
+    # ── Activity Feed ──────────────────────────────────────────────
+
+    intakes = notion.get_all_intakes() if notion else []
+    events = build_activity_feed(payments, intakes, limit=10)
+
+    feed_col, stats_col = st.columns([3, 1], gap="medium")
+
+    with feed_col:
+        section_header("Activity Feed", "Latest pipeline activity across all channels")
+        activity_feed(events, max_items=8)
+
+    with stats_col:
+        section_header("Quick Stats")
+        needs_action = sum(
+            1 for p in payments
+            if p.get("status") in ("Paid - Needs Booking", "Booked - Needs Intake")
+        )
+        upcoming_calls = sum(
+            1 for p in payments
+            if p.get("status") in ("Intake Complete", "Ready for Call")
+        )
+        action_plans_due = sum(
+            1 for p in payments
+            if p.get("status") == "Call Complete"
+        )
+        stat_card("Needs Action", str(needs_action), subtitle="Awaiting booking or intake", accent_color=t.WARNING)
+        stat_card("Upcoming Calls", str(upcoming_calls), subtitle="Ready or prepped", accent_color=t.INFO)
+        stat_card("Plans Due", str(action_plans_due), subtitle="Call done, plan pending", accent_color=t.PRIMARY)
 
     labeled_divider("Performance")
 

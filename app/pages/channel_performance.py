@@ -21,6 +21,7 @@ from app.components.channel_chart import (
 )
 from app.components.heatmap import render_activity_heatmap
 from app.utils.formatters import format_currency, format_percentage
+from app.utils.benchmarks import sample_size_warning, CAC_BY_CHANNEL
 from app.utils import design_tokens as t
 from app.utils.ui import page_header, section_header, stat_card, empty_state
 
@@ -53,6 +54,18 @@ def render():
             src = item["payment"].get("lead_source") or "Unknown"
             source_scores.setdefault(src, []).append(item["score"]["total"])
 
+        # Check for low-sample channels
+        low_sample_channels = [
+            ch["channel"] for ch in roi_data
+            if not ch.get("sample_sufficient", ch.get("leads", 0) >= 10)
+        ]
+        if low_sample_channels:
+            st.caption(
+                f"*Low confidence: {', '.join(low_sample_channels)} "
+                f"({'has' if len(low_sample_channels) == 1 else 'have'} "
+                f"<10 leads — treat rates as directional.*"
+            )
+
         cols = st.columns(min(len(roi_data), 4))
         for i, ch in enumerate(roi_data[:4]):
             with cols[i]:
@@ -62,8 +75,11 @@ def render():
                     scores = source_scores[ch["channel"]]
                     avg_score = sum(scores) / len(scores)
 
+                low_n = not ch.get("sample_sufficient", ch.get("leads", 0) >= 10)
+                confidence_note = " \u26a0\ufe0f" if low_n else ""
+
                 stat_card(
-                    label=ch["channel"],
+                    label=ch["channel"] + confidence_note,
                     value=format_currency(ch["revenue"]),
                     subtitle=(
                         f"{ch['leads']} leads \u00b7 {ch['conversions']} converted \u00b7 "
@@ -136,6 +152,14 @@ def render():
         st.plotly_chart(fig, use_container_width=True)
     else:
         empty_state("Need more data to show revenue trends by channel.")
+
+    # Sample size context
+    total_leads = sum(
+        m.lead_count for m in metrics.values()
+    ) if metrics else 0
+    warning = sample_size_warning(total_leads, "attribution")
+    if warning:
+        st.caption(f"*{warning}*")
 
     st.divider()
 

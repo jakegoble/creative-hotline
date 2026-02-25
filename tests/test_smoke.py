@@ -30,6 +30,9 @@ def test_import_all_utils():
     from app.utils import transcript_processor
     from app.utils import demo_data
     from app.utils import theme
+    from app.utils import benchmarks
+    from app.utils import activity_feed
+    from app.utils import template_library
 
 
 def test_import_all_services():

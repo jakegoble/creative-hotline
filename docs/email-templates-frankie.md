@@ -1261,6 +1261,129 @@ For each workflow, replace `{{ EVENT_TYPE }}` and adjust the data table rows as 
 
 ---
 
+## 19. Sprint Upgrade Offer (Single Call → Sprint Credit)
+
+**Workflow:** Future — triggered 14 days after single-call action plan delivery
+**Trigger:** 14 days after Action Plan Sent = true AND product = First Call or Single Call
+**Purpose:** Offer explicit upgrade path with first-call payment as credit toward Sprint
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Your call counts toward something bigger` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your call counts toward something bigger</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Quick heads-up on something I wanted you to know about.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">If your action plan surfaced more questions than answers — or if you started executing and realized the problem goes deeper than one call could cover — that's completely normal. Some problems need more than 45 minutes.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">The 3-Session Clarity Sprint exists for exactly that. Three sessions over 2-3 weeks — we go deeper into strategy, review your execution, and build you a 90-day roadmap.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Here's the thing: <strong>your first-call payment counts as credit toward the Sprint.</strong> So instead of $1,495, you'd pay the difference. Just reply to this email and I'll sort out the details.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">This offer's good for 15 days from your call. No pressure — if the single session gave you everything you needed, that's great too. Just wanted to make sure you knew the option was there.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+---
+
+## 20. Value-Add (Pure Goodwill — Day 45-60)
+
+**Workflow:** Future — not yet built
+**Trigger:** 45-60 days after Action Plan Sent = true
+**Purpose:** Keep the relationship warm with genuine value, no pitch
+**n8n Node Fields:**
+
+| Field | Value |
+|-------|-------|
+| fromEmail | `hello@creativehotline.com` |
+| toEmail | `{{ $json.email }}` |
+| subject | `Saw this and thought of you` |
+| emailFormat | `html` |
+
+**HTML Template:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Saw this and thought of you</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f7f5f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f5f2;">
+    <tr>
+      <td align="center" style="padding: 40px 20px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden;">
+          <tr>
+            <td style="padding: 40px 40px 0 40px;">
+              <p style="margin: 0; font-size: 13px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: #FF6B35;">The Creative Hotline</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 30px 40px 40px 40px;">
+              <h1 style="margin: 0 0 20px 0; font-size: 24px; font-weight: 700; color: #1a1a1a; line-height: 1.3;">Hey {{ $json.name }},</h1>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Frankie here. Not selling you anything — just passing along something I think you'd find useful.</p>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Based on what we talked about on your call, I thought this might be relevant to where you are right now:</p>
+              <div style="padding: 20px; background-color: #faf8f5; border-left: 4px solid #FF6B35; border-radius: 0 6px 6px 0; margin: 0 0 20px 0;">
+                <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #333333;">{{ $json.value_add_content }}</p>
+              </div>
+              <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 1.6; color: #333333;">Hope it helps. If you've got updates on how things are going, I'd genuinely love to hear. Just hit reply.</p>
+              <p style="margin: 0 0 0 0; font-size: 16px; line-height: 1.6; color: #333333;">— Frankie</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding: 24px 40px; background-color: #fafafa; border-top: 1px solid #eeeeee;">
+              <p style="margin: 0; font-size: 13px; color: #999999; line-height: 1.5;">The Creative Hotline<br>Questions? Just reply to this email.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+```
+
+**Implementation Note:** The `{{ $json.value_add_content }}` variable should be populated by a Claude API call that generates a relevant resource recommendation based on the client's Creative Emergency and Desired Outcome from their intake. Example output: "I came across [Tool Name] — it's a free tool that does exactly what we talked about for organizing your content calendar. Here's the link: [URL]. It takes about 10 minutes to set up."
+
+---
+
 ## Implementation Notes
 
 1. **n8n expression syntax:** All `{{ }}` expressions in these templates use n8n's built-in expression format. They reference the output of upstream nodes. Verify node names match your workflow exactly before deploying.

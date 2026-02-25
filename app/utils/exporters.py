@@ -165,6 +165,172 @@ def generate_premium_pdf(
     return buffer.getvalue()
 
 
+def generate_sprint_completion_pdf(
+    client_name: str,
+    brand: str,
+    session_plans: list[str],
+    roadmap_markdown: str,
+    transcript_summaries: list[dict | None] | None = None,
+) -> bytes:
+    """Generate a consolidated Sprint completion PDF.
+
+    Combines action plans from all 3 sessions with a 90-day roadmap.
+
+    Args:
+        client_name: Client's full name.
+        brand: Client's brand name.
+        session_plans: List of 3 action plan markdown strings (one per session).
+        roadmap_markdown: 90-day roadmap as markdown.
+        transcript_summaries: Optional list of transcript summaries per session.
+
+    Returns:
+        PDF as bytes.
+    """
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        leftMargin=1 * inch,
+        rightMargin=1 * inch,
+        topMargin=0.8 * inch,
+        bottomMargin=1 * inch,
+    )
+
+    styles = _build_styles()
+    story = []
+
+    # ── Cover Page ────────────────────────────────────────────────
+
+    story.append(Spacer(1, 2 * inch))
+    story.append(Paragraph("THE CREATIVE HOTLINE", styles["cover_brand"]))
+    story.append(Spacer(1, 24))
+    story.append(Paragraph("3-Session Clarity Sprint", styles["cover_title"]))
+    story.append(Spacer(1, 8))
+    story.append(Paragraph(f"for {client_name}", styles["cover_subtitle"]))
+    story.append(Spacer(1, 20))
+
+    if brand:
+        story.append(Paragraph(brand, styles["cover_meta"]))
+        story.append(Spacer(1, 6))
+
+    today = datetime.now().strftime("%B %d, %Y")
+    story.append(Paragraph(f"Completed {today}", styles["cover_meta"]))
+    story.append(Spacer(1, 24))
+    story.append(HRFlowable(width="40%", thickness=3, color=ORANGE))
+    story.append(Spacer(1, 40))
+
+    # Sprint summary on cover
+    story.append(Paragraph(
+        "This document consolidates all three sessions of your Clarity Sprint "
+        "into a single reference. It includes your final action plan, session-"
+        "by-session highlights, and your 90-day roadmap.",
+        ParagraphStyle(
+            "cover_body", parent=styles["body"],
+            alignment=TA_CENTER, textColor=GRAY, fontSize=12,
+        ),
+    ))
+
+    story.append(PageBreak())
+
+    # ── Table of Contents ─────────────────────────────────────────
+
+    story.append(Paragraph("What's Inside", styles["h2"]))
+    story.append(Spacer(1, 8))
+    toc_items = [
+        "Session 1 — Direction",
+        "Session 2 — Execution Review",
+        "Session 3 — Roadmap",
+        "Your 90-Day Roadmap",
+    ]
+    if transcript_summaries and any(transcript_summaries):
+        toc_items.append("Key Themes from Our Conversations")
+
+    for idx, item in enumerate(toc_items, 1):
+        story.append(Paragraph(f"{idx}. {item}", styles["body"]))
+
+    story.append(Spacer(1, 12))
+    story.append(HRFlowable(width="100%", thickness=1, color=LIGHT_RULE))
+
+    # ── Session Action Plans ──────────────────────────────────────
+
+    session_labels = [
+        "Session 1 — Direction",
+        "Session 2 — Execution Review",
+        "Session 3 — Roadmap",
+    ]
+
+    for idx, (label, plan) in enumerate(zip(session_labels, session_plans)):
+        story.append(PageBreak())
+        story.append(Spacer(1, 10))
+
+        # Session header bar
+        story.append(Paragraph(
+            f"SESSION {idx + 1} OF 3",
+            ParagraphStyle(
+                f"session_badge_{idx}", parent=styles["brand"],
+                fontSize=10,
+            ),
+        ))
+        story.append(Spacer(1, 4))
+        story.append(Paragraph(label, styles["cover_subtitle"]))
+        story.append(Spacer(1, 8))
+        story.append(HRFlowable(width="100%", thickness=2, color=ORANGE, spaceAfter=16))
+
+        story.extend(_parse_markdown_to_story(plan, styles))
+
+    # ── 90-Day Roadmap ────────────────────────────────────────────
+
+    story.append(PageBreak())
+    story.append(Spacer(1, 10))
+    story.append(Paragraph("YOUR 90-DAY ROADMAP", styles["brand"]))
+    story.append(Spacer(1, 4))
+    story.append(Paragraph("Your 90-Day Roadmap", styles["cover_subtitle"]))
+    story.append(Spacer(1, 8))
+    story.append(HRFlowable(width="100%", thickness=2, color=ORANGE, spaceAfter=16))
+
+    story.extend(_parse_markdown_to_story(roadmap_markdown, styles))
+
+    # ── Appendix: Themes from All Sessions ────────────────────────
+
+    if transcript_summaries and any(transcript_summaries):
+        story.append(PageBreak())
+        story.append(Spacer(1, 10))
+        story.append(Paragraph(
+            "Key Themes from Our Conversations", styles["h2"],
+        ))
+        story.append(Spacer(1, 8))
+
+        for idx, summary in enumerate(transcript_summaries):
+            if not summary:
+                continue
+
+            story.append(Paragraph(
+                f"Session {idx + 1}", styles["appendix_header"],
+            ))
+            story.append(Spacer(1, 4))
+
+            for section_title, items in _build_appendix_sections(summary):
+                story.append(Paragraph(
+                    section_title,
+                    ParagraphStyle(
+                        f"sub_header_{idx}_{section_title}",
+                        parent=styles["body"],
+                        fontName="Helvetica-Bold",
+                        textColor=DARK_TEXT,
+                    ),
+                ))
+                story.append(Spacer(1, 2))
+                for item in items:
+                    text = _md_to_reportlab(item)
+                    story.append(Paragraph(f"\u2022 {text}", styles["body"]))
+                story.append(Spacer(1, 8))
+
+            story.append(Spacer(1, 12))
+
+    doc.build(story, onFirstPage=_add_page_number, onLaterPages=_add_page_number)
+    return buffer.getvalue()
+
+
 def save_action_plan_version(
     email: str,
     action_plan_text: str,
