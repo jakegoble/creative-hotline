@@ -77,11 +77,11 @@ DANGER_BG = "rgba(239, 68, 68, 0.08)"
 INFO = "#3B82F6"  # Blue-500
 INFO_BG = "rgba(59, 130, 246, 0.08)"
 
-# ── Shadows (4-tier elevation) ────────────────────────────────────
-SHADOW_XS = "0 1px 2px rgba(0,0,0,0.04)"
-SHADOW_SM = "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)"
-SHADOW_MD = "0 4px 8px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04)"
-SHADOW_LG = "0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04)"
+# ── Shadows (4-tier elevation — dramatic for visible depth) ───────
+SHADOW_XS = "0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)"
+SHADOW_SM = "0 2px 8px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.06)"
+SHADOW_MD = "0 6px 16px rgba(0,0,0,0.1), 0 2px 6px rgba(0,0,0,0.06)"
+SHADOW_LG = "0 16px 32px rgba(0,0,0,0.12), 0 6px 12px rgba(0,0,0,0.08)"
 
 # ── Border radius ─────────────────────────────────────────────────
 RADIUS_XS = 4

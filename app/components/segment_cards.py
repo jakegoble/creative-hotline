@@ -9,6 +9,8 @@ import streamlit as st
 
 from app.utils import design_tokens as t
 from app.utils.formatters import format_currency
+from html import escape
+
 from app.utils.ui import badge, empty_state
 
 
@@ -66,24 +68,32 @@ def render_segment_detail(segment, scored_clients: list[dict] | None = None) -> 
             if email:
                 score_map[email] = sc.get("score", {}).get("total", 0)
 
+    items_html = ""
     for client in segment.clients:
         name = client.get("client_name") or client.get("email", "Unknown")
         email = client.get("email", "")
         status = client.get("status", "")
         amount = client.get("payment_amount", 0)
         score = score_map.get(email.lower(), "\u2014")
+        items_html += (
+            f'<div class="ch-feed-item">'
+            f'<div class="ch-feed-dot" style="background:{color}"></div>'
+            f'<div class="ch-feed-content">'
+            f'<div class="ch-feed-title">{escape(name)}</div>'
+            f'<div class="ch-feed-subtitle">{escape(email)}</div>'
+            f'</div>'
+            f'<div class="ch-text-xs ch-text-muted" style="flex-shrink:0">'
+            f'{escape(status)} &middot; {format_currency(amount)} &middot; Score: {score}'
+            f'</div>'
+            f'</div>'
+        )
 
-        c1, c2, c3, c4 = st.columns([3, 2, 2, 1])
-        with c1:
-            st.markdown(f"**{name}**")
-            st.caption(email)
-        with c2:
-            st.caption(f"Status: {status}")
-        with c3:
-            st.caption(f"Amount: {format_currency(amount)}")
-        with c4:
-            st.caption(f"Score: {score}")
-
+    st.markdown(
+        f'<div class="ch-card" style="padding:0;overflow:hidden">'
+        f'<div class="ch-feed">{items_html}</div>'
+        f'</div>',
+        unsafe_allow_html=True,
+    )
     st.caption(f"{segment.count} clients | Est. value: {format_currency(segment.estimated_value)}")
 
 

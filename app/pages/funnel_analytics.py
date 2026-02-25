@@ -9,16 +9,17 @@ from datetime import datetime
 import streamlit as st
 import plotly.graph_objects as go
 
-from app.config import PIPELINE_STATUSES, LEAD_SOURCES, CHANNEL_COLORS
-from app.utils.formatters import format_currency, format_percentage, days_between
+from app.config import PIPELINE_STATUSES, LEAD_SOURCES
+from app.utils.formatters import format_currency, days_between
 from app.utils.sequence_tracker import (
     build_sequence_map,
     sequence_completion_rates,
     sequence_conversion_rates,
 )
+from app.components.funnel_chart import render_funnel
 from app.utils.ui import (
     page_header, section_header, stat_card, empty_state,
-    data_card, badge, progress_bar,
+    data_card, badge,
 )
 from app.utils.benchmarks import FUNNEL_BENCHMARKS, sample_size_warning
 from app.utils import design_tokens as t
@@ -137,39 +138,44 @@ def render():
         )
         stage_counts.append({"stage": status, "count": count})
 
-    # Display funnel with drop-off + benchmark comparison
-    prev_count = total
     # Map pipeline transitions to benchmark keys
     transition_map = {
-        1: "Lead → Paid",
-        2: "Paid → Booked",
-        3: "Booked → Intake",
-        4: "Intake → Call Complete",
+        1: "Lead \u2192 Paid",
+        2: "Paid \u2192 Booked",
+        3: "Booked \u2192 Intake",
+        4: "Intake \u2192 Call Complete",
     }
 
-    for i, sc in enumerate(stage_counts):
-        count = sc["count"]
-        drop = prev_count - count if i > 0 else 0
-        drop_pct = (drop / prev_count * 100) if prev_count > 0 else 0
-        actual_rate = (count / prev_count * 100) if prev_count > 0 and i > 0 else 100
+    # Plotly funnel chart (replaces progress bars)
+    funnel_data = [sc for sc in stage_counts if sc["count"] > 0]
+    if funnel_data:
+        fig = render_funnel(funnel_data)
+        st.plotly_chart(fig, use_container_width=True)
 
-        pct_of_total = count / total * 100 if total > 0 else 0
-        color = t.PRIMARY if pct_of_total > 50 else t.PRIMARY_LIGHT if pct_of_total > 25 else t.WARNING
-
-        # Add benchmark context if available
-        bench_key = transition_map.get(i)
-        bench_info = FUNNEL_BENCHMARKS.get(bench_key) if bench_key else None
-        bench_text = ""
-        if bench_info and i > 0:
-            bench_rate = bench_info["rate"] * 100
-            diff = actual_rate - bench_rate
-            arrow = "\u2191" if diff > 0 else "\u2193" if diff < 0 else "="
-            bench_text = f" | benchmark: {bench_rate:.0f}% {arrow}"
-
-        drop_text = "" if i == 0 else f" (-{drop}, {drop_pct:.0f}% drop{bench_text})"
-        label = f"{sc['stage']} \u2014 {count}{drop_text}"
-        progress_bar(count, total, color=color, label=label)
-        prev_count = count
+    # Drop-off summary
+    with st.expander("Drop-off Analysis"):
+        prev_count = total
+        for i, sc in enumerate(stage_counts):
+            count = sc["count"]
+            if i == 0:
+                st.markdown(f"**{sc['stage']}**: {count} total")
+            else:
+                drop = prev_count - count
+                drop_pct = (drop / prev_count * 100) if prev_count > 0 else 0
+                actual_rate = (count / prev_count * 100) if prev_count > 0 else 100
+                bench_key = transition_map.get(i)
+                bench_info = FUNNEL_BENCHMARKS.get(bench_key) if bench_key else None
+                bench_text = ""
+                if bench_info:
+                    bench_rate = bench_info["rate"] * 100
+                    diff = actual_rate - bench_rate
+                    arrow = "\u2191" if diff > 0 else "\u2193" if diff < 0 else "="
+                    bench_text = f" (benchmark: {bench_rate:.0f}% {arrow})"
+                st.markdown(
+                    f"**{sc['stage']}**: {count} \u2014 "
+                    f"dropped {drop} ({drop_pct:.0f}%){bench_text}"
+                )
+            prev_count = count
 
     # Sample size context
     warning = sample_size_warning(total, "funnel")
@@ -296,10 +302,10 @@ def render():
     conv_rates = sequence_conversion_rates(payments)
 
     if comp_rates:
-        cols = st.columns(len(comp_rates))
-        for col, (seq_name, rates) in zip(cols, comp_rates.items()):
+        cols = st.columns(min(len(comp_rates), 3))
+        for i, (seq_name, rates) in enumerate(comp_rates.items()):
             conv = conv_rates.get(seq_name, {})
-            with col:
+            with cols[i % 3]:
                 stat_card(
                     label=seq_name,
                     value=f"{rates['rate']:.0f}%",

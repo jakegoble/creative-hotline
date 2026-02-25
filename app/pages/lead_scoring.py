@@ -118,15 +118,16 @@ def render():
                     progress_bar(cat_score, cat_max, color=cat_color, label=cat_name, show_value=True)
 
             # Quick details
+            _dash = "\u2014"
             detail_cols = st.columns(4)
             with detail_cols[0]:
-                st.caption(f"Product: {payment.get('product_purchased') or '\u2014'}")
+                st.caption(f"Product: {payment.get('product_purchased') or _dash}")
             with detail_cols[1]:
                 st.caption(f"Amount: {format_currency(payment.get('payment_amount', 0))}")
             with detail_cols[2]:
-                st.caption(f"Status: {payment.get('status') or '\u2014'}")
+                st.caption(f"Status: {payment.get('status') or _dash}")
             with detail_cols[3]:
-                st.caption(f"Source: {payment.get('lead_source') or '\u2014'}")
+                st.caption(f"Source: {payment.get('lead_source') or _dash}")
 
             # Expandable score reasons
             with st.expander("Score Details"):

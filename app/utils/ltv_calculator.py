@@ -191,8 +191,14 @@ def ltv_by_entry_product(payments: list[dict]) -> dict[str, dict]:
     return result
 
 
-def ltv_by_cohort(payments: list[dict]) -> list[CohortLTV]:
-    """LTV by signup month cohort.
+def ltv_by_cohort(
+    payments: list[dict], period: str = "monthly"
+) -> list[CohortLTV]:
+    """LTV by signup cohort.
+
+    Args:
+        payments: Payment records.
+        period: "monthly" (default) or "quarterly" grouping.
 
     Cohorts with fewer than MIN_COHORT_SIZE clients are still returned
     but flagged with sample_sufficient=False to indicate the stats
@@ -207,17 +213,23 @@ def ltv_by_cohort(payments: list[dict]) -> list[CohortLTV]:
         first_date = _parse_date(sorted_recs[0].get("payment_date") or sorted_recs[0].get("created"))
         if not first_date:
             continue
-        month = first_date.strftime("%Y-%m")
+
+        if period == "quarterly":
+            quarter = (first_date.month - 1) // 3 + 1
+            key = f"{first_date.year}-Q{quarter}"
+        else:
+            key = first_date.strftime("%Y-%m")
+
         upsold = len(records) > 1
-        cohort_data[month].append({"ltv": total, "upsold": upsold})
+        cohort_data[key].append({"ltv": total, "upsold": upsold})
 
     results = []
-    for month in sorted(cohort_data.keys()):
-        clients = cohort_data[month]
+    for key in sorted(cohort_data.keys()):
+        clients = cohort_data[key]
         ltvs = [c["ltv"] for c in clients]
         sufficient = len(clients) >= MIN_COHORT_SIZE
         results.append(CohortLTV(
-            cohort_month=month,
+            cohort_month=key,
             client_count=len(clients),
             total_revenue=sum(ltvs),
             avg_ltv=sum(ltvs) / len(ltvs),

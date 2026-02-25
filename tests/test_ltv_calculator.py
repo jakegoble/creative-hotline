@@ -144,6 +144,23 @@ def test_ltv_by_cohort():
     assert jan.total_revenue == 2693
 
 
+def test_ltv_by_cohort_quarterly():
+    result = ltv_by_cohort(PAYMENTS, period="quarterly")
+    quarters = [c.cohort_month for c in result]
+    assert "2026-Q1" in quarters
+    q1 = next(c for c in result if c.cohort_month == "2026-Q1")
+    # All 3 paid clients (Alice, Bob, Diana) are in Q1 2026
+    assert q1.client_count == 3
+    assert q1.total_revenue == 1994 + 699 + 499
+
+
+def test_ltv_by_cohort_quarterly_sorts():
+    # Should sort by quarter key
+    result = ltv_by_cohort(PAYMENTS, period="quarterly")
+    keys = [c.cohort_month for c in result]
+    assert keys == sorted(keys)
+
+
 # ── Upsell Rate ─────────────────────────────────────────────────
 
 def test_upsell_rate():

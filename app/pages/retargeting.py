@@ -8,6 +8,8 @@ from app.utils.segment_builder import build_all_segments, segment_summary
 from app.utils.lead_scorer import score_all_clients, get_tier_color
 from app.components.segment_cards import render_segment_cards, render_segment_detail
 from app.utils.formatters import format_currency
+from html import escape
+
 from app.utils.ui import page_header, section_header, metric_row, empty_state, badge
 
 
@@ -93,6 +95,7 @@ def render():
             reverse=True,
         )
 
+        items_html = ""
         for email, info in sorted_queue:
             client = info["client"]
             name = client.get("client_name") or email
@@ -100,17 +103,25 @@ def render():
             tier_color = get_tier_color(
                 "Hot" if score >= 80 else "Warm" if score >= 50 else "Cool" if score >= 25 else "Cold"
             )
-
-            c1, c2, c3, c4 = st.columns([3, 2, 2, 3])
-            with c1:
-                st.markdown(f"**{name}**")
-                st.caption(email)
-            with c2:
-                st.markdown(badge(f"{score}/100", color=tier_color), unsafe_allow_html=True)
-            with c3:
-                st.caption(info["segment"])
-            with c4:
-                st.caption(info["action"])
+            items_html += (
+                f'<div class="ch-feed-item">'
+                f'<div class="ch-feed-dot" style="background:{tier_color}"></div>'
+                f'<div class="ch-feed-content">'
+                f'<div class="ch-feed-title">{escape(name)}</div>'
+                f'<div class="ch-feed-subtitle">{escape(email)}</div>'
+                f'</div>'
+                f'<div style="display:flex;align-items:center;gap:8px;flex-shrink:0">'
+                f'{badge(f"{score}/100", color=tier_color)}'
+                f'<span class="ch-text-xs ch-text-muted">{escape(info["segment"])}</span>'
+                f'</div>'
+                f'</div>'
+            )
+        st.markdown(
+            f'<div class="ch-card" style="padding:0;overflow:hidden">'
+            f'<div class="ch-feed">{items_html}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
 
 
     # ── Win-Back Analysis ─────────────────────────────────────────

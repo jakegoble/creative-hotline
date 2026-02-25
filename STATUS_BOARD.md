@@ -2,7 +2,7 @@
 <!-- PROTOCOL: All 10 agents MUST read this file at session start and update their section
      at session end. See CLAUDE.md, DECISIONS.md, and docs/agent-roles.md for full protocol. -->
 
-> Last updated: 2026-02-24 by Growth Intelligence Analyst (benchmarks module + capacity ceiling UI + sample warnings)
+> Last updated: 2026-02-25 by Command Center Engineer (growth action plan — 12 initiatives across 4 phases, role-specific instructions for all 10 agents)
 
 ---
 
@@ -13,7 +13,7 @@
 | Command Center version | v5.0 |
 | Total modules | 75+ |
 | Total pages | 13 |
-| Total tests | 427 (all passing) |
+| Total tests | 463 (all passing) |
 | n8n active workflows | **5** (WF1-4 + Daily Follow-Up Engine — all live and branded) |
 | n8n plan | Upgraded (no longer trial) |
 | Streamlit Cloud | Deployed |
@@ -31,11 +31,17 @@
 ### Critical Path to Revenue (from COS briefing, Feb 24)
 1. **Webflow landing pages** — /strategy-call + /premium-sprint specs ready, pages not built yet. Nothing else matters until people can land and buy. (Builder)
 2. **Tracking pixels on Webflow** — Meta Pixel, LinkedIn Insight Tag, GA4, GTM, Search Console. Tracking Pixel Guide in Notion has all snippets. Install same day as landing pages. (Amplifier → Builder)
-3. **Stripe cleanup** — $699 product still named "Standard Call" (should be "Single Call"). Add metadata keys (product_name, product_tier, notion_status) to all 3 products. 10-minute task. (Jake)
+3. ~~**Stripe cleanup**~~ — DONE. Stripe already renamed to "Single Call" + metadata applied.
 4. **TikTok Ads account** — Only platform not created. Needs Jake login. (Jake + Amplifier)
 5. **Google Ads** — Account exists, needs campaigns + billing. (Amplifier)
 6. **hello@ email forwarding** — Nudge Megha. (Jake)
 7. **Laylo code TCHTRIAL** — Redeem in March for free month. (Jake)
+
+### Growth Action Plan (Feb 25) — `docs/growth-action-plan.md`
+12 initiatives across 4 phases. All roles have specific instructions. Phase 0 (launch foundation) must complete before Phase 1.
+- **Phase 1 (Week 1-2):** Referral program, AI content repurposing, Reddit monitoring, lead enrichment (Apollo), VIP Day ($2,995)
+- **Phase 2 (Week 2-4):** 7-email nurture sequence, AI Brand Audit page, Instagram carousel ads
+- **Phase 3 (Week 4-8):** Automated $299 Brand Audit product, community membership, Apify lead scraping, private podcast
 
 ---
 
@@ -46,8 +52,14 @@
 - **Blockers**: —
 - **Completed since last update**: _(no sessions yet)_
 - **Pending**:
+  - [ ] **READ FIRST:** `docs/growth-action-plan.md` — 12 initiatives across 4 phases with master coordination checklist
   - [ ] Review all STATUS_BOARD sections, prioritize work across all 10 roles
   - [ ] Review and finalize DECISIONS.md
+  - [ ] **Phase 1: Referral program validation** — research best practices, validate $100/$50 incentive math, add Decision #12 if approved (see growth-action-plan.md Initiative 1)
+  - [ ] **Phase 1: Reddit monitoring decision** — should Reddit leads go into Payments DB or separate "Social Leads" DB? (see Initiative 3)
+  - [ ] **Phase 1: VIP Implementation Day definition** — define $2,995 product, get Jake approval, add Decision #13, handoff copy brief to Frankie (see Initiative 5)
+  - [ ] **Phase 2: Community platform selection** — Circle vs Discord vs Slack for $49/month membership (see Initiative 10)
+  - [ ] Track all 12 initiatives using master checklist in growth-action-plan.md
   - [ ] Cross-reference research on launch strategy
   - [ ] Create Notion strategy documents
   - [ ] Set up daily coordination rhythm
@@ -108,8 +120,8 @@
   - [x] Identified team notification sender issues across all 4 workflows
   - [x] Full audit report written: `docs/workflow-audit-2026-02-24.md`
 - **Pending** (prioritized):
-  - [ ] **P0**: Write build spec for Daily Follow-Up Engine (from consolidation spec)
-  - [ ] **P1: WF1** — fix "Single Call" → "Standard Call", fix customer email vars + data flow + Calendly URL
+  - [ ] ~~**P0**: Write build spec for Daily Follow-Up Engine~~ → DONE (Conductor built it)
+  - [ ] **P1: WF1** — fix customer email vars + data flow + Calendly URL
   - [ ] **P1: WF2** — fix client_name → name in team email
   - [ ] **P1: WF3** — fix Client Name title (empty), verify rich_text fields via live test, fix upsell detection type
   - [ ] **P1: WF4** — fix Lead Source "Direct" → "IG DM"
@@ -119,10 +131,17 @@
   - [ ] **P3: WF2** — add customer booking confirmation email (template #9)
   - [ ] **P3: WF3** — delete orphaned "Find Notion Lead" node
   - [ ] **P3: WF1** — add Stripe webhook signature verification
+  - [ ] **GROWTH Phase 1:** Referral workflow spec → `docs/specs/referral-workflow-spec.md` (see growth-action-plan.md Initiative 1)
+  - [ ] **GROWTH Phase 1:** Reddit monitoring workflow spec → `docs/specs/reddit-monitoring-spec.md` (Initiative 3)
+  - [ ] **GROWTH Phase 1:** Apollo lead enrichment workflow spec → `docs/specs/lead-enrichment-spec.md` (Initiative 4)
+  - [ ] **GROWTH Phase 2:** Content repurposing workflow spec → `docs/specs/content-repurposing-spec.md` (Initiative 2)
+  - [ ] **GROWTH Phase 2:** 7-email nurture sequence workflow spec → `docs/specs/nurture-sequence-spec.md` (Initiative 6)
+  - [ ] **GROWTH Phase 3:** Automated $299 Brand Audit product spec (Initiative 9)
+  - [ ] **GROWTH Phase 3:** Apify Instagram scraping spec (Initiative 11)
 
-## Command Center Engineer (ARCH) — Last active: Feb 24
-- **Current focus**: UI consistency audit complete
-- **Test status**: 394/394 passing
+## Command Center Engineer (ARCH) — Last active: Feb 25
+- **Current focus**: Growth action plan created — 12 initiatives mapped to all 10 roles
+- **Test status**: 463/463 passing
 - **Blockers**: None
 - **Completed since last update**:
   - [x] v5.0 UI/UX redesign (design tokens, ui.py, plotly_theme, all 13 pages)
@@ -138,36 +157,40 @@
   - [x] Replaced all hardcoded font-size px values in 3 components (scenario_cards, segment_cards, client_timeline)
   - [x] Fixed hardcoded #FFD4BC in funnel_analytics.py → t.WARNING
   - [x] Zero hardcoded hex values remain in app/components/
+  - [x] Fixed CLAUDE.md: workflow count (5 active), product name (Single Call), removed stale P0 blockers, added resolved items
+  - [x] Updated DECISIONS.md: Stripe rename marked as DONE
+  - [x] Updated MEMORY.md: Single Call naming, 400+ tests, Daily Follow-Up Engine LIVE
+  - [x] **Growth Intelligence Report** — `docs/growth-intelligence-report.md`: competitive analysis, 6 data source categories, pricing psychology, 12 growth initiatives ranked by impact/effort
+  - [x] **Growth Action Plan** — `docs/growth-action-plan.md`: 12 initiatives across 4 phases, step-by-step instructions for every role, revenue projections, master coordination checklist for COS
 - **Pending**:
-  - [ ] Fix CLAUDE.md: workflow count, Daily Follow-Up Engine status
+  - [ ] **Phase 2: Build Brand Audit page** — `app/pages/brand_audit.py` + `app/utils/brand_auditor.py` + PDF export (see growth-action-plan.md Initiative 7)
+  - [ ] Add Brand Audit to main.py sidebar
+  - [ ] Add Content Calendar Notion DB ID to CLAUDE.md once CRM creates it
 
-## Growth Intelligence Analyst (GROWTH) — Last active: Feb 24 (session 2)
-- **Current focus**: Benchmarks module built, capacity ceiling + sample warnings wired into pages
-- **Test status**: 427/427 passing (27 new benchmarks tests)
+## Growth Intelligence Analyst (GROWTH) — Last active: Feb 24 (session 3)
+- **Current focus**: All analytics wiring complete — benchmarks, LTV, cohorts, funnels, CAC all surfaced in pages
+- **Test status**: 463/463 passing
 - **Blockers**: None
 - **Completed since last update**:
   - [x] Deep audit of all 8 analytics modules — 11 issues found, all P0-P3 fixed
   - [x] Validated $800K revenue path — max call revenue ~$527K; ~$275K gap needs non-call products
   - [x] All 6 module fixes: revenue_modeler, lead_scorer, attribution, ltv_calculator, segment_builder, keyword_extractor
-  - [x] **NEW: `app/utils/benchmarks.py`** — industry benchmarks module with 20+ constants sourced from First Page Sage, Consulting Success, ActiveCampaign, etc.
-    - Conversion benchmarks (lead-to-paid 20%, show rate 92%, intake completion 75%, upsell 20%)
-    - CAC benchmarks by channel (Referral $100, IG DM $200, Website $300, Meta Ad $800)
-    - LTV benchmarks (first-year $910, LTV:CAC target 3:1, referral rate 30%)
-    - Revenue mix by scale ($500K: 70% calls / $800K: 52% calls / $1M: 40% calls)
-    - Funnel stage benchmarks (6 stages with target rates)
-    - `compare_to_benchmark()`, `compare_funnel()`, `compare_channel_cac()`, `revenue_ceiling_summary()`, `sample_size_warning()`
-  - [x] **Wired capacity ceiling into Revenue Goals page** — shows $527K ceiling, gap to goal, utilization %, and gap closer product cards with industry revenue mix reference
-  - [x] **Wired sample warnings into Channel Performance** — low-confidence channels flagged with warning icon, caption for N<10, attribution sample size context
-  - [x] 27 new tests for benchmarks module (test_benchmarks.py)
-  - [x] Smoke test updated to include benchmarks module
-  - [x] Full suite: 427 tests passing
+  - [x] **NEW: `app/utils/benchmarks.py`** — industry benchmarks module with 20+ constants
+  - [x] **Wired capacity ceiling into Revenue Goals page** — ceiling banner, gap closer cards, revenue mix
+  - [x] **Wired sample warnings into Channel Performance** — low-N warning icons + captions
+  - [x] **Session 3: Wired projected_ltv into Outcomes page** — replaced Expansion Revenue metric with Avg LTV (Projected), shows benchmark delta vs $910 first-year target
+  - [x] **Session 3: Wired ltv_by_cohort() into Outcomes page** — new "Cohort LTV Trends" section with monthly/quarterly toggle, bar+scatter chart, benchmark reference line, confidence flags
+  - [x] **Session 3: Added sample_size_warning to Outcomes** — warns when LTV data has <30 clients, flags low-sample sources
+  - [x] **Session 3: Added FIRST_YEAR_LTV benchmark line** to LTV by Source chart (vertical dashed at $910)
+  - [x] **Session 3: Wired compare_funnel() into Funnel Analytics** — each drop-off now shows benchmark rate + arrow (↑/↓/=) comparison
+  - [x] **Session 3: Wired CAC benchmarks into Channel Performance** — new "CAC Benchmarks by Channel" section with industry benchmark cards per channel
+  - [x] **Session 3: Added quarterly cohort grouping** to ltv_calculator.py — new `period="quarterly"` parameter, Q1-Q4 labels
+  - [x] 27 benchmarks tests + 2 quarterly cohort tests + 34 tests from other agents = 463 total passing
 - **Pending**:
-  - [ ] Wire `projected_ltv` and `median_ltv` into Outcomes page
-  - [ ] Wire `compare_funnel()` benchmarks into Funnel Analytics page (show benchmark lines)
-  - [ ] Wire `compare_channel_cac()` into Channel Performance page (show CAC vs benchmark)
-  - [ ] Add quarterly cohort grouping to ltv_calculator.py
-  - [ ] Wire `ltv_by_cohort()` + `payback_period()` into Outcomes page
-  - [ ] Add benchmark reference lines to Plotly charts (conversion rate vs industry avg)
+  - [ ] Wire `payback_period()` into a page (Revenue Goals or Outcomes — needs actual channel cost data)
+  - [ ] Add benchmark reference lines to more Plotly charts (lead scoring distribution vs thresholds)
+  - [ ] Build cohort retention chart (repeat purchase rate by cohort month)
+  - [ ] **GROWTH Phase 2:** Brand audit scoring model — scoring rubric in brand_auditor.py + benchmarks in benchmarks.py (see growth-action-plan.md Initiative 7)
 
 ## Creative Director / Frankie (FRANK) — Last active: Feb 24 (session 3)
 - **Current focus**: All content pipeline work complete — 20 email templates, 8 prompts, landing pages, Sprint PDF, Brand Voice Guide
@@ -196,6 +219,11 @@
   - [ ] n8n template deployment (depends on Conductor implementing WF fixes first)
   - [ ] ManyChat Knowledge Base voice audit (ensure KB entries match Frankie voice guide)
   - [ ] Loom walkthrough process doc for Jake/Megha (record 5-min video walking through action plan)
+  - [ ] **GROWTH Phase 1:** Referral emails — templates #21 (referral ask), #22 (referral success), #23 (referred welcome). Handoff to Auto Architect. (see growth-action-plan.md Initiative 1)
+  - [ ] **GROWTH Phase 2:** Content repurposing prompts — CONTENT_REPURPOSING_PROMPT in frankie_prompts.py + ClaudeService method (Initiative 2)
+  - [ ] **GROWTH Phase 2:** 7-email nurture sequence — templates #24-30, lead magnet options. Handoff to Auto Architect. (Initiative 6)
+  - [ ] **GROWTH Phase 2:** Instagram ad copy — 3 carousel ads + 2 Reels scripts in `docs/ad-copy-frankie.md` (Initiative 8)
+  - [ ] **GROWTH Phase 3:** Private podcast scripts — 5 episodes (Initiative 12)
 
 ## Platform Reliability / SRE (SRE) — Last active: Feb 24
 - **Test count**: 394 tests, all passing (4.31s)
@@ -244,6 +272,9 @@
   - [ ] Add "Client Value Tier" formula to Payments DB
   - [ ] Populate Intake DB "Call Date" via WF2 or WF3
   - [ ] Consider converting Intake "Deadline" from rich_text to date type
+  - [ ] **GROWTH Phase 1:** Referral Notion setup — 4 new fields (Referred By, Referral Code, Referral Count, Referral Credit) + update notion_client.py + demo_data.py + handoff to Auto Architect (see growth-action-plan.md Initiative 1)
+  - [ ] **GROWTH Phase 1:** Content Calendar Notion DB — create database, add to CLAUDE.md, update notion_client.py (Initiative 2)
+  - [ ] **GROWTH Phase 1:** Apollo enrichment fields — 6 new Payments DB fields (Company, Company Size, Title, Industry, LinkedIn URL, Enriched) + lead_scorer.py updates (Initiative 4)
 
 ---
 
@@ -255,6 +286,13 @@
 - **Priority shift: Webflow landing pages are now #1 blocker.** Nothing else matters until /strategy-call and /premium-sprint are live. Builder role is critical path.
 - Tracking pixels ready in Notion (Tracking Pixel Guide) — install same day landing pages go up.
 - hello@ email forwarding: nudge Megha. Laylo code TCHTRIAL: redeem in March.
+
+### From Command Center Engineer → All Agents (Feb 25)
+- **Growth Action Plan published:** `docs/growth-action-plan.md` — 12 initiatives across 4 phases (Phase 0: launch foundation → Phase 1: revenue engine → Phase 2: growth automation → Phase 3: scale & diversify)
+- **Every role has specific step-by-step instructions.** Read the sections that apply to your role.
+- **Research backing:** `docs/growth-intelligence-report.md` — competitive analysis, data sources, pricing psychology, AI growth techniques
+- **Revenue target:** $800K blended (calls $400K + AI audits $90K + VIP days $72K + community $60K + referral lift $50K + Sprint lift $45K + templates $83K)
+- **Chief of Staff:** Master coordination checklist is at the bottom of the growth action plan. Use it to track all 12 initiatives.
 
 ### ~~From Automation Architect → All Agents (Feb 24)~~ SUPERSEDED by COS briefing
 - ~~Daily Follow-Up Engine MISSING~~ → **RESOLVED: Conductor built it. All 5 workflows LIVE.**
@@ -303,14 +341,18 @@
 - `docs/notion-database-schemas.md` may be stale — verify against live Notion
 - "3-Pack Sprint" vs "3-Session Clarity Sprint" naming needs resolution
 
-### From Growth Intelligence → Command Center Engineer (Feb 24, updated)
+### From Growth Intelligence → Command Center Engineer (Feb 24, session 3 update)
 - **6 modules updated** — lead_scorer, attribution, ltv_calculator, revenue_modeler, segment_builder, keyword_extractor
-- **NEW: `app/utils/benchmarks.py`** — industry benchmarks module. Any page can import `compare_to_benchmark()`, `sample_size_warning()`, constants like `CAC_BY_CHANNEL`, `FUNNEL_BENCHMARKS`, `REVENUE_MIX`
-- ~~`capacity_reality_check()` needs UI wiring~~ → **DONE** — wired into Revenue Goals page (ceiling banner, gap closer cards, revenue mix reference)
-- ~~`sample_sufficient` needs page warnings~~ → **DONE** — wired into Channel Performance page (low-N warning icons + captions)
-- `ltv_calculator.py` still has `projected_ltv` + `median_ltv` — needs wiring into Outcomes page
+- **`app/utils/benchmarks.py`** — industry benchmarks module. Any page can import `compare_to_benchmark()`, `sample_size_warning()`, constants like `CAC_BY_CHANNEL`, `FUNNEL_BENCHMARKS`, `REVENUE_MIX`
+- ~~`capacity_reality_check()` needs UI wiring~~ → **DONE** — wired into Revenue Goals page
+- ~~`sample_sufficient` needs page warnings~~ → **DONE** — wired into Channel Performance page
+- ~~`projected_ltv` + `median_ltv` needs wiring~~ → **DONE** — wired into Outcomes page (projected LTV metric + benchmark delta)
+- ~~`ltv_by_cohort()` needs wiring~~ → **DONE** — wired into Outcomes page (monthly/quarterly toggle + chart)
+- ~~`compare_funnel()` needs wiring~~ → **DONE** — wired into Funnel Analytics (benchmark annotations on every drop-off)
+- ~~`compare_channel_cac()` needs wiring~~ → **DONE** — wired into Channel Performance (CAC benchmark cards section)
+- **NEW: `ltv_by_cohort(period="quarterly")`** — quarterly cohort grouping added. 2 new tests.
 - `lead_scorer.py` tier thresholds changed: Hot=70 (was 80), Warm=40 (was 50), Cool=20 (was 25)
-- Test count: 400 → 427 (27 new benchmarks tests)
+- Test count: 400 → 427 → 463 (all passing)
 
 ### From Command Center Engineer → Growth Intelligence
 - ~~Linear attribution was fixed (Feb 23) — now returns `1/touchpoints` not `1.0`~~ → Fully resolved by Growth (linear now returns 1.0 for single-channel)
@@ -362,6 +404,8 @@ handoffs/cos-to-all-20260224-new-decision.md
 | `docs/launch-readiness-scorecard.md` | Launch progress tracker | All roles |
 | `docs/notion-database-schemas.md` | DB schemas | CRM & Data Ops |
 | `docs/data-readiness-report.md` | Full data audit + launch readiness | CRM & Data Ops |
+| **`docs/growth-action-plan.md`** | **12 initiatives, 4 phases, role-specific instructions** | **Command Center Engineer** |
+| `docs/growth-intelligence-report.md` | Research backing the growth plan | Command Center Engineer |
 | `handoffs/` | Role-to-role request files | All roles |
 
 ---

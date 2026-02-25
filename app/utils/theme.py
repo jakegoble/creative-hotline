@@ -13,15 +13,15 @@ import streamlit as st
 
 from app.utils import design_tokens as t
 
-# Google Fonts — must be a <link> tag, NOT @import inside <style>.
-# @import inside dynamically injected <style> blocks is ignored by browsers
-# when it appears after any other CSS rules.
-_FONTS = '<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">'
+# Google Fonts — @import MUST be the very first rule inside <style>.
+# Streamlit's st.markdown strips <link> tags (they're <head> elements),
+# so we use @import instead. It works as long as it precedes all other rules.
+_FONTS_IMPORT = '@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");'
 
 # Build the CSS string using design tokens — no hardcoded values.
 _CSS = f"""
-{_FONTS}
 <style>
+{_FONTS_IMPORT}
 /* ── CSS Custom Properties ─────────────────────────────────────── */
 :root {{
     --font-family: {t.FONT_FAMILY};
@@ -366,8 +366,8 @@ section[data-testid="stSidebar"] small {{
 [data-testid="metric-container"] {{
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px 24px;
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
     box-shadow: var(--shadow-sm);
     transition: var(--transition);
 }}
@@ -375,7 +375,7 @@ section[data-testid="stSidebar"] small {{
 [data-testid="stMetric"]:hover,
 [data-testid="metric-container"]:hover {{
     box-shadow: var(--shadow-md);
-    transform: translateY(-2px);
+    transform: translateY(-1px);
 }}
 
 [data-testid="stMetricLabel"] {{
@@ -406,14 +406,14 @@ section[data-testid="stSidebar"] small {{
 [data-testid="stPlotlyChart"] {{
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px;
-    box-shadow: var(--shadow-xs);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
     transition: var(--transition);
 }}
 
 [data-testid="stPlotlyChart"]:hover {{
-    box-shadow: var(--shadow-sm);
+    box-shadow: var(--shadow-md);
 }}
 
 /* ── Captions ─────────────────────────────────────────────────── */
@@ -738,14 +738,16 @@ hr {{
 .ch-card {{
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    padding: 20px 24px;
+    border-radius: var(--radius-lg);
+    padding: 24px 28px;
     transition: var(--transition);
-    margin-bottom: var(--space-sm);
+    margin-bottom: var(--space-md);
+    box-shadow: var(--shadow-xs);
 }}
 
 .ch-card:hover {{
     border-color: var(--border-hover);
+    box-shadow: var(--shadow-sm);
 }}
 
 /* ── Card Elevation Tiers ─────────────────────────────────────── */
@@ -1213,6 +1215,14 @@ hr {{
     background: var(--bg-muted);
 }}
 
+.ch-feed-dot {{
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 6px;
+}}
+
 .ch-feed-icon {{
     width: 32px;
     height: 32px;
@@ -1370,25 +1380,126 @@ def inject_custom_css() -> None:
 
 
 def inject_dark_mode(enabled: bool) -> None:
-    """Toggle dark mode via JS. Uses components.html() since st.markdown strips <script> tags."""
-    import streamlit.components.v1 as components
+    """Inject dark mode by re-declaring CSS custom properties with dark values.
 
-    flag = "true" if enabled else "false"
-    components.html(f"""
-    <script>
-    (function() {{
-        var root = window.parent.document.documentElement;
-        var body = window.parent.document.body;
-        var app = window.parent.document.querySelector('.stApp');
-        var targets = [root, body, app].filter(Boolean);
-        var enable = {flag};
-        targets.forEach(function(el) {{
-            if (enable) {{
-                el.classList.add('dark-mode');
-            }} else {{
-                el.classList.remove('dark-mode');
-            }}
-        }});
-    }})();
-    </script>
-    """, height=0)
+    Pure CSS approach — no JavaScript, no iframes, no window.parent access.
+    Since this <style> block is injected after the main CSS, cascade rules
+    ensure dark values override light values automatically.
+    """
+    if not enabled:
+        return
+    st.markdown(f"""<style>
+/* ── Dark Mode (CSS injection — overrides :root variables) ───── */
+:root {{
+    --bg-page: {t.DARK_BG_PAGE};
+    --bg-card: {t.DARK_BG_CARD};
+    --bg-sidebar: {t.DARK_BG_SIDEBAR};
+    --bg-muted: {t.DARK_BG_MUTED};
+    --bg-hover: {t.DARK_BG_HOVER};
+    --text-primary: {t.DARK_TEXT_PRIMARY};
+    --text-secondary: {t.DARK_TEXT_SECONDARY};
+    --text-muted: {t.DARK_TEXT_MUTED};
+    --text-caption: {t.DARK_TEXT_CAPTION};
+    --border: {t.DARK_BORDER_DEFAULT};
+    --border-hover: {t.DARK_BORDER_HOVER};
+    --border-strong: {t.DARK_BORDER_STRONG};
+    --shadow-sm: {t.DARK_SHADOW_SM};
+    --shadow-md: {t.DARK_SHADOW_MD};
+}}
+.stApp {{
+    background-color: {t.DARK_BG_PAGE} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+header[data-testid="stHeader"] {{
+    background: rgba(12, 10, 9, 0.85) !important;
+    border-bottom-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+[data-testid="stSidebar"] {{
+    background-color: {t.DARK_BG_SIDEBAR} !important;
+}}
+[data-testid="stMetricLabel"],
+[data-testid="stMetricValue"],
+[data-testid="stMetricDelta"] {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stMetric"],
+[data-testid="metric-container"] {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+[data-testid="stPlotlyChart"] {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+[data-testid="stExpander"] {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+[data-testid="stAlert"] {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+[data-testid="stDataFrame"] {{
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.stDataFrame thead th {{
+    background: {t.DARK_BG_MUTED} !important;
+    color: {t.DARK_TEXT_SECONDARY} !important;
+}}
+.ch-card,
+.ch-kpi-hero,
+.ch-client-header {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.ch-feed-item:hover {{
+    background: {t.DARK_BG_MUTED} !important;
+}}
+[data-testid="stCaption"],
+.stCaption {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+[data-testid="stText"] {{
+    color: {t.DARK_TEXT_SECONDARY} !important;
+}}
+[data-testid="stMarkdownContainer"] p {{
+    color: {t.DARK_TEXT_PRIMARY};
+}}
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stNumberInput > div > div > input {{
+    background: {t.DARK_BG_CARD} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+.stSelectbox [data-baseweb="select"] > div {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+.stMultiSelect [data-baseweb="tag"] {{
+    background-color: rgba(255, 107, 53, 0.15) !important;
+    color: {t.PRIMARY_LIGHT} !important;
+}}
+.stButton > button {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.stButton > button:hover {{
+    border-color: {t.PRIMARY} !important;
+    color: {t.PRIMARY} !important;
+}}
+.ch-progress {{
+    background: {t.DARK_BG_MUTED} !important;
+}}
+.ch-kv {{
+    border-bottom-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+::-webkit-scrollbar-thumb {{
+    background: {t.DARK_BORDER_STRONG} !important;
+}}
+</style>""", unsafe_allow_html=True)

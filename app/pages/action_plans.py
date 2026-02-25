@@ -280,7 +280,7 @@ def _render_fireflies_tab(
                 for item in items:
                     st.markdown(f"- {item}")
 
-            if st.button(
+        if st.button(
             "Generate Action Plan",
             type="primary",
             use_container_width=True,
@@ -370,7 +370,7 @@ def _render_transcript_tab(
                     st.markdown(f"- {item}")
 
         # Generate action plan from transcript
-            if st.button(
+        if st.button(
             "Generate Action Plan",
             type="primary",
             use_container_width=True,

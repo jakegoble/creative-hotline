@@ -373,8 +373,7 @@ def activity_feed(events: list, max_items: int = 10) -> None:
         time_str = format_activity_time(event.timestamp)
         items_html += (
             f'<div class="ch-feed-item">'
-            f'<div class="ch-feed-icon" style="background:{event.color}">'
-            f'{event.icon}</div>'
+            f'<div class="ch-feed-dot" style="background:{event.color}"></div>'
             f'<div class="ch-feed-content">'
             f'<div class="ch-feed-title">{escape(event.title)}</div>'
             f'<div class="ch-feed-subtitle">{escape(event.subtitle)}</div>'
@@ -384,6 +383,8 @@ def activity_feed(events: list, max_items: int = 10) -> None:
         )
 
     st.markdown(
-        f'<div class="ch-feed">{items_html}</div>',
+        f'<div class="ch-card" style="padding:0;overflow:hidden">'
+        f'<div class="ch-feed">{items_html}</div>'
+        f'</div>',
         unsafe_allow_html=True,
     )
