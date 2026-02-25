@@ -4,17 +4,12 @@ import streamlit as st
 import plotly.express as px
 import pandas as pd
 
-from app.components.kpi_cards import render_kpi_row
 from app.components.funnel_chart import render_funnel
 from app.components.revenue_forecast import render_revenue_chart
-from app.config import PIPELINE_STATUSES, CHANNEL_COLORS
+from app.config import PIPELINE_STATUSES
 from app.utils.formatters import format_currency, format_percentage
-from app.utils.attribution import channel_roi
 from app.utils import design_tokens as t
-from app.utils.ui import (
-    page_header, section_header, metric_row, stat_card,
-    empty_state, kpi_hero, labeled_divider, activity_feed,
-)
+from app.utils.ui import page_header, section_header, empty_state, activity_feed
 from app.utils.activity_feed import build_activity_feed
 
 
@@ -24,7 +19,6 @@ def render():
     notion = st.session_state.get("notion")
     stripe_svc = st.session_state.get("stripe")
     calendly = st.session_state.get("calendly")
-    health = st.session_state.get("health")
 
     # ── Gather data ──────────────────────────────────────────────
 
@@ -40,90 +34,40 @@ def render():
     active_clients = sum(
         1 for p in payments if p.get("status") not in ("Lead - Laylo", "")
     )
-    total_paid = sum(1 for p in payments if p.get("payment_amount", 0) > 0)
     total_leads = len(payments)
-
     completed = sum(1 for p in payments if p.get("status") in ("Call Complete", "Follow-Up Sent"))
     funnel_conversion = (completed / total_leads * 100) if total_leads > 0 else 0
-
-    health_score = health.composite_score if health else "\u2014"
-
     total_revenue = revenue_summary.get("total_revenue", 0)
+    needs_action = sum(
+        1 for p in payments
+        if p.get("status") in ("Paid - Needs Booking", "Booked - Needs Intake")
+    )
 
-    # ── Hero KPI Row (bento grid) ─────────────────────────────────
+    avg_hours = avg_time
+    if avg_hours is not None:
+        time_display = f"{avg_hours:.1f}h" if avg_hours < 24 else f"{avg_hours / 24:.1f}d"
+    else:
+        time_display = "\u2014"
 
-    hero_col, side_col = st.columns([2, 1], gap="medium")
+    booking_pct = format_percentage(booking_rate.get("rate", 0))
 
-    with hero_col:
-        kpi_hero(
-            label="Total Revenue (30d)",
-            value=format_currency(total_revenue),
-            subtitle="Stripe payments this period",
-        )
+    # ── KPI Row ──────────────────────────────────────────────────
 
-    with side_col:
-        st.markdown(
-            f'<div class="ch-card ch-card--elevated" style="margin-bottom:8px;padding:16px 20px">'
-            f'<div class="ch-text-xs ch-text-muted ch-uppercase">Active Clients</div>'
-            f'<div class="ch-text-2xl ch-font-bold ch-numeric">{active_clients}</div>'
-            f'</div>'
-            f'<div class="ch-card ch-card--elevated" style="padding:16px 20px">'
-            f'<div class="ch-text-xs ch-text-muted ch-uppercase">Funnel Conversion</div>'
-            f'<div class="ch-text-2xl ch-font-bold ch-numeric">{funnel_conversion:.0f}%</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+    k1, k2, k3, k4, k5 = st.columns(5, gap="medium")
+    k1.metric("Revenue (30d)", format_currency(total_revenue))
+    k2.metric("Active Clients", active_clients)
+    k3.metric("Funnel Conversion", f"{funnel_conversion:.0f}%")
+    k4.metric("Booking Rate", booking_pct)
+    k5.metric("Needs Action", needs_action)
 
-    # ── Additional KPIs ───────────────────────────────────────────
-
-    render_kpi_row({
-        "total_revenue": total_revenue,
-        "active_clients": active_clients,
-        "booking_rate": booking_rate.get("rate", 0),
-        "avg_time_to_book": avg_time,
-        "funnel_conversion": funnel_conversion,
-        "system_health": health_score,
-    })
-
-    labeled_divider("Recent Activity")
-
-    # ── Activity Feed ──────────────────────────────────────────────
-
-    intakes = notion.get_all_intakes() if notion else []
-    events = build_activity_feed(payments, intakes, limit=10)
-
-    feed_col, stats_col = st.columns([3, 1], gap="medium")
-
-    with feed_col:
-        section_header("Activity Feed", "Latest pipeline activity across all channels")
-        activity_feed(events, max_items=8)
-
-    with stats_col:
-        section_header("Quick Stats")
-        needs_action = sum(
-            1 for p in payments
-            if p.get("status") in ("Paid - Needs Booking", "Booked - Needs Intake")
-        )
-        upcoming_calls = sum(
-            1 for p in payments
-            if p.get("status") in ("Intake Complete", "Ready for Call")
-        )
-        action_plans_due = sum(
-            1 for p in payments
-            if p.get("status") == "Call Complete"
-        )
-        stat_card("Needs Action", str(needs_action), subtitle="Awaiting booking or intake", accent_color=t.WARNING)
-        stat_card("Upcoming Calls", str(upcoming_calls), subtitle="Ready or prepped", accent_color=t.INFO)
-        stat_card("Plans Due", str(action_plans_due), subtitle="Call done, plan pending", accent_color=t.PRIMARY)
-
-    labeled_divider("Performance")
+    st.markdown("<div style='height:24px'></div>", unsafe_allow_html=True)
 
     # ── Charts Row 1: Revenue + Pipeline ─────────────────────────
 
     col1, col2 = st.columns(2, gap="medium")
 
     with col1:
-        section_header("Revenue Trend", "Monthly revenue over the last 6 months")
+        section_header("Revenue Trend")
         if monthly_revenue:
             fig = render_revenue_chart(monthly_revenue)
             st.plotly_chart(fig, use_container_width=True)
@@ -131,7 +75,7 @@ def render():
             empty_state("Connect Stripe to see revenue data.")
 
     with col2:
-        section_header("Pipeline Funnel", "Client progression through each stage")
+        section_header("Pipeline Funnel")
         if pipeline:
             funnel_data = [
                 {"stage": stage, "count": pipeline.get(stage, 0)}
@@ -146,14 +90,12 @@ def render():
         else:
             empty_state("Connect Notion to see pipeline data.")
 
-    labeled_divider("Breakdown")
-
-    # ── Charts Row 2: Revenue by Product + Lead Source ───────────
+    # ── Charts Row 2: Product + Source ────────────────────────────
 
     col3, col4 = st.columns(2, gap="medium")
 
     with col3:
-        section_header("Revenue by Product", "Breakdown by product type")
+        section_header("Revenue by Product")
         by_product = revenue_summary.get("by_product", {})
         if by_product:
             df = pd.DataFrame([
@@ -166,7 +108,7 @@ def render():
                 color_discrete_sequence=[t.PRIMARY],
             )
             fig.update_layout(
-                height=300,
+                height=280,
                 showlegend=False,
                 yaxis=dict(autorange="reversed"),
             )
@@ -176,7 +118,7 @@ def render():
             empty_state("No product data yet.")
 
     with col4:
-        section_header("Lead Source Attribution", "Revenue contribution by channel")
+        section_header("Leads by Source")
         source_data = {}
         for p in payments:
             source = p.get("lead_source") or "Unknown"
@@ -195,57 +137,15 @@ def render():
                 df, values="Revenue", names="Source",
                 color_discrete_sequence=t.CHART_COLORS,
             )
-            fig.update_layout(height=300)
+            fig.update_layout(height=280)
             st.plotly_chart(fig, use_container_width=True)
         else:
             empty_state("No lead source data yet.")
 
-    labeled_divider("Conversions")
+    # ── Activity Feed (compact) ──────────────────────────────────
 
-    # ── Conversion Metrics ───────────────────────────────────────
-
-    section_header("Conversion Metrics", "Step-by-step funnel conversion rates")
-
-    paid_count = sum(1 for p in payments if p.get("status") != "Lead - Laylo")
-    booked_count = sum(
-        1 for p in payments
-        if p.get("status") in ("Booked - Needs Intake", "Intake Complete", "Ready for Call", "Call Complete", "Follow-Up Sent")
-    )
-    intake_count = sum(
-        1 for p in payments
-        if p.get("status") in ("Intake Complete", "Ready for Call", "Call Complete", "Follow-Up Sent")
-    )
-
-    r1 = (paid_count / total_leads * 100) if total_leads > 0 else 0
-    r2 = (booked_count / paid_count * 100) if paid_count > 0 else 0
-    r3 = (intake_count / booked_count * 100) if booked_count > 0 else 0
-    r4 = (completed / intake_count * 100) if intake_count > 0 else 0
-
-    metric_row([
-        {"label": "Lead \u2192 Paid", "value": f"{r1:.0f}%"},
-        {"label": "Paid \u2192 Booked", "value": f"{r2:.0f}%"},
-        {"label": "Booked \u2192 Intake", "value": f"{r3:.0f}%"},
-        {"label": "Intake \u2192 Complete", "value": f"{r4:.0f}%"},
-    ])
-
-    labeled_divider("Channels")
-
-    # ── Top Channels ──────────────────────────────────────────────
-
-    section_header("Top Channels", "Highest-converting lead sources")
-    if payments:
-        roi_data = channel_roi(payments)
-        top_3 = [ch for ch in roi_data if ch["conversions"] > 0][:3]
-        if top_3:
-            cols = st.columns(len(top_3), gap="medium")
-            for col, ch in zip(cols, top_3):
-                color = CHANNEL_COLORS.get(ch["channel"], "#94A3B8")
-                with col:
-                    stat_card(
-                        label=ch["channel"],
-                        value=f"{format_percentage(ch['conversion_rate'])} conv.",
-                        subtitle=f"{ch['leads']} leads \u00b7 {format_currency(ch['revenue'])}",
-                        accent_color=color,
-                    )
-        else:
-            empty_state("No converted channels yet.")
+    st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
+    section_header("Recent Activity")
+    intakes = notion.get_all_intakes() if notion else []
+    events = build_activity_feed(payments, intakes, limit=6)
+    activity_feed(events, max_items=6)
