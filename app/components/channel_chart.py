@@ -8,7 +8,7 @@ from __future__ import annotations
 import plotly.graph_objects as go
 
 from app.config import LEAD_SOURCES
-from app.utils.design_tokens import BORDER_DEFAULT, CHANNEL_COLORS_MAP, FONT_SIZE_XS, hex_to_rgba
+from app.utils.design_tokens import CHANNEL_COLORS_MAP, FONT_SIZE_XS, hex_to_rgba
 
 CHANNEL_COLORS = CHANNEL_COLORS_MAP
 
@@ -40,7 +40,7 @@ def render_channel_bars(channel_metrics: dict[str, dict]) -> go.Figure:
     fig.update_layout(
         barmode="group",
         height=350,
-        yaxis=dict(tickprefix="$", gridcolor=BORDER_DEFAULT),
+        yaxis=dict(tickprefix="$"),
         xaxis_tickangle=-45,
         showlegend=False,
     )
@@ -134,8 +134,7 @@ def render_revenue_by_source(revenue_data: dict[str, dict[str, float]]) -> go.Fi
 
     fig.update_layout(
         height=350,
-        yaxis=dict(tickprefix="$", gridcolor=BORDER_DEFAULT),
-        xaxis=dict(gridcolor=BORDER_DEFAULT),
+        yaxis=dict(tickprefix="$"),
         legend=dict(orientation="h", y=-0.15),
         hovermode="x unified",
     )

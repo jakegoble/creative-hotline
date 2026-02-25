@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 import plotly.graph_objects as go
 
-from app.utils.design_tokens import BORDER_DEFAULT, PRIMARY
+from app.utils.design_tokens import PRIMARY
 
 
 def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
@@ -35,7 +35,7 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
         y=revenues,
         mode="lines+markers",
         name="Revenue",
-        line=dict(color=PRIMARY, width=3),
+        line=dict(color=PRIMARY, width=2.5),
         marker=dict(size=8),
     ))
 
@@ -51,7 +51,7 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
                 y=[revenues[-1], avg_recent],
                 mode="lines+markers",
                 name="Projected",
-                line=dict(color=PRIMARY, width=2, dash="dot"),
+                line=dict(color=PRIMARY, width=2.5, dash="dot"),
                 marker=dict(size=8, symbol="diamond"),
             ))
         except ValueError:
@@ -59,8 +59,7 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
 
     fig.update_layout(
         height=350,
-        yaxis=dict(tickprefix="$", gridcolor=BORDER_DEFAULT),
-        xaxis=dict(gridcolor=BORDER_DEFAULT),
+        yaxis=dict(tickprefix="$"),
         legend=dict(orientation="h", y=-0.15),
         hovermode="x unified",
     )

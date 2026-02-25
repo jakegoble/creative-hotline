@@ -2,6 +2,14 @@
 
 Every chart automatically inherits fonts, colors, margins, grid styling.
 Individual components only need to override what's chart-specific.
+
+Design patterns from Linear, Stripe, Tremor:
+- X-axis: no vertical grid (cleaner)
+- Y-axis: dotted horizontal grid, barely visible
+- Rounded bar corners (4px)
+- Thicker line traces (2.5px)
+- No tick marks, no zero lines
+- Legend above chart, horizontal
 """
 
 from __future__ import annotations
@@ -18,6 +26,8 @@ from app.utils.design_tokens import (
     FONT_SIZE_MD,
     FONT_SIZE_SM,
     FONT_SIZE_XS,
+    TEXT_CAPTION,
+    TEXT_MUTED,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
 )
@@ -26,12 +36,12 @@ _TEMPLATE = go.layout.Template(
     layout=go.Layout(
         font=dict(
             family=FONT_FAMILY,
-            size=FONT_SIZE_MD,
-            color=TEXT_SECONDARY,
+            size=13,                    # Vercel body default
+            color=TEXT_MUTED,           # Muted secondary for general chart text
         ),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
-        margin=dict(l=8, r=8, t=36, b=28),
+        margin=dict(l=0, r=0, t=40, b=24),  # Tight margins, room for title only
         colorway=CHART_COLORS,
         hoverlabel=dict(
             bgcolor=BG_CARD,
@@ -43,27 +53,36 @@ _TEMPLATE = go.layout.Template(
             ),
         ),
         xaxis=dict(
-            gridcolor=BG_MUTED,
-            gridwidth=1,
+            showgrid=False,                     # No vertical grid (Stripe/Linear pattern)
             linecolor=BORDER_DEFAULT,
-            zerolinecolor=BORDER_DEFAULT,
-            tickfont=dict(size=FONT_SIZE_XS, color=TEXT_SECONDARY),
+            linewidth=1,
+            tickfont=dict(size=FONT_SIZE_XS, color=TEXT_CAPTION),
+            ticklen=0,                          # No tick marks
+            zeroline=False,
         ),
         yaxis=dict(
-            gridcolor=BG_MUTED,
+            showgrid=True,
+            gridcolor="#F0EFED",                # Very light grid (barely visible)
             gridwidth=1,
-            linecolor=BORDER_DEFAULT,
-            zerolinecolor=BORDER_DEFAULT,
-            tickfont=dict(size=FONT_SIZE_XS, color=TEXT_SECONDARY),
+            griddash="dot",                     # Dotted grid lines (premium pattern)
+            linecolor="rgba(0,0,0,0)",          # No y-axis line
+            linewidth=0,
+            tickfont=dict(size=FONT_SIZE_XS, color=TEXT_CAPTION),
+            ticklen=0,
+            zeroline=False,
         ),
-        bargap=0.3,
+        bargap=0.35,                            # More breathing room between bars
         legend=dict(
             font=dict(size=FONT_SIZE_SM, color=TEXT_SECONDARY),
             bgcolor="rgba(0,0,0,0)",
             borderwidth=0,
             orientation="h",
             yanchor="bottom",
-            y=1.02,
+            y=1.06,                             # Legend above chart
+            xanchor="left",
+            x=0,
+            itemsizing="constant",
+            itemwidth=30,
         ),
         title=dict(
             font=dict(
@@ -73,8 +92,20 @@ _TEMPLATE = go.layout.Template(
             ),
             x=0,
             xanchor="left",
+            pad=dict(l=0, t=0),
         ),
-    )
+    ),
+    data=dict(
+        bar=[go.Bar(
+            marker=dict(
+                cornerradius=4,                 # Rounded bar corners (modern pattern)
+                line=dict(width=0),             # No bar outlines
+            ),
+        )],
+        scatter=[go.Scatter(
+            line=dict(width=2.5),               # Slightly thicker than default 2px
+        )],
+    ),
 )
 
 pio.templates["hotline"] = _TEMPLATE

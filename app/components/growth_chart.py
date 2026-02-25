@@ -6,7 +6,7 @@ from datetime import datetime
 
 import plotly.graph_objects as go
 
-from app.utils.design_tokens import BORDER_DEFAULT, DANGER, PRIMARY, PRIMARY_SUBTLE, SCENARIO_COLORS, SUCCESS
+from app.utils.design_tokens import DANGER, PRIMARY, PRIMARY_SUBTLE, SCENARIO_COLORS, SUCCESS
 
 
 def render_growth_projection(
@@ -78,7 +78,7 @@ def render_growth_projection(
                 x=proj_months, y=proj_values,
                 mode="lines+markers",
                 name="Projected (3-mo avg)",
-                line=dict(color=PRIMARY, dash="dash", width=2),
+                line=dict(color=PRIMARY, dash="dash", width=2.5),
                 marker=dict(size=6, symbol="diamond"),
             ))
 
@@ -111,8 +111,7 @@ def render_growth_projection(
         height=420,
         showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=-0.2, xanchor="center", x=0.5),
-        yaxis=dict(tickprefix="$", tickformat=",", gridcolor=BORDER_DEFAULT),
-        xaxis=dict(gridcolor=BORDER_DEFAULT),
+        yaxis=dict(tickprefix="$", tickformat=","),
         barmode="overlay",
     )
 

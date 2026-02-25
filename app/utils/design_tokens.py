@@ -15,8 +15,11 @@ SPACE_2XL = 48
 
 # ── Typography ────────────────────────────────────────────────────
 FONT_FAMILY = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+FONT_MONO = "'JetBrains Mono', 'SF Mono', 'Geist Mono', Consolas, monospace"
+
 FONT_SIZE_XS = 11
 FONT_SIZE_SM = 12
+FONT_SIZE_BODY = 13    # Vercel-style metadata/timestamp tier
 FONT_SIZE_MD = 14
 FONT_SIZE_LG = 18
 FONT_SIZE_XL = 22
@@ -27,6 +30,18 @@ WEIGHT_NORMAL = 400
 WEIGHT_MEDIUM = 500
 WEIGHT_SEMIBOLD = 600
 WEIGHT_BOLD = 700
+
+# Line heights
+LINE_HEIGHT_TIGHT = 1.1       # Metric values, hero headings
+LINE_HEIGHT_SNUG = 1.3        # Card titles, section headers
+LINE_HEIGHT_NORMAL = 1.5      # Body text (standard)
+LINE_HEIGHT_RELAXED = 1.65    # Long-form reading
+
+# Letter spacing
+LETTER_SPACING_TIGHT = "-0.025em"   # Large headings (h1)
+LETTER_SPACING_SNUG = "-0.015em"    # Section headings (h2/h3)
+LETTER_SPACING_NORMAL = "-0.006em"  # Body text (subtle tightening)
+LETTER_SPACING_WIDE = "0.08em"      # Uppercase labels (Linear-style)
 
 # ── Colors — warm stone palette ───────────────────────────────────
 PRIMARY = "#FF6B35"
@@ -44,9 +59,9 @@ BG_MUTED = "#F5F5F4"  # Stone-100
 BG_HOVER = "#EFEDEB"
 
 TEXT_PRIMARY = "#1C1917"  # Stone-900
-TEXT_SECONDARY = "#78716C"  # Stone-500
-TEXT_MUTED = "#A8A29E"  # Stone-400
-TEXT_CAPTION = "#D6D3D1"  # Stone-300
+TEXT_SECONDARY = "#57534E"  # Stone-600 (darkened for better contrast)
+TEXT_MUTED = "#78716C"  # Stone-500
+TEXT_CAPTION = "#A8A29E"  # Stone-400
 
 BORDER_DEFAULT = "#E7E5E4"  # Stone-200
 BORDER_HOVER = "#D6D3D1"  # Stone-300
@@ -69,6 +84,7 @@ SHADOW_MD = "0 4px 8px rgba(0,0,0,0.06), 0 2px 4px rgba(0,0,0,0.04)"
 SHADOW_LG = "0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04)"
 
 # ── Border radius ─────────────────────────────────────────────────
+RADIUS_XS = 4
 RADIUS_SM = 8
 RADIUS_MD = 12
 RADIUS_LG = 16

@@ -26,6 +26,20 @@ _CSS = f"""
     --font-xl: {t.FONT_SIZE_XL}px;
     --font-2xl: {t.FONT_SIZE_2XL}px;
     --font-3xl: {t.FONT_SIZE_3XL}px;
+    --font-body: {t.FONT_SIZE_BODY}px;
+    --font-mono: {t.FONT_MONO};
+
+    --lh-tight: {t.LINE_HEIGHT_TIGHT};
+    --lh-snug: {t.LINE_HEIGHT_SNUG};
+    --lh-normal: {t.LINE_HEIGHT_NORMAL};
+    --lh-relaxed: {t.LINE_HEIGHT_RELAXED};
+
+    --ls-tight: {t.LETTER_SPACING_TIGHT};
+    --ls-snug: {t.LETTER_SPACING_SNUG};
+    --ls-normal: {t.LETTER_SPACING_NORMAL};
+    --ls-wide: {t.LETTER_SPACING_WIDE};
+
+    --radius-xs: {t.RADIUS_XS}px;
 
     --weight-normal: {t.WEIGHT_NORMAL};
     --weight-medium: {t.WEIGHT_MEDIUM};
@@ -152,12 +166,64 @@ _CSS = f"""
     background: {t.DARK_BG_MUTED};
 }}
 
+.dark-mode [data-testid="stCaption"],
+.dark-mode .stCaption {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+
+.dark-mode [data-testid="stText"] {{
+    color: {t.DARK_TEXT_SECONDARY} !important;
+}}
+
+.dark-mode .stTextInput > div > div > input,
+.dark-mode .stTextArea > div > div > textarea,
+.dark-mode .stNumberInput > div > div > input {{
+    background: {t.DARK_BG_CARD} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+
+.dark-mode .stTextInput input::placeholder,
+.dark-mode .stTextArea textarea::placeholder {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+
+.dark-mode .stSelectbox [data-baseweb="select"] > div {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+.dark-mode .stMultiSelect [data-baseweb="tag"] {{
+    background-color: rgba(255, 107, 53, 0.15) !important;
+    color: {t.PRIMARY_LIGHT} !important;
+}}
+
+.dark-mode [data-testid="stAlert"] {{
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    background: {t.DARK_BG_CARD} !important;
+}}
+
+.dark-mode [data-testid="stMarkdownContainer"] p {{
+    color: {t.DARK_TEXT_PRIMARY};
+}}
+
+.dark-mode .stButton > button {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+
+.dark-mode .stButton > button:hover {{
+    border-color: var(--primary) !important;
+    color: var(--primary) !important;
+}}
+
 .dark-mode ::-webkit-scrollbar-thumb {{
     background: {t.DARK_BORDER_STRONG};
 }}
 
 /* ── Typography ────────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 html, body, [class*="css"] {{
     font-family: var(--font-family);
@@ -165,6 +231,29 @@ html, body, [class*="css"] {{
 
 .stApp {{
     font-family: var(--font-family);
+    line-height: var(--lh-normal);
+    letter-spacing: var(--ls-normal);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}}
+
+/* ── Global Body Text ─────────────────────────────────────────── */
+.stApp p,
+[data-testid="stMarkdownContainer"] p {{
+    line-height: var(--lh-normal);
+    color: var(--text-primary);
+}}
+
+[data-testid="stMarkdownContainer"] strong,
+[data-testid="stMarkdownContainer"] b {{
+    font-weight: var(--weight-semibold);
+    color: var(--text-primary);
+}}
+
+[data-testid="stMarkdownContainer"] small {{
+    font-size: var(--font-xs);
+    color: var(--text-muted);
 }}
 
 /* ── Hide Default Streamlit Chrome ─────────────────────────────── */
@@ -287,18 +376,20 @@ section[data-testid="stSidebar"] small {{
 
 [data-testid="stMetricLabel"] {{
     font-size: var(--font-xs) !important;
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-medium) !important;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: var(--ls-wide);
     color: var(--text-muted) !important;
+    line-height: var(--lh-snug);
 }}
 
 [data-testid="stMetricValue"] {{
     font-size: var(--font-2xl) !important;
-    font-weight: var(--weight-bold);
+    font-weight: var(--weight-bold) !important;
     color: var(--text-primary) !important;
     font-variant-numeric: tabular-nums;
-    letter-spacing: -0.02em;
+    letter-spacing: var(--ls-tight);
+    line-height: var(--lh-tight);
 }}
 
 [data-testid="stMetricDelta"] {{
@@ -319,6 +410,130 @@ section[data-testid="stSidebar"] small {{
 
 [data-testid="stPlotlyChart"]:hover {{
     box-shadow: var(--shadow-sm);
+}}
+
+/* ── Captions ─────────────────────────────────────────────────── */
+[data-testid="stCaption"],
+.stCaption {{
+    font-size: var(--font-xs) !important;
+    color: var(--text-caption) !important;
+    line-height: var(--lh-normal);
+    letter-spacing: 0.01em;
+}}
+
+/* ── st.text() / Paragraph Blocks ─────────────────────────────── */
+[data-testid="stText"] {{
+    font-size: var(--font-md) !important;
+    color: var(--text-secondary) !important;
+    line-height: var(--lh-normal);
+}}
+
+/* ── Labels (form labels, widget labels) ──────────────────────── */
+.stTextInput label,
+.stTextArea label,
+.stNumberInput label,
+.stSelectbox label,
+.stMultiSelect label,
+.stCheckbox label,
+.stRadio label,
+[data-testid="stWidgetLabel"] {{
+    font-size: var(--font-sm) !important;
+    font-weight: var(--weight-medium) !important;
+    color: var(--text-secondary) !important;
+    letter-spacing: 0.01em;
+}}
+
+/* ── Checkboxes ───────────────────────────────────────────────── */
+[data-testid="stCheckbox"] input[type="checkbox"] {{
+    accent-color: var(--primary);
+    width: 16px;
+    height: 16px;
+}}
+
+/* ── Sliders ──────────────────────────────────────────────────── */
+[data-testid="stSlider"] [role="slider"] {{
+    background-color: var(--primary) !important;
+}}
+
+[data-testid="stSlider"] [data-testid="stThumbValue"] {{
+    font-size: var(--font-xs);
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
+}}
+
+/* ── MultiSelect Tags ─────────────────────────────────────────── */
+.stMultiSelect [data-baseweb="tag"] {{
+    background-color: var(--primary-subtle) !important;
+    border-color: transparent !important;
+    border-radius: var(--radius-xs) !important;
+    font-size: var(--font-xs);
+    font-weight: var(--weight-medium);
+    color: var(--primary-dark) !important;
+}}
+
+.stMultiSelect [data-baseweb="tag"] [role="presentation"] {{
+    color: var(--primary) !important;
+}}
+
+/* ── Select Dropdown ──────────────────────────────────────────── */
+.stSelectbox [data-baseweb="select"] > div {{
+    border-radius: var(--radius-sm) !important;
+    border-color: var(--border) !important;
+    transition: var(--transition);
+}}
+
+.stSelectbox [data-baseweb="select"] > div:hover {{
+    border-color: var(--border-hover) !important;
+}}
+
+/* ── Input Placeholders ───────────────────────────────────────── */
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder,
+.stNumberInput input::placeholder {{
+    color: var(--text-caption) !important;
+    font-weight: var(--weight-normal);
+}}
+
+/* ── Alert Boxes (accent border-left) ─────────────────────────── */
+[data-testid="stAlert"] {{
+    border-radius: var(--radius-sm) !important;
+    border: 1px solid var(--border) !important;
+    font-size: var(--font-md);
+}}
+
+[data-testid="stAlert"][data-baseweb*="notification"] {{
+    border-left: 4px solid !important;
+}}
+
+div[data-testid="stAlert"]:has([data-testid="stAlertContentInfo"]) {{
+    border-left-color: var(--info) !important;
+    background: var(--info-bg) !important;
+}}
+
+div[data-testid="stAlert"]:has([data-testid="stAlertContentSuccess"]) {{
+    border-left-color: var(--success) !important;
+    background: var(--success-bg) !important;
+}}
+
+div[data-testid="stAlert"]:has([data-testid="stAlertContentWarning"]) {{
+    border-left-color: var(--warning) !important;
+    background: var(--warning-bg) !important;
+}}
+
+div[data-testid="stAlert"]:has([data-testid="stAlertContentError"]) {{
+    border-left-color: var(--danger) !important;
+    background: var(--danger-bg) !important;
+}}
+
+/* ── Numeric / Tabular Nums Global ────────────────────────────── */
+[data-testid="stMetricValue"],
+[data-testid="stMetricDelta"],
+.ch-numeric,
+.ch-kv-value,
+.ch-kpi-hero__value,
+.ch-feed-time,
+.ch-timeline-time {{
+    font-variant-numeric: tabular-nums;
 }}
 
 /* ── Buttons ───────────────────────────────────────────────────── */
@@ -452,21 +667,37 @@ hr {{
     font-weight: var(--weight-bold);
     color: var(--text-primary);
     font-size: var(--font-2xl);
-    letter-spacing: -0.025em;
+    letter-spacing: var(--ls-tight);
+    line-height: var(--lh-snug);
+    margin-bottom: var(--space-sm);
 }}
 
 .stApp h2 {{
     font-weight: var(--weight-bold);
     color: var(--text-primary);
     font-size: var(--font-xl);
-    letter-spacing: -0.015em;
+    letter-spacing: var(--ls-snug);
+    line-height: var(--lh-snug);
+    margin-bottom: var(--space-xs);
 }}
 
 .stApp h3 {{
     font-weight: var(--weight-semibold);
     color: var(--text-primary);
     font-size: var(--font-lg);
-    letter-spacing: -0.01em;
+    letter-spacing: var(--ls-snug);
+    line-height: var(--lh-snug);
+    margin-bottom: var(--space-xs);
+}}
+
+.stApp h4 {{
+    font-weight: var(--weight-semibold);
+    color: var(--text-secondary);
+    font-size: var(--font-md);
+    letter-spacing: var(--ls-normal);
+    line-height: var(--lh-snug);
+    text-transform: uppercase;
+    letter-spacing: var(--ls-wide);
 }}
 
 /* ── Download Buttons ──────────────────────────────────────────── */
@@ -557,8 +788,8 @@ hr {{
     padding: 3px 10px;
     border-radius: var(--radius-full);
     font-size: var(--font-xs);
-    font-weight: var(--weight-semibold);
-    line-height: 1.4;
+    font-weight: var(--weight-medium);
+    line-height: var(--lh-snug);
     letter-spacing: 0.01em;
 }}
 
@@ -605,7 +836,8 @@ hr {{
     font-size: var(--font-xl) !important;
     font-weight: var(--weight-bold) !important;
     color: var(--text-primary) !important;
-    letter-spacing: -0.015em;
+    letter-spacing: var(--ls-snug);
+    line-height: var(--lh-snug) !important;
 }}
 
 .ch-section-header h3 {{
@@ -613,14 +845,15 @@ hr {{
     font-size: var(--font-lg) !important;
     font-weight: var(--weight-semibold) !important;
     color: var(--text-primary) !important;
-    letter-spacing: -0.01em;
+    letter-spacing: var(--ls-snug);
+    line-height: var(--lh-snug) !important;
 }}
 
 .ch-section-header p {{
     color: var(--text-muted);
     font-size: var(--font-sm);
     margin: 0;
-    line-height: 1.4;
+    line-height: var(--lh-normal);
 }}
 
 /* ── Page Header ───────────────────────────────────────────────── */
@@ -633,14 +866,15 @@ hr {{
     font-size: 30px !important;
     font-weight: var(--weight-bold) !important;
     color: var(--text-primary) !important;
-    letter-spacing: -0.025em;
+    letter-spacing: var(--ls-tight);
+    line-height: var(--lh-snug);
 }}
 
 .ch-page-header p {{
     color: var(--text-muted);
     font-size: var(--font-md);
     margin: 0;
-    line-height: 1.5;
+    line-height: var(--lh-normal);
 }}
 
 /* ── Progress Bar (inline) ─────────────────────────────────────── */
@@ -804,11 +1038,12 @@ hr {{
 
 .ch-kpi-hero__label {{
     font-size: var(--font-xs);
-    font-weight: var(--weight-semibold);
+    font-weight: var(--weight-medium);
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: var(--ls-wide);
     color: var(--text-muted);
     margin-bottom: var(--space-xs);
+    line-height: var(--lh-snug);
 }}
 
 .ch-kpi-hero__value {{
@@ -831,6 +1066,12 @@ hr {{
 .ch-numeric {{
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
+}}
+
+.ch-mono {{
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    font-variant-numeric: tabular-nums;
 }}
 
 /* ── Utility Classes ───────────────────────────────────────────── */
@@ -908,6 +1149,21 @@ hr {{
     .ch-kpi-hero__value {{
         font-size: var(--font-2xl);
     }}
+
+    /* Touch targets (44px minimum) */
+    .stButton > button,
+    .stDownloadButton > button,
+    .stCheckbox label,
+    .stRadio label,
+    .stTabs [data-baseweb="tab"] {{
+        min-height: 44px;
+    }}
+
+    .stTextInput > div > div > input,
+    .stNumberInput > div > div > input,
+    .stSelectbox [data-baseweb="select"] > div {{
+        min-height: 44px;
+    }}
 }}
 
 /* ── Smooth Scrollbar ──────────────────────────────────────────── */
@@ -974,7 +1230,7 @@ hr {{
     font-size: var(--font-sm);
     font-weight: var(--weight-medium);
     color: var(--text-primary);
-    line-height: 1.4;
+    line-height: var(--lh-snug);
 }}
 
 .ch-feed-subtitle {{
