@@ -47,8 +47,6 @@ def render():
                 accent_color=color,
             )
 
-    st.divider()
-
     # ── Filter Controls ───────────────────────────────────────────
 
     col_tier, col_sort = st.columns(2)
@@ -137,8 +135,6 @@ def render():
                     reason = score[key]["reason"]
                     st.markdown(f"**{cat_name}** ({cat_score}/{cat_max}): {reason}")
 
-            st.divider()
-
     # ── Attribution Charts ────────────────────────────────────────
 
     section_header("Lead Source Attribution")
@@ -192,7 +188,6 @@ def render():
 
     # ── ICP Analysis ──────────────────────────────────────────────
 
-    st.divider()
     section_header("Ideal Client Profile Analysis")
 
     claude = st.session_state.get("claude")
@@ -210,7 +205,6 @@ def render():
 
     # ── Keyword Insights ──────────────────────────────────────────
 
-    st.divider()
     section_header("Keyword Insights")
 
     intakes = [item.get("intake") for item in merged if item.get("intake")]

@@ -102,7 +102,6 @@ def render():
                 st.session_state.selected_client_email = payment.get("email", "")
                 st.rerun()
 
-            st.divider()
 
 
 def _render_360_view(merged: list[dict]) -> None:

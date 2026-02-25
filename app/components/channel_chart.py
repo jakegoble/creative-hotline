@@ -85,8 +85,8 @@ def render_channel_radar(channel_metrics: dict[str, dict]) -> go.Figure:
             theta=categories + [categories[0]],
             fill="toself",
             name=channel,
-            line=dict(color=color),
-            fillcolor=hex_to_rgba(color, 0.3) if "#" in color else color,
+            line=dict(color=color, width=2),
+            fillcolor=hex_to_rgba(color, 0.15) if "#" in color else color,
         ))
 
     fig.update_layout(
@@ -128,7 +128,7 @@ def render_revenue_by_source(revenue_data: dict[str, dict[str, float]]) -> go.Fi
             mode="lines",
             name=source,
             stackgroup="revenue",
-            line=dict(color=color),
+            line=dict(color=color, width=1.5, shape="spline"),
             hovertemplate="%{x}: $%{y:,.0f}<extra>" + source + "</extra>",
         ))
 

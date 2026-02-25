@@ -98,7 +98,6 @@ def render():
                         f"{ch['conversions']} converted, {format_currency(ch['revenue'])}"
                     )
 
-    st.divider()
 
     # ── Attribution Model Comparison ──────────────────────────────
 
@@ -141,7 +140,6 @@ def render():
             fig = render_channel_radar(top_channels)
             st.plotly_chart(fig, use_container_width=True)
 
-    st.divider()
 
     # ── Revenue by Channel Over Time ──────────────────────────────
 
@@ -161,7 +159,28 @@ def render():
     if warning:
         st.caption(f"*{warning}*")
 
-    st.divider()
+
+    # ── CAC Benchmarks ────────────────────────────────────────────
+
+    section_header("CAC Benchmarks by Channel", "Industry benchmarks for customer acquisition cost. Use to evaluate ad spend efficiency.")
+
+    bench_channels = [ch["channel"] for ch in roi_data if ch["channel"] in CAC_BY_CHANNEL]
+    if bench_channels:
+        bench_cols = st.columns(min(len(bench_channels), 4))
+        for i, channel in enumerate(bench_channels[:4]):
+            bench = CAC_BY_CHANNEL[channel]
+            with bench_cols[i]:
+                low, high = bench["range"]
+                stat_card(
+                    label=f"{channel} CAC",
+                    value=format_currency(bench["cac"]),
+                    subtitle=f"Range: {format_currency(low)}\u2013{format_currency(high)}",
+                    accent_color=CHANNEL_COLORS.get(channel, "#94A3B8"),
+                )
+
+        st.caption("*Benchmarks are industry averages for high-ticket creative services ($500+ price point). "
+                    "Actual CAC depends on ad spend, content investment, and team time.*")
+
 
     # ── Activity Heatmap ──────────────────────────────────────────
 
@@ -170,7 +189,6 @@ def render():
     fig = render_activity_heatmap(payments, date_field="created", title="Payment Activity by Day & Hour")
     st.plotly_chart(fig, use_container_width=True)
 
-    st.divider()
 
     # ── AI Channel Insights ───────────────────────────────────────
 

@@ -111,7 +111,6 @@ def render():
         with st.expander("AI Intake Summary"):
             st.info(intake["ai_summary"])
 
-    st.divider()
 
     # ── Input Tabs ────────────────────────────────────────────────
 
@@ -250,7 +249,6 @@ def _render_fireflies_tab(
     with st.expander("View Full Transcript"):
         st.text(raw_text[:5000] + ("..." if len(raw_text) > 5000 else ""))
 
-    st.divider()
 
     # Process through Claude (same pipeline as paste tab)
     if st.button(
@@ -282,8 +280,7 @@ def _render_fireflies_tab(
                 for item in items:
                     st.markdown(f"- {item}")
 
-        st.divider()
-        if st.button(
+            if st.button(
             "Generate Action Plan",
             type="primary",
             use_container_width=True,
@@ -373,8 +370,7 @@ def _render_transcript_tab(
                     st.markdown(f"- {item}")
 
         # Generate action plan from transcript
-        st.divider()
-        if st.button(
+            if st.button(
             "Generate Action Plan",
             type="primary",
             use_container_width=True,
@@ -467,7 +463,6 @@ def _render_plan_display(
 
     section_header("Generated Action Plan")
     st.markdown(plan_text)
-    st.divider()
 
     # ── Export Options ────────────────────────────────────────────
 
@@ -643,4 +638,4 @@ def _render_templates_tab(payment: dict, intake: dict, plan_key: str) -> None:
             with st.expander("Preview", expanded=False):
                 st.markdown(tpl.plan_text)
 
-            st.divider()
+        

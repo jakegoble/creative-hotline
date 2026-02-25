@@ -21,13 +21,18 @@ def render_funnel(stage_data: list[dict]) -> go.Figure:
         x=counts,
         textposition="inside",
         textinfo="value+percent initial",
+        textfont=dict(size=13),
         marker=dict(
             color=[_gradient_color(i, len(stages)) for i in range(len(stages))],
         ),
-        connector=dict(line=dict(color=BORDER_DEFAULT, width=1)),
+        connector=dict(line=dict(color="rgba(0,0,0,0)", width=0)),
+        opacity=0.92,
     ))
 
-    fig.update_layout(height=350)
+    fig.update_layout(
+        height=350,
+        margin=dict(l=0, r=0, t=10, b=10),
+    )
 
     return fig
 

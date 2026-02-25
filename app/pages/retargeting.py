@@ -39,14 +39,12 @@ def render():
         {"label": "Segments Active", "value": sum(1 for s in segments if s.count > 0)},
     ])
 
-    st.divider()
 
     # ── Segment Overview Cards ────────────────────────────────────
 
     section_header("Segment Overview")
     render_segment_cards(segments)
 
-    st.divider()
 
     # ── Segment Detail ────────────────────────────────────────────
 
@@ -59,7 +57,6 @@ def render():
     if selected_seg:
         render_segment_detail(selected_seg, scored_clients=scored)
 
-    st.divider()
 
     # ── Re-engagement Queue ───────────────────────────────────────
 
@@ -115,7 +112,6 @@ def render():
             with c4:
                 st.caption(info["action"])
 
-    st.divider()
 
     # ── Win-Back Analysis ─────────────────────────────────────────
 

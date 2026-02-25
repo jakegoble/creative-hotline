@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import os
-from collections import defaultdict
 from datetime import datetime
 
 import streamlit as st
@@ -21,6 +20,7 @@ from app.utils.ui import (
     page_header, section_header, stat_card, empty_state,
     data_card, badge, progress_bar,
 )
+from app.utils.benchmarks import FUNNEL_BENCHMARKS, sample_size_warning
 from app.utils import design_tokens as t
 
 
@@ -137,21 +137,76 @@ def render():
         )
         stage_counts.append({"stage": status, "count": count})
 
-    # Display funnel with drop-off
+    # Display funnel with drop-off + benchmark comparison
     prev_count = total
+    # Map pipeline transitions to benchmark keys
+    transition_map = {
+        1: "Lead → Paid",
+        2: "Paid → Booked",
+        3: "Booked → Intake",
+        4: "Intake → Call Complete",
+    }
+
     for i, sc in enumerate(stage_counts):
         count = sc["count"]
         drop = prev_count - count if i > 0 else 0
         drop_pct = (drop / prev_count * 100) if prev_count > 0 else 0
+        actual_rate = (count / prev_count * 100) if prev_count > 0 and i > 0 else 100
 
         pct_of_total = count / total * 100 if total > 0 else 0
         color = t.PRIMARY if pct_of_total > 50 else t.PRIMARY_LIGHT if pct_of_total > 25 else t.WARNING
-        drop_text = "" if i == 0 else f" (-{drop}, {drop_pct:.0f}% drop)"
+
+        # Add benchmark context if available
+        bench_key = transition_map.get(i)
+        bench_info = FUNNEL_BENCHMARKS.get(bench_key) if bench_key else None
+        bench_text = ""
+        if bench_info and i > 0:
+            bench_rate = bench_info["rate"] * 100
+            diff = actual_rate - bench_rate
+            arrow = "\u2191" if diff > 0 else "\u2193" if diff < 0 else "="
+            bench_text = f" | benchmark: {bench_rate:.0f}% {arrow}"
+
+        drop_text = "" if i == 0 else f" (-{drop}, {drop_pct:.0f}% drop{bench_text})"
         label = f"{sc['stage']} \u2014 {count}{drop_text}"
         progress_bar(count, total, color=color, label=label)
         prev_count = count
 
-    st.divider()
+    # Sample size context
+    warning = sample_size_warning(total, "funnel")
+    if warning:
+        st.caption(f"*{warning}*")
+
+    # ── Bottleneck Alerts ────────────────────────────────────────
+
+    if len(stage_counts) > 1:
+        max_drop = 0
+        bottleneck_stage = ""
+        bottleneck_idx = 0
+
+        for i in range(1, len(stage_counts)):
+            prev = stage_counts[i - 1]["count"]
+            curr = stage_counts[i]["count"]
+            drop_pct = ((prev - curr) / prev * 100) if prev > 0 else 0
+            if drop_pct > max_drop:
+                max_drop = drop_pct
+                bottleneck_stage = stage_counts[i]["stage"]
+                bottleneck_idx = i
+
+        if max_drop > 0:
+            suggestions = {
+                "Paid - Needs Booking": "Speed up Calendly link delivery. Consider an immediate redirect after payment.",
+                "Booked - Needs Intake": "Send the Tally link immediately after booking. Add urgency messaging.",
+                "Intake Complete": "Check if intake review is happening promptly — possible team bottleneck.",
+                "Ready for Call": "Check Calendly availability and scheduling gaps.",
+                "Call Complete": "Automate the post-call action plan delivery.",
+                "Follow-Up Sent": "Add a Sprint upsell offer in the follow-up sequence.",
+            }
+            suggestion = suggestions.get(bottleneck_stage, "Review this stage for improvement opportunities.")
+
+            st.warning(
+                f"**Biggest drop-off: {stage_counts[bottleneck_idx - 1]['stage']} \u2192 {bottleneck_stage}** "
+                f"({max_drop:.0f}% drop) \u2014 {suggestion}"
+            )
 
     # ── Speed-to-Convert ─────────────────────────────────────────
 
@@ -232,8 +287,6 @@ def render():
                 )
                 st.plotly_chart(fig, use_container_width=True)
 
-    st.divider()
-
     # ── Email Sequence Performance ───────────────────────────────
 
     section_header("Email Sequence Performance")
@@ -266,8 +319,6 @@ def render():
                     st.markdown(f"- {pos.client_name} ({pos.email}) — {status}")
     else:
         empty_state("No active email sequences detected.")
-
-    st.divider()
 
     # ── A/B Test Log ─────────────────────────────────────────────
 
@@ -332,48 +383,6 @@ def render():
             )
             data_card(title="", body_html=body_html)
 
-        # Test velocity
         st.caption(f"{len(tests)} tests logged total")
     else:
         empty_state("No A/B tests logged yet. Use the form above to track experiments.")
-
-    st.divider()
-
-    # ── Bottleneck Alerts ────────────────────────────────────────
-
-    section_header("Bottleneck Alerts")
-
-    if len(stage_counts) > 1:
-        # Find biggest drop-off
-        max_drop = 0
-        bottleneck_stage = ""
-        bottleneck_idx = 0
-
-        for i in range(1, len(stage_counts)):
-            prev = stage_counts[i - 1]["count"]
-            curr = stage_counts[i]["count"]
-            drop_pct = ((prev - curr) / prev * 100) if prev > 0 else 0
-            if drop_pct > max_drop:
-                max_drop = drop_pct
-                bottleneck_stage = stage_counts[i]["stage"]
-                bottleneck_idx = i
-
-        if max_drop > 0:
-            suggestions = {
-                "Paid - Needs Booking": "Clients are paying but not booking. Speed up the Calendly link delivery. Consider an immediate redirect to booking after payment.",
-                "Booked - Needs Intake": "Clients book but don't fill the intake form. Send the Tally link immediately after booking confirmation. Add urgency: 'Complete this before your call for best results.'",
-                "Intake Complete": "Intake is done but clients aren't moving to ready status. This may be a team bottleneck — check if intake review is happening promptly.",
-                "Ready for Call": "Clients are ready but calls aren't happening. Check Calendly availability and scheduling gaps.",
-                "Call Complete": "Calls happen but follow-ups aren't sent. Automate the post-call action plan delivery.",
-                "Follow-Up Sent": "Follow-ups are sent but the pipeline ends here. This is the upsell opportunity — add a Sprint offer in the follow-up.",
-            }
-            suggestion = suggestions.get(bottleneck_stage, "Review this stage for improvement opportunities.")
-
-            st.warning(
-                f"**Biggest drop-off: {stage_counts[bottleneck_idx - 1]['stage']} → {bottleneck_stage}** "
-                f"({max_drop:.0f}% drop)\n\n{suggestion}"
-            )
-        else:
-            st.success("No significant bottlenecks detected.")
-    else:
-        empty_state("Need more pipeline data to detect bottlenecks.")

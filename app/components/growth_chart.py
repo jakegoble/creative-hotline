@@ -36,7 +36,8 @@ def render_growth_projection(
             y=revenues,
             name="Actual Revenue",
             marker_color=PRIMARY,
-            opacity=0.85,
+            opacity=0.9,
+            hovertemplate="%{x}: $%{y:,.0f}<extra></extra>",
         ))
 
         recent = revenues[-3:] if len(revenues) >= 3 else revenues
@@ -78,8 +79,9 @@ def render_growth_projection(
                 x=proj_months, y=proj_values,
                 mode="lines+markers",
                 name="Projected (3-mo avg)",
-                line=dict(color=PRIMARY, dash="dash", width=2.5),
-                marker=dict(size=6, symbol="diamond"),
+                line=dict(color=PRIMARY, dash="dash", width=2.5, shape="spline"),
+                marker=dict(size=5, symbol="diamond"),
+                hovertemplate="%{x}: $%{y:,.0f}<extra></extra>",
             ))
 
     monthly_goal = annual_goal / 12

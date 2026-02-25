@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 import plotly.graph_objects as go
 
-from app.utils.design_tokens import PRIMARY
+from app.utils.design_tokens import PRIMARY, hex_to_rgba
 
 
 def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
@@ -29,14 +29,17 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
 
     fig = go.Figure()
 
-    # Actual revenue line
+    # Actual revenue line with area fill
     fig.add_trace(go.Scatter(
         x=months,
         y=revenues,
         mode="lines+markers",
         name="Revenue",
-        line=dict(color=PRIMARY, width=2.5),
-        marker=dict(size=8),
+        line=dict(color=PRIMARY, width=2.5, shape="spline"),
+        marker=dict(size=6),
+        fill="tozeroy",
+        fillcolor=hex_to_rgba(PRIMARY, 0.08),
+        hovertemplate="%{x}: $%{y:,.0f}<extra></extra>",
     ))
 
     # Simple projection: average of last 2 months
@@ -51,8 +54,9 @@ def render_revenue_chart(monthly_data: list[dict]) -> go.Figure:
                 y=[revenues[-1], avg_recent],
                 mode="lines+markers",
                 name="Projected",
-                line=dict(color=PRIMARY, width=2.5, dash="dot"),
-                marker=dict(size=8, symbol="diamond"),
+                line=dict(color=PRIMARY, width=2, dash="dot"),
+                marker=dict(size=5, symbol="diamond"),
+                hovertemplate="%{x}: $%{y:,.0f}<extra></extra>",
             ))
         except ValueError:
             pass

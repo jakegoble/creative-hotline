@@ -42,7 +42,6 @@ def render():
     fig = render_sankey(payments)
     st.plotly_chart(fig, use_container_width=True)
 
-    st.divider()
 
     # ── Path Comparison by Source ─────────────────────────────────
 
@@ -82,7 +81,6 @@ def render():
     else:
         empty_state("No source data available.")
 
-    st.divider()
 
     # ── Bottleneck Detection ──────────────────────────────────────
 
@@ -120,7 +118,6 @@ def render():
     else:
         empty_state("Not enough data for bottleneck analysis.")
 
-    st.divider()
 
     # ── Keyword Themes (from Intake Data) ─────────────────────────
 
@@ -170,8 +167,7 @@ def render():
             else:
                 empty_state("No pain point data yet.")
 
-        st.divider()
-
+    
         col3, col4 = st.columns(2)
 
         with col3:

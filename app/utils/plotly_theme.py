@@ -43,6 +43,7 @@ _TEMPLATE = go.layout.Template(
         plot_bgcolor="rgba(0,0,0,0)",
         margin=dict(l=0, r=0, t=40, b=24),  # Tight margins, room for title only
         colorway=CHART_COLORS,
+        hovermode="x unified",
         hoverlabel=dict(
             bgcolor=BG_CARD,
             bordercolor=BORDER_DEFAULT,
@@ -51,6 +52,7 @@ _TEMPLATE = go.layout.Template(
                 size=FONT_SIZE_SM,
                 color=TEXT_PRIMARY,
             ),
+            namelength=-1,
         ),
         xaxis=dict(
             showgrid=False,                     # No vertical grid (Stripe/Linear pattern)
@@ -101,9 +103,15 @@ _TEMPLATE = go.layout.Template(
                 cornerradius=4,                 # Rounded bar corners (modern pattern)
                 line=dict(width=0),             # No bar outlines
             ),
+            opacity=0.9,
         )],
         scatter=[go.Scatter(
-            line=dict(width=2.5),               # Slightly thicker than default 2px
+            line=dict(width=2.5, shape="spline"),  # Smoother curves
+        )],
+        pie=[go.Pie(
+            hole=0.4,                           # Donut by default
+            textinfo="label+percent",
+            textfont=dict(size=12),
         )],
     ),
 )

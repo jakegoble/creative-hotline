@@ -1364,39 +1364,31 @@ hr {{
 """
 
 
-_DARK_MODE_JS = """
-<script>
-(function() {
-    const isDark = window.parent.document.querySelector('.dark-mode');
-    // Check if Streamlit has set dark mode via session state
-    // This script is re-injected on every rerun, so we read the flag from a data attribute
-    const flag = document.currentScript?.getAttribute('data-dark');
-    if (flag === 'true' && !isDark) {
-        window.parent.document.documentElement.classList.add('dark-mode');
-        window.parent.document.body.classList.add('dark-mode');
-        const app = window.parent.document.querySelector('.stApp');
-        if (app) app.classList.add('dark-mode');
-    } else if (flag === 'false') {
-        window.parent.document.documentElement.classList.remove('dark-mode');
-        window.parent.document.body.classList.remove('dark-mode');
-        const app = window.parent.document.querySelector('.stApp');
-        if (app) app.classList.remove('dark-mode');
-    }
-})();
-</script>
-"""
-
-
 def inject_custom_css() -> None:
     """Inject global CSS overrides. Call once in main.py after set_page_config."""
     st.markdown(_CSS, unsafe_allow_html=True)
 
 
 def inject_dark_mode(enabled: bool) -> None:
-    """Toggle dark mode by adding/removing .dark-mode class via JS."""
+    """Toggle dark mode via JS. Uses components.html() since st.markdown strips <script> tags."""
+    import streamlit.components.v1 as components
+
     flag = "true" if enabled else "false"
-    js = _DARK_MODE_JS.replace(
-        "document.currentScript?.getAttribute('data-dark')",
-        f"'{flag}'",
-    )
-    st.markdown(js, unsafe_allow_html=True)
+    components.html(f"""
+    <script>
+    (function() {{
+        var root = window.parent.document.documentElement;
+        var body = window.parent.document.body;
+        var app = window.parent.document.querySelector('.stApp');
+        var targets = [root, body, app].filter(Boolean);
+        var enable = {flag};
+        targets.forEach(function(el) {{
+            if (enable) {{
+                el.classList.add('dark-mode');
+            }} else {{
+                el.classList.remove('dark-mode');
+            }}
+        }});
+    }})();
+    </script>
+    """, height=0)

@@ -17,6 +17,7 @@ from app.utils.ltv_calculator import (
     calculate_ltv,
     ltv_by_source,
     ltv_by_entry_product,
+    ltv_by_cohort,
     upsell_rate,
     expansion_revenue,
 )
@@ -24,6 +25,7 @@ from app.utils.referral_tracker import (
     referral_conversion_rate,
     referral_revenue_share,
 )
+from app.utils.benchmarks import sample_size_warning, FIRST_YEAR_LTV, LTV_TO_CAC_TARGET
 from app.utils import design_tokens as t
 from app.utils.ui import page_header, section_header, metric_row, stat_card, empty_state
 
@@ -78,12 +80,22 @@ def render():
 
         # Summary metrics
         avg_ltv = sum(c.total_revenue for c in ltv_data) / len(ltv_data) if ltv_data else 0
+        avg_projected = sum(c.projected_ltv for c in ltv_data) / len(ltv_data) if ltv_data else 0
         metric_row([
-            {"label": "Avg LTV", "value": format_currency(avg_ltv)},
+            {"label": "Avg LTV (Actual)", "value": format_currency(avg_ltv)},
+            {
+                "label": "Avg LTV (Projected)",
+                "value": format_currency(avg_projected),
+                "delta": f"benchmark: {format_currency(FIRST_YEAR_LTV)}",
+            },
             {"label": "Upsell Rate", "value": f"{upsell_data.get('upsell_rate', 0):.0f}%"},
-            {"label": "Expansion Revenue", "value": format_currency(exp_data.get("expansion_revenue", 0))},
             {"label": "Expansion %", "value": f"{exp_data.get('expansion_pct', 0):.0f}%"},
         ])
+
+        # Sample size context
+        warning = sample_size_warning(len(ltv_data), "LTV")
+        if warning:
+            st.caption(f"*{warning}*")
 
         # LTV leaderboard
         with st.expander("Top Clients by LTV"):
@@ -103,6 +115,11 @@ def render():
             section_header("LTV by Lead Source")
             source_data = ltv_by_source(payments)
             if source_data:
+                # Flag low-sample sources
+                low_sources = [k for k, v in source_data.items() if not v.get("sample_sufficient", True)]
+                if low_sources:
+                    st.caption(f"*Low confidence: {', '.join(low_sources)} (<5 clients)*")
+
                 df = pd.DataFrame([
                     {"Source": k, "Avg LTV": v["avg_ltv"], "Clients": v["client_count"]}
                     for k, v in source_data.items()
@@ -111,6 +128,12 @@ def render():
                     df, x="Avg LTV", y="Source", orientation="h",
                     text=df["Avg LTV"].apply(lambda x: format_currency(x)),
                     color_discrete_sequence=[t.PRIMARY],
+                )
+                # Add benchmark reference line
+                fig.add_vline(
+                    x=FIRST_YEAR_LTV, line_dash="dash", line_color=t.TEXT_MUTED,
+                    annotation_text=f"Benchmark: {format_currency(FIRST_YEAR_LTV)}",
+                    annotation_position="top",
                 )
                 fig.update_layout(
                     height=250,
@@ -150,53 +173,99 @@ def render():
             ))
             fig.update_layout(height=250)
             st.plotly_chart(fig, use_container_width=True)
+        # ── Cohort LTV Trends ──────────────────────────────────────
+
+        section_header("Cohort LTV Trends", "LTV progression by signup cohort.")
+
+        cohort_period = st.radio(
+            "Group by", ["Monthly", "Quarterly"],
+            horizontal=True, key="cohort_period",
+        )
+        cohorts = ltv_by_cohort(payments, period=cohort_period.lower())
+        if cohorts:
+            cohort_df = pd.DataFrame([c.as_dict() for c in cohorts])
+            fig = go.Figure()
+            fig.add_trace(go.Bar(
+                x=cohort_df["cohort_month"],
+                y=cohort_df["avg_ltv"],
+                name="Avg LTV",
+                marker_color=t.PRIMARY,
+                text=cohort_df["avg_ltv"].apply(lambda x: format_currency(x)),
+                textposition="auto",
+            ))
+            fig.add_trace(go.Scatter(
+                x=cohort_df["cohort_month"],
+                y=cohort_df["median_ltv"],
+                name="Median LTV",
+                mode="lines+markers",
+                line=dict(color=t.PRIMARY_LIGHT, dash="dot"),
+            ))
+            # Benchmark line
+            fig.add_hline(
+                y=FIRST_YEAR_LTV, line_dash="dash", line_color=t.TEXT_MUTED,
+                annotation_text=f"Benchmark: {format_currency(FIRST_YEAR_LTV)}",
+            )
+            fig.update_layout(
+                height=300, xaxis_title="Signup Cohort", yaxis_title="LTV",
+                legend=dict(orientation="h", y=-0.2),
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Cohort detail table
+            with st.expander("Cohort Details"):
+                for c in cohorts:
+                    confidence = "" if c.sample_sufficient else " (low confidence)"
+                    st.markdown(
+                        f"**{c.cohort_month}**: {c.client_count} clients, "
+                        f"Avg {format_currency(c.avg_ltv)}, "
+                        f"Median {format_currency(c.median_ltv)}, "
+                        f"{c.upsell_count} upsells{confidence}"
+                    )
+        else:
+            empty_state("Need more purchase data for cohort analysis.")
+
     else:
         empty_state("Connect Notion to see LTV data.")
 
-    st.divider()
-
     # ── Outcome Capture ──────────────────────────────────────────
 
-    section_header("Capture Client Outcome")
+    with st.expander("Capture Client Outcome"):
+        completed_clients = [
+            p for p in payments
+            if p.get("status") in ("Call Complete", "Follow-Up Sent")
+        ]
 
-    completed_clients = [
-        p for p in payments
-        if p.get("status") in ("Call Complete", "Follow-Up Sent")
-    ]
+        if completed_clients:
+            client_options = {
+                f"{p['client_name']} ({p['email']})": p for p in completed_clients
+            }
+            selected = st.selectbox("Select Client", list(client_options.keys()), key="outcome_client")
+            client = client_options[selected]
 
-    if completed_clients:
-        client_options = {
-            f"{p['client_name']} ({p['email']})": p for p in completed_clients
-        }
-        selected = st.selectbox("Select Client", list(client_options.keys()), key="outcome_client")
-        client = client_options[selected]
+            results = st.text_area("What results did the client achieve?", key="outcome_results",
+                                   placeholder="e.g., Launched rebrand in 2 weeks, grew IG by 40%")
+            what_changed = st.text_area("What changed for them?", key="outcome_changed",
+                                        placeholder="e.g., Went from paralyzed to clear on positioning")
+            nps = st.slider("Would they recommend us? (0-10)", 0, 10, 8, key="outcome_nps")
 
-        results = st.text_area("What results did the client achieve?", key="outcome_results",
-                               placeholder="e.g., Launched rebrand in 2 weeks, grew IG by 40%")
-        what_changed = st.text_area("What changed for them?", key="outcome_changed",
-                                    placeholder="e.g., Went from paralyzed to clear on positioning")
-        nps = st.slider("Would they recommend us? (0-10)", 0, 10, 8, key="outcome_nps")
-
-        if st.button("Save Outcome"):
-            if results:
-                outcome = {
-                    "email": client["email"],
-                    "client_name": client["client_name"],
-                    "product_purchased": client.get("product_purchased", ""),
-                    "results_achieved": results,
-                    "what_changed": what_changed,
-                    "nps_score": nps,
-                    "date": datetime.now().strftime("%Y-%m-%d"),
-                }
-                filepath = _save_outcome(outcome)
-                outcomes = _load_outcomes()  # Refresh
-                st.success(f"Outcome saved for {client['client_name']}.")
-            else:
-                st.warning("Please enter the results achieved.")
-    else:
-        empty_state("No completed clients yet.")
-
-    st.divider()
+            if st.button("Save Outcome"):
+                if results:
+                    outcome = {
+                        "email": client["email"],
+                        "client_name": client["client_name"],
+                        "product_purchased": client.get("product_purchased", ""),
+                        "results_achieved": results,
+                        "what_changed": what_changed,
+                        "nps_score": nps,
+                        "date": datetime.now().strftime("%Y-%m-%d"),
+                    }
+                    filepath = _save_outcome(outcome)
+                    outcomes = _load_outcomes()  # Refresh
+                    st.success(f"Outcome saved for {client['client_name']}.")
+                else:
+                    st.warning("Please enter the results achieved.")
+        else:
+            empty_state("No completed clients yet.")
 
     # ── NPS Tracker ──────────────────────────────────────────────
 
@@ -233,96 +302,83 @@ def render():
     else:
         empty_state("Capture client outcomes above to start tracking NPS.")
 
-    st.divider()
+    # ── Content Generators ───────────────────────────────────────
 
-    # ── Testimonial Generator ────────────────────────────────────
-
-    section_header("Testimonial Generator")
+    section_header("Content Generators")
 
     if outcomes and claude:
-        outcome_options = {
-            f"{o['client_name']} ({o['date']})": o for o in outcomes
-        }
-        selected_outcome = st.selectbox("Select Client Outcome", list(outcome_options.keys()),
-                                         key="testimonial_outcome")
-        outcome = outcome_options[selected_outcome]
+        gen_tab1, gen_tab2 = st.tabs(["Testimonial", "Case Study"])
 
-        # Find matching intake data
         intakes = notion.get_all_intakes() if notion else []
-        intake = next((i for i in intakes if (i.get("email") or "").lower() == outcome["email"].lower()), {})
 
-        if st.button("Generate Testimonial", type="primary"):
-            with st.spinner("Writing testimonial in Frankie's voice..."):
-                testimonial = claude.generate_testimonial(
-                    client_name=outcome["client_name"],
-                    brand=intake.get("brand", ""),
-                    creative_emergency=intake.get("creative_emergency", ""),
-                    outcome_text=outcome.get("results_achieved", ""),
-                    product_purchased=outcome.get("product_purchased", ""),
-                )
-                st.session_state["generated_testimonial"] = testimonial
+        with gen_tab1:
+            outcome_options = {
+                f"{o['client_name']} ({o['date']})": o for o in outcomes
+            }
+            selected_outcome = st.selectbox("Select Client Outcome", list(outcome_options.keys()),
+                                             key="testimonial_outcome")
+            outcome = outcome_options[selected_outcome]
 
-        if "generated_testimonial" in st.session_state:
-            st.markdown(f'> *"{st.session_state["generated_testimonial"]}"*')
-            st.markdown(f"**— {outcome['client_name']}**")
+            intake = next((i for i in intakes if (i.get("email") or "").lower() == outcome["email"].lower()), {})
+
+            if st.button("Generate Testimonial", type="primary"):
+                with st.spinner("Writing testimonial in Frankie's voice..."):
+                    testimonial = claude.generate_testimonial(
+                        client_name=outcome["client_name"],
+                        brand=intake.get("brand", ""),
+                        creative_emergency=intake.get("creative_emergency", ""),
+                        outcome_text=outcome.get("results_achieved", ""),
+                        product_purchased=outcome.get("product_purchased", ""),
+                    )
+                    st.session_state["generated_testimonial"] = testimonial
+
+            if "generated_testimonial" in st.session_state:
+                st.markdown(f'> *"{st.session_state["generated_testimonial"]}"*')
+                st.markdown(f"**\u2014 {outcome['client_name']}**")
+
+        with gen_tab2:
+            outcome_options_cs = {
+                f"{o['client_name']} ({o['date']})": o for o in outcomes
+            }
+            selected_cs = st.selectbox("Select Client", list(outcome_options_cs.keys()),
+                                        key="case_study_outcome")
+            cs_outcome = outcome_options_cs[selected_cs]
+
+            intake_cs = next((i for i in intakes if (i.get("email") or "").lower() == cs_outcome["email"].lower()), {})
+
+            if st.button("Generate Case Study", type="primary"):
+                with st.spinner("Building case study..."):
+                    case_study = claude.generate_case_study(
+                        client_name=cs_outcome["client_name"],
+                        brand=intake_cs.get("brand", ""),
+                        role=intake_cs.get("role", ""),
+                        creative_emergency=intake_cs.get("creative_emergency", ""),
+                        action_plan_summary=intake_cs.get("ai_summary", ""),
+                        outcome_text=cs_outcome.get("results_achieved", ""),
+                        product_purchased=cs_outcome.get("product_purchased", ""),
+                    )
+                    st.session_state["generated_case_study"] = case_study
+
+            if "generated_case_study" in st.session_state:
+                st.markdown(st.session_state["generated_case_study"])
+
+                if st.button("Download as PDF"):
+                    from app.utils.exporters import generate_action_plan_pdf
+                    pdf_bytes = generate_action_plan_pdf(
+                        cs_outcome["client_name"],
+                        cs_outcome.get("product_purchased", ""),
+                        st.session_state["generated_case_study"],
+                    )
+                    st.download_button(
+                        "Download PDF",
+                        data=pdf_bytes,
+                        file_name=f"case_study_{cs_outcome['client_name'].replace(' ', '_')}.pdf",
+                        mime="application/pdf",
+                    )
     elif not outcomes:
-        empty_state("Capture client outcomes first, then generate testimonials.")
+        empty_state("Capture client outcomes first to generate testimonials and case studies.")
     else:
-        empty_state("Connect Claude API to generate testimonials.")
-
-    st.divider()
-
-    # ── Case Study Builder ───────────────────────────────────────
-
-    section_header("Case Study Builder")
-
-    if outcomes and claude:
-        outcome_options_cs = {
-            f"{o['client_name']} ({o['date']})": o for o in outcomes
-        }
-        selected_cs = st.selectbox("Select Client", list(outcome_options_cs.keys()),
-                                    key="case_study_outcome")
-        cs_outcome = outcome_options_cs[selected_cs]
-
-        intakes_cs = notion.get_all_intakes() if notion else []
-        intake_cs = next((i for i in intakes_cs if (i.get("email") or "").lower() == cs_outcome["email"].lower()), {})
-
-        if st.button("Generate Case Study", type="primary"):
-            with st.spinner("Building case study..."):
-                case_study = claude.generate_case_study(
-                    client_name=cs_outcome["client_name"],
-                    brand=intake_cs.get("brand", ""),
-                    role=intake_cs.get("role", ""),
-                    creative_emergency=intake_cs.get("creative_emergency", ""),
-                    action_plan_summary=intake_cs.get("ai_summary", ""),
-                    outcome_text=cs_outcome.get("results_achieved", ""),
-                    product_purchased=cs_outcome.get("product_purchased", ""),
-                )
-                st.session_state["generated_case_study"] = case_study
-
-        if "generated_case_study" in st.session_state:
-            st.markdown(st.session_state["generated_case_study"])
-
-            # PDF export
-            if st.button("Download as PDF"):
-                from app.utils.exporters import generate_action_plan_pdf
-                pdf_bytes = generate_action_plan_pdf(
-                    cs_outcome["client_name"],
-                    cs_outcome.get("product_purchased", ""),
-                    st.session_state["generated_case_study"],
-                )
-                st.download_button(
-                    "Download PDF",
-                    data=pdf_bytes,
-                    file_name=f"case_study_{cs_outcome['client_name'].replace(' ', '_')}.pdf",
-                    mime="application/pdf",
-                )
-    elif not outcomes:
-        empty_state("Capture client outcomes first.")
-    else:
-        empty_state("Connect Claude API to build case studies.")
-
-    st.divider()
+        empty_state("Connect Claude API to generate content.")
 
     # ── Referral Intelligence ────────────────────────────────────
 

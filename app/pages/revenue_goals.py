@@ -90,8 +90,6 @@ def render():
     if warning:
         st.caption(f"*{warning}*")
 
-    st.divider()
-
     # ── Capacity Reality Check ────────────────────────────────────
 
     section_header("Capacity Reality Check", "Can your team's call capacity alone hit the revenue goal?")
@@ -151,8 +149,6 @@ def render():
                     f"{mix['packages']:.0%} packages \u00b7 {mix['other']:.0%} other"
                 )
 
-    st.divider()
-
     # ── Scenario Modeler ─────────────────────────────────────────
 
     section_header("Scenario Modeler", "Adjust the product mix to see different paths to your goal.")
@@ -198,21 +194,13 @@ def render():
             s3 = build_scenario("Custom", c3_products, annual_goal)
             scenarios_list.append(s3)
 
-    st.divider()
-
     # Scenario comparison
     section_header("Scenario Comparison")
     render_scenario_comparison([s.as_dict() for s in scenarios_list])
 
-    st.divider()
-
-    # ── Product Ladder ───────────────────────────────────────────
-
-    section_header("Product Value Ladder")
-    ladder = product_ladder(payments, PROPOSED_PRODUCTS)
-    render_product_ladder(ladder)
-
-    st.divider()
+    with st.expander("Product Value Ladder"):
+        ladder = product_ladder(payments, PROPOSED_PRODUCTS)
+        render_product_ladder(ladder)
 
     # ── Monthly Milestones ───────────────────────────────────────
 
@@ -241,23 +229,22 @@ def render():
     st.plotly_chart(fig, use_container_width=True)
 
     # Milestone grid
-    cols = st.columns(4)
-    for i, tgt in enumerate(targets[:12]):
-        with cols[i % 4]:
-            color = t.SUCCESS if tgt.on_track else t.DANGER
-            actual_str = format_currency(tgt.actual_revenue) if tgt.actual_revenue > 0 else "\u2014"
-            stat_card(
-                label=tgt.month,
-                value=f"Target: {format_currency(tgt.target_revenue)}",
-                subtitle=f"Actual: {actual_str}",
-                accent_color=color,
-            )
-
-    st.divider()
+    with st.expander("Monthly Targets"):
+        cols = st.columns(4)
+        for i, tgt in enumerate(targets[:12]):
+            with cols[i % 4]:
+                color = t.SUCCESS if tgt.on_track else t.DANGER
+                actual_str = format_currency(tgt.actual_revenue) if tgt.actual_revenue > 0 else "\u2014"
+                stat_card(
+                    label=tgt.month,
+                    value=f"Target: {format_currency(tgt.target_revenue)}",
+                    subtitle=f"Actual: {actual_str}",
+                    accent_color=color,
+                )
 
     # ── Channel Investment Planner ───────────────────────────────
 
-    section_header("Channel Investment Planner", "How many leads does each channel need to generate?")
+    section_header("Channel Investment")
 
     if payments:
         roi_data = channel_roi(payments)
@@ -283,8 +270,6 @@ def render():
             empty_state("Need more conversion data to plan channel investment.")
     else:
         empty_state("Connect Notion to see channel investment plan.")
-
-    st.divider()
 
     # ── AI Growth Strategy ───────────────────────────────────────
 
