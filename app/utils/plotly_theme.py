@@ -22,6 +22,13 @@ from app.utils.design_tokens import (
     BG_MUTED,
     BORDER_DEFAULT,
     CHART_COLORS,
+    DARK_BG_CARD,
+    DARK_BG_MUTED,
+    DARK_BORDER_DEFAULT,
+    DARK_TEXT_CAPTION,
+    DARK_TEXT_MUTED,
+    DARK_TEXT_PRIMARY,
+    DARK_TEXT_SECONDARY,
     FONT_FAMILY,
     FONT_SIZE_MD,
     FONT_SIZE_SM,
@@ -117,4 +124,88 @@ _TEMPLATE = go.layout.Template(
 )
 
 pio.templates["hotline"] = _TEMPLATE
+
+# Dark variant — same structure, dark colors for text/grids/hover.
+_DARK_TEMPLATE = go.layout.Template(
+    layout=go.Layout(
+        font=dict(
+            family=FONT_FAMILY,
+            size=13,
+            color=DARK_TEXT_MUTED,
+        ),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        margin=dict(l=0, r=0, t=40, b=24),
+        colorway=CHART_COLORS,
+        hovermode="x unified",
+        hoverlabel=dict(
+            bgcolor=DARK_BG_CARD,
+            bordercolor=DARK_BORDER_DEFAULT,
+            font=dict(
+                family=FONT_FAMILY,
+                size=FONT_SIZE_SM,
+                color=DARK_TEXT_PRIMARY,
+            ),
+            namelength=-1,
+        ),
+        xaxis=dict(
+            showgrid=False,
+            linecolor=DARK_BORDER_DEFAULT,
+            linewidth=1,
+            tickfont=dict(size=FONT_SIZE_XS, color=DARK_TEXT_CAPTION),
+            ticklen=0,
+            zeroline=False,
+        ),
+        yaxis=dict(
+            showgrid=True,
+            gridcolor=DARK_BG_MUTED,
+            gridwidth=1,
+            griddash="dot",
+            linecolor="rgba(0,0,0,0)",
+            linewidth=0,
+            tickfont=dict(size=FONT_SIZE_XS, color=DARK_TEXT_CAPTION),
+            ticklen=0,
+            zeroline=False,
+        ),
+        bargap=0.35,
+        legend=dict(
+            font=dict(size=FONT_SIZE_SM, color=DARK_TEXT_SECONDARY),
+            bgcolor="rgba(0,0,0,0)",
+            borderwidth=0,
+            orientation="h",
+            yanchor="bottom",
+            y=1.06,
+            xanchor="left",
+            x=0,
+            itemsizing="constant",
+            itemwidth=30,
+        ),
+        title=dict(
+            font=dict(
+                family=FONT_FAMILY,
+                size=FONT_SIZE_MD,
+                color=DARK_TEXT_PRIMARY,
+            ),
+            x=0,
+            xanchor="left",
+            pad=dict(l=0, t=0),
+        ),
+    ),
+    data=dict(
+        bar=[go.Bar(
+            marker=dict(cornerradius=4, line=dict(width=0)),
+            opacity=0.9,
+        )],
+        scatter=[go.Scatter(
+            line=dict(width=2.5, shape="spline"),
+        )],
+        pie=[go.Pie(
+            hole=0.4,
+            textinfo="label+percent",
+            textfont=dict(size=12),
+        )],
+    ),
+)
+
+pio.templates["hotline_dark"] = _DARK_TEMPLATE
 pio.templates.default = "hotline"

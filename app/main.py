@@ -233,7 +233,7 @@ def main():
 
         st.caption("v5.1 | Built for Jake & Megha")
 
-    # Inject dark mode JS based on toggle state
+    # Inject dark mode CSS + dark Plotly template based on toggle state
     inject_dark_mode(st.session_state.get("dark_mode", False))
 
     nav.run()

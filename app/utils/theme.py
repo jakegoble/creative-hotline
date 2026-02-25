@@ -1380,16 +1380,35 @@ def inject_custom_css() -> None:
 
 
 def inject_dark_mode(enabled: bool) -> None:
-    """Inject dark mode by re-declaring CSS custom properties with dark values.
+    """Inject dark mode CSS and switch Plotly template.
 
-    Pure CSS approach — no JavaScript, no iframes, no window.parent access.
-    Since this <style> block is injected after the main CSS, cascade rules
-    ensure dark values override light values automatically.
+    Overrides both our custom CSS vars AND Streamlit's internal theme
+    variables (--background-color, --text-color, etc.) so every widget
+    respects dark mode. Also swaps the Plotly template for dark charts.
     """
+    import plotly.io as pio
+
     if not enabled:
+        pio.templates.default = "hotline"
         return
+
+    pio.templates.default = "hotline_dark"
+
+    # fmt: off
     st.markdown(f"""<style>
-/* ── Dark Mode (CSS injection — overrides :root variables) ───── */
+/* ── Dark Mode ─────────────────────────────────────────────────
+   Overrides Streamlit theme vars + our custom vars + all widgets.
+   ────────────────────────────────────────────────────────────── */
+
+/* --- Streamlit internal theme variables (from config.toml) --- */
+:root {{
+    --primary-color: {t.PRIMARY} !important;
+    --background-color: {t.DARK_BG_PAGE} !important;
+    --secondary-background-color: {t.DARK_BG_CARD} !important;
+    --text-color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+/* --- Our custom CSS variables --- */
 :root {{
     --bg-page: {t.DARK_BG_PAGE};
     --bg-card: {t.DARK_BG_CARD};
@@ -1406,18 +1425,101 @@ def inject_dark_mode(enabled: bool) -> None:
     --shadow-sm: {t.DARK_SHADOW_SM};
     --shadow-md: {t.DARK_SHADOW_MD};
 }}
+
+/* --- App shell --- */
 .stApp {{
     background-color: {t.DARK_BG_PAGE} !important;
     color: {t.DARK_TEXT_PRIMARY} !important;
 }}
+.stApp > header,
 header[data-testid="stHeader"] {{
-    background: rgba(12, 10, 9, 0.85) !important;
-    border-bottom-color: {t.DARK_BORDER_DEFAULT} !important;
+    background: rgba(12, 10, 9, 0.9) !important;
+    backdrop-filter: blur(12px) !important;
+    border-bottom: 1px solid {t.DARK_BORDER_DEFAULT} !important;
 }}
-[data-testid="stSidebar"] {{
+[data-testid="stSidebar"],
+[data-testid="stSidebar"] > div {{
+    background-color: {t.DARK_BG_SIDEBAR} !important;
+    border-right-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+[data-testid="stSidebarContent"] {{
     background-color: {t.DARK_BG_SIDEBAR} !important;
 }}
+[data-testid="stSidebarNav"] {{
+    background-color: transparent !important;
+}}
+[data-testid="stSidebarNavLink"],
+[data-testid="stSidebarNavLink"] span {{
+    color: {t.DARK_TEXT_SECONDARY} !important;
+}}
+[data-testid="stSidebarNavLink"][aria-selected="true"],
+[data-testid="stSidebarNavLink"][aria-selected="true"] span {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    background-color: {t.DARK_BG_MUTED} !important;
+}}
+[data-testid="stSidebarNavSeparator"] {{
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+section[data-testid="stSidebar"] hr {{
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+
+/* --- Navigation & Tabs --- */
+.stTabs [data-baseweb="tab-list"] {{
+    background-color: transparent !important;
+    border-bottom-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.stTabs [data-baseweb="tab"] {{
+    color: {t.DARK_TEXT_MUTED} !important;
+}}
+.stTabs [data-baseweb="tab"][aria-selected="true"] {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    border-bottom-color: {t.PRIMARY} !important;
+}}
+.stTabs [data-baseweb="tab-panel"] {{
+    background-color: transparent !important;
+}}
+
+/* --- Typography (all text) --- */
+.stApp p,
+.stApp span,
+.stApp li,
+.stApp label,
+.stApp div {{
+    color: inherit;
+}}
+[data-testid="stMarkdownContainer"] {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stMarkdownContainer"] p,
+[data-testid="stMarkdownContainer"] li,
+[data-testid="stMarkdownContainer"] span {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stMarkdownContainer"] h1,
+[data-testid="stMarkdownContainer"] h2,
+[data-testid="stMarkdownContainer"] h3,
+[data-testid="stMarkdownContainer"] h4 {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stMarkdownContainer"] strong {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stMarkdownContainer"] a {{
+    color: {t.PRIMARY_LIGHT} !important;
+}}
+[data-testid="stCaption"],
+[data-testid="stCaption"] p,
+.stCaption {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+[data-testid="stText"] {{
+    color: {t.DARK_TEXT_SECONDARY} !important;
+}}
+
+/* --- Metric cards --- */
 [data-testid="stMetricLabel"],
+[data-testid="stMetricLabel"] p,
 [data-testid="stMetricValue"],
 [data-testid="stMetricDelta"] {{
     color: {t.DARK_TEXT_PRIMARY} !important;
@@ -1427,18 +1529,174 @@ header[data-testid="stHeader"] {{
     background: {t.DARK_BG_CARD} !important;
     border-color: {t.DARK_BORDER_DEFAULT} !important;
 }}
+
+/* --- Our custom components --- */
+.ch-card,
+.ch-kpi-hero,
+.ch-client-header {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+.ch-card .ch-text-secondary,
+.ch-text-secondary {{
+    color: {t.DARK_TEXT_SECONDARY} !important;
+}}
+.ch-card .ch-text-muted,
+.ch-text-muted {{
+    color: {t.DARK_TEXT_MUTED} !important;
+}}
+.ch-card .ch-text-caption {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+.ch-feed-item {{
+    border-bottom-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.ch-feed-item:hover {{
+    background: {t.DARK_BG_MUTED} !important;
+}}
+.ch-feed-title {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+.ch-feed-subtitle {{
+    color: {t.DARK_TEXT_MUTED} !important;
+}}
+.ch-feed-time {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+.ch-kv {{
+    border-bottom-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.ch-kv-label {{
+    color: {t.DARK_TEXT_MUTED} !important;
+}}
+.ch-kv-value {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+.ch-progress {{
+    background: {t.DARK_BG_MUTED} !important;
+}}
+
+/* --- Charts --- */
 [data-testid="stPlotlyChart"] {{
     background: {t.DARK_BG_CARD} !important;
     border-color: {t.DARK_BORDER_DEFAULT} !important;
+    border-radius: var(--radius-lg) !important;
 }}
+
+/* --- Expanders --- */
 [data-testid="stExpander"] {{
     background: {t.DARK_BG_CARD} !important;
     border-color: {t.DARK_BORDER_DEFAULT} !important;
 }}
+[data-testid="stExpander"] summary {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stExpander"] summary span {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stExpanderDetails"] {{
+    background: {t.DARK_BG_CARD} !important;
+}}
+
+/* --- Alerts --- */
 [data-testid="stAlert"] {{
+    background: {t.DARK_BG_MUTED} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-testid="stAlert"] p {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+/* --- Form inputs --- */
+.stTextInput > div > div > input,
+.stTextInput input,
+.stTextArea textarea,
+.stNumberInput input {{
+    background: {t.DARK_BG_MUTED} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+.stTextInput input:focus,
+.stTextArea textarea:focus,
+.stNumberInput input:focus {{
+    border-color: {t.PRIMARY} !important;
+}}
+.stTextInput input::placeholder,
+.stTextArea textarea::placeholder {{
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+.stTextInput label,
+.stTextArea label,
+.stNumberInput label,
+.stSelectbox label,
+.stMultiSelect label,
+.stSlider label,
+.stRadio label,
+.stCheckbox label {{
+    color: {t.DARK_TEXT_SECONDARY} !important;
+}}
+
+/* --- Select boxes & dropdowns --- */
+.stSelectbox [data-baseweb="select"] > div,
+.stMultiSelect [data-baseweb="select"] > div {{
+    background: {t.DARK_BG_MUTED} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-baseweb="popover"],
+[data-baseweb="menu"],
+[data-baseweb="popover"] ul {{
     background: {t.DARK_BG_CARD} !important;
     border-color: {t.DARK_BORDER_DEFAULT} !important;
 }}
+[data-baseweb="menu"] li {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+[data-baseweb="menu"] li:hover {{
+    background: {t.DARK_BG_MUTED} !important;
+}}
+.stMultiSelect [data-baseweb="tag"] {{
+    background-color: rgba(255, 107, 53, 0.15) !important;
+    color: {t.PRIMARY_LIGHT} !important;
+}}
+
+/* --- Buttons --- */
+.stButton > button {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    background-color: {t.DARK_BG_MUTED} !important;
+}}
+.stButton > button:hover {{
+    border-color: {t.PRIMARY} !important;
+    color: {t.PRIMARY} !important;
+    background-color: {t.DARK_BG_HOVER} !important;
+}}
+.stButton > button[kind="primary"],
+.stButton > button[data-testid="stFormSubmitButton"] {{
+    background-color: {t.PRIMARY} !important;
+    color: white !important;
+    border-color: {t.PRIMARY} !important;
+}}
+
+/* --- Toggle / Checkbox / Radio --- */
+[data-testid="stToggle"] label span {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+.stCheckbox label span {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+.stRadio label span {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+/* --- Slider --- */
+.stSlider [data-baseweb="slider"] div {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+/* --- DataFrames / Tables --- */
 [data-testid="stDataFrame"] {{
     border-color: {t.DARK_BORDER_DEFAULT} !important;
 }}
@@ -1446,60 +1704,68 @@ header[data-testid="stHeader"] {{
     background: {t.DARK_BG_MUTED} !important;
     color: {t.DARK_TEXT_SECONDARY} !important;
 }}
-.ch-card,
-.ch-kpi-hero,
-.ch-client-header {{
+.stDataFrame tbody td {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
     background: {t.DARK_BG_CARD} !important;
-    border-color: {t.DARK_BORDER_DEFAULT} !important;
 }}
-.ch-feed-item:hover {{
+.stDataFrame tbody tr:hover td {{
     background: {t.DARK_BG_MUTED} !important;
 }}
-[data-testid="stCaption"],
-.stCaption {{
-    color: {t.DARK_TEXT_CAPTION} !important;
-}}
-[data-testid="stText"] {{
-    color: {t.DARK_TEXT_SECONDARY} !important;
-}}
-[data-testid="stMarkdownContainer"] p {{
-    color: {t.DARK_TEXT_PRIMARY};
-}}
-.stTextInput > div > div > input,
-.stTextArea > div > div > textarea,
-.stNumberInput > div > div > input {{
+[data-testid="stDataFrameResizable"] {{
     background: {t.DARK_BG_CARD} !important;
-    color: {t.DARK_TEXT_PRIMARY} !important;
-    border-color: {t.DARK_BORDER_DEFAULT} !important;
 }}
-.stTextInput input::placeholder,
-.stTextArea textarea::placeholder {{
-    color: {t.DARK_TEXT_CAPTION} !important;
-}}
-.stSelectbox [data-baseweb="select"] > div {{
-    background: {t.DARK_BG_CARD} !important;
-    border-color: {t.DARK_BORDER_DEFAULT} !important;
-    color: {t.DARK_TEXT_PRIMARY} !important;
-}}
-.stMultiSelect [data-baseweb="tag"] {{
-    background-color: rgba(255, 107, 53, 0.15) !important;
-    color: {t.PRIMARY_LIGHT} !important;
-}}
-.stButton > button {{
-    color: {t.DARK_TEXT_PRIMARY} !important;
-    border-color: {t.DARK_BORDER_DEFAULT} !important;
-}}
-.stButton > button:hover {{
-    border-color: {t.PRIMARY} !important;
-    color: {t.PRIMARY} !important;
-}}
-.ch-progress {{
+
+/* --- Code blocks --- */
+[data-testid="stCode"],
+.stCodeBlock,
+code {{
     background: {t.DARK_BG_MUTED} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
 }}
-.ch-kv {{
-    border-bottom-color: {t.DARK_BORDER_DEFAULT} !important;
+
+/* --- Dividers --- */
+hr, .stDivider {{
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+}}
+
+/* --- Columns — transparent so page bg shows --- */
+[data-testid="stColumn"] {{
+    background: transparent !important;
+}}
+
+/* --- Main content block containers --- */
+[data-testid="stMainBlockContainer"],
+[data-testid="stVerticalBlock"],
+.block-container {{
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+.main .block-container {{
+    background-color: transparent !important;
+}}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar-track {{
+    background: {t.DARK_BG_PAGE} !important;
 }}
 ::-webkit-scrollbar-thumb {{
     background: {t.DARK_BORDER_STRONG} !important;
 }}
+
+/* --- Popover / Tooltip --- */
+[data-testid="stPopover"],
+[role="tooltip"] {{
+    background: {t.DARK_BG_CARD} !important;
+    border-color: {t.DARK_BORDER_DEFAULT} !important;
+    color: {t.DARK_TEXT_PRIMARY} !important;
+}}
+
+/* --- Bottom status bar --- */
+footer {{
+    background: {t.DARK_BG_PAGE} !important;
+    color: {t.DARK_TEXT_CAPTION} !important;
+}}
+footer a {{
+    color: {t.DARK_TEXT_MUTED} !important;
+}}
 </style>""", unsafe_allow_html=True)
+    # fmt: on
