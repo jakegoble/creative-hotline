@@ -170,6 +170,70 @@ Discovery (IG/Website/Referral)
 - For email template deployment, see `docs/email-deployment-guide.md`
 - For end-to-end testing, see `docs/e2e-test-plan.md`
 
+## Platform Notes (updated 2026-03-19)
+
+### Current Models (March 2026)
+- Opus: `claude-opus-4-6` — Most intelligent. $5/$25 per MTok. Recommended for complex agentic tasks.
+- Sonnet: `claude-sonnet-4-6` — Balanced speed + intelligence. $3/$15 per MTok. Default for most work.
+- Haiku: `claude-haiku-4-5-20251001` — Fastest. $1/$5 per MTok. For high-volume/cost-sensitive tasks.
+- WF3 pinned: `claude-sonnet-4-5-20250929` (audited 2026-03-03, still valid)
+- **Retired model strings** (return errors): `claude-3-haiku-20240307`, `claude-3-5-haiku-20241022`, `claude-3-5-sonnet-20240620`, `claude-3-5-sonnet-20241022`, `claude-3-7-sonnet-20250219`, `claude-3-opus-20240229`. Audit any third-party integrations that may still pin these.
+
+### Thinking Configuration
+- Default: `thinking: {type: "adaptive"}` (recommended for Opus 4.6)
+- DEPRECATED: `budget_tokens` parameter on new models. Use `/effort` command instead.
+- In Claude Code: `/effort low|medium|high` to control thinking depth.
+- "ultrathink" keyword — use directly in prompt (not a command) to trigger maximum thinking effort.
+
+### Thinking Display Control
+For production API calls where you don't need to see thinking output:
+Set `thinking.display: "omitted"` to skip thinking content in responses.
+- Faster streaming, smaller payloads
+- `signature` field preserved for multi-turn continuity
+- Billing unchanged (you still pay for thinking tokens)
+
+### Context Window
+- 1M token context window is GA for Opus 4.6 and Sonnet 4.6 — no beta header needed.
+- Standard pricing applies (no long-context surcharge for these models).
+- Standard rate limits apply across all context lengths (no separate 1M tier).
+- Media limit: up to 600 images or PDF pages per request with 1M context.
+- 128K output tokens supported (up from 64K default).
+
+### Console/Docs URLs
+- `platform.claude.com` (replaces console.anthropic.com)
+- `platform.claude.com/docs` (replaces docs.anthropic.com / docs.claude.com)
+
+### Claude Code Tools & Commands
+- `/effort low|medium|high` — Control thinking depth. Use `high` for complex architectural work.
+- "ultrathink" keyword — Use this word directly in your prompt (not as a command) to trigger maximum thinking effort.
+- `/loop <duration> <command>` — Auto-repeat a command (e.g., `/loop 5m npm test`).
+- `/voice` — Voice input mode (hold spacebar to dictate).
+- Code Review — Multi-agent code analysis tool. Use as quality gate for AI-generated code.
+- MCP Elicitation — MCP servers can request structured input mid-task via `Elicitation`/`ElicitationResult` hooks.
+- `CLAUDE_CODE_DISABLE_CRON` env var — Instantly stops scheduled cron jobs mid-session. Safety valve for intensive dev work.
+
+### Quality Gates
+- All Autopilot-generated code MUST be reviewed with Code Review tool before merging.
+- Never run Autopilot on main branch — feature branches only.
+- Autopilot bypasses ALL approval settings including destructive file operations.
+
+### MCP Usage Note
+MCP servers consume 40-50% of context window overhead (per Perplexity CTO benchmarks).
+For context-heavy sessions, consider selective MCP loading — only enable the MCPs you
+actually need for that session.
+
+### Prompt Caching
+Automatic caching is GA. Add a single `cache_control` field to your API request body
+and the system automatically caches the last cacheable block, moving the cache point
+forward as conversations grow. No manual breakpoint management needed.
+
+### Models API
+`GET /v1/models` and `GET /v1/models/{model_id}` now return:
+- `max_input_tokens` — Maximum input context length
+- `max_tokens` — Maximum output tokens
+- `capabilities` object — Programmatic discovery of model features
+Use this for dynamic model discovery instead of hardcoding capabilities.
+
 ---
 
 ## Command Center — Code Standards
