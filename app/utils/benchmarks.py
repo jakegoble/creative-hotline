@@ -70,6 +70,15 @@ FUNNEL_BENCHMARKS: dict[str, dict] = {
     "Call → Repeat Purchase":  {"rate": 0.20, "label": "Repeat Purchase"},
 }
 
+# ── Brand Audit Benchmarks ─────────────────────────────────────
+
+BRAND_AUDIT_BENCHMARKS: dict[str, float] = {
+    "avg_score_creative_services": 62,   # average for creative services brands
+    "avg_score_all_industries": 55,      # average across all industries
+    "top_quartile": 78,                  # top 25% threshold
+    "bottom_quartile": 42,              # bottom 25% threshold
+}
+
 # ── Lead Scoring Thresholds ──────────────────────────────────────
 
 MIN_LEADS_FOR_SCORING = 50        # below this, scores are directional only

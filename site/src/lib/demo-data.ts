@@ -197,8 +197,8 @@ export const demoData = {
       { service: "Calendly", status: "healthy", latency_ms: 310, message: "Connected" },
       { service: "Claude AI", status: "healthy", latency_ms: 520, message: "claude-sonnet-4-5-20250929" },
       { service: "n8n", status: "healthy", latency_ms: 150, message: "5 workflows active" },
-      { service: "ManyChat", status: "not_configured", message: "API key not set" },
-      { service: "Fireflies", status: "not_configured", message: "API key not set" },
+      { service: "ManyChat", status: "healthy", latency_ms: 95, message: "Connected" },
+      { service: "Fireflies", status: "healthy", latency_ms: 110, message: "Connected" },
     ];
   },
 

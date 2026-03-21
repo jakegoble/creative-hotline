@@ -2,7 +2,7 @@
 <!-- PROTOCOL: All 10 agents MUST read this file at session start and update their section
      at session end. See CLAUDE.md, DECISIONS.md, and docs/agent-roles.md for full protocol. -->
 
-> Last updated: 2026-02-25 by Command Center Engineer (growth action plan — 12 initiatives across 4 phases, role-specific instructions for all 10 agents)
+> Last updated: 2026-02-25 by Command Center Engineer (session 3 — UI audit fixes, deployment verification, performance research, 505 tests)
 
 ---
 
@@ -10,10 +10,10 @@
 
 | Metric | Value |
 |--------|-------|
-| Command Center version | v5.0 |
+| Command Center version | v5.1 |
 | Total modules | 75+ |
-| Total pages | 13 |
-| Total tests | 463 (all passing) |
+| Total pages | 14 |
+| Total tests | 505 (all passing) |
 | n8n active workflows | **5** (WF1-4 + Daily Follow-Up Engine — all live and branded) |
 | n8n plan | Upgraded (no longer trial) |
 | Streamlit Cloud | Deployed |
@@ -139,9 +139,9 @@
   - [ ] **GROWTH Phase 3:** Automated $299 Brand Audit product spec (Initiative 9)
   - [ ] **GROWTH Phase 3:** Apify Instagram scraping spec (Initiative 11)
 
-## Command Center Engineer (ARCH) — Last active: Feb 25
-- **Current focus**: Growth action plan created — 12 initiatives mapped to all 10 roles
-- **Test status**: 463/463 passing
+## Command Center Engineer (ARCH) — Last active: Feb 25 (session 3)
+- **Current focus**: UI consistency audit, deployment verification, Streamlit research
+- **Test status**: 505/505 passing
 - **Blockers**: None
 - **Completed since last update**:
   - [x] v5.0 UI/UX redesign (design tokens, ui.py, plotly_theme, all 13 pages)
@@ -151,46 +151,52 @@
   - [x] Agent coordination system v1 (STATUS_BOARD.md, CLAUDE.md rules, docs/agent-roles.md)
   - [x] 10-role architecture (DECISIONS.md, handoffs/, expanded STATUS_BOARD, unified agent-roles.md)
   - [x] UI consistency audit — 18 issues found across 12 files, all P0-P4 fixes implemented
-  - [x] Added to design_tokens.py: CHANNEL_COLORS_MAP, SCENARIO_COLORS, HEATMAP_SCALE, hex_to_rgba()
-  - [x] Replaced all hardcoded hex/rgba colors in 4 components (channel_chart, sankey_chart, growth_chart, heatmap)
-  - [x] Replaced Oranges_r palette with CHART_COLORS in 3 pages (dashboard, conversion_paths, lead_scoring)
-  - [x] Replaced all hardcoded font-size px values in 3 components (scenario_cards, segment_cards, client_timeline)
-  - [x] Fixed hardcoded #FFD4BC in funnel_analytics.py → t.WARNING
-  - [x] Zero hardcoded hex values remain in app/components/
-  - [x] Fixed CLAUDE.md: workflow count (5 active), product name (Single Call), removed stale P0 blockers, added resolved items
-  - [x] Updated DECISIONS.md: Stripe rename marked as DONE
-  - [x] Updated MEMORY.md: Single Call naming, 400+ tests, Daily Follow-Up Engine LIVE
-  - [x] **Growth Intelligence Report** — `docs/growth-intelligence-report.md`: competitive analysis, 6 data source categories, pricing psychology, 12 growth initiatives ranked by impact/effort
-  - [x] **Growth Action Plan** — `docs/growth-action-plan.md`: 12 initiatives across 4 phases, step-by-step instructions for every role, revenue projections, master coordination checklist for COS
+  - [x] Design tokens cleanup (CHANNEL_COLORS_MAP, SCENARIO_COLORS, HEATMAP_SCALE, hex_to_rgba; zero hardcoded hex in components)
+  - [x] Fixed CLAUDE.md, DECISIONS.md, MEMORY.md for product naming + workflow count
+  - [x] **Growth Intelligence Report** + **Growth Action Plan** — 12 initiatives across 4 phases
+  - [x] **Brand Audit page** — `app/pages/brand_audit.py`: 2 input modes, radar chart, benchmark comparison, multi-client scoring
+  - [x] **Added Brand Audit to main.py sidebar** — Growth section, 14th page total
+  - [x] **Session 3: Fixed sidebar DEMO MODE badge** — replaced 7 hardcoded values with design tokens
+  - [x] **Session 3: Deployment verification** — confirmed streamlit_app.py, config.toml, requirements.txt, secrets.toml.example all correct
+  - [x] **Session 3: Added FIREFLIES_API_KEY** to `.streamlit/secrets.toml.example` (was missing)
+  - [x] **Session 3: Bumped `streamlit>=1.39.0`** in requirements.txt (was >=1.31.0) — required for st.navigation() + st.fragment
+  - [x] **Session 3: Verified Growth Intelligence wiring** — all A1-A4 features already wired (capacity check, sample warnings, projected LTV, dynamic tiers)
+  - [x] **Session 3: Performance research** — @st.fragment is highest-impact optimization (Revenue Goals 12 sliders, Lead Scoring filters, Channel Performance model selector). Findings in memory/streamlit-performance.md
+  - [x] **Session 3: Navigation research** — deferred-import wrapper pattern confirmed best practice, session state architecture validated. Findings in memory/streamlit-navigation.md
 - **Pending**:
-  - [ ] **Phase 2: Build Brand Audit page** — `app/pages/brand_audit.py` + `app/utils/brand_auditor.py` + PDF export (see growth-action-plan.md Initiative 7)
-  - [ ] Add Brand Audit to main.py sidebar
+  - [ ] **P0**: Apply `@st.fragment` to Revenue Goals (12 sliders), Lead Scoring (filter/sort), Channel Performance (model selector), Outcomes (cohort toggle)
+  - [ ] **P1**: Add `key=` to all 30 `st.plotly_chart()` calls for efficient diffing
+  - [ ] **P2**: Dark mode toggle `on_change` callback instead of `st.rerun()`
   - [ ] Add Content Calendar Notion DB ID to CLAUDE.md once CRM creates it
 
-## Growth Intelligence Analyst (GROWTH) — Last active: Feb 24 (session 3)
-- **Current focus**: All analytics wiring complete — benchmarks, LTV, cohorts, funnels, CAC all surfaced in pages
-- **Test status**: 463/463 passing
+## Growth Intelligence Analyst (GROWTH) — Last active: Feb 25 (session 4)
+- **Current focus**: Brand audit scoring model + payback analysis + retention tracking complete
+- **Test status**: 505/505 passing (42 new tests this session)
 - **Blockers**: None
 - **Completed since last update**:
   - [x] Deep audit of all 8 analytics modules — 11 issues found, all P0-P3 fixed
   - [x] Validated $800K revenue path — max call revenue ~$527K; ~$275K gap needs non-call products
   - [x] All 6 module fixes: revenue_modeler, lead_scorer, attribution, ltv_calculator, segment_builder, keyword_extractor
-  - [x] **NEW: `app/utils/benchmarks.py`** — industry benchmarks module with 20+ constants
-  - [x] **Wired capacity ceiling into Revenue Goals page** — ceiling banner, gap closer cards, revenue mix
-  - [x] **Wired sample warnings into Channel Performance** — low-N warning icons + captions
-  - [x] **Session 3: Wired projected_ltv into Outcomes page** — replaced Expansion Revenue metric with Avg LTV (Projected), shows benchmark delta vs $910 first-year target
-  - [x] **Session 3: Wired ltv_by_cohort() into Outcomes page** — new "Cohort LTV Trends" section with monthly/quarterly toggle, bar+scatter chart, benchmark reference line, confidence flags
-  - [x] **Session 3: Added sample_size_warning to Outcomes** — warns when LTV data has <30 clients, flags low-sample sources
-  - [x] **Session 3: Added FIRST_YEAR_LTV benchmark line** to LTV by Source chart (vertical dashed at $910)
-  - [x] **Session 3: Wired compare_funnel() into Funnel Analytics** — each drop-off now shows benchmark rate + arrow (↑/↓/=) comparison
-  - [x] **Session 3: Wired CAC benchmarks into Channel Performance** — new "CAC Benchmarks by Channel" section with industry benchmark cards per channel
-  - [x] **Session 3: Added quarterly cohort grouping** to ltv_calculator.py — new `period="quarterly"` parameter, Q1-Q4 labels
-  - [x] 27 benchmarks tests + 2 quarterly cohort tests + 34 tests from other agents = 463 total passing
+  - [x] **`app/utils/benchmarks.py`** — industry benchmarks module with 20+ constants + BRAND_AUDIT_BENCHMARKS
+  - [x] Wired capacity ceiling, sample warnings, projected LTV, cohort LTV, funnel benchmarks, CAC benchmarks (sessions 2-3)
+  - [x] **Session 4: Created `app/utils/brand_auditor.py`** — brand audit scoring model (Phase 2 initiative)
+    - 6 dimensions: visual_identity (20%), messaging_clarity (20%), messaging_consistency (15%), messaging_differentiation (15%), content_strategy (15%), competitive_positioning (15%)
+    - Tiers: Strong (78+), Developing (55-77), Needs Work (35-54), Critical (<35)
+    - Percentile ranking against BRAND_AUDIT_BENCHMARKS (top 25% = 78+, avg creative = 62, avg all = 55, bottom 25% = 42)
+    - Per-dimension signals, recommendations, and priority actions
+    - `score_brand()` returns BrandAuditResult with composite score, tier, percentile, 6 dimension breakdowns
+    - `compare_brands()` for benchmarking across multiple audit results
+  - [x] **Session 4: Added BRAND_AUDIT_BENCHMARKS** to benchmarks.py
+  - [x] **Session 4: Wired payback_period() into Channel Performance** — uses benchmark CAC as defaults, shows immediate/delayed payback per channel with color-coded cards
+  - [x] **Session 4: Added score distribution histogram to Lead Scoring page** — tier threshold lines (Hot 70+, Warm 40+, Cool 20+) + scoring confidence notes (directional vs predictive)
+  - [x] **Session 4: Added tier reference lines to Avg Score by Lead Source chart** — Hot and Warm threshold lines
+  - [x] **Session 4: Created `retention_by_cohort()` in ltv_calculator.py** — CohortRetention dataclass tracking repeat rate, avg purchases, avg days to repeat per cohort
+  - [x] **Session 4: Wired retention chart into Outcomes page** — bar+line chart (repeat rate + avg purchases), 20% repeat benchmark line, retention detail expander
+  - [x] 36 brand_auditor tests + 6 retention tests = 505 total passing
 - **Pending**:
-  - [ ] Wire `payback_period()` into a page (Revenue Goals or Outcomes — needs actual channel cost data)
-  - [ ] Add benchmark reference lines to more Plotly charts (lead scoring distribution vs thresholds)
-  - [ ] Build cohort retention chart (repeat purchase rate by cohort month)
-  - [ ] **GROWTH Phase 2:** Brand audit scoring model — scoring rubric in brand_auditor.py + benchmarks in benchmarks.py (see growth-action-plan.md Initiative 7)
+  - [ ] Wire brand_auditor scoring into Brand Audit page (depends on Command Center Engineer building the page)
+  - [ ] Add brand audit demo data to demo_data.py
+  - [ ] Add benchmark lines to conversion paths page (attribution model comparison)
 
 ## Creative Director / Frankie (FRANK) — Last active: Feb 24 (session 3)
 - **Current focus**: All content pipeline work complete — 20 email templates, 8 prompts, landing pages, Sprint PDF, Brand Voice Guide
@@ -341,18 +347,19 @@
 - `docs/notion-database-schemas.md` may be stale — verify against live Notion
 - "3-Pack Sprint" vs "3-Session Clarity Sprint" naming needs resolution
 
-### From Growth Intelligence → Command Center Engineer (Feb 24, session 3 update)
-- **6 modules updated** — lead_scorer, attribution, ltv_calculator, revenue_modeler, segment_builder, keyword_extractor
-- **`app/utils/benchmarks.py`** — industry benchmarks module. Any page can import `compare_to_benchmark()`, `sample_size_warning()`, constants like `CAC_BY_CHANNEL`, `FUNNEL_BENCHMARKS`, `REVENUE_MIX`
-- ~~`capacity_reality_check()` needs UI wiring~~ → **DONE** — wired into Revenue Goals page
-- ~~`sample_sufficient` needs page warnings~~ → **DONE** — wired into Channel Performance page
-- ~~`projected_ltv` + `median_ltv` needs wiring~~ → **DONE** — wired into Outcomes page (projected LTV metric + benchmark delta)
-- ~~`ltv_by_cohort()` needs wiring~~ → **DONE** — wired into Outcomes page (monthly/quarterly toggle + chart)
-- ~~`compare_funnel()` needs wiring~~ → **DONE** — wired into Funnel Analytics (benchmark annotations on every drop-off)
-- ~~`compare_channel_cac()` needs wiring~~ → **DONE** — wired into Channel Performance (CAC benchmark cards section)
-- **NEW: `ltv_by_cohort(period="quarterly")`** — quarterly cohort grouping added. 2 new tests.
-- `lead_scorer.py` tier thresholds changed: Hot=70 (was 80), Warm=40 (was 50), Cool=20 (was 25)
-- Test count: 400 → 427 → 463 (all passing)
+### From Growth Intelligence → Command Center Engineer (Feb 25, session 4 update)
+- **All prior analytics wiring complete** — capacity ceiling, sample warnings, projected LTV, cohort LTV, funnel benchmarks, CAC benchmarks all done
+- **NEW: `app/utils/brand_auditor.py`** — brand audit scoring model ready for Phase 2 Brand Audit page
+  - `score_brand(data)` → BrandAuditResult with composite score, 6 dimension breakdowns, tier, percentile, priority actions
+  - `compare_brands(results)` → aggregate stats across multiple audits
+  - BRAND_AUDIT_BENCHMARKS added to benchmarks.py (top_quartile=78, avg_creative=62, avg_all=55, bottom_quartile=42)
+  - 36 tests in test_brand_auditor.py
+  - **Ready for you to build `app/pages/brand_audit.py`** — scoring model is complete, just needs a page to display it
+- **NEW: `retention_by_cohort()`** in ltv_calculator.py — tracks repeat purchase rate per cohort, wired into Outcomes page
+- **NEW: `payback_period()`** wired into Channel Performance — uses benchmark CAC defaults
+- **NEW: Score distribution + tier thresholds** on Lead Scoring page — histogram with Hot/Warm/Cool lines
+- `lead_scorer.py` tier thresholds: Hot=70, Warm=40, Cool=20
+- Test count: 400 → 427 → 463 → 505 (all passing)
 
 ### From Command Center Engineer → Growth Intelligence
 - ~~Linear attribution was fixed (Feb 23) — now returns `1/touchpoints` not `1.0`~~ → Fully resolved by Growth (linear now returns 1.0 for single-channel)

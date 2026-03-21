@@ -4,6 +4,7 @@ import streamlit as st
 
 from app.config import load_settings, validate_settings
 from app.utils.theme import inject_custom_css, inject_dark_mode
+from app.utils import design_tokens as t
 import app.utils.plotly_theme as _plotly_theme  # noqa: F401 — registers global template
 
 st.set_page_config(
@@ -157,6 +158,11 @@ def _outcomes():
     render()
 
 
+def _brand_audit():
+    from app.pages.brand_audit import render
+    render()
+
+
 def _health():
     from app.pages.health import render
     render()
@@ -188,6 +194,7 @@ def main():
             st.Page(_revenue_goals, title="Revenue Goals", icon=":material/trending_up:"),
             st.Page(_funnel_analytics, title="Funnel Analytics", icon=":material/filter_list:"),
             st.Page(_outcomes, title="Outcomes", icon=":material/emoji_events:"),
+            st.Page(_brand_audit, title="Brand Audit", icon=":material/assessment:"),
         ],
         "System": [
             st.Page(_health, title="System Health", icon=":material/monitor_heart:"),
@@ -202,9 +209,10 @@ def main():
         st.markdown("---")
         if st.session_state.get("demo_mode", False):
             st.markdown(
-                '<div style="background:#FF6B35;color:white;text-align:center;'
-                'padding:6px 12px;border-radius:8px;font-size:11px;'
-                'font-weight:700;letter-spacing:0.5px;margin-bottom:12px;">'
+                f'<div style="background:{t.PRIMARY};color:white;text-align:center;'
+                f'padding:{t.SPACE_SM}px {t.SPACE_MD}px;border-radius:{t.RADIUS_SM}px;'
+                f'font-size:{t.FONT_SIZE_XS}px;font-weight:{t.WEIGHT_BOLD};'
+                f'letter-spacing:{t.LETTER_SPACING_WIDE};margin-bottom:{t.SPACE_MD}px;">'
                 'DEMO MODE</div>',
                 unsafe_allow_html=True,
             )

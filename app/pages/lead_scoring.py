@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 
 from app.utils.lead_scorer import score_all_clients, get_tier_color, TIER_HOT, TIER_WARM, TIER_COOL
 from app.utils.formatters import format_currency
+from app.utils.benchmarks import sample_size_warning, MIN_LEADS_FOR_SCORING, MIN_LEADS_FOR_PREDICTIVE
 from app.utils import design_tokens as t
 from app.utils.ui import (
     page_header,
@@ -46,6 +47,48 @@ def render():
                 value=str(count),
                 accent_color=color,
             )
+
+    # ── Score Distribution ─────────────────────────────────────────
+
+    section_header("Score Distribution", "Distribution of lead scores with tier thresholds.")
+
+    all_scores = [s["score"]["total"] for s in scored]
+    fig = go.Figure(go.Histogram(
+        x=all_scores,
+        nbinsx=20,
+        marker_color=t.PRIMARY,
+        opacity=0.85,
+    ))
+    # Tier threshold lines
+    for threshold, tier_label, color in [
+        (TIER_HOT, f"Hot ({TIER_HOT}+)", get_tier_color("Hot")),
+        (TIER_WARM, f"Warm ({TIER_WARM}+)", get_tier_color("Warm")),
+        (TIER_COOL, f"Cool ({TIER_COOL}+)", get_tier_color("Cool")),
+    ]:
+        fig.add_vline(
+            x=threshold, line_dash="dash", line_color=color,
+            annotation_text=tier_label, annotation_position="top",
+            annotation_font_color=color,
+        )
+    fig.update_layout(
+        xaxis_title="Lead Score",
+        yaxis_title="Count",
+        height=250,
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Scoring confidence note
+    n_leads = len(scored)
+    if n_leads < MIN_LEADS_FOR_SCORING:
+        st.caption(
+            f"*{n_leads} leads scored — below {MIN_LEADS_FOR_SCORING} threshold. "
+            f"Scores are directional. Tier boundaries will stabilize with more data.*"
+        )
+    elif n_leads < MIN_LEADS_FOR_PREDICTIVE:
+        st.caption(
+            f"*{n_leads} leads — rule-based scoring active. "
+            f"Predictive scoring activates at {MIN_LEADS_FOR_PREDICTIVE}+ leads.*"
+        )
 
     # ── Filter Controls ───────────────────────────────────────────
 
@@ -160,6 +203,11 @@ def render():
             textposition="outside",
             marker_color=t.PRIMARY,
         ))
+        # Add tier threshold reference lines
+        fig.add_hline(y=TIER_HOT, line_dash="dot", line_color=get_tier_color("Hot"),
+                      annotation_text="Hot", annotation_position="right")
+        fig.add_hline(y=TIER_WARM, line_dash="dot", line_color=get_tier_color("Warm"),
+                      annotation_text="Warm", annotation_position="right")
         fig.update_layout(
             title="Avg Score by Lead Source",
             yaxis_title="Average Score",

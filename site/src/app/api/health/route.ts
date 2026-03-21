@@ -6,6 +6,8 @@ import * as notion from "@/lib/services/notion";
 import * as stripe from "@/lib/services/stripe";
 import * as calendly from "@/lib/services/calendly";
 import * as claude from "@/lib/services/claude";
+import * as manychat from "@/lib/services/manychat";
+import * as fireflies from "@/lib/services/fireflies";
 
 interface ServiceDef {
   name: string;
@@ -20,8 +22,8 @@ const SERVICES: ServiceDef[] = [
   { name: "Calendly", key: "calendly", ping: calendly.ping },
   { name: "Claude AI", key: "anthropic", ping: claude.ping, message: config.anthropic.model },
   { name: "n8n", key: "n8n", message: "5 workflows active" },
-  { name: "ManyChat", key: "manychat" },
-  { name: "Fireflies", key: "fireflies" },
+  { name: "ManyChat", key: "manychat", ping: manychat.ping },
+  { name: "Fireflies", key: "fireflies", ping: fireflies.ping },
 ];
 
 export async function GET() {

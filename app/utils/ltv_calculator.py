@@ -291,6 +291,93 @@ def expansion_revenue(payments: list[dict]) -> dict:
     }
 
 
+@dataclass
+class CohortRetention:
+    """Retention metrics for a signup cohort."""
+    cohort_month: str
+    client_count: int
+    repeat_count: int
+    repeat_rate: float          # 0-1: fraction who made >1 purchase
+    avg_purchases: float        # average number of purchases per client
+    avg_days_to_repeat: float   # average days between first and second purchase
+    sample_sufficient: bool = False
+
+    def as_dict(self) -> dict:
+        return {
+            "cohort_month": self.cohort_month,
+            "client_count": self.client_count,
+            "repeat_count": self.repeat_count,
+            "repeat_rate": round(self.repeat_rate, 3),
+            "avg_purchases": round(self.avg_purchases, 1),
+            "avg_days_to_repeat": round(self.avg_days_to_repeat, 1),
+            "sample_sufficient": self.sample_sufficient,
+        }
+
+
+def retention_by_cohort(
+    payments: list[dict], period: str = "monthly"
+) -> list[CohortRetention]:
+    """Retention analysis by signup cohort.
+
+    Tracks repeat purchase rate and time-to-repeat for each cohort.
+
+    Args:
+        payments: Payment records.
+        period: "monthly" or "quarterly" grouping.
+    """
+    groups = _group_by_email(payments)
+    cohort_data: dict[str, list[dict]] = defaultdict(list)
+
+    for email, records in groups.items():
+        sorted_recs = sorted(
+            records, key=lambda r: r.get("payment_date") or r.get("created") or ""
+        )
+        first_date = _parse_date(
+            sorted_recs[0].get("payment_date") or sorted_recs[0].get("created")
+        )
+        if not first_date:
+            continue
+
+        if period == "quarterly":
+            quarter = (first_date.month - 1) // 3 + 1
+            key = f"{first_date.year}-Q{quarter}"
+        else:
+            key = first_date.strftime("%Y-%m")
+
+        # Calculate days to repeat purchase
+        days_to_repeat = 0.0
+        if len(sorted_recs) > 1:
+            second_date = _parse_date(
+                sorted_recs[1].get("payment_date") or sorted_recs[1].get("created")
+            )
+            if second_date and first_date:
+                days_to_repeat = (second_date - first_date).days
+
+        cohort_data[key].append({
+            "purchase_count": len(records),
+            "is_repeat": len(records) > 1,
+            "days_to_repeat": days_to_repeat,
+        })
+
+    results = []
+    for key in sorted(cohort_data.keys()):
+        clients = cohort_data[key]
+        repeat_clients = [c for c in clients if c["is_repeat"]]
+        repeat_days = [c["days_to_repeat"] for c in repeat_clients if c["days_to_repeat"] > 0]
+
+        results.append(CohortRetention(
+            cohort_month=key,
+            client_count=len(clients),
+            repeat_count=len(repeat_clients),
+            repeat_rate=len(repeat_clients) / len(clients) if clients else 0,
+            avg_purchases=sum(c["purchase_count"] for c in clients) / len(clients) if clients else 0,
+            avg_days_to_repeat=sum(repeat_days) / len(repeat_days) if repeat_days else 0,
+            sample_sufficient=len(clients) >= MIN_COHORT_SIZE,
+        ))
+
+    return results
+
+
 def payback_period(
     payments: list[dict], channel_costs: dict[str, float] | None = None
 ) -> dict[str, dict]:

@@ -18,6 +18,7 @@ from app.utils.ltv_calculator import (
     ltv_by_source,
     ltv_by_entry_product,
     ltv_by_cohort,
+    retention_by_cohort,
     upsell_rate,
     expansion_revenue,
 )
@@ -223,6 +224,64 @@ def render():
                     )
         else:
             empty_state("Need more purchase data for cohort analysis.")
+
+        # ── Cohort Retention ──────────────────────────────────────
+
+        section_header("Cohort Retention", "Repeat purchase rate by signup cohort.")
+
+        retention_period = st.radio(
+            "Group by", ["Monthly", "Quarterly"],
+            horizontal=True, key="retention_period",
+        )
+        retention = retention_by_cohort(payments, period=retention_period.lower())
+        if retention:
+            ret_df = pd.DataFrame([r.as_dict() for r in retention])
+
+            fig = go.Figure()
+            # Bar: repeat rate
+            fig.add_trace(go.Bar(
+                x=ret_df["cohort_month"],
+                y=[r * 100 for r in ret_df["repeat_rate"]],
+                name="Repeat Rate %",
+                marker_color=t.PRIMARY,
+                text=[f"{r:.0f}%" for r in ret_df["repeat_rate"] * 100],
+                textposition="auto",
+            ))
+            # Line: avg purchases
+            fig.add_trace(go.Scatter(
+                x=ret_df["cohort_month"],
+                y=ret_df["avg_purchases"],
+                name="Avg Purchases",
+                mode="lines+markers",
+                yaxis="y2",
+                line=dict(color=t.PRIMARY_LIGHT, dash="dot"),
+            ))
+            # Benchmark line: 20% upsell rate
+            fig.add_hline(
+                y=20, line_dash="dash", line_color=t.TEXT_MUTED,
+                annotation_text="Benchmark: 20% repeat",
+            )
+            fig.update_layout(
+                height=300,
+                xaxis_title="Signup Cohort",
+                yaxis_title="Repeat Rate %",
+                yaxis2=dict(title="Avg Purchases", overlaying="y", side="right"),
+                legend=dict(orientation="h", y=-0.2),
+            )
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Retention detail
+            with st.expander("Retention Details"):
+                for r in retention:
+                    confidence = "" if r.sample_sufficient else " (low confidence)"
+                    days_str = f", avg {r.avg_days_to_repeat:.0f}d to repeat" if r.avg_days_to_repeat > 0 else ""
+                    st.markdown(
+                        f"**{r.cohort_month}**: {r.client_count} clients, "
+                        f"{r.repeat_count} repeat ({r.repeat_rate:.0%}), "
+                        f"avg {r.avg_purchases:.1f} purchases{days_str}{confidence}"
+                    )
+        else:
+            empty_state("Need more purchase data for retention analysis.")
 
     else:
         empty_state("Connect Notion to see LTV data.")

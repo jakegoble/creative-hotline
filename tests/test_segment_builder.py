@@ -11,7 +11,7 @@ from app.utils.segment_builder import (
 
 # ── Fixtures ──────────────────────────────────────────────────────
 
-NOW = datetime(2026, 2, 22, 12, 0, 0)
+NOW = datetime.now()
 
 
 def _make_payment(status, amount=0, days_ago=0, product="First Call", email="test@test.com"):

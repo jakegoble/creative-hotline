@@ -5,6 +5,7 @@ from app.utils.ltv_calculator import (
     ltv_by_source,
     ltv_by_entry_product,
     ltv_by_cohort,
+    retention_by_cohort,
     upsell_rate,
     expansion_revenue,
     payback_period,
@@ -203,6 +204,52 @@ def test_payback_period_with_costs():
 def test_payback_period_no_costs():
     result = payback_period(PAYMENTS, None)
     assert result == {}
+
+
+# ── Retention by Cohort ────────────────────────────────────────
+
+def test_retention_by_cohort_identifies_repeats():
+    result = retention_by_cohort(PAYMENTS)
+    # Alice is a repeat client (2 purchases), Bob and Diana are single-purchase
+    jan = next(c for c in result if c.cohort_month == "2026-01")
+    assert jan.client_count == 2  # Alice + Bob in Jan
+    assert jan.repeat_count == 1  # Alice only
+    assert jan.repeat_rate == 0.5
+
+
+def test_retention_by_cohort_avg_purchases():
+    result = retention_by_cohort(PAYMENTS)
+    jan = next(c for c in result if c.cohort_month == "2026-01")
+    # Alice has 2 purchases, Bob has 1, avg = 1.5
+    assert jan.avg_purchases == 1.5
+
+
+def test_retention_by_cohort_days_to_repeat():
+    result = retention_by_cohort(PAYMENTS)
+    jan = next(c for c in result if c.cohort_month == "2026-01")
+    # Alice: first purchase 2026-01-15, second 2026-02-01 = 17 days
+    assert jan.avg_days_to_repeat == 17.0
+
+
+def test_retention_by_cohort_quarterly():
+    result = retention_by_cohort(PAYMENTS, period="quarterly")
+    assert len(result) >= 1
+    q1 = next(c for c in result if c.cohort_month == "2026-Q1")
+    assert q1.client_count == 3  # All 3 paid clients in Q1
+
+
+def test_retention_by_cohort_empty():
+    result = retention_by_cohort([])
+    assert result == []
+
+
+def test_retention_as_dict():
+    result = retention_by_cohort(PAYMENTS)
+    d = result[0].as_dict()
+    assert "cohort_month" in d
+    assert "repeat_rate" in d
+    assert "avg_days_to_repeat" in d
+    assert "sample_sufficient" in d
 
 
 # ── Dataclass ────────────────────────────────────────────────────

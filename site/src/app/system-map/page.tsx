@@ -505,13 +505,12 @@ export default function SystemMapPage() {
         />
         <SystemCard
           name="ManyChat"
-          status="pending"
+          status="live"
           role="Instagram DM automation \u2014 auto-reply, lead capture"
           details={[
-            { label: "Status", value: "Being evaluated. Not yet configured." },
+            { label: "Status", value: "Configured and connected to Instagram" },
             { label: "Use case", value: "Auto-respond DMs with booking link or FAQ" },
           ]}
-          connectionLabel="Would connect to"
           connections={["Instagram", "Webflow (booking link)", "Calendly"]}
         />
         <SystemCard

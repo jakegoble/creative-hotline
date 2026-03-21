@@ -22,6 +22,7 @@ from app.components.channel_chart import (
 from app.components.heatmap import render_activity_heatmap
 from app.utils.formatters import format_currency, format_percentage
 from app.utils.benchmarks import sample_size_warning, CAC_BY_CHANNEL
+from app.utils.ltv_calculator import payback_period
 from app.utils import design_tokens as t
 from app.utils.ui import page_header, section_header, stat_card, empty_state
 
@@ -180,6 +181,55 @@ def render():
 
         st.caption("*Benchmarks are industry averages for high-ticket creative services ($500+ price point). "
                     "Actual CAC depends on ad spend, content investment, and team time.*")
+
+    # ── Payback Analysis ──────────────────────────────────────────
+
+    section_header("Channel Payback Analysis", "Does the first purchase cover the estimated CAC? Based on benchmark CAC values.")
+
+    # Use benchmark CAC as channel_costs since we don't have actual spend data
+    benchmark_costs: dict[str, float] = {}
+    for ch in roi_data:
+        ch_name = ch["channel"]
+        bench = CAC_BY_CHANNEL.get(ch_name)
+        if bench and ch.get("conversions", 0) > 0:
+            # Total estimated spend = benchmark CAC × number of leads
+            benchmark_costs[ch_name] = bench["cac"] * ch.get("leads", 1)
+
+    payback_data = payback_period(payments, channel_costs=benchmark_costs)
+    if payback_data:
+        pb_cols = st.columns(min(len(payback_data), 4))
+        for i, (channel, pb) in enumerate(list(payback_data.items())[:4]):
+            with pb_cols[i]:
+                if pb["immediate_payback"]:
+                    value = "Immediate"
+                    subtitle = (
+                        f"First purchase ({format_currency(pb['avg_first_purchase'])}) "
+                        f"> CAC ({format_currency(pb['cac'])})"
+                    )
+                    color = t.SUCCESS
+                elif pb["payback_months"] is not None:
+                    value = f"{pb['payback_months']:.0f} mo"
+                    subtitle = (
+                        f"CAC: {format_currency(pb['cac'])} · "
+                        f"Avg 1st: {format_currency(pb['avg_first_purchase'])}"
+                    )
+                    color = t.WARNING if pb["payback_months"] <= 6 else t.DANGER
+                else:
+                    value = "N/A"
+                    subtitle = "Insufficient data"
+                    color = t.TEXT_MUTED
+
+                stat_card(
+                    label=f"{channel} Payback",
+                    value=value,
+                    subtitle=subtitle,
+                    accent_color=color,
+                )
+
+        st.caption("*Payback calculated using industry-average CAC benchmarks. "
+                    "Replace with actual ad spend for precise results.*")
+    else:
+        st.caption("*Need conversion data to calculate payback periods.*")
 
 
     # ── Activity Heatmap ──────────────────────────────────────────

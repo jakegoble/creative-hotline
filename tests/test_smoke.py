@@ -31,6 +31,7 @@ def test_import_all_utils():
     from app.utils import demo_data
     from app.utils import theme
     from app.utils import benchmarks
+    from app.utils import brand_auditor
     from app.utils import activity_feed
     from app.utils import template_library
 

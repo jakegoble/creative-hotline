@@ -68,7 +68,7 @@ export default function DataFlowsPage() {
     { num: 4, action: "Google Drive nightly scan task", owner: "Jake", blocked: "Megha sharing folder", priority: "high" },
     { num: 5, action: "WhatsApp sender setup in Twilio", owner: "Jake", blocked: "Manual browser signup flow", priority: "high" },
     { num: 6, action: "Remove Webflow site password (at launch)", owner: "Jake + Megha", blocked: "Launch date decision", priority: "medium" },
-    { num: 7, action: "ManyChat setup for Instagram DM automation", owner: "Jake", blocked: "Strategy decision", priority: "medium" },
+    { num: 7, action: "ManyChat setup for Instagram DM automation", owner: "Jake", blocked: "None \u2014 DONE", priority: "medium" },
     { num: 8, action: "Content pipeline: Monday \u2192 Later auto-posting", owner: "Megha", blocked: "Scheduled task build", priority: "medium" },
     { num: 9, action: "Brand Audit product ($100-149) in Stripe", owner: "Both", blocked: "Scope definition", priority: "future" },
     { num: 10, action: "Creative Engine self-guided product", owner: "Megha", blocked: "ChatGPT build recovery", priority: "future" },

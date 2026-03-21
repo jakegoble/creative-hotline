@@ -20,6 +20,7 @@ build/
 .env
 .env.*
 !.env.example
+!.env.local.example
 .streamlit/secrets.toml
 
 # Node

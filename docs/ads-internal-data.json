@@ -1,0 +1,104 @@
+{
+  "generated_at": "2026-03-05T20:03:29.281503",
+  "services_available": {
+    "stripe": true,
+    "notion": true,
+    "calendly": true,
+    "manychat": true
+  },
+  "stripe": {
+    "total_customers_all_time": 0,
+    "total_revenue_all_time": 0,
+    "total_sessions_all_time": 0,
+    "revenue_30d": 0,
+    "sessions_30d": 0,
+    "revenue_90d": 0,
+    "sessions_90d": 0,
+    "avg_deal_size": 0,
+    "product_mix": {},
+    "monthly_revenue_trend": {},
+    "refunds_90d_count": 0,
+    "refunds_90d_total": 0,
+    "refunds_all_count": 0,
+    "refunds_all_total": 0,
+    "refund_rate_pct": 0.0,
+    "repeat_buyers_count": 0,
+    "repeat_buyer_rate_pct": 0.0,
+    "repeat_buyer_emails": [],
+    "avg_days_between_repeat_purchases": null,
+    "most_popular_product": null,
+    "highest_revenue_product": null
+  },
+  "notion_crm": {
+    "total_records": 0,
+    "pipeline_breakdown": {
+      "Lead - Laylo": 0,
+      "Paid - Needs Booking": 0,
+      "Booked - Needs Intake": 0,
+      "Intake Complete": 0,
+      "Ready for Call": 0,
+      "Call Complete": 0,
+      "Follow-Up Sent": 0
+    },
+    "lead_source_distribution": {},
+    "product_distribution": {},
+    "has_intake_pct": 0.0,
+    "avg_days_payment_to_booking": null,
+    "median_days_payment_to_booking": null,
+    "desired_outcomes_distribution": {},
+    "reminders_sent": {
+      "booking_reminders": 0,
+      "intake_reminders": 0,
+      "nurture_emails": 0
+    },
+    "funnel_conversion": {
+      "total_records": 0,
+      "paid": 0,
+      "booked": 0,
+      "intake_complete": 0,
+      "calls_complete": 0,
+      "paid_to_booked_pct": 0.0,
+      "booked_to_intake_pct": 0.0,
+      "intake_to_call_pct": 0.0,
+      "overall_conversion_pct": 0.0
+    },
+    "monthly_new_clients": {},
+    "total_intakes": 0
+  },
+  "calendly": {
+    "booking_rate_90d": {
+      "booked": 0,
+      "cancelled": 0,
+      "total": 0,
+      "rate": 0
+    },
+    "avg_hours_to_book": null,
+    "avg_days_to_book": null,
+    "total_events_90d": 0,
+    "upcoming_events_30d": 0,
+    "day_of_week_distribution": {},
+    "hour_distribution": {},
+    "no_shows_90d": 0,
+    "no_show_rate_pct": 0
+  },
+  "manychat": {
+    "total_subscribers": 0,
+    "new_subscribers_30d": 0,
+    "new_subscribers_90d": 0,
+    "growth_rate_30d_pct": 0,
+    "keyword_stats": {},
+    "flow_stats": [],
+    "tag_distribution": {
+      "viewed_creative": 0,
+      "viewed_pricing": 0,
+      "needs_human": 0,
+      "booked": 0,
+      "objection_timing": 0,
+      "objection_price": 0,
+      "abandoned_conversation": 0,
+      "interested_not_booked": 0,
+      "link_clicked (2026-02-12 04:36:18)": 0
+    },
+    "ig_to_booking_conversion_pct": 0.0
+  }
+}
