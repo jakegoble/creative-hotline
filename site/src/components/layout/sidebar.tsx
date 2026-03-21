@@ -17,6 +17,8 @@ import {
   Trophy,
   ClipboardCheck,
   MonitorCheck,
+  Map,
+  GitBranch,
   Settings,
   Phone,
   ChevronLeft,
@@ -65,6 +67,8 @@ const NAV_GROUPS = [
     label: "System",
     items: [
       { href: "/health", icon: MonitorCheck, label: "System Health" },
+      { href: "/system-map", icon: Map, label: "System Map" },
+      { href: "/data-flows", icon: GitBranch, label: "Data Flows" },
       { href: "/settings", icon: Settings, label: "Settings" },
     ],
   },
