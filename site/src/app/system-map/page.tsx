@@ -201,42 +201,157 @@ export default function SystemMapPage() {
       </div>
 
       {/* ── CLIENT JOURNEY ── */}
-      <SectionHeader title="The Client Journey \u2014 End to End" description="Every touchpoint from first discovery to post-workshop follow-up, showing which systems handle each step." />
-      <div className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl p-5 overflow-x-auto space-y-3">
+      <SectionHeader title="The Client Journey" description="Every touchpoint from first discovery to post-workshop follow-up, showing which systems handle each step." />
+      <div className="relative">
         {[
-          { label: "1. Discovery", nodes: [
-            { color: "purple" as const, text: "Instagram" }, { color: "purple" as const, text: "Meta Ads" }, { color: "orange" as const, text: "ManyChat" }, { color: "blue" as const, text: "Webflow site" }
-          ]},
-          { label: "2. SMS/Text Lead", nodes: [
-            { color: "gray" as const, text: "Client texts SOS-IDEA" }, { color: "green" as const, text: "Twilio (+14137674332)" }, { color: "green" as const, text: "n8n Inbound Handler" }, { color: "green" as const, text: "Notion Messaging Contacts" }
-          ]},
-          { label: "3. Booking", nodes: [
-            { color: "blue" as const, text: "Webflow \"Book a Call\"" }, { color: "green" as const, text: "Calendly" }, { color: "green" as const, text: "Stripe ($499 payment)" }, { color: "green" as const, text: "n8n Stripe webhook" }, { color: "green" as const, text: "Notion Payments DB" }
-          ]},
-          { label: "4. Intake", nodes: [
-            { color: "green" as const, text: "Tally intake form" }, { color: "green" as const, text: "n8n Tally webhook" }, { color: "green" as const, text: "Claude AI (analysis)" }, { color: "green" as const, text: "Notion Intake DB" }
-          ]},
-          { label: "5. Night Before", nodes: [
-            { color: "yellow" as const, text: "n8n Schedule (7 PM)" }, { color: "yellow" as const, text: "Query Notion" }, { color: "yellow" as const, text: "Build Frankie email" }, { color: "green" as const, text: "SendGrid" }, { color: "gray" as const, text: "Client inbox" }
-          ]},
-          { label: "6. Workshop Call", nodes: [
-            { color: "green" as const, text: "Google Meet / Calendly" }, { color: "green" as const, text: "Fireflies records + transcribes" }, { color: "purple" as const, text: "Megha delivers workshop" }
-          ]},
-          { label: "7. Post-Call Auto", nodes: [
-            { color: "green" as const, text: "Fireflies webhook" }, { color: "green" as const, text: "n8n pulls transcript" }, { color: "green" as const, text: "Claude + Master Brain" }, { color: "green" as const, text: "Deliverable to Notion" }, { color: "green" as const, text: "Notify M + J" }
-          ]},
-          { label: "8. Follow-Up", nodes: [
-            { color: "green" as const, text: "n8n Follow-Up Engine" }, { color: "green" as const, text: "Day 2: SMS (Twilio)" }, { color: "green" as const, text: "Day 3: Action plan (SendGrid)" }, { color: "green" as const, text: "Day 7-90: Frankie emails" }
-          ]},
-        ].map((row, i) => (
-          <div key={i} className="flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] font-semibold text-neutral-600 uppercase tracking-wider w-28 flex-shrink-0">{row.label}</span>
-            {row.nodes.map((node, j) => (
-              <span key={j} className="contents">
-                {j > 0 && <Arrow />}
-                <FlowNode color={node.color}>{node.text}</FlowNode>
-              </span>
-            ))}
+          {
+            step: 1,
+            title: "Discovery",
+            description: "Client finds Creative Hotline through social media, ads, or word of mouth",
+            accent: "purple",
+            accentBg: "bg-purple-500",
+            accentBorder: "border-purple-500",
+            accentText: "text-purple-400",
+            nodes: [
+              { color: "purple" as const, text: "Instagram" },
+              { color: "purple" as const, text: "Meta Ads" },
+              { color: "orange" as const, text: "ManyChat" },
+              { color: "blue" as const, text: "Webflow site" },
+            ],
+          },
+          {
+            step: 2,
+            title: "SMS / Text Lead",
+            description: "Client texts SOS-IDEA and gets auto-routed into the system",
+            accent: "green",
+            accentBg: "bg-green-500",
+            accentBorder: "border-green-500",
+            accentText: "text-green-400",
+            nodes: [
+              { color: "gray" as const, text: "Client texts SOS-IDEA" },
+              { color: "green" as const, text: "Twilio (+14137674332)" },
+              { color: "green" as const, text: "n8n Inbound Handler" },
+              { color: "green" as const, text: "Notion Messaging Contacts" },
+            ],
+          },
+          {
+            step: 3,
+            title: "Booking",
+            description: "Client books a 45-min workshop call and pays $499 via Stripe",
+            accent: "green",
+            accentBg: "bg-green-500",
+            accentBorder: "border-green-500",
+            accentText: "text-green-400",
+            nodes: [
+              { color: "blue" as const, text: "Webflow \u201cBook a Call\u201d" },
+              { color: "green" as const, text: "Calendly" },
+              { color: "green" as const, text: "Stripe ($499)" },
+              { color: "green" as const, text: "n8n Stripe webhook" },
+              { color: "green" as const, text: "Notion Payments DB" },
+            ],
+          },
+          {
+            step: 4,
+            title: "Intake",
+            description: "Client fills out a 15-question form \u2014 Claude AI analyzes it and creates an action plan",
+            accent: "green",
+            accentBg: "bg-green-500",
+            accentBorder: "border-green-500",
+            accentText: "text-green-400",
+            nodes: [
+              { color: "green" as const, text: "Tally intake form" },
+              { color: "green" as const, text: "n8n Tally webhook" },
+              { color: "green" as const, text: "Claude AI (analysis)" },
+              { color: "green" as const, text: "Notion Intake DB" },
+            ],
+          },
+          {
+            step: 5,
+            title: "Night Before",
+            description: "Automated Frankie email preps the client for tomorrow\u2019s workshop call",
+            accent: "yellow",
+            accentBg: "bg-yellow-500",
+            accentBorder: "border-yellow-500",
+            accentText: "text-yellow-400",
+            nodes: [
+              { color: "yellow" as const, text: "n8n Schedule (7 PM)" },
+              { color: "yellow" as const, text: "Query Notion" },
+              { color: "yellow" as const, text: "Build Frankie email" },
+              { color: "green" as const, text: "SendGrid" },
+              { color: "gray" as const, text: "Client inbox" },
+            ],
+          },
+          {
+            step: 6,
+            title: "Workshop Call",
+            description: "Megha delivers the live workshop \u2014 Fireflies records and transcribes everything",
+            accent: "purple",
+            accentBg: "bg-purple-500",
+            accentBorder: "border-purple-500",
+            accentText: "text-purple-400",
+            nodes: [
+              { color: "green" as const, text: "Google Meet / Calendly" },
+              { color: "green" as const, text: "Fireflies records + transcribes" },
+              { color: "purple" as const, text: "Megha delivers workshop" },
+            ],
+          },
+          {
+            step: 7,
+            title: "Post-Call Automation",
+            description: "Transcript gets pulled, Claude generates a deliverable, both Jake and Megha get notified",
+            accent: "green",
+            accentBg: "bg-green-500",
+            accentBorder: "border-green-500",
+            accentText: "text-green-400",
+            nodes: [
+              { color: "green" as const, text: "Fireflies webhook" },
+              { color: "green" as const, text: "n8n pulls transcript" },
+              { color: "green" as const, text: "Claude + Master Brain" },
+              { color: "green" as const, text: "Deliverable to Notion" },
+              { color: "green" as const, text: "Notify M + J" },
+            ],
+          },
+          {
+            step: 8,
+            title: "Follow-Up Engine",
+            description: "Automated 90-day nurture sequence \u2014 SMS, action plans, Frankie check-ins, NPS survey",
+            accent: "green",
+            accentBg: "bg-green-500",
+            accentBorder: "border-green-500",
+            accentText: "text-green-400",
+            nodes: [
+              { color: "green" as const, text: "Day 2: SMS check-in (Twilio)" },
+              { color: "green" as const, text: "Day 3: Action plan (SendGrid)" },
+              { color: "green" as const, text: "Day 7\u201390: Frankie emails" },
+            ],
+          },
+        ].map((stage, i, arr) => (
+          <div key={i} className="relative flex gap-4 md:gap-6 pb-8 last:pb-0">
+            {/* Vertical timeline line */}
+            <div className="flex flex-col items-center">
+              <div className={`relative z-10 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 ${stage.accentBorder} bg-[var(--color-bg)] text-sm font-bold ${stage.accentText}`}>
+                {stage.step}
+              </div>
+              {i < arr.length - 1 && (
+                <div className="w-px flex-1 bg-gradient-to-b from-neutral-600 to-neutral-800 mt-2" />
+              )}
+            </div>
+            {/* Card */}
+            <div className="flex-1 bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl p-4 hover:border-neutral-500 transition-colors mb-2">
+              <div className="flex items-center gap-2 mb-1">
+                <h4 className="text-sm font-semibold text-white">{stage.title}</h4>
+                <div className={`h-1.5 w-1.5 rounded-full ${stage.accentBg}`} />
+              </div>
+              <p className="text-xs text-neutral-500 mb-3">{stage.description}</p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {stage.nodes.map((node, j) => (
+                  <span key={j} className="contents">
+                    {j > 0 && <span className="text-neutral-700 text-xs mx-0.5">&rarr;</span>}
+                    <FlowNode color={node.color}>{node.text}</FlowNode>
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
       </div>
