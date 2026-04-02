@@ -26,6 +26,7 @@ import {
   Brain,
   Menu,
   X,
+  Zap,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -35,6 +36,7 @@ const NAV_GROUPS = [
     items: [
       { href: "/", icon: LayoutDashboard, label: "Dashboard" },
       { href: "/clients", icon: Users, label: "Clients" },
+      { href: "/workshop", icon: Zap, label: "Workshop" },
       { href: "/pipeline", icon: Filter, label: "Pipeline" },
       { href: "/action-plans", icon: FileEdit, label: "Action Plans" },
     ],
