@@ -218,7 +218,7 @@ export async function ping(): Promise<{ ok: boolean; latency: number }> {
   const start = Date.now();
   try {
     const client = getClient();
-    await client.databases.retrieve({ database_id: config.notion.paymentsDbId });
+    await client.dataSources.retrieve({ data_source_id: config.notion.paymentsDbId });
     return { ok: true, latency: Date.now() - start };
   } catch {
     return { ok: false, latency: Date.now() - start };

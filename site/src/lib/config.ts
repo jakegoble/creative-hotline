@@ -10,9 +10,9 @@ export const config = {
   notion: {
     apiKey: process.env.NOTION_API_KEY ?? "",
     paymentsDbId:
-      process.env.NOTION_PAYMENTS_DB ?? "3030e73ffadc80bcb9dde15f51a9caf2",
+      process.env.NOTION_PAYMENTS_DB ?? "3030e73f-fadc-8029-9357-000b74a5a2f7",
     intakeDbId:
-      process.env.NOTION_INTAKE_DB ?? "2f60e73ffadc806bbf5ddca2f5c256a3",
+      process.env.NOTION_INTAKE_DB ?? "2f60e73f-fadc-80fb-beb5-000bdddbc915",
   },
 
   stripe: {
