@@ -33,17 +33,55 @@ interface WorkshopSession {
   outcomes?: Record<string, unknown>;
 }
 
+interface IntakeRecord {
+  id: string;
+  client_name: string;
+  email: string;
+  brand: string;
+  intake_status: string;
+}
+
 export default function WorkshopPage() {
   const { data: clients, isLoading, error, refresh } = useData("getClients");
+  const [intakes, setIntakes] = useState<IntakeRecord[]>([]);
+  const [intakesLoading, setIntakesLoading] = useState(true);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
   const [currentSession, setCurrentSession] = useState<WorkshopSession | null>(null);
   const [phase, setPhase] = useState(1);
   const [showSessionSummary, setShowSessionSummary] = useState(false);
 
+  // Fetch pending intakes
+  useEffect(() => {
+    const fetchIntakes = async () => {
+      try {
+        const response = await fetch("/api/notion/intakes");
+        if (response.ok) {
+          const data = await response.json();
+          setIntakes(data || []);
+        }
+      } catch (err) {
+        console.error("Failed to fetch intakes:", err);
+      } finally {
+        setIntakesLoading(false);
+      }
+    };
+    fetchIntakes();
+  }, []);
+
   // Filter clients ready for workshop (intake complete, status = "Ready for Call" or "Call Complete")
   const workshopReadyClients = clients?.filter((c: Client) =>
     c.intakeCompleted && (c.status === "Ready for Call" || c.status === "Call Complete")
   ) || [];
+
+  // Filter intakes that have been submitted (ready to review / schedule)
+  const submittedIntakes = intakes.filter((intake) => {
+    return intake.client_name && intake.intake_status === "Submitted";
+  }) || [];
+
+  // Filter pending intakes with Lead status (from ads, Laylo, etc.)
+  const pendingIntakes = intakes.filter((intake) => {
+    return intake.client_name && intake.intake_status.includes("Lead");
+  }) || [];
 
   const handleStartWorkshop = (client: Client) => {
     const session: WorkshopSession = {
@@ -104,7 +142,7 @@ export default function WorkshopPage() {
     }
   };
 
-  if (isLoading || !clients) return <LoadingState />;
+  if (isLoading || !clients || intakesLoading) return <LoadingState />;
 
   // If a session is in progress, show the workshop conductor
   if (currentSession && selectedClient && !showSessionSummary) {
@@ -147,22 +185,22 @@ export default function WorkshopPage() {
           accent="var(--color-primary)"
         />
         <KpiCard
-          label="In Progress"
-          value="0"
+          label="Submitted Intakes"
+          value={String(submittedIntakes.length)}
           icon={<Zap size={18} />}
           accent="var(--color-warning)"
+        />
+        <KpiCard
+          label="Leads"
+          value={String(pendingIntakes.length)}
+          icon={<AlertCircle size={18} />}
+          accent="var(--color-accent)"
         />
         <KpiCard
           label="Completed"
           value="0"
           icon={<CheckCircle2 size={18} />}
           accent="var(--color-success)"
-        />
-        <KpiCard
-          label="Follow-ups Sent"
-          value="0"
-          icon={<RotateCw size={18} />}
-          accent="var(--color-accent)"
         />
       </div>
 
@@ -199,6 +237,68 @@ export default function WorkshopPage() {
           )}
         </div>
       </div>
+
+      {/* Submitted Intakes — ready to review and schedule */}
+      {submittedIntakes.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">Submitted Intakes ({submittedIntakes.length})</h2>
+          <div className="space-y-3">
+            {submittedIntakes.map((intake: IntakeRecord) => (
+              <Card key={intake.id} className="flex items-center justify-between p-4">
+                <div>
+                  <p className="font-semibold text-[var(--color-text)]">{intake.client_name}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">{intake.email}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="warning">{intake.brand}</Badge>
+                    <Badge variant="success">{intake.intake_status}</Badge>
+                  </div>
+                </div>
+                <button
+                  onClick={() => handleStartWorkshop({
+                    id: intake.id,
+                    name: intake.client_name,
+                    email: intake.email,
+                    product: intake.brand,
+                    status: intake.intake_status,
+                  })}
+                  className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--color-primary)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                >
+                  <Play size={16} />
+                  Start Workshop
+                </button>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Pending Intakes — Leads */}
+      {pendingIntakes.length > 0 && (
+        <div className="mt-12">
+          <h2 className="text-lg font-semibold text-[var(--color-text)] mb-4">Leads ({pendingIntakes.length})</h2>
+          <div className="space-y-3">
+            {pendingIntakes.map((intake: IntakeRecord) => (
+              <Card key={intake.id} className="flex items-center justify-between p-4">
+                <div>
+                  <p className="font-semibold text-[var(--color-text)]">{intake.client_name}</p>
+                  <p className="text-xs text-[var(--color-text-secondary)]">{intake.email}</p>
+                  <div className="flex gap-2 mt-2">
+                    <Badge variant="warning">{intake.brand}</Badge>
+                    <Badge>{intake.intake_status}</Badge>
+                  </div>
+                </div>
+                <a
+                  href={`mailto:jake@radanimal.co?subject=Review Intake - ${intake.client_name}`}
+                  className="flex items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--color-warning)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity"
+                >
+                  <ChevronRight size={16} />
+                  Review
+                </a>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
