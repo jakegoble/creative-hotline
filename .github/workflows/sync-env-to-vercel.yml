@@ -20,7 +20,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '18.x'
 
       - name: Sync environment variables to Vercel
         env:
@@ -31,9 +31,18 @@ jobs:
           node - <<'EOF'
           const fs = require('fs');
           const https = require('https');
+          const path = require('path');
 
           // Parse .env file
-          const envContent = fs.readFileSync('.env', 'utf-8');
+          const envPath = path.join(process.cwd(), '.env');
+          if (!fs.existsSync(envPath)) {
+            console.error('Error: .env file not found. This file is required for syncing environment variables.');
+            console.error('Note: .env is in .gitignore and not checked out by GitHub Actions.');
+            console.error('Please ensure you have pushed your .env file changes or manually trigger this workflow from a commit with .env changes.');
+            process.exit(1);
+          }
+
+          const envContent = fs.readFileSync(envPath, 'utf-8');
           const envVars = {};
 
           envContent.split('\n').forEach(line => {
