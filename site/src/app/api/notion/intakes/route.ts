@@ -12,6 +12,9 @@ export async function GET() {
     return NextResponse.json(intakes);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
+    console.error("Notion API Error:", message);
+    console.error("API Key configured:", !!process.env.NOTION_API_KEY);
+    console.error("API Key starts with:", process.env.NOTION_API_KEY?.substring(0, 10));
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
