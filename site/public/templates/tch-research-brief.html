@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCH — Client Research Brief</title>
+<style>
+  /* BRAND FONTS */
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype'); font-weight: 400; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype'); font-weight: 800; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype'); font-weight: 500; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype'); font-weight: 700; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype'); font-weight: 900; font-style: italic; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+
+  :root {
+    --primary-red: #EC3107;
+    --secondary-blue: #2E63E7;
+    --highlight-yellow: #F6ED52;
+    --ink-black: #1C1C1E;
+    --soft-white: #F5F2EB;
+    --border-light: #E8E4DE;
+    --border-dark: #D4CFC7;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nord', sans-serif;
+    background: var(--ink-black);
+    color: var(--soft-white);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--ink-black);
+    border-bottom: 2px solid var(--secondary-blue);
+    padding: 14px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .topbar-badge {
+    background: var(--secondary-blue);
+    color: #fff;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    font-family: 'Nord', sans-serif;
+  }
+  .topbar-title {
+    font-family: 'Nord', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--soft-white);
+  }
+  .topbar-meta {
+    font-size: 12px;
+    color: rgba(245,242,235,0.5);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px 80px;
+  }
+
+  /* CLIENT HEADER */
+  .client-header {
+    margin-bottom: 40px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid rgba(245,242,235,0.1);
+  }
+  .client-header h1 {
+    font-family: 'Editorial Old', serif;
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: 8px;
+  }
+  .client-header h1 span { color: var(--secondary-blue); }
+  .client-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: rgba(245,242,235,0.6);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .client-sub a {
+    color: var(--secondary-blue);
+    text-decoration: none;
+  }
+  .client-sub a:hover { text-decoration: underline; }
+
+  /* SECTIONS */
+  .section {
+    margin-bottom: 40px;
+  }
+  .section-label {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .section-label .num {
+    background: var(--secondary-blue);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
+  .section-label .text {
+    font-family: 'Nord', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--soft-white);
+  }
+  .section-label .line {
+    flex: 1;
+    height: 1px;
+    background: rgba(46, 99, 231, 0.3);
+  }
+
+  /* CARDS */
+  .card {
+    background: rgba(245,242,235,0.04);
+    border: 1px solid rgba(245,242,235,0.08);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-accent {
+    border-left: 4px solid var(--secondary-blue);
+  }
+  .card-red {
+    border-left: 4px solid var(--primary-red);
+  }
+  .card-yellow {
+    border-left: 4px solid var(--highlight-yellow);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--secondary-blue);
+    font-family: 'Nord', sans-serif;
+  }
+  .card-title.red { color: var(--primary-red); }
+  .card-title.yellow { color: var(--highlight-yellow); }
+
+  /* GRID */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* POST CARDS */
+  .post-card {
+    background: rgba(245,242,235,0.04);
+    border: 1px solid rgba(245,242,235,0.08);
+    border-radius: var(--radius);
+    padding: 20px;
+    position: relative;
+  }
+  .post-rank {
+    position: absolute;
+    top: -8px;
+    left: 16px;
+    background: var(--secondary-blue);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .post-type {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(245,242,235,0.4);
+    margin-bottom: 8px;
+    font-family: 'Nord', sans-serif;
+  }
+  .post-desc {
+    font-size: 14px;
+    color: var(--soft-white);
+    margin-bottom: 10px;
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .post-why {
+    font-size: 13px;
+    color: var(--secondary-blue);
+    font-style: italic;
+    font-family: 'Editorial Old', serif;
+    padding-left: 12px;
+    border-left: 2px solid var(--secondary-blue);
+    line-height: 1.5;
+  }
+  .post-metrics {
+    display: flex;
+    gap: 12px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: rgba(245,242,235,0.5);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* INSIGHT BLOCKS */
+  .insight {
+    padding: 16px 20px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .insight-blue {
+    background: rgba(46, 99, 231, 0.08);
+    border-left: 3px solid var(--secondary-blue);
+    color: var(--soft-white);
+  }
+  .insight-red {
+    background: rgba(236, 49, 7, 0.08);
+    border-left: 3px solid var(--primary-red);
+    color: var(--soft-white);
+  }
+  .insight-yellow {
+    background: rgba(246, 237, 82, 0.08);
+    border-left: 3px solid var(--highlight-yellow);
+    color: var(--soft-white);
+  }
+  .insight-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 6px;
+    font-family: 'Nord', sans-serif;
+  }
+  .insight-blue .insight-label { color: var(--secondary-blue); }
+  .insight-red .insight-label { color: var(--primary-red); }
+  .insight-yellow .insight-label { color: var(--highlight-yellow); }
+
+  /* SCORE BAR */
+  .score-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .score-label {
+    font-size: 12px;
+    font-weight: 600;
+    width: 120px;
+    color: rgba(245,242,235,0.7);
+    font-family: 'Nord', sans-serif;
+  }
+  .score-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(245,242,235,0.08);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .score-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s;
+  }
+  .score-fill.blue { background: var(--secondary-blue); }
+  .score-fill.red { background: var(--primary-red); }
+  .score-fill.yellow { background: var(--highlight-yellow); }
+  .score-value {
+    font-size: 14px;
+    font-weight: 700;
+    width: 40px;
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* REC CARDS */
+  .rec-card {
+    background: rgba(245,242,235,0.04);
+    border: 1px solid rgba(245,242,235,0.08);
+    border-radius: var(--radius);
+    padding: 20px;
+  }
+  .rec-priority {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+    font-family: 'Nord', sans-serif;
+  }
+  .priority-high { background: var(--primary-red); color: #fff; }
+  .priority-med { background: var(--highlight-yellow); color: var(--ink-black); }
+  .priority-low { background: rgba(245,242,235,0.15); color: var(--soft-white); }
+  .rec-title {
+    font-family: 'Editorial Old', serif;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+  .rec-body {
+    font-size: 14px;
+    color: rgba(245,242,235,0.8);
+    line-height: 1.6;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* BOTTOM LINE */
+  .bottom-line {
+    background: rgba(236, 49, 7, 0.08);
+    border: 2px solid var(--primary-red);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-top: 40px;
+  }
+  .bottom-line h2 {
+    font-family: 'Editorial Old', serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary-red);
+    margin-bottom: 12px;
+  }
+  .bottom-line p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--soft-white);
+  }
+  .bottom-line .key-points {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .key-point {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .key-point .bullet {
+    color: var(--primary-red);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* EDITABLE FIELDS */
+  .edit-field {
+    width: 100%;
+    min-height: 60px;
+    padding: 12px 16px;
+    border: 1px dashed rgba(245,242,235,0.15);
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--soft-white);
+    background: rgba(245,242,235,0.03);
+    resize: vertical;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .edit-field:focus {
+    outline: none;
+    border-color: var(--secondary-blue);
+    background: rgba(46, 99, 231, 0.05);
+    box-shadow: 0 0 0 3px rgba(46, 99, 231, 0.1);
+  }
+  .edit-field::placeholder {
+    color: rgba(245,242,235,0.25);
+    font-style: italic;
+  }
+
+  /* PRINT */
+  @media print {
+    body { background: #fff; color: #1C1C1E; }
+    .topbar { display: none; }
+    .card, .post-card, .rec-card { border: 1px solid #ddd; background: #f9f9f9; }
+    .edit-field { border: 1px solid #ccc; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .container { padding: 20px 16px 60px; }
+    .topbar { padding: 12px 16px; flex-direction: column; gap: 8px; }
+    .client-header h1 { font-size: 36px; }
+    .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .post-card { padding: 16px; }
+    .rec-card { padding: 16px; }
+  }
+  @media (max-width: 480px) {
+    .container { padding: 16px 12px 60px; }
+    .client-header h1 { font-size: 28px; }
+    .card { padding: 16px; }
+    .bottom-line { padding: 20px; }
+    .bottom-line h2 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-badge">🔍 Research Brief</span>
+    <span class="topbar-title">The Creative Hotline — Pre-Session Intel</span>
+  </div>
+  <div class="topbar-meta">
+    <span id="briefDate">Prepared March 20, 2026</span> · <span>INTERNAL — M + J ONLY</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- CLIENT HEADER -->
+  <div class="client-header">
+    <h1><span id="briefClientName">Client Name</span></h1>
+    <div class="client-sub">
+      <span id="briefBizName">Business Name</span>
+      <a href="#" id="briefWebsite" target="_blank">website</a>
+      <a href="#" id="briefIG" target="_blank">@instagram</a>
+      <span id="briefLocation">Location</span>
+      <span id="briefCategory">Category</span>
+    </div>
+  </div>
+
+  <!-- 1. SOCIAL AUDIT -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">1</span>
+      <span class="text">Social Audit</span>
+      <span class="line"></span>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="card card-accent" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-title">Platform Overview</span>
+      </div>
+      <div class="grid-3" style="margin-bottom: 0;">
+        <div>
+          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(245,242,235,0.4); margin-bottom: 4px; font-family: 'Nord', sans-serif;">Instagram</div>
+          <textarea class="edit-field" style="min-height: 45px; font-size: 13px;" placeholder="Followers · Avg likes · Post frequency · Bio quality · Highlights?" id="audit-ig"></textarea>
+        </div>
+        <div>
+          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(245,242,235,0.4); margin-bottom: 4px; font-family: 'Nord', sans-serif;">TikTok / Other</div>
+          <textarea class="edit-field" style="min-height: 45px; font-size: 13px;" placeholder="Presence? Views? What kind of content? Active?" id="audit-tiktok"></textarea>
+        </div>
+        <div>
+          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(245,242,235,0.4); margin-bottom: 4px; font-family: 'Nord', sans-serif;">Website / Shop</div>
+          <textarea class="edit-field" style="min-height: 45px; font-size: 13px;" placeholder="SEO quality · UX · Copy · Mobile · Conversion path?" id="audit-web"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Health Score -->
+    <div class="card card-accent" style="margin-bottom: 20px;">
+      <div class="card-header">
+        <span class="card-title">Content Health Score</span>
+        <span style="font-size: 11px; color: rgba(245,242,235,0.4);">Claude's read — confirm in session</span>
+      </div>
+      <div class="score-bar">
+        <span class="score-label">Visual Quality</span>
+        <div class="score-track"><div class="score-fill blue" style="width: 0%;" id="score-visual"></div></div>
+        <span class="score-value" id="score-visual-val">—</span>
+      </div>
+      <div class="score-bar">
+        <span class="score-label">Brand Cohesion</span>
+        <div class="score-track"><div class="score-fill blue" style="width: 0%;" id="score-cohesion"></div></div>
+        <span class="score-value" id="score-cohesion-val">—</span>
+      </div>
+      <div class="score-bar">
+        <span class="score-label">Copy / Captions</span>
+        <div class="score-track"><div class="score-fill blue" style="width: 0%;" id="score-copy"></div></div>
+        <span class="score-value" id="score-copy-val">—</span>
+      </div>
+      <div class="score-bar">
+        <span class="score-label">Engagement</span>
+        <div class="score-track"><div class="score-fill blue" style="width: 0%;" id="score-engagement"></div></div>
+        <span class="score-value" id="score-engagement-val">—</span>
+      </div>
+      <div class="score-bar">
+        <span class="score-label">Storytelling</span>
+        <div class="score-track"><div class="score-fill blue" style="width: 0%;" id="score-storytelling"></div></div>
+        <span class="score-value" id="score-storytelling-val">—</span>
+      </div>
+      <div class="score-bar">
+        <span class="score-label">Conversion Path</span>
+        <div class="score-track"><div class="score-fill blue" style="width: 0%;" id="score-conversion"></div></div>
+        <span class="score-value" id="score-conversion-val">—</span>
+      </div>
+    </div>
+
+    <!-- Top Performing Posts -->
+    <div style="margin-bottom: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--secondary-blue); font-family: 'Nord', sans-serif;">
+      Top Performing Posts — What's Working
+    </div>
+    <div class="grid-3" id="topPosts">
+      <div class="post-card">
+        <div class="post-rank">1</div>
+        <div class="post-type" contenteditable="true">Reel / Carousel / Static</div>
+        <div class="post-desc" contenteditable="true">Describe the post — what was it about, what did it show?</div>
+        <div class="post-why" contenteditable="true">Why it worked: What made this connect? What pattern does it reveal?</div>
+        <div class="post-metrics" contenteditable="true">Likes · Comments · Shares · Saves</div>
+      </div>
+      <div class="post-card">
+        <div class="post-rank">2</div>
+        <div class="post-type" contenteditable="true">Reel / Carousel / Static</div>
+        <div class="post-desc" contenteditable="true">Describe the post</div>
+        <div class="post-why" contenteditable="true">Why it worked</div>
+        <div class="post-metrics" contenteditable="true">Metrics</div>
+      </div>
+      <div class="post-card">
+        <div class="post-rank">3</div>
+        <div class="post-type" contenteditable="true">Reel / Carousel / Static</div>
+        <div class="post-desc" contenteditable="true">Describe the post</div>
+        <div class="post-why" contenteditable="true">Why it worked</div>
+        <div class="post-metrics" contenteditable="true">Metrics</div>
+      </div>
+    </div>
+
+    <!-- Content Gaps -->
+    <div style="margin-top: 20px; margin-bottom: 12px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-red); font-family: 'Nord', sans-serif;">
+      Content Gaps — What's Missing or Hurting Them
+    </div>
+    <div class="card card-red">
+      <textarea class="edit-field" style="min-height: 100px;" placeholder="What content types are they NOT making that they should be? What's falling flat? What's inconsistent? Where's the disconnect between the work quality and the content quality?
+
+Examples:
+— No behind-the-scenes content (audience can't connect to the maker)
+— Captions are generic / salesy — no personality or storytelling
+— Grid has no visual rhythm — feels random, not curated
+— No educational content (missed authority-building opportunity)
+— Zero email capture — all traffic dies on IG" id="content-gaps"></textarea>
+    </div>
+  </div>
+
+  <!-- 2. BRAND VOICE + VISUAL IDENTITY -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">2</span>
+      <span class="text">Brand Voice + Visual Identity</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <div class="card-header">
+          <span class="card-title">Brand Voice Assessment</span>
+        </div>
+        <textarea class="edit-field" style="min-height: 120px;" placeholder="How do they talk? What does their copy sound like? Is there a consistent voice or does it shift? Is it authentic or performative?
+
+Look at: bio, captions, website copy, email (if visible), highlights, story style.
+
+What's the voice trying to be vs. what it actually is?" id="voice-assessment"></textarea>
+      </div>
+
+      <div class="card card-accent">
+        <div class="card-header">
+          <span class="card-title">Visual Identity Read</span>
+        </div>
+        <textarea class="edit-field" style="min-height: 120px;" placeholder="Color palette — intentional or accidental?
+Typography — consistent? Professional?
+Photography style — cohesive?
+Logo / brand mark quality?
+Overall aesthetic — does it match their price point?
+Does the visual identity reflect who they actually are?" id="visual-identity"></textarea>
+      </div>
+    </div>
+
+    <div class="card card-accent">
+      <div class="card-header">
+        <span class="card-title">The Gap — Brand Promise vs. Brand Reality</span>
+      </div>
+      <textarea class="edit-field" style="min-height: 80px; font-family: 'Editorial Old', serif; font-size: 16px; font-style: italic;" placeholder="One paragraph. What they're trying to project vs. what someone actually experiences when they land on their page / site / shop. Where does the illusion break?" id="brand-gap"></textarea>
+    </div>
+  </div>
+
+  <!-- 3. AUDIENCE + MARKET POSITION -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">3</span>
+      <span class="text">Audience + Market Position</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-accent">
+        <div class="card-header">
+          <span class="card-title">Who's Actually Following / Buying</span>
+        </div>
+        <textarea class="edit-field" style="min-height: 100px;" placeholder="Look at their comments, followers, tagged posts. Who are these people?
+
+— Are they friends/family or actual customers?
+— What's the demographic read? Age, location, interests?
+— Are these the people who can afford their product/service?
+— Is the audience they're attracting the one they want?" id="audience-actual"></textarea>
+      </div>
+
+      <div class="card card-accent">
+        <div class="card-header">
+          <span class="card-title">Who They SHOULD Be Reaching</span>
+        </div>
+        <textarea class="edit-field" style="min-height: 100px;" placeholder="Based on their price point, product quality, and positioning potential — who's the real target?
+
+What's the gap between current audience and ideal audience? What content/messaging shift would close that gap?" id="audience-ideal"></textarea>
+      </div>
+    </div>
+
+    <div class="card card-accent">
+      <div class="card-header">
+        <span class="card-title">Competitive Position — Where They Sit</span>
+      </div>
+      <textarea class="edit-field" style="min-height: 100px;" placeholder="Who are the 3-5 brands/people in their space doing it well? Where does our client sit relative to them?
+
+Not just competitors — reference points. Brands that show what's possible at their level.
+
+What's the white space they could own that nobody else is claiming?" id="competitive-position"></textarea>
+    </div>
+  </div>
+
+  <!-- 4. STORYTELLING ANALYSIS -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">4</span>
+      <span class="text">Storytelling Analysis</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="card card-yellow">
+      <div class="card-header">
+        <span class="card-title yellow">The Story They're Telling (or Not)</span>
+      </div>
+      <textarea class="edit-field" style="min-height: 100px;" placeholder="What story is their brand currently telling? Is it clear? Compelling? Differentiated?
+
+Every brand has a narrative — even if they don't know it. What's theirs?
+
+Is the founder's story visible? Is the origin story anywhere? Does the audience understand WHY this brand exists?" id="story-current"></textarea>
+    </div>
+
+    <div class="card card-yellow">
+      <div class="card-header">
+        <span class="card-title yellow">The Story They Should Be Telling</span>
+      </div>
+      <textarea class="edit-field" style="min-height: 100px; font-family: 'Editorial Old', serif; font-size: 16px;" placeholder="Based on everything you've seen — what's the real story here? What's the narrative that would make someone stop scrolling, care, and buy?
+
+This isn't about manufacturing something fake. It's about finding the authentic thread and pulling it forward." id="story-should"></textarea>
+    </div>
+
+    <div class="grid-2">
+      <div class="card card-yellow">
+        <div class="card-header">
+          <span class="card-title yellow">Story Hooks — Specific Content Ideas</span>
+        </div>
+        <textarea class="edit-field" style="min-height: 100px;" placeholder="5-7 specific content ideas that would tell their story better:
+
+1.
+2.
+3.
+4.
+5.
+
+Format: Hook + why it works + platform" id="story-hooks"></textarea>
+      </div>
+
+      <div class="card card-yellow">
+        <div class="card-header">
+          <span class="card-title yellow">Virality Levers — What Could Hit</span>
+        </div>
+        <textarea class="edit-field" style="min-height: 100px;" placeholder="What content formats/angles have viral potential in their niche?
+
+What emotional triggers work for their audience?
+What trends are they positioned to ride?
+What's their version of the post that makes someone share it with 'you need to see this'?" id="virality-levers"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. CREATIVE DIRECTION RECS -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">5</span>
+      <span class="text">Creative Direction — Top Recommendations</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="grid-2" id="recCards">
+      <div class="rec-card">
+        <div class="rec-priority priority-high">High Priority</div>
+        <div class="rec-title" contenteditable="true">Recommendation 1</div>
+        <div class="rec-body" contenteditable="true">What to do, why it matters, and what impact it would have. Be specific — not "improve your content" but "switch from product-only posts to a 3:1 ratio of story/process content to product shots."</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-priority priority-high">High Priority</div>
+        <div class="rec-title" contenteditable="true">Recommendation 2</div>
+        <div class="rec-body" contenteditable="true">Specific direction</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-priority priority-med">Medium Priority</div>
+        <div class="rec-title" contenteditable="true">Recommendation 3</div>
+        <div class="rec-body" contenteditable="true">Specific direction</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-priority priority-med">Medium Priority</div>
+        <div class="rec-title" contenteditable="true">Recommendation 4</div>
+        <div class="rec-body" contenteditable="true">Specific direction</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-priority priority-low">Nice to Have</div>
+        <div class="rec-title" contenteditable="true">Recommendation 5</div>
+        <div class="rec-body" contenteditable="true">Specific direction</div>
+      </div>
+      <div class="rec-card">
+        <div class="rec-priority priority-low">Nice to Have</div>
+        <div class="rec-title" contenteditable="true">Recommendation 6</div>
+        <div class="rec-body" contenteditable="true">Specific direction</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. QUICK REFERENCE — THE CHEAT SHEET -->
+  <div class="section">
+    <div class="section-label">
+      <span class="num">6</span>
+      <span class="text">Quick Reference — Use During the Call</span>
+      <span class="line"></span>
+    </div>
+
+    <div class="grid-2">
+      <div class="insight insight-blue">
+        <div class="insight-label">What They're Doing Right — Acknowledge This</div>
+        <div contenteditable="true" style="min-height: 50px;">Specific things to genuinely compliment — shows you did your homework and earns trust fast.</div>
+      </div>
+      <div class="insight insight-red">
+        <div class="insight-label">The Elephant in the Room — Address Directly</div>
+        <div contenteditable="true" style="min-height: 50px;">The thing they probably know is wrong but haven't named. Say it kindly but clearly.</div>
+      </div>
+      <div class="insight insight-yellow">
+        <div class="insight-label">The Unlock — Their Biggest Opportunity</div>
+        <div contenteditable="true" style="min-height: 50px;">The one shift that would have the most impact. This is the session's north star.</div>
+      </div>
+      <div class="insight insight-blue">
+        <div class="insight-label">Reference Points — Brands to Name-Drop</div>
+        <div contenteditable="true" style="min-height: 50px;">2-3 brands you can reference in conversation: "Think about how [brand] does X — you could do your version of that."</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM LINE -->
+  <div class="bottom-line">
+    <h2>☎️ The Bottom Line</h2>
+    <p contenteditable="true" style="font-family: 'Editorial Old', serif; font-size: 18px; font-style: italic;">
+      In one paragraph — what is the core creative direction this person needs to hear? What's the diagnosis, what's the prescription, and what does success look like in 90 days?
+    </p>
+    <div class="key-points" style="margin-top: 20px;">
+      <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-red); margin-bottom: 8px; font-family: 'Nord', sans-serif;">Walk Away With:</div>
+      <div class="key-point"><span class="bullet">→</span><span contenteditable="true">Key takeaway 1 — the positioning shift</span></div>
+      <div class="key-point"><span class="bullet">→</span><span contenteditable="true">Key takeaway 2 — the content strategy change</span></div>
+      <div class="key-point"><span class="bullet">→</span><span contenteditable="true">Key takeaway 3 — the distribution move</span></div>
+      <div class="key-point"><span class="bullet">→</span><span contenteditable="true">Key takeaway 4 — the quick win they can do this week</span></div>
+      <div class="key-point"><span class="bullet">→</span><span contenteditable="true">Key takeaway 5 — the bigger play for 90 days</span></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Set date
+  const now = new Date();
+  document.getElementById('briefDate').textContent = 'Prepared ' + now.toLocaleDateString('en-US', {
+    month: 'long', day: 'numeric', year: 'numeric'
+  });
+
+  // Score bar helper
+  function setScore(id, value) {
+    const max = 10;
+    const pct = (value / max) * 100;
+    const fill = document.getElementById('score-' + id);
+    const val = document.getElementById('score-' + id + '-val');
+    if (fill) fill.style.width = pct + '%';
+    if (val) val.textContent = value + '/10';
+
+    // Color coding
+    if (fill) {
+      fill.className = 'score-fill';
+      if (value <= 3) fill.classList.add('red');
+      else if (value <= 6) fill.classList.add('yellow');
+      else fill.classList.add('blue');
+    }
+  }
+
+  // Example: setScore('visual', 7) — call these when populating the brief
+  // Scores: visual, cohesion, copy, engagement, storytelling, conversion
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Creative Hotline — Follow-Up Tracker</title>
+    <style>
+        /* Font Faces */
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype');
+            font-weight: 400;
+            font-style: italic;
+        }
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype');
+            font-weight: 800;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype');
+            font-weight: 300;
+        }
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype');
+            font-weight: 500;
+        }
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype');
+            font-weight: 400;
+        }
+
+        /* Color Variables */
+        :root {
+            --hotline-red: #EC3107;
+            --electric-blue: #2E63E7;
+            --acid-yellow: #F6ED52;
+            --ink-black: #1C1C1E;
+            --soft-white: #F5F2EB;
+            --gray-light: #E8E6E1;
+            --gray-mid: #D4D0C8;
+            --gray-dark: #7D7A72;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nord', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--ink-black);
+            color: var(--ink-black);
+            line-height: 1.6;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: var(--ink-black);
+            border-bottom: 2px solid var(--hotline-red);
+            padding: 1.5rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .wordmark {
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 1.4rem;
+            letter-spacing: 0.15em;
+            color: var(--soft-white);
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        .wordmark span {
+            color: var(--hotline-red);
+        }
+
+        .top-bar-label {
+            font-size: 0.95rem;
+            color: var(--soft-white);
+            font-weight: 400;
+            opacity: 0.9;
+        }
+
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 2.5rem;
+            margin-left: auto;
+        }
+
+        .date-display {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--acid-yellow);
+        }
+
+        .stats-display {
+            font-size: 0.85rem;
+            color: var(--soft-white);
+            text-align: right;
+        }
+
+        .stats-display .stat-item {
+            display: block;
+        }
+
+        .stats-display .due-today {
+            color: var(--acid-yellow);
+            font-weight: 500;
+        }
+
+        .stats-display .overdue {
+            color: var(--hotline-red);
+            font-weight: 500;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+            background-color: var(--ink-black);
+        }
+
+        /* Quick Stats Row */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background-color: var(--soft-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            border-left: 4px solid var(--hotline-red);
+        }
+
+        .stat-card.blue {
+            border-left-color: var(--electric-blue);
+        }
+
+        .stat-card.yellow {
+            border-left-color: var(--acid-yellow);
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: 500;
+            font-family: 'Editorial Old', serif;
+            color: var(--ink-black);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--gray-dark);
+            font-weight: 500;
+        }
+
+        /* Form Section */
+        .form-section {
+            background-color: var(--soft-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .form-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 0;
+        }
+
+        .form-header h3 {
+            font-family: 'Editorial Old', serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--ink-black);
+            margin: 0;
+            flex: 1;
+        }
+
+        .toggle-icon {
+            font-size: 1.5rem;
+            color: var(--hotline-red);
+            transition: transform 0.2s;
+        }
+
+        .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .form-content {
+            display: grid;
+            max-height: 500px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+            opacity: 1;
+            margin-top: 1.5rem;
+        }
+
+        .form-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--gray-dark);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 0.7rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 4px;
+            font-family: 'Nord', sans-serif;
+            font-size: 0.95rem;
+            background-color: white;
+            color: var(--ink-black);
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--hotline-red);
+            box-shadow: 0 0 0 3px rgba(236, 49, 7, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            grid-column: 1 / -1;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Nord', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn-primary {
+            background-color: var(--hotline-red);
+            color: var(--soft-white);
+        }
+
+        .btn-primary:hover {
+            background-color: #c41605;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(236, 49, 7, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-light);
+            color: var(--ink-black);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-mid);
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.75rem;
+        }
+
+        .btn-copy {
+            background-color: var(--electric-blue);
+            color: var(--soft-white);
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+        }
+
+        .btn-copy:hover {
+            background-color: #1a3ea8;
+        }
+
+        .btn-copy.copied {
+            background-color: #22c55e;
+        }
+
+        /* Filter Bar */
+        .filter-bar {
+            display: flex;
+            gap: 0.8rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-btn {
+            padding: 0.6rem 1.2rem;
+            background-color: var(--soft-white);
+            border: 1px solid var(--gray-light);
+            border-radius: 4px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--ink-black);
+        }
+
+        .filter-btn:hover {
+            border-color: var(--hotline-red);
+        }
+
+        .filter-btn.active {
+            background-color: var(--hotline-red);
+            color: var(--soft-white);
+            border-color: var(--hotline-red);
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--gray-light);
+            border-radius: 4px;
+            font-family: 'Nord', sans-serif;
+            font-size: 0.9rem;
+            background-color: var(--soft-white);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--hotline-red);
+            box-shadow: 0 0 0 3px rgba(236, 49, 7, 0.1);
+        }
+
+        /* Table */
+        .table-wrapper {
+            overflow-x: auto;
+            background-color: var(--soft-white);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        thead {
+            background-color: var(--ink-black);
+            color: var(--soft-white);
+            position: sticky;
+            top: 0;
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-size: 0.75rem;
+            border-bottom: 2px solid var(--hotline-red);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        tbody tr {
+            transition: background-color 0.2s;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: rgba(245, 242, 235, 0.5);
+        }
+
+        tbody tr:hover {
+            background-color: rgba(236, 49, 7, 0.05);
+        }
+
+        tbody tr.with-overdue {
+            border-left: 4px solid var(--hotline-red);
+        }
+
+        tbody tr.all-sent {
+            border-left: 4px solid #22c55e;
+        }
+
+        .client-name {
+            font-weight: 500;
+            color: var(--hotline-red);
+        }
+
+        .session-date {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--gray-dark);
+        }
+
+        .follow-up-cell {
+            text-align: center;
+            cursor: pointer;
+            min-width: 80px;
+        }
+
+        .follow-up-due-date {
+            font-size: 0.7rem;
+            color: var(--gray-dark);
+            display: block;
+            margin-bottom: 0.3rem;
+        }
+
+        .status-indicator {
+            font-size: 1.3rem;
+            display: inline-block;
+            transition: all 0.2s;
+        }
+
+        .status-indicator:hover {
+            transform: scale(1.15);
+        }
+
+        .status-indicator.pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .status-col {
+            cursor: pointer;
+            min-width: 140px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            background-color: var(--gray-light);
+            color: var(--ink-black);
+            transition: all 0.2s;
+        }
+
+        .status-badge:hover {
+            background-color: var(--hotline-red);
+            color: var(--soft-white);
+        }
+
+        .status-badge.active {
+            background-color: var(--electric-blue);
+            color: var(--soft-white);
+        }
+
+        .status-badge.converted {
+            background-color: var(--acid-yellow);
+            color: var(--ink-black);
+        }
+
+        .status-badge.completed {
+            background-color: #22c55e;
+            color: var(--soft-white);
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 0.5rem;
+            min-width: 110px;
+        }
+
+        /* Notes Row */
+        .notes-row {
+            display: none;
+        }
+
+        .notes-row.expanded {
+            display: table-row;
+        }
+
+        .notes-cell {
+            padding: 1.5rem !important;
+        }
+
+        .notes-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .note-section {
+            background-color: var(--gray-light);
+            border-radius: 4px;
+            padding: 1rem;
+        }
+
+        .note-section h4 {
+            margin-bottom: 0.5rem;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--gray-dark);
+        }
+
+        .note-textarea {
+            width: 100%;
+            padding: 0.7rem;
+            border: 1px solid var(--gray-mid);
+            border-radius: 4px;
+            font-family: 'Nord', sans-serif;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .note-textarea:focus {
+            outline: none;
+            border-color: var(--hotline-red);
+            box-shadow: 0 0 0 3px rgba(236, 49, 7, 0.1);
+        }
+
+        /* Scripts Panel */
+        .scripts-panel {
+            background-color: var(--soft-white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 2.5rem;
+        }
+
+        .scripts-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            cursor: pointer;
+            user-select: none;
+            margin-bottom: 0;
+        }
+
+        .scripts-header h3 {
+            font-family: 'Editorial Old', serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--ink-black);
+            margin: 0;
+            flex: 1;
+        }
+
+        .scripts-content {
+            display: grid;
+            max-height: 1200px;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+            opacity: 1;
+            margin-top: 1.5rem;
+            gap: 1.5rem;
+        }
+
+        .scripts-content.collapsed {
+            max-height: 0;
+            opacity: 0;
+            margin-top: 0;
+        }
+
+        .script-card {
+            background-color: var(--gray-light);
+            border-left: 4px solid var(--hotline-red);
+            border-radius: 4px;
+            padding: 1rem;
+        }
+
+        .script-day {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--hotline-red);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .script-text {
+            font-family: 'Editorial Old', serif;
+            font-size: 0.95rem;
+            color: var(--ink-black);
+            line-height: 1.6;
+            margin-bottom: 0.8rem;
+            font-style: italic;
+        }
+
+        .script-text em {
+            color: var(--hotline-red);
+            font-weight: 600;
+        }
+
+        .script-copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .top-bar {
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .top-bar-right {
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            .stats-display {
+                font-size: 0.75rem;
+            }
+
+            table {
+                font-size: 0.8rem;
+            }
+
+            th, td {
+                padding: 0.7rem;
+            }
+
+            .follow-up-cell {
+                min-width: 70px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .quick-stats {
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+            }
+
+            .top-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1rem;
+            }
+
+            .top-bar-right {
+                width: 100%;
+                flex-direction: column;
+                gap: 0.5rem;
+                margin-left: 0;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-bar {
+                gap: 0.5rem;
+            }
+
+            .filter-btn {
+                padding: 0.5rem 0.8rem;
+                font-size: 0.75rem;
+            }
+
+            .search-input {
+                min-width: 150px;
+                font-size: 0.85rem;
+            }
+
+            table {
+                font-size: 0.75rem;
+            }
+
+            th, td {
+                padding: 0.5rem;
+            }
+
+            .follow-up-cell {
+                min-width: 60px;
+            }
+
+            .actions-cell {
+                gap: 0.3rem;
+            }
+
+            .btn-small {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.65rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0.75rem;
+            }
+
+            .quick-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-number {
+                font-size: 1.8rem;
+            }
+
+            .wordmark {
+                font-size: 1rem;
+            }
+
+            .date-display {
+                font-size: 0.75rem;
+            }
+
+            table {
+                font-size: 0.7rem;
+            }
+
+            th, td {
+                padding: 0.4rem;
+            }
+
+            .follow-up-cell {
+                min-width: 50px;
+            }
+
+            .status-indicator {
+                font-size: 1rem;
+            }
+
+            .actions-cell {
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+
+            .btn-small {
+                padding: 0.3rem 0.5rem;
+                font-size: 0.6rem;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="wordmark">THE CREATIVE <span>HOTLINE</span></div>
+            <div class="top-bar-label">Follow-Up Tracker</div>
+        </div>
+        <div class="top-bar-right">
+            <div class="date-display" id="todayDate"></div>
+            <div class="stats-display">
+                <span class="stat-item"><span class="due-today" id="dueTodayCount">0</span> due today</span>
+                <span class="stat-item"><span class="overdue" id="overdueCount">0</span> overdue</span>
+                <span class="stat-item"><span id="totalActiveCount">0</span> total active</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+            <div class="stat-card">
+                <div class="stat-number" id="activeClientsNum">0</div>
+                <div class="stat-label">Active Clients</div>
+            </div>
+            <div class="stat-card blue">
+                <div class="stat-number" id="dueTodayNum">0</div>
+                <div class="stat-label">Due Today</div>
+            </div>
+            <div class="stat-card yellow">
+                <div class="stat-number" id="overdueNum">0</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="conversionRateNum">0%</div>
+                <div class="stat-label">Conversion Rate</div>
+            </div>
+        </div>
+
+        <!-- Add Client Form -->
+        <div class="form-section">
+            <div class="form-header" onclick="toggleAddForm()">
+                <h3>Add New Client</h3>
+                <div class="toggle-icon" id="addFormToggle">▼</div>
+            </div>
+            <div class="form-content" id="addFormContent">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="clientName">Client Name</label>
+                        <input type="text" id="clientName" placeholder="Full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionDate">Session Date</label>
+                        <input type="date" id="sessionDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="clientEmail">Email</label>
+                        <input type="email" id="clientEmail" placeholder="email@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionScore">Session Score (1-10)</label>
+                        <input type="number" id="sessionScore" min="1" max="10" value="7">
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="quickNote">Quick Note</label>
+                        <textarea id="quickNote" placeholder="Session notes, key topics discussed..."></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary" onclick="addClient()">Add Client</button>
+                        <button class="btn btn-secondary" onclick="resetAddForm()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterClients('all')">All</button>
+            <button class="filter-btn" onclick="filterClients('due-today')">Due Today</button>
+            <button class="filter-btn" onclick="filterClients('overdue')">Overdue</button>
+            <button class="filter-btn" onclick="filterClients('active')">Active</button>
+            <button class="filter-btn" onclick="filterClients('converted')">Converted</button>
+            <input type="text" class="search-input" id="searchInput" placeholder="Search by client name..." onkeyup="searchClients()">
+        </div>
+
+        <!-- Main Table -->
+        <div class="table-wrapper">
+            <table id="mainTable">
+                <thead>
+                    <tr>
+                        <th>Client Name</th>
+                        <th>Session Date</th>
+                        <th title="Day 2">Day 2</th>
+                        <th title="Day 7">Day 7</th>
+                        <th title="Day 14">Day 14</th>
+                        <th title="Day 21">Day 21</th>
+                        <th title="Day 30">Day 30</th>
+                        <th title="Day 60">Day 60</th>
+                        <th title="Day 90">Day 90</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Follow-Up Scripts -->
+        <div class="scripts-panel">
+            <div class="scripts-header" onclick="toggleScripts()">
+                <h3>Follow-Up Scripts</h3>
+                <div class="toggle-icon" id="scriptsToggle">▼</div>
+            </div>
+            <div class="scripts-content" id="scriptsContent">
+                <div class="script-card">
+                    <div class="script-day">Day 2 Nudge</div>
+                    <div class="script-text">Hey — your action plan has one thing in it marked <em>⚡</em>. That's the one. Did you do it yet? — F</div>
+                    <button class="btn btn-copy btn-small script-copy-btn" onclick="copyScript('Hey — your action plan has one thing in it marked ⚡. That\'s the one. Did you do it yet? — F')">📋 Copy</button>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-day">Day 7 Check-In</div>
+                    <div class="script-text">Hey — it's Frankie from the Creative Hotline. Okay so… how's it going?? Did you start on that first thing? I need to know. — F</div>
+                    <button class="btn btn-copy btn-small script-copy-btn" onclick="copyScript('Hey — it\'s Frankie from the Creative Hotline. Okay so… how\'s it going?? Did you start on that first thing? I need to know. — F')">📋 Copy</button>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-day">Day 14 Personal Note</div>
+                    <div class="script-text">Hey [name] — Been thinking about your session. Specifically [specific thing]. That thing has legs. Genuinely believe in it.</div>
+                    <button class="btn btn-copy btn-small script-copy-btn" onclick="copyScript('Hey [name] — Been thinking about your session. Specifically [specific thing]. That thing has legs. Genuinely believe in it.')">📋 Copy</button>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-day">Day 21 Survey</div>
+                    <div class="script-text">Hey — quick favor. Two questions, takes 30 seconds. 1. What was the most useful part? 2. Anything we could've done better? — F</div>
+                    <button class="btn btn-copy btn-small script-copy-btn" onclick="copyScript('Hey — quick favor. Two questions, takes 30 seconds. 1. What was the most useful part? 2. Anything we could\'ve done better? — F')">📋 Copy</button>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-day">Day 30 Outcome Check</div>
+                    <div class="script-text">Hey — one month since your Hotline session. What's different? Did anything actually shift? — F</div>
+                    <button class="btn btn-copy btn-small script-copy-btn" onclick="copyScript('Hey — one month since your Hotline session. What\'s different? Did anything actually shift? — F')">📋 Copy</button>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-day">Day 60 Check-In</div>
+                    <div class="script-text">Two months. Still moving on it? Or did life get in the way? Either answer is fine. — F</div>
+                    <button class="btn btn-copy btn-small script-copy-btn" onclick="copyScript('Two months. Still moving on it? Or did life get in the way? Either answer is fine. — F')">📋 Copy</button>
+                </div>
+
+                <div class="script-card">
+                    <div class="script-day">Day 90 Final Note</div>
+                    <div class="script-text">Hey [name] — It's been three months. Genuinely curious — what's different now vs. when you called in? — Megha</div>
+                    <button class="btn btn-copy btn-small script-copy-btn" onclick="copyScript('Hey [name] — It\'s been three months. Genuinely curious — what\'s different now vs. when you called in? — Megha')">📋 Copy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let clients = [];
+        let currentFilter = 'all';
+        let currentSearch = '';
+
+        // Follow-up days
+        const followUpDays = [2, 7, 14, 21, 30, 60, 90];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeSampleData();
+            updateDisplay();
+            setTodayDate();
+        });
+
+        function setTodayDate() {
+            const today = new Date();
+            const formatted = today.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            document.getElementById('todayDate').textContent = formatted;
+        }
+
+        function initializeSampleData() {
+            const today = new Date();
+
+            clients = [
+                {
+                    id: 1,
+                    name: 'Nadia Okafor',
+                    sessionDate: new Date(today.getFullYear(), today.getMonth(), 20),
+                    email: 'nadia@example.com',
+                    sessionScore: 8,
+                    quickNote: 'Great energy, wants to start a podcast network.',
+                    status: 'active',
+                    followUps: {
+                        2: { sent: false, skipped: false },
+                        7: { sent: false, skipped: false },
+                        14: { sent: false, skipped: false },
+                        21: { sent: false, skipped: false },
+                        30: { sent: false, skipped: false },
+                        60: { sent: false, skipped: false },
+                        90: { sent: false, skipped: false }
+                    },
+                    notes: 'Day 2: Waiting on her action plan outline'
+                },
+                {
+                    id: 2,
+                    name: 'Marcus Webb',
+                    sessionDate: new Date(today.getFullYear(), today.getMonth(), 15),
+                    email: 'marcus@example.com',
+                    sessionScore: 7,
+                    quickNote: 'Working on brand strategy reposition.',
+                    status: 'active',
+                    followUps: {
+                        2: { sent: true, skipped: false },
+                        7: { sent: false, skipped: false },
+                        14: { sent: false, skipped: false },
+                        21: { sent: false, skipped: false },
+                        30: { sent: false, skipped: false },
+                        60: { sent: false, skipped: false },
+                        90: { sent: false, skipped: false }
+                    },
+                    notes: 'Day 7 due now'
+                },
+                {
+                    id: 3,
+                    name: 'Priya Desai',
+                    sessionDate: new Date(today.getFullYear(), today.getMonth(), 8),
+                    email: 'priya@example.com',
+                    sessionScore: 9,
+                    quickNote: 'Product launch timeline, very motivated.',
+                    status: 'active',
+                    followUps: {
+                        2: { sent: true, skipped: false },
+                        7: { sent: true, skipped: false },
+                        14: { sent: true, skipped: false },
+                        21: { sent: false, skipped: false },
+                        30: { sent: false, skipped: false },
+                        60: { sent: false, skipped: false },
+                        90: { sent: false, skipped: false }
+                    },
+                    notes: 'Day 21 due in 2 days. High engagement.'
+                },
+                {
+                    id: 4,
+                    name: 'Tommy Reeves',
+                    sessionDate: new Date(today.getFullYear(), today.getMonth() - 1, 20),
+                    email: 'tommy@example.com',
+                    sessionScore: 6,
+                    quickNote: 'Agency owner, considering restructure.',
+                    status: 'converted-3pack',
+                    followUps: {
+                        2: { sent: true, skipped: false },
+                        7: { sent: true, skipped: false },
+                        14: { sent: true, skipped: false },
+                        21: { sent: true, skipped: false },
+                        30: { sent: true, skipped: false },
+                        60: { sent: false, skipped: false },
+                        90: { sent: false, skipped: false }
+                    },
+                    notes: 'Signed 3-pack retainer, first session scheduled'
+                },
+                {
+                    id: 5,
+                    name: 'Luna Park',
+                    sessionDate: new Date(today.getFullYear() - 1, 1, 1),
+                    email: 'luna@example.com',
+                    sessionScore: 8,
+                    quickNote: 'Creative director, building team.',
+                    status: 'converted-retainer',
+                    followUps: {
+                        2: { sent: true, skipped: false },
+                        7: { sent: true, skipped: false },
+                        14: { sent: true, skipped: false },
+                        21: { sent: true, skipped: false },
+                        30: { sent: true, skipped: false },
+                        60: { sent: true, skipped: false },
+                        90: { sent: false, skipped: false }
+                    },
+                    notes: 'Ongoing monthly retainer, last check-in Feb 28'
+                }
+            ];
+        }
+
+        function calculateFollowUpDate(sessionDate, dayOffset) {
+            const date = new Date(sessionDate);
+            date.setDate(date.getDate() + dayOffset);
+            return date;
+        }
+
+        function isToday(date) {
+            const today = new Date();
+            return date.getDate() === today.getDate() &&
+                   date.getMonth() === today.getMonth() &&
+                   date.getFullYear() === today.getFullYear();
+        }
+
+        function isOverdue(date) {
+            return date < new Date() && !isToday(date);
+        }
+
+        function getFollowUpStatus(client, day) {
+            const followUp = client.followUps[day];
+            if (followUp.skipped) return 'skipped';
+            if (followUp.sent) return 'sent';
+
+            const dueDate = calculateFollowUpDate(client.sessionDate, day);
+            if (isOverdue(dueDate)) return 'overdue';
+            if (isToday(dueDate)) return 'due-today';
+            return 'not-due';
+        }
+
+        function getStatusEmoji(status) {
+            switch(status) {
+                case 'sent': return '✅';
+                case 'skipped': return '⏭️';
+                case 'overdue': return '🔴';
+                case 'due-today': return '🟡';
+                default: return '⬜';
+            }
+        }
+
+        function toggleAddForm() {
+            const content = document.getElementById('addFormContent');
+            const toggle = document.getElementById('addFormToggle');
+            content.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
+        function resetAddForm() {
+            document.getElementById('clientName').value = '';
+            document.getElementById('sessionDate').value = '';
+            document.getElementById('clientEmail').value = '';
+            document.getElementById('sessionScore').value = '7';
+            document.getElementById('quickNote').value = '';
+        }
+
+        function addClient() {
+            const name = document.getElementById('clientName').value.trim();
+            const dateStr = document.getElementById('sessionDate').value;
+            const email = document.getElementById('clientEmail').value.trim();
+            const score = parseInt(document.getElementById('sessionScore').value);
+            const note = document.getElementById('quickNote').value.trim();
+
+            if (!name || !dateStr || !email) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            const sessionDate = new Date(dateStr);
+
+            const newClient = {
+                id: Math.max(...clients.map(c => c.id), 0) + 1,
+                name,
+                sessionDate,
+                email,
+                sessionScore: score,
+                quickNote: note,
+                status: 'active',
+                followUps: {
+                    2: { sent: false, skipped: false },
+                    7: { sent: false, skipped: false },
+                    14: { sent: false, skipped: false },
+                    21: { sent: false, skipped: false },
+                    30: { sent: false, skipped: false },
+                    60: { sent: false, skipped: false },
+                    90: { sent: false, skipped: false }
+                },
+                notes: ''
+            };
+
+            clients.push(newClient);
+            resetAddForm();
+            updateDisplay();
+            alert(`${name} added to the pipeline!`);
+        }
+
+        function toggleFollowUpStatus(clientId, day) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const followUp = client.followUps[day];
+
+            if (followUp.skipped) {
+                followUp.skipped = false;
+                followUp.sent = false;
+            } else if (followUp.sent) {
+                followUp.skipped = true;
+                followUp.sent = false;
+            } else {
+                followUp.sent = true;
+            }
+
+            updateDisplay();
+        }
+
+        function toggleStatus(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const statuses = ['active', 'converted-3pack', 'converted-retainer', 'completed', 'no-response'];
+            const currentIndex = statuses.indexOf(client.status);
+            client.status = statuses[(currentIndex + 1) % statuses.length];
+
+            updateDisplay();
+        }
+
+        function toggleNotes(clientId) {
+            const notesRow = document.getElementById(`notes-row-${clientId}`);
+            if (notesRow) {
+                notesRow.classList.toggle('expanded');
+            }
+        }
+
+        function filterClients(filter) {
+            currentFilter = filter;
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            updateDisplay();
+        }
+
+        function searchClients() {
+            currentSearch = document.getElementById('searchInput').value.toLowerCase();
+            updateDisplay();
+        }
+
+        function getFilteredClients() {
+            let filtered = clients;
+
+            // Filter by status/urgency
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(client => {
+                    if (currentFilter === 'due-today') {
+                        return followUpDays.some(day => getFollowUpStatus(client, day) === 'due-today');
+                    } else if (currentFilter === 'overdue') {
+                        return followUpDays.some(day => getFollowUpStatus(client, day) === 'overdue');
+                    } else if (currentFilter === 'active') {
+                        return client.status === 'active';
+                    } else if (currentFilter === 'converted') {
+                        return client.status.includes('converted');
+                    }
+                    return true;
+                });
+            }
+
+            // Filter by search
+            if (currentSearch) {
+                filtered = filtered.filter(client =>
+                    client.name.toLowerCase().includes(currentSearch)
+                );
+            }
+
+            return filtered;
+        }
+
+        function updateDisplay() {
+            updateStats();
+            updateTable();
+        }
+
+        function updateStats() {
+            const totalActive = clients.filter(c => c.status === 'active').length;
+            const converted = clients.filter(c => c.status.includes('converted')).length;
+            const total = clients.length;
+
+            let dueTodayCount = 0;
+            let overdueCount = 0;
+
+            clients.forEach(client => {
+                followUpDays.forEach(day => {
+                    const status = getFollowUpStatus(client, day);
+                    if (status === 'due-today') dueTodayCount++;
+                    if (status === 'overdue') overdueCount++;
+                });
+            });
+
+            const conversionRate = total > 0 ? Math.round((converted / total) * 100) : 0;
+
+            document.getElementById('activeClientsNum').textContent = totalActive;
+            document.getElementById('dueTodayNum').textContent = dueTodayCount;
+            document.getElementById('overdueNum').textContent = overdueCount;
+            document.getElementById('conversionRateNum').textContent = conversionRate + '%';
+            document.getElementById('dueTodayCount').textContent = dueTodayCount;
+            document.getElementById('overdueCount').textContent = overdueCount;
+            document.getElementById('totalActiveCount').textContent = total;
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+
+            const filtered = getFilteredClients();
+
+            filtered.forEach((client, index) => {
+                let hasOverdue = false;
+                let allSent = true;
+
+                followUpDays.forEach(day => {
+                    const status = getFollowUpStatus(client, day);
+                    if (status === 'overdue') hasOverdue = true;
+                    if (status !== 'sent' && status !== 'skipped') allSent = false;
+                });
+
+                // Main row
+                const row = document.createElement('tr');
+                row.className = '';
+                if (hasOverdue) row.className += 'with-overdue ';
+                if (allSent && client.status !== 'active') row.className += 'all-sent';
+
+                let statusBadgeClass = 'active';
+                let statusLabel = 'Active';
+
+                if (client.status === 'converted-3pack') {
+                    statusBadgeClass = 'converted';
+                    statusLabel = 'Converted (3-pack)';
+                } else if (client.status === 'converted-retainer') {
+                    statusBadgeClass = 'converted';
+                    statusLabel = 'Converted (retainer)';
+                } else if (client.status === 'completed') {
+                    statusBadgeClass = 'completed';
+                    statusLabel = 'Completed';
+                } else if (client.status === 'no-response') {
+                    statusBadgeClass = '';
+                    statusLabel = 'No Response';
+                }
+
+                const sessionDateStr = client.sessionDate.toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric'
+                });
+
+                row.innerHTML = `
+                    <td class="client-name">${client.name}</td>
+                    <td class="session-date">${sessionDateStr}</td>
+                    ${followUpDays.map(day => {
+                        const status = getFollowUpStatus(client, day);
+                        const dueDate = calculateFollowUpDate(client.sessionDate, day);
+                        const dueDateStr = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                        const emoji = getStatusEmoji(status);
+                        const pulseClass = status === 'due-today' ? 'pulse' : '';
+
+                        return `
+                            <td class="follow-up-cell" onclick="toggleFollowUpStatus(${client.id}, ${day})">
+                                <span class="follow-up-due-date">${dueDateStr}</span>
+                                <span class="status-indicator ${pulseClass}" title="Click to cycle: Not sent → Sent → Skipped">${emoji}</span>
+                            </td>
+                        `;
+                    }).join('')}
+                    <td class="status-col" onclick="toggleStatus(${client.id})">
+                        <span class="status-badge ${statusBadgeClass}" title="Click to change status">${statusLabel}</span>
+                    </td>
+                    <td class="actions-cell">
+                        <button class="btn btn-small" onclick="toggleNotes(${client.id})">Notes</button>
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+
+                // Notes row
+                const notesRow = document.createElement('tr');
+                notesRow.id = `notes-row-${client.id}`;
+                notesRow.className = 'notes-row';
+                notesRow.innerHTML = `
+                    <td colspan="11" class="notes-cell">
+                        <div class="notes-container">
+                            <div class="note-section">
+                                <h4>Follow-Up Notes</h4>
+                                <textarea class="note-textarea" onchange="updateClientNotes(${client.id}, this.value)" placeholder="Your notes about this client's progress, responses, challenges...">${client.notes}</textarea>
+                            </div>
+                            <div class="note-section">
+                                <h4>Client Response</h4>
+                                <textarea class="note-textarea" placeholder="What the client said or how they responded..."></textarea>
+                            </div>
+                        </div>
+                    </td>
+                `;
+
+                tbody.appendChild(notesRow);
+            });
+
+            if (filtered.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = '<td colspan="11" style="text-align: center; padding: 2rem; color: var(--gray-dark);">No clients match your filter.</td>';
+                tbody.appendChild(row);
+            }
+        }
+
+        function updateClientNotes(clientId, notes) {
+            const client = clients.find(c => c.id === clientId);
+            if (client) {
+                client.notes = notes;
+            }
+        }
+
+        function toggleScripts() {
+            const content = document.getElementById('scriptsContent');
+            const toggle = document.getElementById('scriptsToggle');
+            content.classList.toggle('collapsed');
+            toggle.classList.toggle('collapsed');
+        }
+
+        function copyScript(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const button = event.target;
+                const originalText = button.textContent;
+                button.textContent = '✓ Copied!';
+                button.classList.add('copied');
+
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>

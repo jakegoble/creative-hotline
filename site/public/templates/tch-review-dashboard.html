@@ -1,0 +1,1485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCH — Review + Approval Dashboard</title>
+<style>
+  /* BRAND FONTS */
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype'); font-weight: 400; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype'); font-weight: 800; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype'); font-weight: 500; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype'); font-weight: 700; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype'); font-weight: 900; font-style: italic; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+
+  :root {
+    --tch-red: #EC3107;
+    --tch-blue: #2E63E7;
+    --tch-yellow: #F6ED52;
+    --tch-black: #1C1C1E;
+    --tch-white: #F5F2EB;
+    --tch-green: #2D7A4F;
+    --border: #E8E4DE;
+    --border-dark: #D4CFC7;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--tch-white);
+    color: var(--tch-black);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--tch-black);
+    color: var(--tch-white);
+    padding: 14px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-brand {
+    font-family: 'Nord', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .topbar-brand span { color: var(--tch-red); }
+  .topbar-tabs {
+    display: flex;
+    gap: 4px;
+  }
+  .topbar-tab {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(245,242,235,0.5);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .topbar-tab:hover { color: var(--tch-white); }
+  .topbar-tab.active { background: var(--tch-red); color: white; }
+
+  /* LAYOUT */
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 40px; }
+
+  /* DAILY OVERVIEW */
+  .daily-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 32px;
+  }
+  .daily-header h1 {
+    font-family: 'Editorial Old', serif;
+    font-size: 32px;
+    font-weight: 700;
+  }
+  .daily-stats {
+    display: flex;
+    gap: 24px;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 28px;
+    font-weight: 500;
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--tch-black);
+    margin-top: 4px;
+    font-family: 'Nord', sans-serif;
+  }
+
+  /* CLIENT PIPELINE CARDS */
+  .pipeline {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .pipeline-card {
+    background: var(--tch-black);
+    border: 1px solid var(--tch-black);
+    border-radius: var(--radius);
+    border-top: 4px solid var(--tch-red);
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+    cursor: pointer;
+  }
+  .pipeline-card:hover { box-shadow: var(--shadow-md); }
+  .pipeline-card.expanded .card-detail { display: block; }
+
+  .card-top {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .card-client-name {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 2px;
+    color: var(--tch-white);
+    font-family: 'Nord', sans-serif;
+  }
+  .card-client-biz {
+    font-size: 13px;
+    color: rgba(245,242,235,0.7);
+  }
+  .card-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+    font-family: 'Nord', sans-serif;
+  }
+  .st-draft { background: var(--tch-yellow); color: var(--tch-black); }
+  .st-review { background: var(--tch-blue); color: white; }
+  .st-approved { background: var(--tch-green); color: white; }
+  .st-sent { background: var(--tch-black); color: var(--tch-white); border: 1px solid var(--tch-red); }
+  .st-session { background: var(--tch-blue); color: white; }
+
+  .card-score {
+    padding: 12px 24px;
+    background: rgba(245,242,235,0.1);
+    border-top: 1px solid rgba(245,242,235,0.2);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+  }
+  .score-label { color: rgba(245,242,235,0.7); }
+  .score-val {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: var(--tch-white);
+  }
+  .score-high { color: var(--tch-green); }
+  .score-mid { color: var(--tch-yellow); }
+  .score-low { color: var(--tch-red); }
+
+  .card-actions {
+    padding: 12px 24px;
+    border-top: 1px solid rgba(245,242,235,0.2);
+    display: flex;
+    gap: 8px;
+  }
+
+  /* REVIEW PANEL */
+  .review-panel {
+    display: none;
+    background: var(--tch-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .review-panel.active { display: block; }
+
+  .review-header {
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    border-left: 4px solid var(--tch-red);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .review-header h2 {
+    font-family: 'Editorial Old', serif;
+    font-size: 24px;
+    font-weight: 700;
+  }
+  .review-controls { display: flex; gap: 8px; }
+
+  .review-body {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    min-height: 500px;
+  }
+
+  /* LEFT: Deliverable Preview */
+  .preview-pane {
+    padding: 32px;
+    border-right: 1px solid var(--border);
+    border-left: 4px solid var(--tch-red);
+    max-height: 600px;
+    overflow-y: auto;
+  }
+  .preview-section {
+    margin-bottom: 24px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+  .preview-section:last-child { border-bottom: none; }
+  .preview-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--tch-red);
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Nord', sans-serif;
+  }
+  .preview-content {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--tch-black);
+  }
+  .preview-content.editable {
+    padding: 12px 16px;
+    border: 1px dashed var(--border-dark);
+    border-radius: var(--radius-sm);
+    background: var(--tch-white);
+    min-height: 60px;
+    cursor: text;
+  }
+  .preview-content.editable:focus {
+    outline: none;
+    border-color: var(--tch-red);
+    background: var(--tch-white);
+  }
+
+  /* RIGHT: Review Sidebar */
+  .review-sidebar {
+    padding: 24px;
+    background: var(--tch-white);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-left: 4px solid var(--tch-red);
+  }
+  .sidebar-section h4 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--tch-black);
+    margin-bottom: 10px;
+    font-family: 'Nord', sans-serif;
+  }
+
+  /* Approval checkboxes */
+  .approval-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .approval-item:last-child { border-bottom: none; }
+  .approval-item input[type="checkbox"] {
+    accent-color: var(--tch-green);
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+  .approval-who {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+    font-family: 'Nord', sans-serif;
+  }
+  .who-m { background: var(--tch-red); color: white; }
+  .who-j { background: var(--tch-blue); color: white; }
+
+  /* Score input */
+  .score-input {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .score-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: var(--tch-white);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--tch-black);
+  }
+  .score-btn:hover { border-color: var(--tch-red); }
+  .score-btn.selected { background: var(--tch-red); color: white; border-color: var(--tch-red); }
+
+  /* Notes */
+  .review-note {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    background: var(--tch-white);
+    color: var(--tch-black);
+  }
+  .review-note:focus { border-color: var(--tch-red); }
+  .review-note::placeholder { color: #9B9B9B; }
+
+  /* MC REFINEMENT PANEL */
+  .refinement-card {
+    background: var(--tch-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    margin-bottom: 12px;
+  }
+  .refinement-question {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tch-black);
+    margin-bottom: 8px;
+    font-family: 'Nord', sans-serif;
+  }
+  .refinement-options {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .refinement-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    background: var(--tch-white);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .refinement-option input[type="radio"] {
+    accent-color: var(--tch-red);
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+  }
+  .refinement-option label {
+    font-size: 12px;
+    color: var(--tch-black);
+    cursor: pointer;
+    flex: 1;
+  }
+  .refinement-option.selected {
+    background: #FEE8E4;
+    border-color: var(--tch-red);
+  }
+  .refinement-text-input {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    outline: none;
+  }
+  .refinement-text-input:focus {
+    border-color: var(--tch-red);
+  }
+
+  /* EDIT LOG */
+  .edit-log-entry {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .edit-log-entry:last-child { border-bottom: none; }
+  .edit-log-time {
+    font-family: 'JetBrains Mono', monospace;
+    color: #707070;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .edit-log-who {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 4px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-family: 'Nord', sans-serif;
+    flex-shrink: 0;
+  }
+  .edit-log-content {
+    flex: 1;
+    color: var(--tch-black);
+  }
+  .edit-log-section {
+    font-weight: 600;
+  }
+  .edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: #FAFAF8;
+    border-radius: 4px;
+  }
+  .edit-form select,
+  .edit-form input,
+  .edit-form textarea {
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    outline: none;
+  }
+  .edit-form select:focus,
+  .edit-form input:focus,
+  .edit-form textarea:focus {
+    border-color: var(--tch-red);
+  }
+  .edit-form textarea {
+    resize: vertical;
+    min-height: 40px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-primary { background: var(--tch-red); color: white; }
+  .btn-primary:hover { background: #D42700; }
+  .btn-green { background: var(--tch-red); color: white; }
+  .btn-green:hover { background: #D42700; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--tch-black);
+    border: 1px solid var(--border-dark);
+  }
+  .btn-secondary:hover { background: var(--tch-white); }
+  .btn-danger { background: #FFE0DA; color: var(--tch-red); }
+  .btn-danger:hover { background: #FFC4BB; }
+
+  /* APPROVAL BAR */
+  .approval-bar {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    border-left: 4px solid var(--tch-red);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--tch-white);
+  }
+  .approval-status {
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--tch-black);
+  }
+  .approval-status .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .dot-pending { background: var(--tch-yellow); }
+  .dot-ready { background: var(--tch-green); }
+
+  /* DELIVERY QUEUE */
+  .queue-card {
+    background: var(--tch-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--tch-red);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    padding: 16px 24px;
+    gap: 20px;
+  }
+  .queue-card .queue-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--tch-red);
+    width: 40px;
+    flex-shrink: 0;
+  }
+  .queue-card .queue-info { flex: 1; }
+  .queue-card .queue-name { font-weight: 600; font-size: 15px; color: var(--tch-black); font-family: 'Nord', sans-serif; }
+  .queue-card .queue-detail { font-size: 13px; color: #707070; }
+  .queue-card .queue-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #707070;
+  }
+
+  /* SECTION DIVIDERS */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 32px 0 24px;
+  }
+  .section-divider .line { flex: 1; height: 1px; background: var(--border); }
+  .section-divider .label {
+    font-family: 'Nord', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--tch-black);
+  }
+
+  /* TABLET BREAKPOINT (768px) */
+  @media (max-width: 768px) {
+    /* Typography scaling - reduce ~15% on tablet */
+    .daily-header h1 { font-size: 28px; }
+    .stat-num { font-size: 24px; }
+    .stat-label { font-size: 10px; }
+
+    /* Container and padding */
+    .container { padding: 20px 16px; }
+    .topbar { padding: 12px 16px; }
+
+    /* Pipeline grid - stack to 2 columns */
+    .pipeline { grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    /* Card adjustments */
+    .card-client-name { font-size: 15px; }
+    .card-client-biz { font-size: 12px; }
+    .card-status { font-size: 10px; padding: 3px 8px; }
+    .card-score { padding: 10px 16px; font-size: 12px; }
+    .card-actions { padding: 10px 16px; gap: 6px; }
+
+    /* Review body layout - single column on tablet */
+    .review-body { grid-template-columns: 1fr; min-height: auto; }
+
+    /* Preview pane adjustments */
+    .preview-pane {
+      padding: 20px;
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+      max-height: none;
+    }
+
+    /* Preview content sizing */
+    .preview-label { font-size: 10px; letter-spacing: 1px; }
+    .preview-content { font-size: 13px; }
+
+    /* Review sidebar */
+    .review-sidebar {
+      padding: 16px;
+      border-left: none;
+      border-top: 1px solid var(--border);
+    }
+    .sidebar-section h4 { font-size: 11px; margin-bottom: 8px; }
+
+    /* Approval items */
+    .approval-item { padding: 6px 0; font-size: 13px; }
+    .approval-item input[type="checkbox"] { width: 16px; height: 16px; }
+
+    /* Score buttons */
+    .score-btn { width: 32px; height: 32px; font-size: 13px; }
+
+    /* Buttons */
+    .btn { padding: 7px 12px; font-size: 12px; }
+    .btn-sm { padding: 5px 10px; font-size: 11px; }
+
+    /* Queue cards */
+    .queue-card { padding: 12px 16px; gap: 16px; }
+    .queue-card .queue-num { font-size: 18px; width: 35px; }
+    .queue-card .queue-name { font-size: 14px; }
+    .queue-card .queue-detail { font-size: 12px; }
+    .queue-card .queue-time { font-size: 12px; }
+
+    /* Section divider */
+    .section-divider { margin: 24px 0 16px; gap: 12px; }
+    .section-divider .label { font-size: 16px; }
+
+    /* Topbar adjustments */
+    .topbar-brand { font-size: 16px; }
+    .topbar-tabs { gap: 2px; }
+    .topbar-tab { padding: 5px 12px; font-size: 12px; }
+
+    /* Daily stats layout */
+    .daily-stats { gap: 16px; }
+  }
+
+  /* MOBILE BREAKPOINT (480px) */
+  @media (max-width: 480px) {
+    /* Typography scaling - reduce ~25-30% on mobile */
+    .daily-header h1 { font-size: 22px; }
+    .daily-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .daily-stats { flex-direction: column; gap: 10px; width: 100%; }
+    .stat { text-align: left; }
+    .stat-num { font-size: 18px; }
+    .stat-label { font-size: 9px; }
+
+    /* Container and spacing */
+    .container { padding: 12px 10px; }
+    .topbar { padding: 8px 10px; }
+
+    /* Pipeline grid - stack to single column */
+    .pipeline {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    /* Card styling */
+    .card-top { padding: 14px 16px; }
+    .card-client-name { font-size: 13px; margin-bottom: 1px; }
+    .card-client-biz { font-size: 11px; }
+    .card-status { font-size: 9px; padding: 3px 6px; }
+    .card-score {
+      padding: 8px 12px;
+      font-size: 11px;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .score-val { font-size: 14px; }
+    .card-actions {
+      padding: 8px 12px;
+      gap: 6px;
+      flex-direction: column;
+    }
+
+    /* Review panel layout - full width, stacked */
+    .review-panel { margin-bottom: 16px; }
+    .review-header {
+      padding: 16px;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .review-header h2 { font-size: 18px; }
+    .review-controls {
+      width: 100%;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    /* Review body - single column */
+    .review-body {
+      grid-template-columns: 1fr;
+      min-height: auto;
+    }
+
+    /* Preview pane */
+    .preview-pane {
+      padding: 14px;
+      border-right: none;
+      border-left: none;
+      border-bottom: 1px solid var(--border);
+      max-height: none;
+      overflow-y: visible;
+    }
+    .preview-section { margin-bottom: 16px; padding-bottom: 16px; }
+    .preview-label {
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-start;
+    }
+    .preview-content { font-size: 12px; line-height: 1.5; }
+    .preview-content.editable { min-height: 50px; padding: 10px 12px; }
+
+    /* Review sidebar */
+    .review-sidebar {
+      padding: 12px;
+      border-left: none;
+      border-top: 1px solid var(--border);
+      gap: 16px;
+    }
+    .sidebar-section h4 { font-size: 10px; margin-bottom: 6px; }
+    .sidebar-section { margin-bottom: 8px; }
+
+    /* Approval items - touch-friendly */
+    .approval-item {
+      padding: 6px 0;
+      font-size: 12px;
+      gap: 8px;
+    }
+    .approval-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+    .approval-who { font-size: 9px; }
+
+    /* Score buttons */
+    .score-input { gap: 6px; flex-wrap: wrap; }
+    .score-btn {
+      width: 30px;
+      height: 30px;
+      font-size: 12px;
+    }
+
+    /* Review note textarea */
+    .review-note {
+      min-height: 60px;
+      padding: 10px;
+      font-size: 12px;
+    }
+
+    /* Buttons - touch-friendly */
+    .btn {
+      padding: 8px 12px;
+      font-size: 11px;
+      gap: 4px;
+    }
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 10px;
+    }
+
+    /* Approval bar */
+    .approval-bar {
+      padding: 10px 12px;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .approval-status { font-size: 12px; }
+
+    /* Queue cards - full width, stacked */
+    .queue-card {
+      flex-direction: column;
+      padding: 12px 14px;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .queue-card .queue-num {
+      font-size: 16px;
+      width: auto;
+      margin-right: 8px;
+    }
+    .queue-card .queue-info { flex: 1; width: 100%; }
+    .queue-card .queue-name { font-size: 13px; }
+    .queue-card .queue-detail { font-size: 11px; }
+    .queue-card .queue-time {
+      font-size: 11px;
+      width: 100%;
+    }
+
+    /* Section divider */
+    .section-divider {
+      margin: 16px 0 12px;
+      gap: 8px;
+    }
+    .section-divider .line { height: 1px; flex: 0; width: 16px; }
+    .section-divider .label {
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      white-space: normal;
+    }
+
+    /* Topbar - stack vertically */
+    .topbar {
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+    }
+    .topbar-brand { font-size: 13px; letter-spacing: 0.5px; }
+    .topbar-tabs {
+      width: 100%;
+      gap: 2px;
+      overflow-x: auto;
+    }
+    .topbar-tab {
+      padding: 4px 10px;
+      font-size: 11px;
+      white-space: nowrap;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <svg width="180" viewBox="0 0 1743 82" fill="none" xmlns="http://www.w3.org/2000/svg" style="height: auto; margin-right: 16px;">
+    <path d="M30.12 14.64H0V3.24H72.6V14.64H42.6V80.4H30.12V14.64Z" fill="white"/>
+    <path d="M98.055 3.24H110.535V36H158.175V3.24H170.655V80.4H158.175V47.52H110.535V80.4H98.055V3.24Z" fill="white"/>
+    <path d="M201.26 3.24H272.3V14.64H213.74V36H257.3V47.52H213.74V69H272.3V80.4H201.26V3.24Z" fill="white"/>
+    <path d="M342.426 40.92C342.426 29.88 346.026 20.32 353.226 12.24C360.426 4.08 370.066 0 382.146 0C392.786 0 401.586 3.24 408.546 9.72C415.586 16.12 419.866 24.16 421.386 33.84L421.626 35.64H402.546L402.306 34.44C401.186 29.48 398.826 25.44 395.226 22.32C391.706 19.12 387.346 17.52 382.146 17.52C375.746 17.52 370.666 19.84 366.906 24.48C363.226 29.12 361.386 34.6 361.386 40.92C361.386 47.24 363.226 52.72 366.906 57.36C370.666 61.92 375.746 64.2 382.146 64.2C387.346 64.2 391.706 62.64 395.226 59.52C398.826 56.4 401.186 52.36 402.306 47.4L402.546 46.08H421.626L421.386 47.88C419.866 57.64 415.586 65.76 408.546 72.24C401.586 78.72 392.786 81.96 382.146 81.96C374.066 81.96 366.946 80 360.786 76.08C354.626 72.08 350.026 67 346.986 60.84C343.946 54.68 342.426 48.04 342.426 40.92Z" fill="white"/>
+    <path d="M448.647 80.4V1.56H503.007C510.527 1.56 516.327 3.92 520.407 8.64C524.567 13.28 526.647 19 526.647 25.8C526.647 31.4 525.087 36.36 521.967 40.68C518.847 44.92 514.447 47.6 508.767 48.72C508.847 48.8 509.007 49.04 509.247 49.44C509.567 49.84 509.767 50.16 509.847 50.4L527.847 80.4H507.327L488.847 49.32H466.887V80.4H448.647ZM466.887 32.52H503.007C504.687 32.52 506.007 31.96 506.967 30.84C507.927 29.72 508.407 28.28 508.407 26.52V24.36C508.407 22.52 507.927 21.08 506.967 20.04C506.007 18.92 504.687 18.36 503.007 18.36H466.887V32.52Z" fill="white"/>
+    <path d="M555.485 1.56H630.605V18.36H573.725V32.52H615.965V49.32H573.725V63.6H630.605V80.4H555.485V1.56Z" fill="white"/>
+    <path d="M652.321 80.4L683.641 1.56H708.001L739.201 80.4H719.641L712.081 61.08H679.081L671.641 80.4H652.321ZM685.441 44.28H705.841L695.401 19.2L685.441 44.28Z" fill="white"/>
+    <path d="M777.454 18.36H748.294V1.56H824.854V18.36H795.694V80.4H777.454V18.36Z" fill="white"/>
+    <path d="M850.333 1.56H868.573V80.4H850.333V1.56Z" fill="white"/>
+    <path d="M936.483 63.36C936.723 61.04 944.563 40.44 960.003 1.56H979.323L948.123 80.4H923.763L892.443 1.56H911.883L936.483 63.36Z" fill="white"/>
+    <path d="M1003.31 1.56H1078.43V18.36H1021.55V32.52H1063.79V49.32H1021.55V63.6H1078.43V80.4H1003.31V1.56Z" fill="white"/>
+    <path d="M1152.29 3.24H1164.77V36H1212.41V3.24H1224.89V80.4H1212.41V47.52H1164.77V80.4H1152.29V3.24Z" fill="white"/>
+    <path d="M1289.46 1.68C1297.22 1.68 1304.02 3.6 1309.86 7.44C1315.78 11.28 1320.18 16.2 1323.06 22.2C1325.94 28.2 1327.38 34.76 1327.38 41.88C1327.38 52.84 1323.94 62.28 1317.06 70.2C1310.18 78.04 1300.98 81.96 1289.46 81.96C1277.94 81.96 1268.78 78 1261.98 70.08C1255.18 62.16 1251.78 52.76 1251.78 41.88C1251.78 34.84 1253.22 28.32 1256.1 22.32C1258.98 16.24 1263.34 11.28 1269.18 7.44C1275.02 3.6 1281.78 1.68 1289.46 1.68ZM1289.46 13.8C1282.02 13.8 1276.1 16.6 1271.7 22.2C1267.3 27.72 1265.1 34.24 1265.1 41.76C1265.1 49.2 1267.3 55.72 1271.7 61.32C1276.1 66.84 1282.02 69.6 1289.46 69.6C1296.98 69.6 1302.98 66.84 1307.46 61.32C1311.94 55.8 1314.18 49.32 1314.18 41.88C1314.18 34.28 1311.94 27.72 1307.46 22.2C1303.06 16.6 1297.06 13.8 1289.46 13.8Z" fill="white"/>
+    <path d="M1374.4 14.64H1344.28V3.24H1416.88V14.64H1386.88V80.4H1374.4V14.64Z" fill="white"/>
+    <path d="M1442.34 3.24H1454.82V69H1499.94V80.4H1442.34V3.24Z" fill="white"/>
+    <path d="M1525.5 3.24H1537.98V80.4H1525.5V3.24Z" fill="white"/>
+    <path d="M1568.59 3.24H1580.35L1628.71 60.6V3.24H1641.19V80.4H1629.43L1581.07 22.92V80.4H1568.59V3.24Z" fill="white"/>
+    <path d="M1671.79 3.24H1742.83V14.64H1684.27V36H1727.83V47.52H1684.27V69H1742.83V80.4H1671.79V3.24Z" fill="white"/>
+  </svg>
+  <div class="topbar-tabs">
+    <div class="topbar-tab active" onclick="switchTab('today')">Today's Sessions</div>
+    <div class="topbar-tab" onclick="switchTab('queue')">Delivery Queue</div>
+    <div class="topbar-tab" onclick="switchTab('history')">History</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- DAILY OVERVIEW -->
+  <div class="daily-header">
+    <div>
+      <h1>Thursday, March 20</h1>
+      <div style="font-size: 14px; color: #707070; margin-top: 4px;">3 sessions today · Review by 3:00 PM PST</div>
+    </div>
+    <div class="daily-stats">
+      <div class="stat">
+        <div class="stat-num" style="color: var(--tch-green);">1</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" style="color: var(--tch-blue);">1</div>
+        <div class="stat-label">In Review</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" style="color: var(--tch-black);">1</div>
+        <div class="stat-label">Drafting</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PIPELINE CARDS -->
+  <div class="pipeline">
+
+    <!-- Session 1 - Approved -->
+    <div class="pipeline-card" onclick="openReview('session1')">
+      <div class="card-top">
+        <div>
+          <div class="card-client-name">Rae Solano</div>
+          <div class="card-client-biz">Solano Studio · Ceramics</div>
+        </div>
+        <div class="card-status st-approved">✓ Approved</div>
+      </div>
+      <div class="card-score">
+        <span class="score-label">Session Score</span>
+        <span class="score-val score-high">8.5</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-green btn-sm">☎️ Send via Frankie</button>
+        <button class="btn btn-secondary btn-sm">Preview</button>
+      </div>
+    </div>
+
+    <!-- Session 2 - In Review -->
+    <div class="pipeline-card" onclick="openReview('session2')">
+      <div class="card-top">
+        <div>
+          <div class="card-client-name">Marcus Chen</div>
+          <div class="card-client-biz">Evergreen Co · DTC Skincare</div>
+        </div>
+        <div class="card-status st-review">In Review</div>
+      </div>
+      <div class="card-score">
+        <span class="score-label">Session Score</span>
+        <span class="score-val score-high">9</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-primary btn-sm">Open Review</button>
+        <button class="btn btn-secondary btn-sm">Preview</button>
+      </div>
+    </div>
+
+    <!-- Session 3 - Drafting -->
+    <div class="pipeline-card">
+      <div class="card-top">
+        <div>
+          <div class="card-client-name">Talia Brooks</div>
+          <div class="card-client-biz">TALIA · Fashion Consulting</div>
+        </div>
+        <div class="card-status st-draft">Drafting</div>
+      </div>
+      <div class="card-score">
+        <span class="score-label">Session</span>
+        <span class="score-val" style="color: var(--slate);">11:40 AM</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-secondary btn-sm" disabled>Waiting for Claude...</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- REVIEW PANEL (Expandable) -->
+  <div class="review-panel active" id="reviewPanel">
+    <div class="review-header">
+      <h2>Review: Rae Solano — Solano Studio</h2>
+      <div class="review-controls">
+        <button class="btn btn-secondary btn-sm" onclick="previewFull()">👁 Full Preview</button>
+        <button class="btn btn-secondary btn-sm">↗ Open in Drive</button>
+        <button class="btn btn-secondary btn-sm" onclick="closeReview()">✕ Close</button>
+      </div>
+    </div>
+
+    <div class="review-body">
+      <!-- LEFT: Editable Preview -->
+      <div class="preview-pane">
+
+        <div class="preview-section">
+          <div class="preview-label">
+            01 · North Star
+            <span class="approval-who who-m">Megha</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [North Star statement — editable. Megha refines the phrasing here.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            02 · What We Learned
+            <span class="approval-who who-m">Megha</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [Bespoke diagnosis — the section that can't be templated. Claude drafts from transcript, Megha refines voice and precision.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            03 · What We Love
+            <span class="approval-who who-m">Megha</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [Specific things we love about their brand. Must be genuine, not generic.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            04 · Key Quotes
+            <span style="font-size: 11px; color: #707070;">Both scan</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [Verbatim quotes from session — pulled from transcript. Check accuracy.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            05 · What We're Not Doing
+            <span class="approval-who who-m">Megha</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [Strategic boundaries — things to stop, things that aren't time yet.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            06 · Action Plan
+            <span class="approval-who who-j">Jake</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [3-5 action items with timing, DIY path, and level-up path. Jake checks specificity and tool accuracy.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            07 · Tools
+            <span class="approval-who who-j">Jake</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [Tool recommendations — matched to their current skill level and budget.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            08 · Goals + Benchmarks
+            <span class="approval-who who-j">Jake</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [7-day, 30-day, 90-day goals. Realistic and measurable.]
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-label">
+            09 · Where to Go Deeper
+            <span style="font-size: 11px; color: #707070;">Both review</span>
+          </div>
+          <div class="preview-content editable" contenteditable="true">
+            [B-Side items that naturally lead to 3-pack or retainer. Not a pitch — a service.]
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: Review Sidebar -->
+      <div class="review-sidebar">
+
+        <div class="sidebar-section">
+          <h4>Session Debrief</h4>
+          <div style="margin-bottom: 12px;">
+            <div style="font-size: 12px; color: #707070; margin-bottom: 6px;">Session Score (M + J average)</div>
+            <div class="score-input">
+              <div class="score-btn" onclick="selectScore(this, 6)">6</div>
+              <div class="score-btn" onclick="selectScore(this, 7)">7</div>
+              <div class="score-btn selected" onclick="selectScore(this, 8)">8</div>
+              <div class="score-btn" onclick="selectScore(this, 9)">9</div>
+              <div class="score-btn" onclick="selectScore(this, 10)">10</div>
+            </div>
+          </div>
+          <div style="font-size: 12px; color: #707070; margin-bottom: 6px;">Non-obvious insight</div>
+          <textarea class="review-note" placeholder="What was the thing you couldn't have predicted from intake?"></textarea>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>Claude Refinement</h4>
+
+          <div class="refinement-card">
+            <div class="refinement-question">Diagnosis tone?</div>
+            <div class="refinement-options">
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="diagnosis-tone" value="direct">
+                <label>Direct + sharp</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="diagnosis-tone" value="warm">
+                <label>Warm-direct</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="diagnosis-tone" value="gentle">
+                <label>Gentle discovery</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="refinement-card">
+            <div class="refinement-question">Client energy level?</div>
+            <div class="refinement-options">
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="energy-level" value="high">
+                <label>High energy</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="energy-level" value="steady">
+                <label>Steady</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="energy-level" value="low">
+                <label>Low/nervous</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="energy-level" value="resistant">
+                <label>Resistant</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="refinement-card">
+            <div class="refinement-question">What landed hardest?</div>
+            <div class="refinement-options">
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="landed-hardest" value="positioning">
+                <label>The positioning shift</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="landed-hardest" value="systems">
+                <label>The systems gap</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="landed-hardest" value="revenue">
+                <label>The revenue math</label>
+              </div>
+            </div>
+            <input type="text" class="refinement-text-input" placeholder="Or something unexpected...">
+          </div>
+
+          <div class="refinement-card">
+            <div class="refinement-question">Primary action path?</div>
+            <div class="refinement-options">
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="action-path" value="diy">
+                <label>DIY (they can execute)</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="action-path" value="guided">
+                <label>Guided (needs our help)</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="action-path" value="mixed">
+                <label>Mixed (some DIY, some guided)</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="refinement-card">
+            <div class="refinement-question">Upsell signal strength?</div>
+            <div class="refinement-options">
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="upsell-signal" value="strong">
+                <label>Strong (asked about it)</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="upsell-signal" value="medium">
+                <label>Medium (interested but cautious)</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="upsell-signal" value="weak">
+                <label>Weak (no signal)</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="upsell-signal" value="none">
+                <label>None</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="refinement-card">
+            <div class="refinement-question">72-hour win — which lands hardest?</div>
+            <div class="refinement-options">
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="win-type" value="ig-bio">
+                <label>Update IG bio/positioning</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="win-type" value="email">
+                <label>Send one email to list</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="win-type" value="about">
+                <label>Write the about page copy</label>
+              </div>
+              <div class="refinement-option" onclick="selectRefinement(this)">
+                <input type="radio" name="win-type" value="dm">
+                <label>DM a dream collaborator</label>
+              </div>
+            </div>
+            <input type="text" class="refinement-text-input" placeholder="Or something else...">
+          </div>
+
+        </div>
+
+        <div class="sidebar-section">
+          <h4>Section Approval</h4>
+          <div class="approval-item">
+            <input type="checkbox" checked> <span class="approval-who who-m">M</span> Sections 1-5 (creative, voice)
+          </div>
+          <div class="approval-item">
+            <input type="checkbox" checked> <span class="approval-who who-j">J</span> Sections 6-8 (actions, tools)
+          </div>
+          <div class="approval-item">
+            <input type="checkbox"> <span style="font-size: 10px; color: #707070;">BOTH</span> Key quotes accurate
+          </div>
+          <div class="approval-item">
+            <input type="checkbox"> <span style="font-size: 10px; color: #707070;">BOTH</span> Final read-through
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>Retainer Signal</h4>
+          <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+            <button class="btn btn-sm btn-secondary" onclick="this.style.background='var(--tch-green)'; this.style.color='white'; this.style.borderColor='var(--tch-green)';">Yes</button>
+            <button class="btn btn-sm btn-secondary">No</button>
+            <button class="btn btn-sm btn-secondary">Maybe</button>
+          </div>
+          <textarea class="review-note" style="min-height: 50px;" placeholder="What did they say? Any signal?"></textarea>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>Flags / Notes</h4>
+          <textarea class="review-note" placeholder="Anything that needs attention before sending..."></textarea>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>Delivery</h4>
+          <div style="font-size: 13px; color: #707070; margin-bottom: 8px;">
+            Promised by: <strong style="color: var(--tch-black);">5:00 PM PST, March 21</strong>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button class="btn btn-primary" onclick="requestClaude()">🤖 Ask Claude to Refine</button>
+          </div>
+        </div>
+
+        <div class="sidebar-section">
+          <h4>Edit Log</h4>
+          <button class="btn btn-sm btn-secondary" onclick="toggleEditForm()" style="width: 100%; margin-bottom: 12px;">+ Add Edit</button>
+
+          <div id="editForm" class="edit-form" style="display: none;">
+            <select id="editSection">
+              <option value="">Select section...</option>
+              <option value="north-star">01 · North Star</option>
+              <option value="learned">02 · What We Learned</option>
+              <option value="love">03 · What We Love</option>
+              <option value="quotes">04 · Key Quotes</option>
+              <option value="not-doing">05 · What We're Not Doing</option>
+              <option value="action-plan">06 · Action Plan</option>
+              <option value="tools">07 · Tools</option>
+              <option value="goals">08 · Goals + Benchmarks</option>
+              <option value="deeper">09 · Where to Go Deeper</option>
+            </select>
+            <select id="editWho">
+              <option value="">Who?</option>
+              <option value="m">Megha</option>
+              <option value="j">Jake</option>
+            </select>
+            <textarea id="editChange" placeholder="What changed..."></textarea>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-sm btn-primary" onclick="saveEdit()" style="flex: 1;">Save</button>
+              <button class="btn btn-sm btn-secondary" onclick="toggleEditForm()" style="flex: 1;">Cancel</button>
+            </div>
+          </div>
+
+          <div id="editLog">
+            <div class="edit-log-entry">
+              <div class="edit-log-time">2:14 PM</div>
+              <div class="edit-log-who who-m">M</div>
+              <div class="edit-log-content"><span class="edit-log-section">02 · What We Learned</span> — refined positioning language for clarity</div>
+            </div>
+            <div class="edit-log-entry">
+              <div class="edit-log-time">2:08 PM</div>
+              <div class="edit-log-who who-j">J</div>
+              <div class="edit-log-content"><span class="edit-log-section">06 · Action Plan</span> — added timeline for email campaign</div>
+            </div>
+            <div class="edit-log-entry">
+              <div class="edit-log-time">1:52 PM</div>
+              <div class="edit-log-who who-m">M</div>
+              <div class="edit-log-content"><span class="edit-log-section">04 · Key Quotes</span> — verified accuracy against transcript</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- APPROVAL BAR -->
+    <div class="approval-bar">
+      <div class="approval-status">
+        <div class="dot dot-ready"></div>
+        <span>Both approved — ready for Frankie</span>
+      </div>
+      <div style="display: flex; gap: 8px;">
+        <button class="btn btn-danger btn-sm">Flag Issue</button>
+        <button class="btn btn-green" onclick="sendViaFrankie()">☎️ Approve + Send via Frankie</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELIVERY QUEUE SECTION -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">Delivery Queue</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="queue-card" id="queue1">
+    <div class="queue-num">1</div>
+    <div class="queue-info">
+      <div class="queue-name">Rae Solano — Solano Studio</div>
+      <div class="queue-detail">Session: 9:30 AM · Score: 8.5 · <span class="queue-status">Approved</span></div>
+    </div>
+    <div class="queue-time">Due: 5:00 PM Mar 21</div>
+    <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;">
+      <button class="btn btn-green btn-sm" onclick="markAsSent('queue1', '1')">☎️ Mark as Sent</button>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <input type="checkbox" id="frankie1" style="width: 14px; height: 14px; cursor: pointer;">
+        <label for="frankie1" style="font-size: 11px; cursor: pointer;">Frankie ✅</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="queue-card" id="queue2">
+    <div class="queue-num">2</div>
+    <div class="queue-info">
+      <div class="queue-name">Marcus Chen — Evergreen Co</div>
+      <div class="queue-detail">Session: 10:35 AM · Score: 9 · <span class="queue-status">In Review</span></div>
+    </div>
+    <div class="queue-time">Due: 5:00 PM Mar 21</div>
+    <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;">
+      <button class="btn btn-secondary btn-sm" disabled>Pending Review</button>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <input type="checkbox" id="frankie2" style="width: 14px; height: 14px; cursor: pointer;" disabled>
+        <label for="frankie2" style="font-size: 11px; color: #9B9B9B;">Frankie ✅</label>
+      </div>
+    </div>
+  </div>
+
+  <div class="queue-card" id="queue3">
+    <div class="queue-num">3</div>
+    <div class="queue-info">
+      <div class="queue-name">Talia Brooks — TALIA</div>
+      <div class="queue-detail">Session: 11:40 AM · Score: — · <span class="queue-status">Drafting</span></div>
+    </div>
+    <div class="queue-time">Due: 5:00 PM Mar 21</div>
+    <div style="display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;">
+      <button class="btn btn-secondary btn-sm" disabled>Drafting</button>
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <input type="checkbox" id="frankie3" style="width: 14px; height: 14px; cursor: pointer;" disabled>
+        <label for="frankie3" style="font-size: 11px; color: #9B9B9B;">Frankie ✅</label>
+      </div>
+    </div>
+  </div>
+
+  <div style="height: 40px;"></div>
+</div>
+
+<script>
+  function selectScore(el, score) {
+    el.parentElement.querySelectorAll('.score-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function selectRefinement(el) {
+    const parent = el.parentElement;
+    parent.querySelectorAll('.refinement-option').forEach(opt => opt.classList.remove('selected'));
+    el.classList.add('selected');
+    const radio = el.querySelector('input[type="radio"]');
+    if (radio) radio.checked = true;
+  }
+
+  function openReview(session) {
+    document.getElementById('reviewPanel').classList.add('active');
+    document.getElementById('reviewPanel').scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function closeReview() {
+    document.getElementById('reviewPanel').classList.remove('active');
+  }
+
+  function previewFull() {
+    alert('Opens full Action Plan preview in new tab — the exact page the client will see.');
+  }
+
+  function requestClaude() {
+    alert('Claude refines the flagged sections based on your notes and MC answers. Updated draft appears in 2-3 minutes.');
+  }
+
+  function sendViaFrankie() {
+    if (confirm('Send Rae Solano\'s action plan via Frankie?\n\nDelivery email + Action Plan link + Transcript link')) {
+      alert('✅ Sent! Frankie delivery confirmed.\n\nDay 2 momentum nudge scheduled.\nDay 7 check-in scheduled.');
+    }
+  }
+
+  function switchTab(tab) {
+    document.querySelectorAll('.topbar-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+
+  function toggleEditForm() {
+    const form = document.getElementById('editForm');
+    form.style.display = form.style.display === 'none' ? 'flex' : 'none';
+    if (form.style.display === 'flex') {
+      document.getElementById('editSection').focus();
+    }
+  }
+
+  function saveEdit() {
+    const section = document.getElementById('editSection').value;
+    const who = document.getElementById('editWho').value;
+    const change = document.getElementById('editChange').value;
+
+    if (!section || !who || !change) {
+      alert('Please fill in all fields');
+      return;
+    }
+
+    const now = new Date();
+    const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    const sectionLabel = document.getElementById('editSection').options[document.getElementById('editSection').selectedIndex].text;
+
+    const entry = document.createElement('div');
+    entry.className = 'edit-log-entry';
+    const whoClass = who === 'm' ? 'who-m' : 'who-j';
+    const whoName = who === 'm' ? 'M' : 'J';
+    entry.innerHTML = `
+      <div class="edit-log-time">${time}</div>
+      <div class="edit-log-who ${whoClass}">${whoName}</div>
+      <div class="edit-log-content"><span class="edit-log-section">${sectionLabel}</span> — ${change}</div>
+    `;
+
+    const log = document.getElementById('editLog');
+    log.insertBefore(entry, log.firstChild);
+
+    document.getElementById('editSection').value = '';
+    document.getElementById('editWho').value = '';
+    document.getElementById('editChange').value = '';
+    toggleEditForm();
+  }
+
+  function markAsSent(queueId, queueNum) {
+    const card = document.getElementById(queueId);
+    const detail = card.querySelector('.queue-detail');
+    const button = card.querySelector('button');
+    const checkbox = card.querySelector('input[type="checkbox"]');
+    const checkboxLabel = card.querySelector('label');
+
+    detail.innerHTML = detail.innerHTML.replace(/<span class="queue-status">.*?<\/span>/, '<span class="queue-status">Sent ✓</span>');
+    button.textContent = '✓ Sent at ' + new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    button.disabled = true;
+    button.style.background = 'var(--tch-green)';
+
+    checkbox.disabled = false;
+    checkboxLabel.style.color = 'var(--tch-black)';
+
+    const timestamp = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    alert(`✅ Queued for send!\n\nClient ${queueNum} marked as sent at ${timestamp}.\nFrankie can now confirm delivery.`);
+  }
+</script>
+
+</body>
+</html>

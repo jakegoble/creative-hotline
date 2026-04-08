@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCH Deliverable Generator</title>
+    <style>
+        /* Brand Colors */
+        :root {
+            --hotline-red: #EC3107;
+            --electric-blue: #2E63E7;
+            --acid-yellow: #F6ED52;
+            --ink-black: #1C1C1E;
+            --soft-white: #F5F2EB;
+        }
+
+        /* Font Faces */
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype');
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype');
+            font-weight: 800;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype');
+            font-weight: 200;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype');
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Italic.ttf') format('truetype');
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype');
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype');
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype');
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--ink-black);
+            color: var(--ink-black);
+            font-family: 'Nord', sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        h1 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 800;
+            font-size: 32px;
+            color: var(--hotline-red);
+            margin-bottom: 8px;
+        }
+
+        .header-tagline {
+            font-family: 'Nord', sans-serif;
+            font-weight: 300;
+            font-size: 14px;
+            color: var(--soft-white);
+            letter-spacing: 0.05em;
+        }
+
+        /* Section Styling */
+        .form-section {
+            background-color: var(--soft-white);
+            border-radius: 8px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-label {
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--hotline-red);
+            letter-spacing: 0.08em;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--hotline-red);
+        }
+
+        /* Form Fields */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-row.full {
+            grid-template-columns: 1fr;
+        }
+
+        .form-row.three-col {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .form-row.four-col {
+            grid-template-columns: repeat(4, 1fr);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--ink-black);
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        input[type="url"],
+        textarea,
+        select {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            padding: 10px 12px;
+            border: 1px solid #d0ccc5;
+            border-radius: 4px;
+            background-color: #fdfcf9;
+            color: var(--ink-black);
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        input[type="url"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--hotline-red);
+            background-color: #ffffff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'JetBrains Mono', monospace;
+            line-height: 1.5;
+        }
+
+        textarea.compact {
+            min-height: 60px;
+        }
+
+        input[type="text"].compact,
+        input[type="url"].compact {
+            font-size: 12px;
+            padding: 8px 10px;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        /* Repeating Rows */
+        .repeating-row {
+            border-top: 1px solid #e0dcd5;
+            padding-top: 16px;
+            padding-bottom: 16px;
+            margin-bottom: 16px;
+        }
+
+        .repeating-row:first-of-type {
+            border-top: none;
+            padding-top: 0;
+        }
+
+        .repeating-row:last-of-type {
+            margin-bottom: 0;
+        }
+
+        /* Special Inputs for What We Love */
+        .emoji-input-group {
+            display: grid;
+            grid-template-columns: 60px 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .emoji-input-group input[type="text"]:first-child {
+            font-size: 32px;
+            text-align: center;
+            padding: 8px;
+        }
+
+        /* Quote Rows */
+        .quote-row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 12px;
+            align-items: start;
+        }
+
+        .quote-row textarea {
+            min-height: 80px;
+        }
+
+        .quote-row input[type="text"] {
+            min-height: 80px;
+            padding: 10px 12px;
+            align-self: stretch;
+            width: 200px;
+        }
+
+        /* Tools & Resources Table-like Layout */
+        .tools-row {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr 1.2fr 1fr;
+            gap: 12px;
+            align-items: start;
+        }
+
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 40px;
+            justify-content: center;
+        }
+
+        button {
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 14px 32px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background-color: var(--hotline-red);
+            color: var(--soft-white);
+        }
+
+        .btn-primary:hover {
+            background-color: #d42a00;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(236, 49, 7, 0.3);
+        }
+
+        .btn-secondary {
+            background-color: var(--electric-blue);
+            color: var(--soft-white);
+        }
+
+        .btn-secondary:hover {
+            background-color: #1f46b0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(46, 99, 231, 0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            body {
+                padding: 24px 16px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .form-section {
+                padding: 24px;
+            }
+
+            .form-row,
+            .form-row.three-col,
+            .form-row.four-col {
+                grid-template-columns: 1fr;
+            }
+
+            .tools-row {
+                grid-template-columns: 1fr;
+            }
+
+            .quote-row {
+                grid-template-columns: 1fr;
+            }
+
+            .quote-row input[type="text"] {
+                width: 100%;
+            }
+
+            .emoji-input-group {
+                grid-template-columns: 1fr;
+            }
+
+            .emoji-input-group input[type="text"]:first-child {
+                width: 100%;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 16px 12px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .form-section {
+                padding: 16px;
+                margin-bottom: 16px;
+            }
+
+            .section-label {
+                font-size: 11px;
+                margin-bottom: 16px;
+            }
+
+            label {
+                font-size: 11px;
+            }
+
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            textarea,
+            select {
+                font-size: 12px;
+            }
+        }
+
+        /* Success Message */
+        .copy-success {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 4px;
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>TCH Deliverable Generator</h1>
+            <p class="header-tagline">Action Plan Generator for Creative Hotline Sessions</p>
+        </header>
+
+        <form id="generatorForm">
+            <!-- CLIENT INFO SECTION -->
+            <div class="form-section">
+                <div class="section-label">Client Information</div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="clientName">Client Name</label>
+                        <input type="text" id="clientName" name="clientName" placeholder="e.g., Sarah Chen">
+                    </div>
+                    <div class="form-group">
+                        <label for="businessName">Business Name</label>
+                        <input type="text" id="businessName" name="businessName" placeholder="e.g., Chen Creative Studio">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="websiteUrl">Website URL</label>
+                        <input type="url" id="websiteUrl" name="websiteUrl" placeholder="https://example.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionNumber">Session Number</label>
+                        <input type="number" id="sessionNumber" name="sessionNumber" value="001" min="1">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="sessionDate">Session Date</label>
+                        <input type="date" id="sessionDate" name="sessionDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="preparedBy">Prepared By</label>
+                        <input type="text" id="preparedBy" name="preparedBy" value="Megha Kraft + Jake" placeholder="Names of facilitators">
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 1: NORTH STAR -->
+            <div class="form-section">
+                <div class="section-label">Section 1 — North Star Statement</div>
+
+                <div class="form-group">
+                    <label for="northStar">North Star Vision</label>
+                    <textarea id="northStar" name="northStar" placeholder="Enter the big vision statement that opens the deliverable..." class="full"></textarea>
+                </div>
+            </div>
+
+            <!-- SECTION 2: DIAGNOSIS -->
+            <div class="form-section">
+                <div class="section-label">Section 2 — Diagnosis</div>
+
+                <div class="form-group">
+                    <label for="diagnosis">Diagnosis Write-up</label>
+                    <textarea id="diagnosis" name="diagnosis" placeholder="2-3 paragraphs about what was found during the session..."></textarea>
+                </div>
+            </div>
+
+            <!-- SECTION 3: WHAT WE LOVE -->
+            <div class="form-section">
+                <div class="section-label">Section 3 — What We Love</div>
+
+                <div id="whatWeLoveContainer"></div>
+            </div>
+
+            <!-- SECTION 4: KEY QUOTES -->
+            <div class="form-section">
+                <div class="section-label">Section 4 — Key Quotes</div>
+
+                <div id="quotesContainer"></div>
+            </div>
+
+            <!-- SECTION 5: WHAT TO STOP -->
+            <div class="form-section">
+                <div class="section-label">Section 5 — What to Stop</div>
+
+                <div id="whatToStopContainer"></div>
+            </div>
+
+            <!-- SECTION 6: ACTION PLAN -->
+            <div class="form-section">
+                <div class="section-label">Section 6 — Action Plan (72-Hour, 1-Week, 1-Month)</div>
+
+                <!-- 72-Hour Win -->
+                <div style="margin-bottom: 32px;">
+                    <h3 style="font-family: 'Editorial Old', serif; font-weight: 800; font-size: 18px; color: var(--ink-black); margin-bottom: 16px;">72-Hour Win</h3>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="move72Title">Move Title</label>
+                        <input type="text" id="move72Title" name="move72Title" placeholder="What is the specific action?">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="move72Why">Why It Matters</label>
+                        <textarea id="move72Why" name="move72Why" class="compact" placeholder="Brief explanation..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="move72PathA">Path A — DIY</label>
+                            <textarea id="move72PathA" name="move72PathA" class="compact" placeholder="Instructions to do it themselves..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="move72PathB">Path B — With Tools/Help</label>
+                            <textarea id="move72PathB" name="move72PathB" class="compact" placeholder="If they use tools or get help..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1-Week Move -->
+                <div style="margin-bottom: 32px; border-top: 2px solid #e0dcd5; padding-top: 32px;">
+                    <h3 style="font-family: 'Editorial Old', serif; font-weight: 800; font-size: 18px; color: var(--ink-black); margin-bottom: 16px;">1-Week Move</h3>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="move1wTitle">Move Title</label>
+                        <input type="text" id="move1wTitle" name="move1wTitle" placeholder="What is the specific action?">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="move1wWhy">Why It Matters</label>
+                        <textarea id="move1wWhy" name="move1wWhy" class="compact" placeholder="Brief explanation..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="move1wPathA">Path A — DIY</label>
+                            <textarea id="move1wPathA" name="move1wPathA" class="compact" placeholder="Instructions to do it themselves..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="move1wPathB">Path B — With Tools/Help</label>
+                            <textarea id="move1wPathB" name="move1wPathB" class="compact" placeholder="If they use tools or get help..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 1-Month Build -->
+                <div style="border-top: 2px solid #e0dcd5; padding-top: 32px;">
+                    <h3 style="font-family: 'Editorial Old', serif; font-weight: 800; font-size: 18px; color: var(--ink-black); margin-bottom: 16px;">1-Month Build</h3>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="move1mTitle">Move Title</label>
+                        <input type="text" id="move1mTitle" name="move1mTitle" placeholder="What is the specific action?">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 16px;">
+                        <label for="move1mWhy">Why It Matters</label>
+                        <textarea id="move1mWhy" name="move1mWhy" class="compact" placeholder="Brief explanation..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="move1mPathA">Path A — DIY</label>
+                            <textarea id="move1mPathA" name="move1mPathA" class="compact" placeholder="Instructions to do it themselves..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="move1mPathB">Path B — With Tools/Help</label>
+                            <textarea id="move1mPathB" name="move1mPathB" class="compact" placeholder="If they use tools or get help..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 7A: TOOLS & RESOURCES -->
+            <div class="form-section">
+                <div class="section-label">Section 7A — Tools & Resources</div>
+
+                <div id="toolsContainer"></div>
+            </div>
+
+            <!-- SECTION 7B: CREATIVE AUTHORITY AUDIT -->
+            <div class="form-section">
+                <div class="section-label">Section 7B — Creative Authority Audit</div>
+
+                <div id="auditContainer"></div>
+            </div>
+
+            <!-- SECTION 8: GOALS -->
+            <div class="form-section">
+                <div class="section-label">Section 8 — Goals</div>
+
+                <div id="goalsContainer"></div>
+            </div>
+
+            <!-- SECTION 9: WHERE TO GO DEEPER -->
+            <div class="form-section">
+                <div class="section-label">Section 9 — Where to Go Deeper</div>
+
+                <div id="deeperContainer"></div>
+            </div>
+
+            <!-- ACTION BUTTONS -->
+            <div class="button-group">
+                <button type="button" class="btn-primary" onclick="generatePreview()">Preview Action Plan</button>
+                <button type="button" class="btn-secondary" onclick="copyHTML()">Copy HTML</button>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        // Set today's date as default
+        document.getElementById('sessionDate').valueAsDate = new Date();
+
+        // Initialize repeating row containers
+        function initializeContainers() {
+            // What We Love - 3 rows
+            const whatWeLoveContainer = document.getElementById('whatWeLoveContainer');
+            whatWeLoveContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                whatWeLoveContainer.innerHTML += `
+                    <div class="repeating-row">
+                        <div class="emoji-input-group">
+                            <input type="text" class="whatWeLoveEmoji" placeholder="🎨" maxlength="2">
+                            <textarea class="whatWeLoveText compact" placeholder="What do you love about the brand..."></textarea>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Key Quotes - 3 rows
+            const quotesContainer = document.getElementById('quotesContainer');
+            quotesContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                quotesContainer.innerHTML += `
+                    <div class="repeating-row">
+                        <div class="quote-row">
+                            <textarea class="quoteText compact" placeholder="Quote from the session..."></textarea>
+                            <input type="text" class="quoteContext compact" placeholder="Context">
+                        </div>
+                    </div>
+                `;
+            }
+
+            // What to Stop - 2 rows
+            const whatToStopContainer = document.getElementById('whatToStopContainer');
+            whatToStopContainer.innerHTML = '';
+            for (let i = 0; i < 2; i++) {
+                whatToStopContainer.innerHTML += `
+                    <div class="repeating-row">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Thing to Stop</label>
+                                <input type="text" class="whatToStopThing" placeholder="What should they stop?">
+                            </div>
+                            <div class="form-group">
+                                <label>Why</label>
+                                <input type="text" class="whatToStopWhy" placeholder="Why is this important?">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Tools & Resources - 5 rows
+            const toolsContainer = document.getElementById('toolsContainer');
+            toolsContainer.innerHTML = '';
+            for (let i = 0; i < 5; i++) {
+                toolsContainer.innerHTML += `
+                    <div class="repeating-row">
+                        <div class="tools-row">
+                            <input type="text" class="toolName" placeholder="Tool name">
+                            <textarea class="toolDoes compact" placeholder="What it does"></textarea>
+                            <textarea class="toolWhy compact" placeholder="Why for them"></textarea>
+                            <input type="text" class="toolCost" placeholder="Cost">
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Creative Authority Audit - 4 pillars
+            const auditContainer = document.getElementById('auditContainer');
+            auditContainer.innerHTML = '';
+            const pillars = ['Positioning', 'Messaging', 'Execution', 'Distribution'];
+            for (let i = 0; i < 4; i++) {
+                auditContainer.innerHTML += `
+                    <div class="repeating-row">
+                        <h4 style="font-family: 'Editorial Old', serif; font-weight: 800; font-size: 14px; margin-bottom: 12px; color: var(--ink-black);">${pillars[i]}</h4>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Score (1-10)</label>
+                                <select class="auditScore">
+                                    <option value="">Select score</option>
+                                    <option value="1">1 - Needs Work</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5 - Moderate</option>
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10 - Excellent</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Notes</label>
+                                <input type="text" class="auditNotes" placeholder="Key notes for this pillar">
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Goals - 4 timeframes
+            const goalsContainer = document.getElementById('goalsContainer');
+            goalsContainer.innerHTML = '';
+            const timeframes = ['72 Hours', '7 Days', '30 Days', '90 Days'];
+            for (let i = 0; i < 4; i++) {
+                goalsContainer.innerHTML += `
+                    <div class="repeating-row">
+                        <div class="form-group">
+                            <label>${timeframes[i]} Goal</label>
+                            <input type="text" class="goal" placeholder="Goal for this timeframe">
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Where to Go Deeper - 3 rows
+            const deeperContainer = document.getElementById('deeperContainer');
+            deeperContainer.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                deeperContainer.innerHTML += `
+                    <div class="repeating-row">
+                        <div class="form-group">
+                            <label>Deeper Work Opportunity ${i + 1}</label>
+                            <textarea class="deeper compact" placeholder="Area for deeper exploration..."></textarea>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Call initialization on page load
+        initializeContainers();
+
+        // TCH Logo SVG (3-stack)
+        const tchLogoSvg = `<svg viewBox="0 0 474 263" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: auto;">
+  <path d="M17.16 11.44H0V3.04H43.92V11.44H26.88V56.4H17.16V11.44Z" fill="currentColor"/>
+  <path d="M62.646 3.04H72.366V27.2H101.646V3.04H111.366V56.4H101.646V35.68H72.366V56.4H62.646V3.04Z" fill="currentColor"/>
+  <path d="M132.077 3.04H175.157V11.44H141.797V27.2H169.157V35.68H141.797V47.92H175.157V56.4H132.077V3.04Z" fill="currentColor"/>
+  <path d="M45.776 84.84C45.776 77.72 47.936 71.6 52.256 66.48C56.576 61.28 62.816 58.68 70.976 58.68C77.376 58.68 82.696 60.76 86.936 64.92C91.176 69 93.736 74.16 94.616 80.44H82.136C81.496 77.48 80.136 75.08 78.056 73.24C76.056 71.32 73.696 70.36 70.976 70.36C67.136 70.36 64.136 71.84 61.976 74.8C59.816 77.76 58.736 81.16 58.736 84.84C58.736 88.52 59.816 91.92 61.976 94.88C64.136 97.76 67.136 99.2 70.976 99.2C73.696 99.2 76.056 98.28 78.056 96.44C80.136 94.6 81.496 92.2 82.136 89.24H94.616C93.736 95.56 91.176 100.76 86.936 104.88C82.696 109 77.376 111.08 70.976 111.08C65.936 111.08 61.416 109.84 57.416 107.36C53.416 104.8 50.456 101.44 48.536 97.28C46.696 93.12 45.776 89.12 45.776 84.84Z" fill="currentColor"/>
+  <path d="M109.948 59.08H148.988C154.508 59.08 158.748 60.68 161.708 63.88C164.748 66.92 166.268 70.68 166.268 75.16C166.268 78.84 165.148 82.12 162.908 84.96C160.668 87.72 157.508 89.52 153.428 90.32L170.348 111H157.068L140.948 90.84H119.508V111H109.948V59.08ZM119.508 82.04H148.988C150.268 82.04 151.228 81.64 151.868 80.84C152.508 80.04 152.828 79 152.828 77.72V76.28C152.828 74.92 152.508 73.88 151.868 73.16C151.228 72.36 150.268 71.96 148.988 71.96H119.508V82.04Z" fill="currentColor"/>
+  <path d="M183.159 59.08H231.959V71.96H192.719V82.04H220.559V94.92H192.719V98.12H231.959V111H183.159V59.08Z" fill="currentColor"/>
+  <path d="M241.59 111L262.11 59.08H278.87L299.31 111H286.43L281.15 97.88H259.35L254.15 111H241.59ZM263.87 86.36H276.71L270.15 69.48L263.87 86.36Z" fill="currentColor"/>
+  <path d="M325.155 71.96H306.915V59.08H353.075V71.96H334.835V111H325.155V71.96Z" fill="currentColor"/>
+  <path d="M367.233 59.08H376.953V111H367.233V59.08Z" fill="currentColor"/>
+  <path d="M413.193 99.12C413.353 97.6 418.633 82.48 429.153 53.76H442.233L421.793 111H405.033L384.513 53.76H397.673L413.193 99.12Z" fill="currentColor"/>
+  <path d="M455.613 59.08H474.013V111H455.613V59.08Z" fill="currentColor" transform="translate(-11, 0)"/>
+  <path d="M0 171.08H9.72V195.2H39V171.08H48.72V224.4H39V203.68H9.72V224.4H0V171.08Z" fill="currentColor"/>
+  <path d="M82.614 169.68C88.134 169.68 93.014 171.04 97.334 173.76C101.654 176.48 105.014 180.04 107.414 184.44C109.814 188.76 111.014 193.56 111.014 198.76C111.014 206.84 108.534 213.56 103.574 218.92C98.694 224.2 92.294 226.84 84.414 226.84C76.534 226.84 70.134 224.2 65.254 218.92C60.374 213.56 57.934 207.04 57.934 199.36C57.934 193.24 59.134 187.72 61.534 182.8C63.934 177.8 67.214 173.96 71.374 171.28C75.614 170.28 78.854 169.68 82.614 169.68ZM82.614 178.28C77.414 178.28 73.254 180.2 70.134 184.04C67.014 187.88 65.454 192.36 65.454 197.52V199.36C65.454 204.52 67.014 209.04 70.134 212.88C73.254 216.72 77.414 218.64 82.614 218.64C87.894 218.64 92.094 216.72 95.214 212.88C98.334 209.04 99.894 204.52 99.894 199.36V197.52C99.894 192.36 98.334 187.88 95.214 184.04C92.094 180.2 87.894 178.28 82.614 178.28Z" fill="currentColor"/>
+  <path d="M138.29 179.44H121.09V171.08H163.69V179.44H146.61V224.4H138.29V179.44Z" fill="currentColor" transform="translate(-4, 0)"/>
+  <path d="M173.29 171.08H182.85V216H213.41V224.4H173.29V171.08Z" fill="currentColor" transform="translate(-4, 0)"/>
+  <path d="M224.85 171.08H234.57V224.4H224.85V171.08Z" fill="currentColor" transform="translate(-4, 0)"/>
+  <path d="M253.61 171.08H262.81L296.01V171.08H253.61V224.4H262.81L296.01 183.92V224.4H305.25V171.08Z" fill="currentColor" transform="translate(-4, 0)"/>
+  <path d="M324.35 171.08H372.55V179.44H333.91V195.2H361.65V203.68H333.91V216H372.55V224.4H324.35V171.08Z" fill="currentColor" transform="translate(-4, 0)"/>
+</svg>`;
+
+        function gatherFormData() {
+            const data = {
+                // Client Info
+                clientName: document.getElementById('clientName').value,
+                businessName: document.getElementById('businessName').value,
+                websiteUrl: document.getElementById('websiteUrl').value,
+                sessionNumber: document.getElementById('sessionNumber').value,
+                sessionDate: document.getElementById('sessionDate').value,
+                preparedBy: document.getElementById('preparedBy').value,
+
+                // Sections
+                northStar: document.getElementById('northStar').value,
+                diagnosis: document.getElementById('diagnosis').value,
+
+                // What We Love
+                whatWeLove: Array.from(document.querySelectorAll('.whatWeLoveEmoji')).map((el, i) => ({
+                    emoji: el.value,
+                    text: document.querySelectorAll('.whatWeLoveText')[i].value
+                })),
+
+                // Key Quotes
+                quotes: Array.from(document.querySelectorAll('.quoteText')).map((el, i) => ({
+                    quote: el.value,
+                    context: document.querySelectorAll('.quoteContext')[i].value
+                })),
+
+                // What to Stop
+                whatToStop: Array.from(document.querySelectorAll('.whatToStopThing')).map((el, i) => ({
+                    thing: el.value,
+                    why: document.querySelectorAll('.whatToStopWhy')[i].value
+                })),
+
+                // Action Plan
+                moves: {
+                    '72hour': {
+                        title: document.getElementById('move72Title').value,
+                        why: document.getElementById('move72Why').value,
+                        pathA: document.getElementById('move72PathA').value,
+                        pathB: document.getElementById('move72PathB').value
+                    },
+                    '1week': {
+                        title: document.getElementById('move1wTitle').value,
+                        why: document.getElementById('move1wWhy').value,
+                        pathA: document.getElementById('move1wPathA').value,
+                        pathB: document.getElementById('move1wPathB').value
+                    },
+                    '1month': {
+                        title: document.getElementById('move1mTitle').value,
+                        why: document.getElementById('move1mWhy').value,
+                        pathA: document.getElementById('move1mPathA').value,
+                        pathB: document.getElementById('move1mPathB').value
+                    }
+                },
+
+                // Tools & Resources
+                tools: Array.from(document.querySelectorAll('.toolName')).map((el, i) => ({
+                    name: el.value,
+                    does: document.querySelectorAll('.toolDoes')[i].value,
+                    why: document.querySelectorAll('.toolWhy')[i].value,
+                    cost: document.querySelectorAll('.toolCost')[i].value
+                })),
+
+                // Creative Authority Audit
+                audit: Array.from(document.querySelectorAll('.auditScore')).map((el, i) => ({
+                    score: el.value,
+                    notes: document.querySelectorAll('.auditNotes')[i].value
+                })),
+
+                // Goals
+                goals: Array.from(document.querySelectorAll('.goal')).map(el => el.value),
+
+                // Deeper
+                deeper: Array.from(document.querySelectorAll('.deeper')).map(el => el.value)
+            };
+
+            return data;
+        }
+
+        function generatePreview() {
+            const data = gatherFormData();
+            const pillars = ['Positioning', 'Messaging', 'Execution', 'Distribution'];
+            const timeframes = ['72 Hours', '7 Days', '30 Days', '90 Days'];
+
+            // Format date
+            const dateObj = new Date(data.sessionDate);
+            const formattedDate = dateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action Plan: ${data.businessName}</title>
+    <style>
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('data:application/octet-stream;base64,AAEAAAALAIAAAwAwT1MvMg+SBfcAAAE4AAAAYGNtYXABkALJAAABzAAAAFRnYXNwAAAAEAAAAfAAAAAIZ2x5ZgAAABAAAAAAAAASAAAABGhlYWQBkALJAAAANgAAADZoaGVhB4ADqAAAAEwAAAAkaG10eABkAAAAAAHQAAAAFGxvY2EAkABpAAABzAAAABBtYXhwA5ADeAAAAFgAAAAgbmFtZQGQA3cAAAGoAAABoXBvc3QDkANvAAAB7AAAA/QAAQAAAABQAAAAAQAAAAABQAAAAAQAAAAABQAAAAAAQAAAAAQAAAAABQAAAAAAQAAAAAQAAAAABQAAAAAAQAAAAAQAAAAABQAAAAAAQAAAAABQAAAAAAQAAA') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('data:application/octet-stream;base64,AAEAAAALAIAAAwAwT1MvMg+SBfcAAAE4AAAAYGNtYXABkALJAAABzAAAAFRnYXNwAAAAEAAAAfAAAAAIZ2x5ZgAAABAAAAAAAAASAAAABGhlYWQBkALJAAAANgAAADZoaGVhB4ADqAAAAEwAAAAkaG10eABkAAAAAAHQAAAAFGxvY2EAkABpAAABzAAAABBtYXhwA5ADeAAAAFgAAAAgbmFtZQGQA3cAAAGoAAABoXBvc3QDkANvAAAB7AAAA/QAAQAAAABQAAAAAQAAAAABQAAAAAQAAAAABQAAAAAAQAAAAAQAAAAABQAAAAAAQAAAAAQAAAAABQAAAAAAQAAAAAQAAAAABQAAAAAAQAAAAAQAAA') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #F5F2EB;
+            color: #1C1C1E;
+            font-family: 'Nord', sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Hero Header */
+        .hero {
+            background-color: #EC3107;
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-tch {
+            width: 120px;
+            height: auto;
+            margin: 0 auto 30px;
+            display: block;
+        }
+
+        .logo-tch svg {
+            width: 100%;
+            height: auto;
+            color: white;
+        }
+
+        .hero h1 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 400;
+            font-style: italic;
+            font-size: 56px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .session-badge {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-family: 'Nord', sans-serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        /* Content */
+        .content {
+            padding: 60px 40px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-label {
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #EC3107;
+            letter-spacing: 0.08em;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #EC3107;
+        }
+
+        h2 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 400;
+            font-style: italic;
+            font-size: 36px;
+            margin-bottom: 24px;
+            color: #1C1C1E;
+        }
+
+        h3 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 800;
+            font-size: 20px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: #1C1C1E;
+        }
+
+        h4 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 800;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            color: #1C1C1E;
+        }
+
+        p {
+            margin-bottom: 16px;
+            line-height: 1.8;
+        }
+
+        /* What We Love */
+        .love-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+        }
+
+        .love-emoji {
+            font-size: 32px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .love-text {
+            flex: 1;
+            font-weight: 400;
+        }
+
+        /* Quotes */
+        .quote-item {
+            margin-bottom: 24px;
+            padding: 20px;
+            background-color: #fafaf8;
+            border-left: 4px solid #EC3107;
+            border-radius: 4px;
+        }
+
+        .quote-text {
+            font-family: 'Editorial Old', serif;
+            font-style: italic;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #1C1C1E;
+        }
+
+        .quote-context {
+            font-family: 'Nord', sans-serif;
+            font-size: 12px;
+            color: #999;
+        }
+
+        /* Action Plan Moves */
+        .move {
+            margin-bottom: 32px;
+            padding: 24px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+        }
+
+        .move h4 {
+            margin-top: 0;
+        }
+
+        .why-matters {
+            font-weight: 500;
+            margin: 16px 0;
+            padding: 12px;
+            background-color: #f0f0ed;
+            border-radius: 4px;
+        }
+
+        .path {
+            margin: 16px 0;
+            padding-left: 16px;
+        }
+
+        .path-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #EC3107;
+            margin-bottom: 6px;
+        }
+
+        /* Tools Table */
+        .tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        .tools-table th {
+            background-color: #EC3107;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tools-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0dcd5;
+        }
+
+        .tools-table tr:nth-child(even) {
+            background-color: #fafaf8;
+        }
+
+        /* Audit */
+        .audit-pillar {
+            margin-bottom: 20px;
+            padding: 16px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+        }
+
+        .pillar-score {
+            display: inline-block;
+            background-color: #EC3107;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .pillar-notes {
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* Goals */
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .goal-item {
+            padding: 20px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+            border-top: 4px solid #EC3107;
+        }
+
+        .goal-label {
+            font-family: 'Nord', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #EC3107;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .goal-text {
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1C1C1E;
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .footer-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .footer-logo svg {
+            width: 100%;
+            height: auto;
+            color: white;
+        }
+
+        .tagline {
+            font-family: 'Editorial Old', serif;
+            font-style: italic;
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        .rebook {
+            background-color: rgba(236, 49, 7, 0.1);
+            padding: 30px;
+            border-radius: 4px;
+            margin-top: 30px;
+        }
+
+        .rebook h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .rebook p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero {
+                padding: 40px 24px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .content {
+                padding: 40px 24px;
+            }
+
+            footer {
+                padding: 40px 24px;
+            }
+
+            .goals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tools-table {
+                font-size: 13px;
+            }
+
+            .tools-table th,
+            .tools-table td {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 30px 16px;
+            }
+
+            .hero h1 {
+                font-size: 28px;
+            }
+
+            .logo-tch {
+                width: 80px;
+            }
+
+            .content {
+                padding: 30px 16px;
+            }
+
+            h2 {
+                font-size: 26px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+
+            footer {
+                padding: 30px 16px;
+            }
+
+            .section {
+                margin-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HERO HEADER -->
+        <div class="hero">
+            <div class="logo-tch">${tchLogoSvg}</div>
+            <h1>${data.businessName}</h1>
+            <div class="session-badge">
+                Session ${String(data.sessionNumber).padStart(3, '0')} • ${formattedDate}
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="content">
+            <!-- NORTH STAR -->
+            <section class="section">
+                <div class="section-label">North Star Statement</div>
+                <h2>The Vision</h2>
+                <p>${data.northStar.split('\n').join('</p><p>')}</p>
+            </section>
+
+            <!-- DIAGNOSIS -->
+            <section class="section">
+                <div class="section-label">What We Found</div>
+                <h2>Diagnosis</h2>
+                <p>${data.diagnosis.split('\n').join('</p><p>')}</p>
+            </section>
+
+            <!-- WHAT WE LOVE -->
+            <section class="section">
+                <div class="section-label">Brand Strengths</div>
+                <h2>What We Love</h2>
+                ${data.whatWeLove.filter(item => item.emoji || item.text).map(item => `
+                <div class="love-item">
+                    <div class="love-emoji">${item.emoji}</div>
+                    <div class="love-text">${item.text}</div>
+                </div>
+                `).join('')}
+            </section>
+
+            <!-- KEY QUOTES -->
+            <section class="section">
+                <div class="section-label">Insights from the Room</div>
+                <h2>Key Quotes</h2>
+                ${data.quotes.filter(item => item.quote).map(item => `
+                <div class="quote-item">
+                    <div class="quote-text">"${item.quote}"</div>
+                    ${item.context ? `<div class="quote-context">— ${item.context}</div>` : ''}
+                </div>
+                `).join('')}
+            </section>
+
+            <!-- WHAT TO STOP -->
+            <section class="section">
+                <div class="section-label">Where to Pull Back</div>
+                <h2>What to Stop</h2>
+                ${data.whatToStop.filter(item => item.thing).map(item => `
+                <div style="margin-bottom: 20px;">
+                    <h4>${item.thing}</h4>
+                    <p>${item.why}</p>
+                </div>
+                `).join('')}
+            </section>
+
+            <!-- ACTION PLAN -->
+            <section class="section">
+                <div class="section-label">Your Action Plan</div>
+                <h2>What Moves to Make</h2>
+
+                <h3>72-Hour Win</h3>
+                <div class="move">
+                    <h4>${data.moves['72hour'].title}</h4>
+                    <div class="why-matters"><strong>Why it matters:</strong> ${data.moves['72hour'].why}</div>
+                    <div class="path">
+                        <div class="path-label">Path A — DIY</div>
+                        <p>${data.moves['72hour'].pathA}</p>
+                    </div>
+                    <div class="path">
+                        <div class="path-label">Path B — With Tools/Help</div>
+                        <p>${data.moves['72hour'].pathB}</p>
+                    </div>
+                </div>
+
+                <h3>1-Week Move</h3>
+                <div class="move">
+                    <h4>${data.moves['1week'].title}</h4>
+                    <div class="why-matters"><strong>Why it matters:</strong> ${data.moves['1week'].why}</div>
+                    <div class="path">
+                        <div class="path-label">Path A — DIY</div>
+                        <p>${data.moves['1week'].pathA}</p>
+                    </div>
+                    <div class="path">
+                        <div class="path-label">Path B — With Tools/Help</div>
+                        <p>${data.moves['1week'].pathB}</p>
+                    </div>
+                </div>
+
+                <h3>1-Month Build</h3>
+                <div class="move">
+                    <h4>${data.moves['1month'].title}</h4>
+                    <div class="why-matters"><strong>Why it matters:</strong> ${data.moves['1month'].why}</div>
+                    <div class="path">
+                        <div class="path-label">Path A — DIY</div>
+                        <p>${data.moves['1month'].pathA}</p>
+                    </div>
+                    <div class="path">
+                        <div class="path-label">Path B — With Tools/Help</div>
+                        <p>${data.moves['1month'].pathB}</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TOOLS & RESOURCES -->
+            <section class="section">
+                <div class="section-label">Tools & Resources</div>
+                <h2>What to Use</h2>
+                <table class="tools-table">
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>What It Does</th>
+                            <th>Why for You</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.tools.filter(item => item.name).map(item => `
+                        <tr>
+                            <td><strong>${item.name}</strong></td>
+                            <td>${item.does}</td>
+                            <td>${item.why}</td>
+                            <td>${item.cost}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- CREATIVE AUTHORITY AUDIT -->
+            <section class="section">
+                <div class="section-label">Creative Authority Audit</div>
+                <h2>Your Current Strength</h2>
+                ${pillars.map((pillar, i) => {
+                    const score = data.audit[i].score;
+                    const notes = data.audit[i].notes;
+                    return `
+                    <div class="audit-pillar">
+                        <h4>${pillar}</h4>
+                        ${score ? `<div class="pillar-score">Score: ${score}/10</div>` : ''}
+                        ${notes ? `<div class="pillar-notes">${notes}</div>` : ''}
+                    </div>
+                    `;
+                }).join('')}
+            </section>
+
+            <!-- GOALS -->
+            <section class="section">
+                <div class="section-label">Timeline</div>
+                <h2>Your Goals</h2>
+                <div class="goals-grid">
+                    ${timeframes.map((frame, i) => {
+                        const goal = data.goals[i];
+                        return `
+                        <div class="goal-item">
+                            <div class="goal-label">${frame}</div>
+                            <div class="goal-text">${goal || 'Goal to be determined'}</div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </section>
+
+            <!-- WHERE TO GO DEEPER -->
+            <section class="section">
+                <div class="section-label">Expansion</div>
+                <h2>Where to Go Deeper</h2>
+                ${data.deeper.filter(d => d).map(item => `
+                <div style="margin-bottom: 24px;">
+                    <p>${item}</p>
+                </div>
+                `).join('')}
+            </section>
+        </div>
+
+        <!-- FOOTER -->
+        <footer>
+            <div class="footer-logo">${tchLogoSvg}</div>
+            <div class="tagline">Stop spiraling. Start creating.</div>
+
+            <div class="rebook">
+                <h3>Ready for Your Next Session?</h3>
+                <p>Your creative journey doesn't stop here. Let's build on this momentum in your next workshop.</p>
+                <p style="margin-top: 16px;"><strong>Workshop delivered by:</strong> ${data.preparedBy}</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>`;
+
+            // Open in new tab
+            const newTab = window.open();
+            newTab.document.write(html);
+            newTab.document.close();
+        }
+
+        function copyHTML() {
+            const data = gatherFormData();
+            const pillars = ['Positioning', 'Messaging', 'Execution', 'Distribution'];
+            const timeframes = ['72 Hours', '7 Days', '30 Days', '90 Days'];
+
+            // Format date
+            const dateObj = new Date(data.sessionDate);
+            const formattedDate = dateObj.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Action Plan: ${data.businessName}</title>
+    <style>
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype');
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype');
+            font-weight: 800;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype');
+            font-weight: 800;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Editorial Old';
+            src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype');
+            font-weight: 200;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype');
+            font-weight: 300;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype');
+            font-weight: 500;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-Italic.ttf') format('truetype');
+            font-weight: 400;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype');
+            font-weight: 500;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype');
+            font-weight: 700;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'Nord';
+            src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype');
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        @font-face {
+            font-family: 'JetBrains Mono';
+            src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype');
+            font-weight: 400;
+            font-style: normal;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #F5F2EB;
+            color: #1C1C1E;
+            font-family: 'Nord', sans-serif;
+            font-weight: 400;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .hero {
+            background-color: #EC3107;
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logo-tch {
+            width: 120px;
+            height: auto;
+            margin: 0 auto 30px;
+            display: block;
+        }
+
+        .logo-tch svg {
+            width: 100%;
+            height: auto;
+            color: white;
+        }
+
+        .hero h1 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 400;
+            font-style: italic;
+            font-size: 56px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .session-badge {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-family: 'Nord', sans-serif;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 500;
+        }
+
+        .content {
+            padding: 60px 40px;
+        }
+
+        .section {
+            margin-bottom: 60px;
+        }
+
+        .section-label {
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #EC3107;
+            letter-spacing: 0.08em;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #EC3107;
+        }
+
+        h2 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 400;
+            font-style: italic;
+            font-size: 36px;
+            margin-bottom: 24px;
+            color: #1C1C1E;
+        }
+
+        h3 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 800;
+            font-size: 20px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            color: #1C1C1E;
+        }
+
+        h4 {
+            font-family: 'Editorial Old', serif;
+            font-weight: 800;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            color: #1C1C1E;
+        }
+
+        p {
+            margin-bottom: 16px;
+            line-height: 1.8;
+        }
+
+        .love-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding: 16px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+        }
+
+        .love-emoji {
+            font-size: 32px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .love-text {
+            flex: 1;
+            font-weight: 400;
+        }
+
+        .quote-item {
+            margin-bottom: 24px;
+            padding: 20px;
+            background-color: #fafaf8;
+            border-left: 4px solid #EC3107;
+            border-radius: 4px;
+        }
+
+        .quote-text {
+            font-family: 'Editorial Old', serif;
+            font-style: italic;
+            font-size: 16px;
+            margin-bottom: 8px;
+            color: #1C1C1E;
+        }
+
+        .quote-context {
+            font-family: 'Nord', sans-serif;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .move {
+            margin-bottom: 32px;
+            padding: 24px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+        }
+
+        .move h4 {
+            margin-top: 0;
+        }
+
+        .why-matters {
+            font-weight: 500;
+            margin: 16px 0;
+            padding: 12px;
+            background-color: #f0f0ed;
+            border-radius: 4px;
+        }
+
+        .path {
+            margin: 16px 0;
+            padding-left: 16px;
+        }
+
+        .path-label {
+            font-weight: 600;
+            font-size: 13px;
+            color: #EC3107;
+            margin-bottom: 6px;
+        }
+
+        .tools-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 24px 0;
+        }
+
+        .tools-table th {
+            background-color: #EC3107;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-family: 'Nord', sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .tools-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e0dcd5;
+        }
+
+        .tools-table tr:nth-child(even) {
+            background-color: #fafaf8;
+        }
+
+        .audit-pillar {
+            margin-bottom: 20px;
+            padding: 16px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+        }
+
+        .pillar-score {
+            display: inline-block;
+            background-color: #EC3107;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .pillar-notes {
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .goal-item {
+            padding: 20px;
+            background-color: #fafaf8;
+            border-radius: 4px;
+            border-top: 4px solid #EC3107;
+        }
+
+        .goal-label {
+            font-family: 'Nord', sans-serif;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #EC3107;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .goal-text {
+            font-size: 14px;
+        }
+
+        footer {
+            background-color: #1C1C1E;
+            color: white;
+            padding: 60px 40px;
+            text-align: center;
+            margin-top: 60px;
+        }
+
+        .footer-logo {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .footer-logo svg {
+            width: 100%;
+            height: auto;
+            color: white;
+        }
+
+        .tagline {
+            font-family: 'Editorial Old', serif;
+            font-style: italic;
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+
+        .rebook {
+            background-color: rgba(236, 49, 7, 0.1);
+            padding: 30px;
+            border-radius: 4px;
+            margin-top: 30px;
+        }
+
+        .rebook h3 {
+            color: white;
+            margin-top: 0;
+        }
+
+        .rebook p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        @media (max-width: 768px) {
+            .hero {
+                padding: 40px 24px;
+            }
+
+            .hero h1 {
+                font-size: 36px;
+            }
+
+            .content {
+                padding: 40px 24px;
+            }
+
+            footer {
+                padding: 40px 24px;
+            }
+
+            .goals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tools-table {
+                font-size: 13px;
+            }
+
+            .tools-table th,
+            .tools-table td {
+                padding: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero {
+                padding: 30px 16px;
+            }
+
+            .hero h1 {
+                font-size: 28px;
+            }
+
+            .logo-tch {
+                width: 80px;
+            }
+
+            .content {
+                padding: 30px 16px;
+            }
+
+            h2 {
+                font-size: 26px;
+            }
+
+            h3 {
+                font-size: 16px;
+            }
+
+            footer {
+                padding: 30px 16px;
+            }
+
+            .section {
+                margin-bottom: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="hero">
+            <div class="logo-tch">${tchLogoSvg}</div>
+            <h1>${data.businessName}</h1>
+            <div class="session-badge">
+                Session ${String(data.sessionNumber).padStart(3, '0')} • ${formattedDate}
+            </div>
+        </div>
+
+        <div class="content">
+            <section class="section">
+                <div class="section-label">North Star Statement</div>
+                <h2>The Vision</h2>
+                <p>${data.northStar.split('\n').join('</p><p>')}</p>
+            </section>
+
+            <section class="section">
+                <div class="section-label">What We Found</div>
+                <h2>Diagnosis</h2>
+                <p>${data.diagnosis.split('\n').join('</p><p>')}</p>
+            </section>
+
+            <section class="section">
+                <div class="section-label">Brand Strengths</div>
+                <h2>What We Love</h2>
+                ${data.whatWeLove.filter(item => item.emoji || item.text).map(item => `
+                <div class="love-item">
+                    <div class="love-emoji">${item.emoji}</div>
+                    <div class="love-text">${item.text}</div>
+                </div>
+                `).join('')}
+            </section>
+
+            <section class="section">
+                <div class="section-label">Insights from the Room</div>
+                <h2>Key Quotes</h2>
+                ${data.quotes.filter(item => item.quote).map(item => `
+                <div class="quote-item">
+                    <div class="quote-text">"${item.quote}"</div>
+                    ${item.context ? `<div class="quote-context">— ${item.context}</div>` : ''}
+                </div>
+                `).join('')}
+            </section>
+
+            <section class="section">
+                <div class="section-label">Where to Pull Back</div>
+                <h2>What to Stop</h2>
+                ${data.whatToStop.filter(item => item.thing).map(item => `
+                <div style="margin-bottom: 20px;">
+                    <h4>${item.thing}</h4>
+                    <p>${item.why}</p>
+                </div>
+                `).join('')}
+            </section>
+
+            <section class="section">
+                <div class="section-label">Your Action Plan</div>
+                <h2>What Moves to Make</h2>
+
+                <h3>72-Hour Win</h3>
+                <div class="move">
+                    <h4>${data.moves['72hour'].title}</h4>
+                    <div class="why-matters"><strong>Why it matters:</strong> ${data.moves['72hour'].why}</div>
+                    <div class="path">
+                        <div class="path-label">Path A — DIY</div>
+                        <p>${data.moves['72hour'].pathA}</p>
+                    </div>
+                    <div class="path">
+                        <div class="path-label">Path B — With Tools/Help</div>
+                        <p>${data.moves['72hour'].pathB}</p>
+                    </div>
+                </div>
+
+                <h3>1-Week Move</h3>
+                <div class="move">
+                    <h4>${data.moves['1week'].title}</h4>
+                    <div class="why-matters"><strong>Why it matters:</strong> ${data.moves['1week'].why}</div>
+                    <div class="path">
+                        <div class="path-label">Path A — DIY</div>
+                        <p>${data.moves['1week'].pathA}</p>
+                    </div>
+                    <div class="path">
+                        <div class="path-label">Path B — With Tools/Help</div>
+                        <p>${data.moves['1week'].pathB}</p>
+                    </div>
+                </div>
+
+                <h3>1-Month Build</h3>
+                <div class="move">
+                    <h4>${data.moves['1month'].title}</h4>
+                    <div class="why-matters"><strong>Why it matters:</strong> ${data.moves['1month'].why}</div>
+                    <div class="path">
+                        <div class="path-label">Path A — DIY</div>
+                        <p>${data.moves['1month'].pathA}</p>
+                    </div>
+                    <div class="path">
+                        <div class="path-label">Path B — With Tools/Help</div>
+                        <p>${data.moves['1month'].pathB}</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="section-label">Tools & Resources</div>
+                <h2>What to Use</h2>
+                <table class="tools-table">
+                    <thead>
+                        <tr>
+                            <th>Tool</th>
+                            <th>What It Does</th>
+                            <th>Why for You</th>
+                            <th>Cost</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.tools.filter(item => item.name).map(item => `
+                        <tr>
+                            <td><strong>${item.name}</strong></td>
+                            <td>${item.does}</td>
+                            <td>${item.why}</td>
+                            <td>${item.cost}</td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </section>
+
+            <section class="section">
+                <div class="section-label">Creative Authority Audit</div>
+                <h2>Your Current Strength</h2>
+                ${pillars.map((pillar, i) => {
+                    const score = data.audit[i].score;
+                    const notes = data.audit[i].notes;
+                    return `
+                    <div class="audit-pillar">
+                        <h4>${pillar}</h4>
+                        ${score ? `<div class="pillar-score">Score: ${score}/10</div>` : ''}
+                        ${notes ? `<div class="pillar-notes">${notes}</div>` : ''}
+                    </div>
+                    `;
+                }).join('')}
+            </section>
+
+            <section class="section">
+                <div class="section-label">Timeline</div>
+                <h2>Your Goals</h2>
+                <div class="goals-grid">
+                    ${timeframes.map((frame, i) => {
+                        const goal = data.goals[i];
+                        return `
+                        <div class="goal-item">
+                            <div class="goal-label">${frame}</div>
+                            <div class="goal-text">${goal || 'Goal to be determined'}</div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </section>
+
+            <section class="section">
+                <div class="section-label">Expansion</div>
+                <h2>Where to Go Deeper</h2>
+                ${data.deeper.filter(d => d).map(item => `
+                <div style="margin-bottom: 24px;">
+                    <p>${item}</p>
+                </div>
+                `).join('')}
+            </section>
+        </div>
+
+        <footer>
+            <div class="footer-logo">${tchLogoSvg}</div>
+            <div class="tagline">Stop spiraling. Start creating.</div>
+
+            <div class="rebook">
+                <h3>Ready for Your Next Session?</h3>
+                <p>Your creative journey doesn't stop here. Let's build on this momentum in your next workshop.</p>
+                <p style="margin-top: 16px;"><strong>Workshop delivered by:</strong> ${data.preparedBy}</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(html).then(() => {
+                // Show success message
+                const msg = document.createElement('div');
+                msg.className = 'copy-success';
+                msg.textContent = 'HTML copied to clipboard!';
+                document.body.appendChild(msg);
+
+                setTimeout(() => msg.remove(), 3000);
+            }).catch(err => {
+                alert('Failed to copy HTML. Please try again.');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,1594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCH — Facilitator Guide</title>
+    <style>
+        /* BRAND FONTS */
+        @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+        @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype'); font-weight: 400; font-style: italic; }
+        @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+        @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype'); font-weight: 800; font-style: italic; }
+        @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype'); font-weight: 200; font-style: normal; }
+        @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype'); font-weight: 300; font-style: normal; }
+        @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+        @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; }
+        @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype'); font-weight: 500; font-style: italic; }
+        @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype'); font-weight: 700; font-style: italic; }
+        @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype'); font-weight: 900; font-style: italic; }
+        @font-face { font-family: 'JetBrains Mono'; src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --red: #EC3107;
+            --blue: #2E63E7;
+            --yellow: #F6ED52;
+            --black: #1C1C1E;
+            --white: #F5F2EB;
+        }
+
+        body {
+            background-color: var(--black);
+            color: var(--white);
+            font-family: 'Nord', sans-serif;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        /* Header / Navigation */
+        header {
+            padding: 3rem 2rem;
+            background: linear-gradient(135deg, var(--black) 0%, #2a2a2d 100%);
+            border-bottom: 2px solid var(--red);
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-family: 'Editorial Old', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .header-subtitle {
+            font-size: 0.9rem;
+            color: var(--yellow);
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .version {
+            font-size: 0.85rem;
+            color: #999;
+            margin-top: 1rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Main Container */
+        main {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 2rem 3rem;
+        }
+
+        /* Sections */
+        section {
+            margin-bottom: 4rem;
+            scroll-margin-top: 2rem;
+        }
+
+        section h2 {
+            font-family: 'Editorial Old', serif;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: var(--yellow);
+            border-left: 4px solid var(--red);
+            padding-left: 1.5rem;
+        }
+
+        section h3 {
+            font-family: 'Nord', sans-serif;
+            font-size: 1.3rem;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--white);
+            font-weight: 600;
+        }
+
+        /* Cards / Content Blocks */
+        .content-block {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(236, 49, 7, 0.2);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .content-block:hover {
+            border-color: var(--red);
+            background: rgba(236, 49, 7, 0.08);
+        }
+
+        .content-block h4 {
+            font-size: 1.1rem;
+            color: var(--yellow);
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .content-block p, .content-block li {
+            margin-bottom: 0.75rem;
+            line-height: 1.7;
+        }
+
+        /* Code blocks / Step lists */
+        .step {
+            margin-bottom: 1.5rem;
+            padding-left: 1.5rem;
+            border-left: 2px solid var(--blue);
+        }
+
+        .step-number {
+            display: inline-block;
+            background: var(--blue);
+            color: var(--white);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-left: -1.5rem;
+            margin-right: 0.75rem;
+        }
+
+        /* Lists */
+        ul, ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Accents */
+        .highlight-red {
+            color: var(--red);
+            font-weight: 600;
+        }
+
+        .highlight-blue {
+            color: var(--blue);
+        }
+
+        .highlight-yellow {
+            color: var(--yellow);
+            font-weight: 600;
+        }
+
+        /* Color coding */
+        .color-swatch {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            margin-right: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .swatch-red {
+            background: var(--red);
+        }
+
+        .swatch-blue {
+            background: var(--blue);
+        }
+
+        .swatch-yellow {
+            background: var(--yellow);
+        }
+
+        .swatch-white {
+            background: var(--white);
+        }
+
+        /* Timing / Sections */
+        .timeline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .time-block {
+            background: rgba(46, 99, 231, 0.1);
+            border-left: 4px solid var(--blue);
+            padding: 1.5rem;
+            border-radius: 4px;
+        }
+
+        .time-block .time {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .time-block .title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+
+        .time-block p {
+            font-size: 0.95rem;
+            color: #ddd;
+        }
+
+        /* Callouts / Tips */
+        .callout {
+            background: rgba(236, 49, 7, 0.1);
+            border-left: 4px solid var(--red);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .callout strong {
+            color: var(--red);
+        }
+
+        .tip {
+            background: rgba(246, 237, 82, 0.1);
+            border-left: 4px solid var(--yellow);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .tip strong {
+            color: var(--yellow);
+        }
+
+        /* Checklists */
+        .checklist {
+            list-style: none;
+        }
+
+        .checklist li {
+            padding-left: 1.5rem;
+            position: relative;
+            margin-bottom: 0.75rem;
+        }
+
+        .checklist li:before {
+            content: "□";
+            position: absolute;
+            left: 0;
+            color: var(--red);
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Emergency Plays */
+        .emergency {
+            background: rgba(236, 49, 7, 0.15);
+            border: 2px solid var(--red);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+        }
+
+        .emergency h4 {
+            color: var(--red);
+            margin-bottom: 0.75rem;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 2rem;
+            border-top: 1px solid rgba(236, 49, 7, 0.3);
+            margin-top: 4rem;
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            section h2 {
+                font-size: 1.5rem;
+            }
+
+            .timeline {
+                grid-template-columns: 1fr;
+            }
+
+            main {
+                padding: 0 1.5rem 3rem;
+            }
+        }
+
+        /* Scroll behavior */
+        html {
+            scroll-behavior: smooth;
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: rgba(46, 99, 231, 0.08);
+            border: 1px solid var(--blue);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .toc h3 {
+            color: var(--blue);
+            margin-top: 0;
+        }
+
+        .toc ul {
+            list-style: none;
+            margin-left: 0;
+        }
+
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+
+        .toc a {
+            color: var(--yellow);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .toc a:hover {
+            color: var(--red);
+        }
+
+        /* TABLET BREAKPOINT (768px) */
+        @media (max-width: 768px) {
+            /* Typography scaling - reduce ~15% on tablet */
+            h1 { font-size: 2.1rem; letter-spacing: -0.5px; }
+            section h2 { font-size: 1.7rem; padding-left: 1.2rem; }
+            section h3 { font-size: 1.15rem; margin-top: 1.5rem; margin-bottom: 0.9rem; }
+
+            /* Header and main adjustments */
+            header { padding: 2rem 1.5rem; margin-bottom: 2rem; }
+            main { padding: 0 1.5rem 2rem; }
+
+            /* Content block spacing */
+            .content-block {
+                padding: 1.2rem;
+                margin-bottom: 1.2rem;
+                border-radius: 6px;
+            }
+            .content-block h4 { font-size: 0.95rem; margin-bottom: 0.6rem; }
+            .content-block p, .content-block li { margin-bottom: 0.6rem; }
+
+            /* Timeline grid - single column on tablet */
+            .timeline { grid-template-columns: 1fr; gap: 1.2rem; }
+            .time-block {
+                padding: 1.2rem;
+                border-left-width: 3px;
+            }
+            .time-block .time { font-size: 1rem; margin-bottom: 0.4rem; }
+            .time-block .title { font-size: 1rem; margin-bottom: 0.6rem; }
+            .time-block p { font-size: 0.9rem; }
+
+            /* Step styling */
+            .step { margin-bottom: 1.2rem; padding-left: 1.2rem; }
+            .step-number { width: 24px; height: 24px; line-height: 24px; font-size: 0.8rem; margin-left: -1.2rem; }
+
+            /* Callouts and tips */
+            .callout, .tip, .emergency {
+                padding: 1.2rem;
+                margin: 1.2rem 0;
+                border-left-width: 3px;
+                border-radius: 4px;
+            }
+            .callout strong, .tip strong, .emergency strong { font-size: 0.95rem; }
+
+            /* Lists */
+            ul, ol { margin-left: 1.2rem; margin-bottom: 0.8rem; }
+            li { margin-bottom: 0.4rem; }
+
+            /* TOC adjustments */
+            .toc { padding: 1.2rem; margin-bottom: 2rem; }
+            .toc h3 { font-size: 1.1rem; }
+
+            /* Footer */
+            footer { padding: 1.5rem; font-size: 0.85rem; }
+        }
+
+        /* MOBILE BREAKPOINT (480px) */
+        @media (max-width: 480px) {
+            /* Typography scaling - reduce ~25-30% on mobile */
+            h1 {
+                font-size: 1.6rem;
+                letter-spacing: 0;
+                margin-bottom: 0.4rem;
+            }
+            .header-subtitle { font-size: 0.75rem; letter-spacing: 1px; }
+            .version { font-size: 0.75rem; margin-top: 0.8rem; }
+
+            section h2 {
+                font-size: 1.4rem;
+                margin-bottom: 1.1rem;
+                padding-left: 1rem;
+                border-left-width: 3px;
+            }
+            section h3 {
+                font-size: 1rem;
+                margin-top: 1.2rem;
+                margin-bottom: 0.8rem;
+                font-weight: 600;
+            }
+
+            /* Header and main layout */
+            header {
+                padding: 1.5rem 1rem;
+                margin-bottom: 1.5rem;
+                border-bottom-width: 1px;
+            }
+            main {
+                padding: 0 1rem 2rem;
+                max-width: 100%;
+            }
+
+            /* Sections */
+            section { margin-bottom: 2.5rem; scroll-margin-top: 1rem; }
+
+            /* Content blocks - aggressive padding */
+            .content-block {
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(236, 49, 7, 0.2);
+                border-radius: 6px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+            }
+            .content-block h4 {
+                font-size: 0.9rem;
+                margin-bottom: 0.5rem;
+                margin-top: 0;
+            }
+            .content-block p { margin-bottom: 0.5rem; font-size: 0.9rem; }
+            .content-block li { margin-bottom: 0.4rem; font-size: 0.9rem; }
+
+            /* Lists */
+            ul, ol {
+                margin-left: 1rem;
+                margin-bottom: 0.6rem;
+                padding-left: 0;
+            }
+            li { margin-bottom: 0.3rem; }
+
+            /* Step styling */
+            .step {
+                margin-bottom: 1rem;
+                padding-left: 1rem;
+                border-left-width: 2px;
+            }
+            .step-number {
+                width: 24px;
+                height: 24px;
+                line-height: 24px;
+                font-size: 0.75rem;
+                margin-left: -1rem;
+                margin-right: 0.5rem;
+            }
+
+            /* Callouts and Tips - full width, reduced padding */
+            .callout {
+                background: rgba(236, 49, 7, 0.1);
+                border-left: 3px solid var(--red);
+                padding: 1rem;
+                margin: 1rem 0;
+                border-radius: 4px;
+            }
+            .tip {
+                background: rgba(246, 237, 82, 0.1);
+                border-left: 3px solid var(--yellow);
+                padding: 1rem;
+                margin: 1rem 0;
+                border-radius: 4px;
+            }
+            .emergency {
+                background: rgba(236, 49, 7, 0.15);
+                border: 2px solid var(--red);
+                padding: 1rem;
+                margin: 1rem 0;
+                border-radius: 4px;
+            }
+            .callout strong, .tip strong, .emergency strong { font-size: 0.9rem; }
+            .callout p, .tip p, .emergency p { margin-bottom: 0.4rem; font-size: 0.9rem; }
+            .emergency h4 { font-size: 0.9rem; margin-bottom: 0.5rem; }
+
+            /* Checklist */
+            .checklist { list-style: none; }
+            .checklist li {
+                padding-left: 1.2rem;
+                position: relative;
+                margin-bottom: 0.6rem;
+                font-size: 0.9rem;
+            }
+            .checklist li:before {
+                content: "□";
+                position: absolute;
+                left: 0;
+                font-size: 1rem;
+            }
+
+            /* Color swatch */
+            .color-swatch {
+                width: 14px;
+                height: 14px;
+                border-radius: 2px;
+                margin-right: 0.4rem;
+            }
+
+            /* Timeline - single column, reduced padding */
+            .timeline {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin: 1.5rem 0;
+            }
+            .time-block {
+                background: rgba(46, 99, 231, 0.1);
+                border-left: 3px solid var(--blue);
+                padding: 1rem;
+                border-radius: 4px;
+            }
+            .time-block .time {
+                font-family: 'JetBrains Mono', monospace;
+                color: var(--blue);
+                font-weight: 600;
+                font-size: 0.9rem;
+                margin-bottom: 0.4rem;
+            }
+            .time-block .title {
+                font-size: 0.95rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+            .time-block p {
+                font-size: 0.85rem;
+                color: #ddd;
+                margin-bottom: 0;
+            }
+
+            /* TOC - responsive */
+            .toc {
+                background: rgba(46, 99, 231, 0.08);
+                border: 1px solid var(--blue);
+                border-radius: 6px;
+                padding: 1rem;
+                margin-bottom: 2rem;
+            }
+            .toc h3 {
+                color: var(--blue);
+                margin-top: 0;
+                font-size: 1rem;
+                margin-bottom: 0.8rem;
+            }
+            .toc ul { list-style: none; margin-left: 0; }
+            .toc li { margin-bottom: 0.4rem; }
+            .toc a {
+                color: var(--yellow);
+                text-decoration: none;
+                font-size: 0.9rem;
+            }
+            .toc a:hover { color: var(--red); }
+
+            /* Highlights */
+            .highlight-red, .highlight-blue, .highlight-yellow { font-weight: 600; }
+
+            /* SESSION LOADER FORM */
+            .session-loader {
+                background: var(--black);
+                border-bottom: 2px solid var(--red);
+                padding: 1rem 2rem;
+                margin-bottom: 2rem;
+                display: flex;
+                align-items: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+            }
+
+            .loader-field {
+                display: flex;
+                flex-direction: column;
+                gap: 0.3rem;
+                min-width: 150px;
+            }
+
+            .loader-field label {
+                font-size: 0.75rem;
+                color: #999;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-weight: 600;
+            }
+
+            .loader-field input {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(236, 49, 7, 0.3);
+                color: var(--white);
+                padding: 0.5rem 0.75rem;
+                border-radius: 4px;
+                font-family: 'Nord', sans-serif;
+                font-size: 0.95rem;
+            }
+
+            .loader-field input:focus {
+                outline: none;
+                border-color: var(--red);
+                background: rgba(236, 49, 7, 0.15);
+            }
+
+            .loader-btn {
+                background: var(--red);
+                color: var(--white);
+                border: none;
+                padding: 0.6rem 1.5rem;
+                border-radius: 4px;
+                font-family: 'Nord', sans-serif;
+                font-weight: 600;
+                font-size: 0.9rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                margin-top: 1.5rem;
+            }
+
+            .loader-btn:hover {
+                background: #d62804;
+                transform: translate(0, -2px);
+            }
+
+            /* TIME BLOCKS REFERENCE TABLE */
+            .time-blocks-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1.5rem 0;
+                background: rgba(255, 255, 255, 0.02);
+                border: 1px solid rgba(236, 49, 7, 0.2);
+                border-radius: 6px;
+                overflow: hidden;
+            }
+
+            .time-blocks-table thead {
+                background: rgba(236, 49, 7, 0.15);
+            }
+
+            .time-blocks-table th {
+                padding: 0.8rem;
+                text-align: left;
+                font-weight: 600;
+                color: var(--yellow);
+                border-bottom: 1px solid rgba(236, 49, 7, 0.2);
+                font-size: 0.9rem;
+                font-family: 'Nord', sans-serif;
+            }
+
+            .time-blocks-table td {
+                padding: 0.8rem;
+                border-bottom: 1px solid rgba(236, 49, 7, 0.1);
+                font-size: 0.9rem;
+            }
+
+            .time-blocks-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .time-col {
+                font-family: 'JetBrains Mono', monospace;
+                color: var(--blue);
+                font-weight: 600;
+                width: 15%;
+            }
+
+            .activity-col {
+                width: 35%;
+            }
+
+            .owner-col {
+                width: 35%;
+            }
+
+            .activity-megha {
+                color: var(--red);
+                font-weight: 500;
+            }
+
+            .activity-jake {
+                color: var(--blue);
+                font-weight: 500;
+            }
+
+            .activity-shared {
+                color: var(--yellow);
+                font-weight: 500;
+            }
+
+            /* RED FLAGS COLLAPSIBLE */
+            .red-flags-container {
+                margin: 2rem 0;
+            }
+
+            .collapsible-toggle {
+                background: rgba(236, 49, 7, 0.1);
+                border: 1px solid rgba(236, 49, 7, 0.3);
+                width: 100%;
+                padding: 1.2rem 1.5rem;
+                text-align: left;
+                color: var(--red);
+                font-size: 1.1rem;
+                font-weight: 600;
+                border-radius: 6px 6px 0 0;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                font-family: 'Nord', sans-serif;
+            }
+
+            .collapsible-toggle:hover {
+                background: rgba(236, 49, 7, 0.15);
+            }
+
+            .collapsible-toggle.active {
+                background: rgba(236, 49, 7, 0.2);
+                border-bottom: 1px solid rgba(236, 49, 7, 0.3);
+            }
+
+            .toggle-icon {
+                font-size: 1.2rem;
+                transition: transform 0.3s ease;
+            }
+
+            .toggle-icon.active {
+                transform: rotate(180deg);
+            }
+
+            .collapsible-content {
+                background: rgba(236, 49, 7, 0.05);
+                border: 1px solid rgba(236, 49, 7, 0.3);
+                border-top: none;
+                padding: 1.5rem;
+                border-radius: 0 0 6px 6px;
+                display: none;
+            }
+
+            .collapsible-content.active {
+                display: block;
+            }
+
+            .red-flags-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1.5rem;
+            }
+
+            .flag-item {
+                background: rgba(255, 255, 255, 0.03);
+                border-left: 3px solid var(--red);
+                padding: 1rem;
+                border-radius: 4px;
+            }
+
+            .flag-trigger {
+                font-weight: 600;
+                color: var(--red);
+                margin-bottom: 0.5rem;
+                font-size: 0.95rem;
+            }
+
+            .flag-response {
+                color: #ddd;
+                font-size: 0.9rem;
+                font-style: italic;
+            }
+
+            /* DEBRIEF CHECKLIST */
+            .debrief-checklist {
+                background: rgba(246, 237, 82, 0.05);
+                border: 1px solid rgba(246, 237, 82, 0.3);
+                border-radius: 6px;
+                padding: 1.5rem;
+                margin-top: 2rem;
+            }
+
+            .debrief-item {
+                margin-bottom: 1.5rem;
+            }
+
+            .debrief-item label {
+                display: block;
+                margin-bottom: 0.5rem;
+                color: var(--white);
+                font-weight: 500;
+                font-size: 0.95rem;
+            }
+
+            .debrief-item input[type="checkbox"],
+            .debrief-item input[type="number"],
+            .debrief-item input[type="text"],
+            .debrief-item textarea {
+                background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(246, 237, 82, 0.3);
+                color: var(--white);
+                padding: 0.6rem;
+                border-radius: 4px;
+                font-family: 'Nord', sans-serif;
+                font-size: 0.9rem;
+                width: 100%;
+            }
+
+            .debrief-item input[type="checkbox"] {
+                width: auto;
+                margin-right: 0.5rem;
+            }
+
+            .debrief-item textarea {
+                resize: vertical;
+                min-height: 80px;
+            }
+
+            .debrief-item input:focus,
+            .debrief-item textarea:focus {
+                outline: none;
+                border-color: var(--yellow);
+                background: rgba(246, 237, 82, 0.1);
+            }
+
+            .quality-gate {
+                background: rgba(255, 255, 255, 0.03);
+                border-left: 3px solid var(--yellow);
+                padding: 1rem;
+                margin-top: 1rem;
+                border-radius: 4px;
+                font-size: 0.9rem;
+                line-height: 1.6;
+            }
+
+            .quality-gate strong {
+                color: var(--yellow);
+            }
+
+            /* MOBILE: SESSION LOADER */
+            @media (max-width: 768px) {
+                .session-loader {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    gap: 1rem;
+                    padding: 1rem;
+                }
+
+                .loader-field {
+                    width: 100%;
+                }
+
+                .loader-btn {
+                    width: 100%;
+                }
+
+                .red-flags-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .time-blocks-table {
+                    font-size: 0.85rem;
+                }
+
+                .time-blocks-table th,
+                .time-blocks-table td {
+                    padding: 0.6rem;
+                }
+            }
+
+            /* Footer */
+            footer {
+                text-align: center;
+                padding: 1.5rem 1rem;
+                border-top: 1px solid rgba(236, 49, 7, 0.3);
+                margin-top: 2rem;
+                font-size: 0.8rem;
+                color: #999;
+            }
+            footer p { margin-bottom: 0.3rem; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>THE CREATIVE HOTLINE</h1>
+        <div class="header-subtitle">Workshop Facilitator Guide</div>
+        <div class="header-subtitle" style="margin-top: 1rem;">For M + J Eyes Only</div>
+        <div class="version">Guide Version 1.0 | March 2026</div>
+    </header>
+
+    <main>
+        <!-- SESSION LOADER -->
+        <div class="session-loader">
+            <div class="loader-field">
+                <label for="client-name">Client Name</label>
+                <input type="text" id="client-name" placeholder="e.g., Sarah">
+            </div>
+            <div class="loader-field">
+                <label for="business-name">Business Name</label>
+                <input type="text" id="business-name" placeholder="e.g., Acme Co">
+            </div>
+            <div class="loader-field">
+                <label for="session-number">Session #</label>
+                <input type="text" id="session-number" placeholder="001" value="001">
+            </div>
+            <button class="loader-btn" onclick="loadClientData()">Load Client</button>
+        </div>
+        <script>
+            function loadClientData() {
+                const clientName = document.getElementById('client-name').value;
+                const businessName = document.getElementById('business-name').value;
+                // Update all placeholder references in the document
+                document.querySelectorAll('[data-client-name]').forEach(el => {
+                    el.textContent = clientName || '[Client Name]';
+                });
+                document.querySelectorAll('[data-business-name]').forEach(el => {
+                    el.textContent = businessName || '[Business Name]';
+                });
+            }
+        </script>
+
+        <!-- QUICK REFERENCE: TIME BLOCKS -->
+        <section id="time-blocks-reference">
+            <h2>Quick Reference — 45-Min Session Timeline</h2>
+            <p>Use this to stay locked in. Each section has a distinct purpose. When you're running behind, you know what to compress.</p>
+            <table class="time-blocks-table">
+                <thead>
+                    <tr>
+                        <th class="time-col">Time</th>
+                        <th class="activity-col">Activity</th>
+                        <th class="owner-col">Lead / Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="time-col">0:00–2:00</td>
+                        <td>Opener: Ground rules, B-Side intro, timer explanation</td>
+                        <td><span class="activity-shared">Both</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">2:00–5:00</td>
+                        <td>North Star: Ice breaker question (frame their business)</td>
+                        <td><span class="activity-shared">Both</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">5:00–10:00</td>
+                        <td>Diagnosis: Megha delivers the read (positioning, brand signals)</td>
+                        <td><span class="activity-megha">Megha leads</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">10:00–15:00</td>
+                        <td>Recalibration: Jake checks—"Are we on the thing?" (design & systems lens)</td>
+                        <td><span class="activity-jake">Jake leads</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">12:00–25:00</td>
+                        <td>Creative Direction: Megha → positioning, Jake → systems. Wall brainstorm.</td>
+                        <td><span class="activity-shared">Both</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">~25:00</td>
+                        <td>Upsell window: "There's deeper work here…"</td>
+                        <td><span class="activity-shared">Both</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">25:00–35:00</td>
+                        <td>Action Plan: Build concrete next steps with client</td>
+                        <td><span class="activity-shared">Both</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">35:00–40:00</td>
+                        <td>Q&A: Answer client questions, clarify</td>
+                        <td><span class="activity-shared">Both</span></td>
+                    </tr>
+                    <tr>
+                        <td class="time-col">40:00–45:00</td>
+                        <td>Close: Recap deliverables, next steps, debrief kickoff</td>
+                        <td><span class="activity-shared">Both</span></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="tip">
+                <strong>Timing Pro Tip:</strong> The Creative Direction section (12:00–25:00) is where you spend the most oxygen. Diagnosis and Recalibration set it up. If you're light on diagnosis (5 mins instead of 5), compress Recalibration. Never skip Action Plan — that's where client buys in.
+            </div>
+        </section>
+
+        <!-- RED FLAGS + RECOVERY (COLLAPSIBLE) -->
+        <div class="red-flags-container">
+            <button class="collapsible-toggle" onclick="toggleCollapsible(this)">
+                Red Flags + Recovery
+                <span class="toggle-icon">▼</span>
+            </button>
+            <div class="collapsible-content">
+                <p style="margin-bottom: 1.5rem; color: #ddd;">Keep these patterns front of mind. When you catch one mid-session, know your move.</p>
+                <div class="red-flags-grid">
+                    <div class="flag-item">
+                        <div class="flag-trigger">Can't articulate what they want</div>
+                        <div class="flag-response">"What's one thing that would make you feel like this was worth doing?"</div>
+                    </div>
+                    <div class="flag-item">
+                        <div class="flag-trigger">Pushes back on your diagnosis</div>
+                        <div class="flag-response">"Tell me more about that." Adjust if they're right. Don't defend the read.</div>
+                    </div>
+                    <div class="flag-item">
+                        <div class="flag-trigger">Wants execution during the call</div>
+                        <div class="flag-response">"That's a build, not a call. Let's map what that build looks like." Then move to Action Plan.</div>
+                    </div>
+                    <div class="flag-item">
+                        <div class="flag-trigger">In actual crisis (funding, shutdown, etc.)</div>
+                        <div class="flag-response">"Before strategy — are you okay?" Shift from diagnosis to support.</div>
+                    </div>
+                    <div class="flag-item">
+                        <div class="flag-trigger">Gives polished investor pitch answer</div>
+                        <div class="flag-response">"That sounds like the version you tell investors. What's the real version?"</div>
+                    </div>
+                    <div class="flag-item">
+                        <div class="flag-trigger">Session isn't landing by min 15</div>
+                        <div class="flag-response">Trigger Recalibration check. Something's off. Reset before moving forward.</div>
+                    </div>
+                    <div class="flag-item">
+                        <div class="flag-trigger">Megha + Jake disagree in real time</div>
+                        <div class="flag-response">"There's a tension here worth exploring." Make it visible. Don't smooth it over.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table of Contents -->
+        <div class="toc">
+            <h3>Quick Navigation</h3>
+            <ul>
+                <li><a href="#how-session-works">How the Session Page Works</a></li>
+                <li><a href="#interactive-elements">Interactive Elements Guide</a></li>
+                <li><a href="#section-notes">Section-by-Section Notes</a></li>
+                <li><a href="#checklists">Pre & Post-Session Checklists</a></li>
+                <li><a href="#emergency">Emergency Plays</a></li>
+                <li><a href="#debrief">Post-Session Debrief</a></li>
+            </ul>
+        </div>
+
+        <!-- Section 1: How the Session Works -->
+        <section id="how-session-works">
+            <h2>How the Session Page Works</h2>
+            <p>The workshop page is your shared canvas. Everything on it is visible to the client — there are no hidden panels, sidebars, or surprise reveals. You're both looking at the same thing.</p>
+
+            <div class="content-block">
+                <h4>The Page Structure (What Clients See)</h4>
+                <ul>
+                    <li><span class="highlight-red">Top bar (fixed):</span> TCH logo, section indicator that auto-updates as you scroll, and the timer (click to start/pause, counts UP from 0:00)</li>
+                    <li><span class="highlight-red">Main content:</span> Six sections flowing top to bottom. Each section has a time badge (0:00–2:00, etc.)</li>
+                    <li><span class="highlight-red">The Wall (interactive):</span> Between North Star and Diagnosis. Draggable sticky notes for collaborative brainstorming</li>
+                    <li><span class="highlight-red">B-Side tab (top right):</span> Floating torn-paper notepad for off-topic ideas. Visible but minimized until clicked</li>
+                </ul>
+            </div>
+
+            <div class="tip">
+                <strong>Framing for the client (say this at the start):</strong> "You'll see everything we're working on here on the screen. At the top right is the B-Side — that's where we park any ideas that come up but aren't today's focus. You get all of that in your action plan. The timer up top keeps us on pace. Any questions before we dive in?"
+            </div>
+        </section>
+
+        <!-- Section 2: Interactive Elements -->
+        <section id="interactive-elements">
+            <h2>Interactive Elements Guide</h2>
+
+            <h3>The Timer</h3>
+            <div class="content-block">
+                <p><span class="highlight-red">Click once to start.</span> It counts UP from 0:00 and matches the section time badges on the page (0:00–2:00, 2:00–7:00, etc.). <span class="highlight-red">Click again to pause.</span></p>
+                <ul>
+                    <li>Normal state: white text on black</li>
+                    <li><span class="highlight-yellow">Turns yellow at 10 minutes remaining</span></li>
+                    <li><span class="highlight-red">Turns red + pulses at 5 minutes remaining</span></li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Use it to keep pressure on the session.</strong> If you're at 12:00 on the timer and still in section 1, you need to move. It's not about rushing — it's about respecting the shape of the conversation. Time constraints create clarity.</p>
+            </div>
+
+            <h3>The B-Side</h3>
+            <div class="content-block">
+                <p>Click the "B-SIDE" tab in the top right to open the floating notepad. This is where you park ideas that come up but aren't today's focus.</p>
+                <ul>
+                    <li><span class="highlight-red">Anyone can type into it</span> (client or facilitator)</li>
+                    <li><span class="highlight-red">"+" button:</span> Adds a new row</li>
+                    <li><span class="highlight-red">"×" button:</span> Clears a row</li>
+                    <li>Text is saved automatically</li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Explain this to the client in the opening:</strong> "Anything that feels important but isn't what we're focused on today goes here. You get everything in your action plan — it's not lost, it's just parked."</p>
+            </div>
+
+            <h3>Sticky Notes (The Wall)</h3>
+            <div class="content-block">
+                <p>Between the North Star and Diagnosis sections, there's an interactive wall for collaborative sticky-note brainstorming. This is the design thinking moment.</p>
+                <ul>
+                    <li><span class="highlight-red">Drag stickies</span> to move them around. Group related ideas together.</li>
+                    <li><span class="highlight-red">Click a sticky</span> to edit text in it</li>
+                    <li><span class="highlight-red">"×" on a sticky:</span> Deletes that note</li>
+                    <li><span class="highlight-red">Color buttons at the bottom:</span> Red, Blue, Yellow, White. Add new stickies in each color.</li>
+                </ul>
+                <h4 style="margin-top: 1.5rem;">Color Coding (establish this with the team)</h4>
+                <ul>
+                    <li><span class="color-swatch swatch-red"></span><span class="highlight-red">Red:</span> Brand & positioning observations (Megha leads adding these)</li>
+                    <li><span class="color-swatch swatch-blue"></span><span class="highlight-blue">Blue:</span> Design & systems observations (Jake leads adding these)</li>
+                    <li><span class="color-swatch swatch-yellow"></span><span class="highlight-yellow">Yellow:</span> Client ideas & reactions (invite them to add these)</li>
+                    <li><span class="color-swatch swatch-white"></span>White: Open questions & unknowns</li>
+                </ul>
+                <p style="margin-top: 1.5rem;"><strong>Facilitator tip:</strong> Spend 3–5 minutes at the wall. Don't rush it, but don't camp. This is where patterns surface. Look for what's being repeated, what's being avoided, what connects across ideas.</p>
+            </div>
+
+            <h3>Creative Authority Audit (Section 4)</h3>
+            <div class="content-block">
+                <p>Four cards representing the pillars: <span class="highlight-red">Positioning</span>, <span class="highlight-blue">Messaging</span>, <span class="highlight-red">Execution</span>, <span class="highlight-blue">Distribution</span>.</p>
+                <p style="margin-top: 1rem;">Each card has a rating system (dots). <span class="highlight-red">Click the card or the dots to cycle through:</span></p>
+                <ul>
+                    <li><strong>○○○</strong> = Weak / Not established</li>
+                    <li><strong>●○○</strong> = Starting / Some clarity</li>
+                    <li><strong>●●○</strong> = Solid / Mostly clear</li>
+                    <li><strong>●●●</strong> = Strong / Fully owned</li>
+                </ul>
+                <p style="margin-top: 1rem;"><span class="highlight-red">Walk through these WITH the client.</span> Ask: "Let's rate your positioning together. Where do you think you are?" Their self-assessment vs. your assessment is the diagnosis.</p>
+                <p style="margin-top: 1rem;"><strong>Pattern:</strong> Most clients have 1 dominant weak pillar and 1 secondary. The real problem lives at the intersection. That's the diagnosis.</p>
+            </div>
+
+            <h3>Recalibration Check (Section 4)</h3>
+            <div class="content-block">
+                <p>At around minute 20, Jake leads a simple choice moment. Three pills appear on screen:</p>
+                <ul>
+                    <li><span class="highlight-yellow">"Yes — keep going"</span> (we're on the right track)</li>
+                    <li><span class="highlight-yellow">"Adjust"</span> (the direction is right but needs refinement)</li>
+                    <li><span class="highlight-yellow">"Pivot"</span> (we're looking at the wrong problem)</li>
+                </ul>
+                <p style="margin-top: 1rem;"><span class="highlight-red">Click the appropriate pill.</span> This is a pressure test. If "Adjust" or "Pivot": ask <strong>"What's the thing we haven't said yet?"</strong> Listen hard for the gap.</p>
+            </div>
+
+            <h3>Action Plan Cards (Section 5)</h3>
+            <div class="content-block">
+                <p>The action cards come <span class="highlight-red">pre-filled from morning prep</span> with draft moves. You built these before the session.</p>
+                <ul>
+                    <li><span class="highlight-red">All text is editable.</span> Click into the card and refine live with the client.</li>
+                    <li>The session is about <span class="highlight-red">pressure-testing</span>, not inventing from scratch</li>
+                    <li>Key question: <strong>"Does this feel right? What's missing?"</strong></li>
+                </ul>
+                <p style="margin-top: 1rem;"><strong>Note:</strong> If they want to add a major new move, capture it on the B-Side. The draft plan is your anchor. You refine, you don't rebuild.</p>
+            </div>
+
+            <h3>The Close Script (Section 6)</h3>
+            <div class="content-block">
+                <p>Fill-in-the-blank format that Megha delivers. Click the blanks to type in real-time:</p>
+                <p style="margin-top: 1rem; font-style: italic;">"You came in with <span class="highlight-red">___</span>. We found <span class="highlight-red">___</span>. That changes <span class="highlight-red">___</span>."</p>
+                <p style="margin-top: 1rem;">Fill these in as you say them. Don't write ahead — think, then say, then type. It lands harder that way.</p>
+            </div>
+        </section>
+
+        <!-- Section 3: Section-by-Section Notes -->
+        <section id="section-notes">
+            <h2>Section-by-Section Facilitator Notes</h2>
+
+            <div class="timeline">
+                <div class="time-block">
+                    <div class="time">0:00 – 2:00</div>
+                    <div class="title">Introductions</div>
+                    <p>Set the tone. Fast, warm, no fluff.</p>
+                </div>
+                <div class="time-block">
+                    <div class="time">2:00 – 7:00</div>
+                    <div class="title">Your Story</div>
+                    <p>Reflect their intake back. Listen for the thing beneath the thing.</p>
+                </div>
+                <div class="time-block">
+                    <div class="time">7:00 – 12:00</div>
+                    <div class="title">What We Found</div>
+                    <p>Present your research. Establish authority. Name the gap.</p>
+                </div>
+                <div class="time-block">
+                    <div class="time">12:00 – 17:00</div>
+                    <div class="title">North Star</div>
+                    <p>The emotional anchor. One question, one answer.</p>
+                </div>
+                <div class="time-block">
+                    <div class="time">17:00 – 25:00</div>
+                    <div class="title">What We See</div>
+                    <p>Name the real problem. Walk through the audit. Recalibration check.</p>
+                </div>
+                <div class="time-block">
+                    <div class="time">25:00 – 37:00</div>
+                    <div class="title">Your Moves</div>
+                    <p>Pressure-test the plan. Edit live. Push on what feels hardest.</p>
+                </div>
+                <div class="time-block">
+                    <div class="time">37:00 – 45:00</div>
+                    <div class="title">The Close</div>
+                    <p>Land the plane. Answer questions. Fill in the close script. Done.</p>
+                </div>
+            </div>
+
+            <h3>00 — INTRODUCTIONS (0:00–2:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>Set the tone. Fast, warm, no fluff. You model the pace for the entire session.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <ul>
+                    <li><strong>Megha introduces (30 sec):</strong> Name, what you do, one thing. Model the format.</li>
+                    <li><strong>Jake introduces (30 sec):</strong> Same structure.</li>
+                    <li><strong>Client introduces (60 sec):</strong> Use the built-in micro-timer. Start it and let them talk.</li>
+                </ul>
+                <h4 style="margin-top: 1.5rem;">The Move</h4>
+                <p>If the client starts rambling at 45 seconds in: <strong>"Love that — hold that thought, we're going to get into all of it."</strong> This plants the seed that you're going deeper, just not right now.</p>
+                <div class="tip">
+                    <strong>Critical insight:</strong> This section sets the pace for the entire session. If the intro drags, everything drags. Tightness here = tightness everywhere.
+                </div>
+            </div>
+
+            <h3>01 — YOUR STORY (2:00–7:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>Reflect their intake back. Show you did your homework. Get to the real problem.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <p>Their words from intake are on the page. <span class="highlight-red">Read them back, then ask:</span> <strong>"So — what's really going on?"</strong></p>
+                <p style="margin-top: 1rem;">The question is printed on the screen. <span class="highlight-red">Say it exactly as written.</span> Let them talk. Don't interrupt. Listen for the thing beneath the thing.</p>
+                <h4 style="margin-top: 1.5rem;">Who's Listening For What</h4>
+                <ul>
+                    <li><strong>Megha:</strong> Positioning gaps. Messaging misalignment. Emotional drivers. The brand stuff they're not saying.</li>
+                    <li><strong>Jake:</strong> Visual/system gaps. Distance between vision and reality. Design/execution disconnects.</li>
+                </ul>
+                <div class="callout">
+                    <strong>DO NOT let this section run past 7 minutes.</strong> If they're still talking at 6:50, Jake jumps in: "I want to honor your time — let me share what we found." You'll have time to dig deeper in later sections. This section is about listening, not solving.
+                </div>
+            </div>
+
+            <h3>02 — WHAT WE FOUND (7:00–12:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>Present your research. Establish authority. Name the gap hypothesis.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <ul>
+                    <li><strong>Megha leads:</strong> Walk through your observations from morning prep. They're on screen.</li>
+                    <li><strong>Jake adds:</strong> Your perspective. Where the gaps are visible in the design/systems layer.</li>
+                </ul>
+                <h4 style="margin-top: 1.5rem;">The Key Moment</h4>
+                <p>Present your gap hypothesis as a <span class="highlight-red">HYPOTHESIS:</span> <strong>"Here's our hunch..."</strong> The prompt is on screen. Say it: <strong>"Before we go deeper — is this the real problem?"</strong></p>
+                <p style="margin-top: 1rem;"><strong>If they say yes:</strong> Proceed. You're aligned.</p>
+                <p><strong>If they push back:</strong> <strong>"Tell me more about that."</strong> Adjust. Listen. Don't defend your hypothesis.</p>
+                <p><strong>If diagnosis is wrong:</strong> Senior move = being wrong fast. Ask: <strong>"What IS the thing?"</strong> Follow them.</p>
+                <div class="tip">
+                    <strong>Pro move:</strong> If you're wrong, it's better to know it now than to spend 12 minutes talking about the wrong problem. Flexibility here buys trust later.
+                </div>
+            </div>
+
+            <h3>03 — NORTH STAR (12:00–17:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>The emotional anchor. One question. One answer. This becomes the compass for the entire action plan.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <p>The question is huge on screen. <span class="highlight-red">Let it land. Pause before you ask it.</span> Don't rush. The silence is the setup.</p>
+                <p style="margin-top: 1rem;">When they answer: <span class="highlight-red">type it EXACTLY as they say it.</span> Don't clean it up. Don't edit. The authenticity matters.</p>
+                <h4 style="margin-top: 1.5rem;">If They're Stuck</h4>
+                <p><strong>"Close your eyes. What does success look like in 90 days? Describe the scene."</strong> This helps them see, not think.</p>
+                <h4 style="margin-top: 1.5rem;">If They Give a Long Answer</h4>
+                <p><strong>"Say that in one sentence."</strong> Push for clarity. This clarity is load-bearing for the action plan.</p>
+            </div>
+
+            <h3>THE WALL (Between North Star and Diagnosis — 17:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>Collaborative brainstorm. Design thinking energy. Process everything that's been said so far and surface patterns.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <ul>
+                    <li>Add stickies for patterns you're seeing. Group what connects.</li>
+                    <li>Invite the client to add stickies: <strong>"What's coming up for you?"</strong></li>
+                    <li>Spend 3–5 minutes here. Don't rush it, but don't camp.</li>
+                    <li>Use color coding to organize thinking (Red = Megha obs, Blue = Jake obs, Yellow = Client ideas, White = Questions)</li>
+                </ul>
+                <div class="tip">
+                    <strong>What to look for:</strong> Repetition (what theme appears twice?), avoidance (what aren't they saying?), contradiction (where's the tension?). These are signals.
+                </div>
+            </div>
+
+            <h3>04 — WHAT WE SEE (17:00–25:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>Name the real problem. This is the product. The diagnosis is where strategy meets reality.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <ul>
+                    <li>Walk through the audit pillars <span class="highlight-red">TOGETHER.</span> Ask the client where they think they are first.</li>
+                    <li>Then share YOUR assessment. The gap between self-assessment and yours IS the diagnosis.</li>
+                    <li><strong>Megha leads the diagnosis.</strong> <strong>Jake adds the design/systems angle.</strong></li>
+                </ul>
+                <h4 style="margin-top: 1.5rem;">Around Minute 20: Recalibration Check</h4>
+                <p><span class="highlight-red">Jake does this moment.</span> <strong>"How's this landing?"</strong> Click the pill that matches the client's vibe. This is a pressure test — it tells you if they're with you or not.</p>
+                <p style="margin-top: 1rem;"><strong>If they're overwhelmed:</strong> Jake simplifies. <strong>"What's the ONE thing?"</strong> Strip it back.</p>
+                <h4 style="margin-top: 1.5rem;">Planting the Seed</h4>
+                <p>Around minute 24, plant the upsell naturally: <strong>"There's deeper work here. I'll put what that looks like in the plan."</strong> Don't hard-sell. Just name it. It'll land or it won't.</p>
+            </div>
+
+            <h3>05 — YOUR MOVES (25:00–37:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>The practical plan. Pressure-test it together. Refine it live. Make sure it fits their actual capacity.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <ul>
+                    <li>Action cards come <span class="highlight-red">pre-loaded from morning prep.</span></li>
+                    <li>Frame it: <strong>"Here's what we'd recommend. Let's see if it fits."</strong></li>
+                    <li><span class="highlight-red">Edit the cards LIVE</span> if the client pushes back or adds context. This is collaborative.</li>
+                </ul>
+                <h4 style="margin-top: 1.5rem;">The Capability Rule</h4>
+                <p>Match the action to what they can actually do. You saw in intake what they have bandwidth for. Don't prescribe something they can't execute.</p>
+                <h4 style="margin-top: 1.5rem;">"What to Stop" Matters</h4>
+                <p>Name it clearly. The moves that don't make the list are as important as the ones that do. <strong>"Here's what we're NOT doing. Here's why."</strong></p>
+                <div class="callout">
+                    <strong>If they love everything, something's wrong.</strong> Push harder: <strong>"What feels hardest? What's the resistance?"</strong> The friction is the signal.
+                </div>
+            </div>
+
+            <h3>06 — THE CLOSE (37:00–45:00)</h3>
+            <div class="content-block">
+                <h4>Purpose</h4>
+                <p>Land the plane. Clean, confident, done. Leave them with clarity and momentum.</p>
+                <h4 style="margin-top: 1.5rem;">The Flow</h4>
+                <ul>
+                    <li><span class="highlight-red">Megha leads.</span></li>
+                    <li>Questions first: <strong>"Anything that didn't land?"</strong> Let them ask. Clarify.</li>
+                    <li>Then the close script: <strong>"You came in with ___. We found ___. That changes ___."</strong></li>
+                    <li>Say it out loud as you type it in. The words landing in their ears matter.</li>
+                </ul>
+                <h4 style="margin-top: 1.5rem;">The Three Plants</h4>
+                <ul>
+                    <li><strong>The timeline:</strong> <strong>"In your inbox by [specific time]."</strong> Set the expectation. Frankie sends within 24 hours.</li>
+                    <li><strong>The referral:</strong> <strong>"If this was valuable, send it to one person who needs it. $100 off for both of you."</strong> Easy and generous.</li>
+                    <li><strong>The deeper work:</strong> You planted this in section 4. If it's right, it'll come up naturally. Don't push. If they ask, you have the answer ready.</li>
+                </ul>
+                <div class="tip">
+                    <strong>Don't oversell the 3-pack in the close.</strong> The close is about them, not you. If deeper work is right, they'll feel it.
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Checklists -->
+        <section id="checklists">
+            <h2>Pre & Post-Session Checklists</h2>
+
+            <h3>PRE-SESSION CHECKLIST</h3>
+            <div class="content-block">
+                <ul class="checklist">
+                    <li>Morning prep dashboard completed (both M + J observations filled)</li>
+                    <li>Workshop page loaded with client data (name, intake, observations, draft actions)</li>
+                    <li>Fireflies recording ready to go</li>
+                    <li>Timer tested (click to start — verify it counts up)</li>
+                    <li>B-Side explained in the pre-session email from Frankie</li>
+                    <li>Draft action items loaded from morning prep</li>
+                    <li>Screen share ready — test the URL before the call</li>
+                    <li>Both facilitators have water, notes visible, clear desk space</li>
+                </ul>
+            </div>
+
+            <h3>POST-SESSION CHECKLIST</h3>
+            <div class="content-block">
+                <ul class="checklist">
+                    <li>Save any live edits from the workshop page (action cards, close script)</li>
+                    <li>Export B-Side items</li>
+                    <li>Review Fireflies transcript when ready (within 24 hours)</li>
+                    <li>M + J sync to review notes and refine action plan</li>
+                    <li>Build action plan deliverable (separate template)</li>
+                    <li>Frankie sends action plan within 24 hours</li>
+                    <li>Log session time and outcome to CRM</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Section 5: Emergency Plays -->
+        <section id="emergency">
+            <h2>Emergency Plays</h2>
+            <p>The session won't go exactly to plan. Here's how to handle the moments when it doesn't.</p>
+
+            <div class="emergency">
+                <h4>Client won't stop talking (Section 1 or 2, running over time)</h4>
+                <p><span class="highlight-red">Jake says:</span> <strong>"I want to honor your time. Let's make sure you leave with what you need."</strong> This is warm, not cold. It's permission to move. If they keep going, interrupt gently: <strong>"We're going to get into all of that — let me share what we found first."</strong></p>
+            </div>
+
+            <div class="emergency">
+                <h4>Client is crying</h4>
+                <p><span class="highlight-red">Pause. Sit with it.</span> <strong>"Take your time. We're here."</strong> Don't rush past emotion — it's signal. It means you hit something real. Let them breathe. Hand them water if you're in person. Wait 30 seconds. Then: <strong>"What came up for you?"</strong></p>
+            </div>
+
+            <div class="emergency">
+                <h4>Client hates your diagnosis (Section 4)</h4>
+                <p><span class="highlight-red">Don't defend it.</span> <strong>"I hear you. What do YOU think the real problem is?"</strong> Follow them. Your job is to illuminate, not to convince. If you're wrong, you're wrong. That's valuable information.</p>
+            </div>
+
+            <div class="emergency">
+                <h4>Timer at 40 minutes and you're stuck in Section 3</h4>
+                <p><span class="highlight-red">Skip to Section 5.</span> <strong>"Let me jump to the plan — that's what you're here for."</strong> You can always circle back to diagnosis language in the close. The plan is the priority.</p>
+            </div>
+
+            <div class="emergency">
+                <h4>Tech breaks (screen freezes, URL doesn't load, connection drops)</h4>
+                <p><span class="highlight-red">Keep talking.</span> The page is a visual aid, not the session. You have your notes. The client has you. Say: <strong>"Let me share this from my notes while we sort that out."</strong> Then keep going. Reconnect when you can.</p>
+            </div>
+
+            <div class="emergency">
+                <h4>Client is quiet / not engaging</h4>
+                <p>This usually means they're uncomfortable or you're not landing. <span class="highlight-red">Ask directly:</span> <strong>"What's not landing here?"</strong> or <strong>"What are you thinking?"</strong> Silence is feedback. Respond to it.</p>
+            </div>
+
+            <div class="emergency">
+                <h4>You realize mid-session that your morning prep was wrong</h4>
+                <p><span class="highlight-red">Name it.</span> <strong>"I want to adjust what we prepped. Hearing you, I think the real issue is ___."</strong> Flexibility = trust. Being wrong fast is better than doubling down.</p>
+            </div>
+        </section>
+
+        <!-- POST-SESSION DEBRIEF CHECKLIST -->
+        <section id="debrief">
+            <h2>Post-Session Debrief Checklist</h2>
+            <p>Right after the client disconnects, spend 5–10 minutes on this. Both Megha and Jake rate independently. This is how you build institutional knowledge about what works.</p>
+
+            <div class="debrief-checklist">
+                <div class="debrief-item">
+                    <label><strong>Session Score (1–10)</strong> — Rate independently, then compare</label>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <label style="font-size: 0.85rem; color: #bbb;">Megha's score</label>
+                            <input type="number" id="megha-score" min="1" max="10" placeholder="1-10">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.85rem; color: #bbb;">Jake's score</label>
+                            <input type="number" id="jake-score" min="1" max="10" placeholder="1-10">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="debrief-item">
+                    <label><strong>Non-Obvious Insight</strong> — What surprised you? What changed how you see this client?</label>
+                    <textarea id="insight" placeholder="E.g., 'They said X, but the real issue is Y...'"></textarea>
+                </div>
+
+                <div class="debrief-item">
+                    <label><strong>Did the Upsell Land?</strong></label>
+                    <div style="margin-top: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; color: #ddd;">
+                            <input type="checkbox" id="upsell-landed"> Yes, they're interested in deeper work
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; color: #ddd;">
+                            <input type="checkbox" id="upsell-maybe"> Maybe — need to follow up
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; font-weight: normal; color: #ddd;">
+                            <input type="checkbox" id="upsell-no"> No, not interested right now
+                        </label>
+                    </div>
+                    <label style="margin-top: 1rem; display: block;"><strong style="color: var(--yellow);">What's the follow-up?</strong></label>
+                    <textarea id="followup" placeholder="E.g., Send deck, schedule call, etc."></textarea>
+                </div>
+
+                <div class="debrief-item">
+                    <label><strong>Anything You'd Do Differently?</strong> — What would you change for the next one?</label>
+                    <textarea id="improvements" placeholder="E.g., 'Spend more time in Diagnosis', 'Lead with different ice breaker', etc."></textarea>
+                </div>
+
+                <div class="quality-gate">
+                    <strong>Quality Gate Reference:</strong><br>
+                    <strong style="color: #4CAF50;">7–10:</strong> Strong session. Standard follow-up flow.<br>
+                    <strong style="color: var(--yellow);">5–6:</strong> Landed, but rough edges. Extra polish needed before upsell.<br>
+                    <strong style="color: var(--red);">3–4:</strong> Struggled. Recovery protocol: debrief with client, reframe, rebuild trust.<br>
+                    <strong style="color: #ff6b6b;">1–2:</strong> Missed badly. Refund territory. Analyze what broke.
+                </div>
+
+                <button class="loader-btn" style="margin-top: 1.5rem; width: auto;" onclick="saveDEbrief()">Save Debrief</button>
+                <p style="font-size: 0.8rem; color: #999; margin-top: 0.5rem;">Data saved to localStorage — review before next session.</p>
+            </div>
+        </section>
+
+        <!-- Final Notes -->
+        <section>
+            <h2>Final Notes</h2>
+            <p>The workshop is a conversation, not a presentation. You're there to illuminate, not to convince. The client's words, reactions, and energy are the data. The page is the container. You are the facilitators.</p>
+            <div class="callout">
+                <strong>The session works when three things happen:</strong>
+                <ul>
+                    <li>They feel heard (Section 1–2)</li>
+                    <li>They see the gap clearly (Section 3–4)</li>
+                    <li>They leave with a plan that fits (Section 5–6)</li>
+                </ul>
+            </div>
+            <p style="margin-top: 2rem;">Everything else is detail. Stay focused on those three moments, and the session will land.</p>
+        </section>
+    </main>
+
+    <footer>
+        <p>THE CREATIVE HOTLINE — Facilitator Guide</p>
+        <p>Version 1.0 | March 2026</p>
+        <p style="margin-top: 1rem; color: #666;">For internal use. Megha + Jake.</p>
+    </footer>
+
+    <script>
+        // RED FLAGS COLLAPSIBLE TOGGLE
+        function toggleCollapsible(button) {
+            const content = button.nextElementSibling;
+            const icon = button.querySelector('.toggle-icon');
+
+            button.classList.toggle('active');
+            content.classList.toggle('active');
+            icon.classList.toggle('active');
+        }
+
+        // DEBRIEF CHECKLIST SAVE
+        function saveDEbrief() {
+            const debriefData = {
+                timestamp: new Date().toISOString(),
+                meghaScore: document.getElementById('megha-score').value,
+                jakeScore: document.getElementById('jake-score').value,
+                insight: document.getElementById('insight').value,
+                upsellLanded: document.getElementById('upsell-landed').checked,
+                upsellMaybe: document.getElementById('upsell-maybe').checked,
+                upsellNo: document.getElementById('upsell-no').checked,
+                followup: document.getElementById('followup').value,
+                improvements: document.getElementById('improvements').value
+            };
+
+            // Save to localStorage
+            const allDebriefs = JSON.parse(localStorage.getItem('tch-debriefs') || '[]');
+            allDebriefs.push(debriefData);
+            localStorage.setItem('tch-debriefs', JSON.stringify(allDebriefs));
+
+            // Brief confirmation
+            alert('✓ Debrief saved! Review before the next session.');
+        }
+
+        // LOAD CLIENT DATA (OPTIONAL: populate from localStorage if available)
+        window.addEventListener('DOMContentLoaded', function() {
+            const savedClient = localStorage.getItem('tch-current-client');
+            if (savedClient) {
+                const client = JSON.parse(savedClient);
+                document.getElementById('client-name').value = client.name || '';
+                document.getElementById('business-name').value = client.business || '';
+                document.getElementById('session-number').value = client.session || '001';
+            }
+        });
+
+        // SAVE CLIENT DATA when loading
+        function loadClientData() {
+            const clientName = document.getElementById('client-name').value;
+            const businessName = document.getElementById('business-name').value;
+            const sessionNumber = document.getElementById('session-number').value;
+
+            // Save to localStorage
+            localStorage.setItem('tch-current-client', JSON.stringify({
+                name: clientName,
+                business: businessName,
+                session: sessionNumber,
+                loadedAt: new Date().toISOString()
+            }));
+
+            // Update all placeholder references in the document
+            document.querySelectorAll('[data-client-name]').forEach(el => {
+                el.textContent = clientName || '[Client Name]';
+            });
+            document.querySelectorAll('[data-business-name]').forEach(el => {
+                el.textContent = businessName || '[Business Name]';
+            });
+        }
+    </script>
+</body>
+</html>

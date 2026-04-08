@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brand Audit Report — The Creative Hotline</title>
+<style>
+  /* BRAND FONTS */
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype'); font-weight: 400; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype'); font-weight: 800; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype'); font-weight: 500; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype'); font-weight: 700; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype'); font-weight: 900; font-style: italic; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+
+  :root {
+    --primary-red: #EC3107;
+    --secondary-blue: #2E63E7;
+    --highlight-yellow: #F6ED52;
+    --ink-black: #1C1C1E;
+    --soft-white: #F5F2EB;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nord', sans-serif;
+    background: var(--ink-black);
+    color: var(--soft-white);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== COVER ===== */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover::before {
+    content: '';
+    position: absolute;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(236, 49, 7, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    left: -100px;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(46, 99, 231, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .cover-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--primary-red);
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-family: 'Editorial Old', serif;
+    font-size: 72px;
+    font-weight: 800;
+    line-height: 1.05;
+    margin-bottom: 16px;
+    max-width: 700px;
+  }
+  .cover h1 .accent { color: var(--primary-red); }
+  .cover-sub {
+    font-family: 'Nord', sans-serif;
+    font-size: 18px;
+    font-weight: 300;
+    color: rgba(245,242,235,0.6);
+    margin-bottom: 40px;
+    max-width: 500px;
+    line-height: 1.6;
+  }
+  .cover-meta {
+    display: flex;
+    gap: 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(245,242,235,0.4);
+  }
+  .cover-meta span { display: flex; align-items: center; gap: 8px; }
+  .cover-logo {
+    position: absolute;
+    bottom: 60px;
+    right: 60px;
+    opacity: 0.15;
+    font-family: 'Nord', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--soft-white);
+  }
+
+  /* ===== LAYOUT ===== */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 60px;
+  }
+  .page-section {
+    padding: 80px 0;
+    border-top: 1px solid rgba(245,242,235,0.06);
+  }
+
+  /* ===== SECTION HEADERS ===== */
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--primary-red);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Editorial Old', serif;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 12px;
+  }
+  .section-desc {
+    font-size: 15px;
+    color: rgba(245,242,235,0.5);
+    margin-bottom: 40px;
+    max-width: 600px;
+    line-height: 1.6;
+  }
+
+  /* ===== SCORE SYSTEM ===== */
+  .overall-score {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+    padding: 40px;
+    background: rgba(245,242,235,0.03);
+    border: 1px solid rgba(245,242,235,0.06);
+    border-radius: var(--radius);
+    margin-bottom: 40px;
+  }
+  .score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+  .score-circle .number {
+    font-family: 'Editorial Old', serif;
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .score-circle .out-of {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(245,242,235,0.5);
+  }
+  .score-circle svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 120px;
+    height: 120px;
+    transform: rotate(-90deg);
+  }
+  .score-circle svg circle {
+    fill: none;
+    stroke-width: 3;
+    stroke-linecap: round;
+  }
+  .score-circle svg .bg { stroke: rgba(245,242,235,0.08); }
+  .score-circle svg .fill { stroke: var(--primary-red); stroke-dasharray: 339.292; transition: stroke-dashoffset 1s ease; }
+  .score-breakdown {
+    flex: 1;
+  }
+  .score-breakdown h3 {
+    font-family: 'Nord', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+    color: rgba(245,242,235,0.6);
+  }
+
+  .score-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  .score-row:last-child { margin-bottom: 0; }
+  .score-row .label {
+    font-size: 14px;
+    font-weight: 500;
+    width: 140px;
+    flex-shrink: 0;
+  }
+  .score-row .track {
+    flex: 1;
+    height: 8px;
+    background: rgba(245,242,235,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .score-row .fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.8s ease;
+  }
+  .score-row .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    width: 32px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ===== PILLAR CARDS ===== */
+  .pillar-card {
+    padding: 32px;
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    border: 1px solid rgba(245,242,235,0.06);
+    background: rgba(245,242,235,0.02);
+    position: relative;
+    overflow: hidden;
+  }
+  .pillar-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+  }
+  .pillar-card.positioning::before { background: var(--primary-red); }
+  .pillar-card.messaging::before { background: var(--secondary-blue); }
+  .pillar-card.execution::before { background: var(--highlight-yellow); }
+  .pillar-card.distribution::before { background: #8B5CF6; }
+  .pillar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .pillar-name {
+    font-family: 'Nord', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 6px;
+  }
+  .pillar-card.positioning .pillar-name { color: var(--primary-red); }
+  .pillar-card.messaging .pillar-name { color: var(--secondary-blue); }
+  .pillar-card.execution .pillar-name { color: var(--highlight-yellow); }
+  .pillar-card.distribution .pillar-name { color: #8B5CF6; }
+  .pillar-headline {
+    font-family: 'Editorial Old', serif;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .pillar-score-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 700;
+    padding: 8px 16px;
+    border-radius: var(--radius-sm);
+    background: rgba(245,242,235,0.04);
+    border: 1px solid rgba(245,242,235,0.08);
+    flex-shrink: 0;
+  }
+  .pillar-body {
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(245,242,235,0.8);
+  }
+  .pillar-body p { margin-bottom: 16px; }
+  .pillar-body p:last-child { margin-bottom: 0; }
+
+  /* ===== TOP POSTS ===== */
+  .post-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+  .post-item {
+    padding: 24px;
+    border-radius: var(--radius);
+    background: rgba(245,242,235,0.03);
+    border: 1px solid rgba(245,242,235,0.06);
+    position: relative;
+  }
+  .post-item .rank {
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    background: var(--primary-red);
+    color: #fff;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .post-item .type {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(245,242,235,0.4);
+    margin-bottom: 10px;
+    margin-top: 4px;
+    font-family: 'Nord', sans-serif;
+    font-weight: 600;
+  }
+  .post-item .desc {
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 12px;
+    color: var(--soft-white);
+  }
+  .post-item .why {
+    font-family: 'Editorial Old', serif;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--primary-red);
+    line-height: 1.5;
+    padding-left: 12px;
+    border-left: 2px solid var(--primary-red);
+  }
+
+  /* ===== GAPS ===== */
+  .gap-item {
+    display: flex;
+    gap: 20px;
+    padding: 24px 0;
+    border-bottom: 1px solid rgba(245,242,235,0.06);
+  }
+  .gap-item:last-child { border-bottom: none; }
+  .gap-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(236, 49, 7, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .gap-content h4 {
+    font-family: 'Nord', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .gap-content p {
+    font-size: 14px;
+    color: rgba(245,242,235,0.7);
+    line-height: 1.6;
+  }
+
+  /* ===== RECS ===== */
+  .rec-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .rec-item {
+    padding: 28px;
+    border-radius: var(--radius);
+    background: rgba(245,242,235,0.03);
+    border: 1px solid rgba(245,242,235,0.06);
+  }
+  .rec-priority {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 14px;
+    font-family: 'Nord', sans-serif;
+  }
+  .rec-priority.now { background: var(--primary-red); color: #fff; }
+  .rec-priority.soon { background: var(--highlight-yellow); color: var(--ink-black); }
+  .rec-priority.later { background: rgba(245,242,235,0.1); color: var(--soft-white); }
+  .rec-item h4 {
+    font-family: 'Editorial Old', serif;
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+  .rec-item p {
+    font-size: 14px;
+    color: rgba(245,242,235,0.7);
+    line-height: 1.7;
+  }
+
+  /* ===== ROADMAP ===== */
+  .roadmap {
+    position: relative;
+    padding-left: 40px;
+  }
+  .roadmap::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, var(--primary-red) 0%, var(--secondary-blue) 50%, var(--highlight-yellow) 100%);
+  }
+  .roadmap-phase {
+    position: relative;
+    margin-bottom: 48px;
+  }
+  .roadmap-phase:last-child { margin-bottom: 0; }
+  .roadmap-dot {
+    position: absolute;
+    left: -33px;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 3px solid var(--ink-black);
+  }
+  .phase-now .roadmap-dot { background: var(--primary-red); box-shadow: 0 0 12px rgba(236, 49, 7, 0.4); }
+  .phase-30 .roadmap-dot { background: var(--secondary-blue); }
+  .phase-90 .roadmap-dot { background: var(--highlight-yellow); }
+  .roadmap-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 8px;
+  }
+  .phase-now .roadmap-label { color: var(--primary-red); }
+  .phase-30 .roadmap-label { color: var(--secondary-blue); }
+  .phase-90 .roadmap-label { color: var(--highlight-yellow); }
+  .roadmap-title {
+    font-family: 'Editorial Old', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .roadmap-items {
+    list-style: none;
+  }
+  .roadmap-items li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: rgba(245,242,235,0.8);
+    line-height: 1.6;
+  }
+  .roadmap-items li .arrow {
+    color: var(--primary-red);
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ===== BOTTOM LINE ===== */
+  .bottom-line-section {
+    padding: 80px 0;
+    border-top: 1px solid rgba(245,242,235,0.06);
+  }
+  .bottom-callout {
+    background: rgba(236, 49, 7, 0.06);
+    border: 2px solid var(--primary-red);
+    border-radius: var(--radius);
+    padding: 48px;
+  }
+  .bottom-callout h2 {
+    font-family: 'Editorial Old', serif;
+    font-size: 32px;
+    font-weight: 800;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+  .bottom-callout .verdict {
+    font-family: 'Editorial Old', serif;
+    font-size: 20px;
+    font-style: italic;
+    line-height: 1.7;
+    color: var(--soft-white);
+    margin-bottom: 24px;
+  }
+  .bottom-callout .takeaways {
+    list-style: none;
+    margin-top: 20px;
+  }
+  .bottom-callout .takeaways li {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    font-size: 15px;
+    line-height: 1.6;
+    border-bottom: 1px solid rgba(236, 49, 7, 0.15);
+  }
+  .bottom-callout .takeaways li:last-child { border-bottom: none; }
+  .bottom-callout .takeaways li .num {
+    background: var(--primary-red);
+    color: #fff;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  /* ===== CTA ===== */
+  .cta-section {
+    text-align: center;
+    padding: 80px 0 100px;
+  }
+  .cta-section h2 {
+    font-family: 'Editorial Old', serif;
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 12px;
+  }
+  .cta-section p {
+    font-size: 16px;
+    color: rgba(245,242,235,0.6);
+    margin-bottom: 32px;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 40px;
+    background: var(--primary-red);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Nord', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .cta-btn:hover { background: #B82102; transform: translateY(-1px); }
+  .cta-note {
+    margin-top: 16px;
+    font-size: 12px;
+    color: rgba(245,242,235,0.3);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ===== FOOTER ===== */
+  .report-footer {
+    text-align: center;
+    padding: 40px 0;
+    border-top: 1px solid rgba(245,242,235,0.06);
+    font-size: 12px;
+    color: rgba(245,242,235,0.25);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .report-footer a { color: var(--primary-red); text-decoration: none; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .cover { padding: 60px 24px; min-height: auto; }
+    .cover h1 { font-size: 42px; }
+    .container { padding: 0 24px; }
+    .page-section { padding: 60px 0; }
+    .section-title { font-size: 28px; }
+    .overall-score { flex-direction: column; padding: 28px; }
+    .post-grid { grid-template-columns: 1fr; }
+    .rec-grid { grid-template-columns: 1fr; }
+    .pillar-header { flex-direction: column; gap: 12px; }
+    .bottom-callout { padding: 28px; }
+    .score-row .label { width: 100px; font-size: 13px; }
+  }
+  @media (max-width: 480px) {
+    .cover { padding: 40px 16px; }
+    .cover h1 { font-size: 32px; }
+    .container { padding: 0 16px; }
+    .page-section { padding: 48px 0; }
+    .section-title { font-size: 24px; }
+    .cover-meta { flex-direction: column; gap: 8px; }
+    .cover-logo { display: none; }
+    .roadmap { padding-left: 32px; }
+  }
+
+  /* ===== PRINT ===== */
+  @media print {
+    body { background: #fff; color: #1C1C1E; }
+    .cover { min-height: auto; page-break-after: always; }
+    .page-section { page-break-inside: avoid; }
+    .cta-section { display: none; }
+    .pillar-card, .post-item, .rec-item, .overall-score, .bottom-callout {
+      border: 1px solid #ddd;
+      background: #f9f9f9;
+    }
+    .score-row .fill { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== COVER ===== -->
+<div class="cover">
+  <div class="cover-badge">The Creative Hotline — Brand Audit Report</div>
+  <h1>Your <span class="accent">Creative Authority</span> Audit</h1>
+  <div class="cover-sub">An honest, senior-level read on where your brand stands — and exactly where to take it next.</div>
+  <div class="cover-meta">
+    <span>Prepared for: <strong id="coverClient" style="color: var(--soft-white);">Client Name</strong></span>
+    <span>Brand: <strong id="coverBrand" style="color: var(--soft-white);">Brand Name</strong></span>
+    <span id="coverDate">March 2026</span>
+  </div>
+  <div class="cover-logo">THE CREATIVE HOTLINE</div>
+</div>
+
+<!-- ===== 1. OVERALL SCORE ===== -->
+<div class="container">
+  <div class="page-section">
+    <div class="section-num">01 — The Snapshot</div>
+    <div class="section-title">Your Creative Authority Score</div>
+    <div class="section-desc">We evaluate brands across four pillars: Positioning, Messaging, Execution, and Distribution. Here's where you stand right now.</div>
+
+    <div class="overall-score">
+      <div class="score-circle" id="overallCircle">
+        <svg viewBox="0 0 120 120">
+          <circle class="bg" cx="60" cy="60" r="54"/>
+          <circle class="fill" cx="60" cy="60" r="54" id="scoreArc"/>
+        </svg>
+        <div class="number" id="overallScore">—</div>
+        <div class="out-of">/ 40</div>
+      </div>
+      <div class="score-breakdown">
+        <h3>The Four Pillars</h3>
+        <div class="score-row">
+          <span class="label">Positioning</span>
+          <div class="track"><div class="fill" id="bar-positioning" style="width: 0%; background: var(--primary-red);"></div></div>
+          <span class="val" id="val-positioning">—</span>
+        </div>
+        <div class="score-row">
+          <span class="label">Messaging</span>
+          <div class="track"><div class="fill" id="bar-messaging" style="width: 0%; background: var(--secondary-blue);"></div></div>
+          <span class="val" id="val-messaging">—</span>
+        </div>
+        <div class="score-row">
+          <span class="label">Execution</span>
+          <div class="track"><div class="fill" id="bar-execution" style="width: 0%; background: var(--highlight-yellow);"></div></div>
+          <span class="val" id="val-execution">—</span>
+        </div>
+        <div class="score-row">
+          <span class="label">Distribution</span>
+          <div class="track"><div class="fill" id="bar-distribution" style="width: 0%; background: #8B5CF6;"></div></div>
+          <span class="val" id="val-distribution">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Health -->
+    <div style="padding: 28px; border-radius: var(--radius); background: rgba(245,242,235,0.02); border: 1px solid rgba(245,242,235,0.06);">
+      <h3 style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: rgba(245,242,235,0.5); margin-bottom: 16px; font-family: 'Nord', sans-serif;">Content Health Breakdown</h3>
+      <div class="score-row">
+        <span class="label">Visual Quality</span>
+        <div class="track"><div class="fill" id="bar-visual" style="width: 0%; background: var(--soft-white);"></div></div>
+        <span class="val" id="val-visual">—</span>
+      </div>
+      <div class="score-row">
+        <span class="label">Brand Cohesion</span>
+        <div class="track"><div class="fill" id="bar-cohesion" style="width: 0%; background: var(--soft-white);"></div></div>
+        <span class="val" id="val-cohesion">—</span>
+      </div>
+      <div class="score-row">
+        <span class="label">Storytelling</span>
+        <div class="track"><div class="fill" id="bar-storytelling" style="width: 0%; background: var(--soft-white);"></div></div>
+        <span class="val" id="val-storytelling">—</span>
+      </div>
+      <div class="score-row">
+        <span class="label">Conversion Path</span>
+        <div class="track"><div class="fill" id="bar-conversion" style="width: 0%; background: var(--soft-white);"></div></div>
+        <span class="val" id="val-conversion">—</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 2. PILLARS ===== -->
+  <div class="page-section">
+    <div class="section-num">02 — The Deep Read</div>
+    <div class="section-title">Pillar-by-Pillar Breakdown</div>
+    <div class="section-desc">Each pillar gets an honest assessment — what's working, what's not, and what it's costing you.</div>
+
+    <div class="pillar-card positioning">
+      <div class="pillar-header">
+        <div>
+          <div class="pillar-name">Positioning</div>
+          <div class="pillar-headline" id="p1-headline">Who you are in the market</div>
+        </div>
+        <div class="pillar-score-badge" id="p1-score">—/10</div>
+      </div>
+      <div class="pillar-body" id="p1-body">
+        <p>Assessment content goes here. This is where we give the honest read on how clearly positioned this brand is — who they are, who they're for, and what makes them different.</p>
+      </div>
+    </div>
+
+    <div class="pillar-card messaging">
+      <div class="pillar-header">
+        <div>
+          <div class="pillar-name">Messaging</div>
+          <div class="pillar-headline" id="p2-headline">How you talk about it</div>
+        </div>
+        <div class="pillar-score-badge" id="p2-score">—/10</div>
+      </div>
+      <div class="pillar-body" id="p2-body">
+        <p>Assessment content goes here. Voice, tone, copy quality, consistency across platforms, whether the words match the work.</p>
+      </div>
+    </div>
+
+    <div class="pillar-card execution">
+      <div class="pillar-header">
+        <div>
+          <div class="pillar-name">Execution</div>
+          <div class="pillar-headline" id="p3-headline">The quality of what you put out</div>
+        </div>
+        <div class="pillar-score-badge" id="p3-score">—/10</div>
+      </div>
+      <div class="pillar-body" id="p3-body">
+        <p>Assessment content goes here. Visual identity, content quality, consistency, photography, design decisions, overall aesthetic cohesion.</p>
+      </div>
+    </div>
+
+    <div class="pillar-card distribution">
+      <div class="pillar-header">
+        <div>
+          <div class="pillar-name">Distribution</div>
+          <div class="pillar-headline" id="p4-headline">Where and how people find you</div>
+        </div>
+        <div class="pillar-score-badge" id="p4-score">—/10</div>
+      </div>
+      <div class="pillar-body" id="p4-body">
+        <p>Assessment content goes here. Platform strategy, audience reach, email presence, SEO, discovery channels, conversion infrastructure.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 3. TOP POSTS ===== -->
+  <div class="page-section">
+    <div class="section-num">03 — What's Already Working</div>
+    <div class="section-title">Your Top-Performing Content</div>
+    <div class="section-desc">These posts resonated most with your audience. Understanding why is the key to doing more of it — intentionally.</div>
+
+    <div class="post-grid" id="postGrid">
+      <div class="post-item">
+        <div class="rank">1</div>
+        <div class="type">Post type</div>
+        <div class="desc">Description of what the post was about and what made it stand out.</div>
+        <div class="why">Why it worked — the pattern worth repeating.</div>
+      </div>
+      <div class="post-item">
+        <div class="rank">2</div>
+        <div class="type">Post type</div>
+        <div class="desc">Description</div>
+        <div class="why">Why it worked</div>
+      </div>
+      <div class="post-item">
+        <div class="rank">3</div>
+        <div class="type">Post type</div>
+        <div class="desc">Description</div>
+        <div class="why">Why it worked</div>
+      </div>
+    </div>
+
+    <div style="padding: 24px; border-radius: var(--radius); background: rgba(46, 99, 231, 0.06); border: 1px solid rgba(46, 99, 231, 0.15);">
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--secondary-blue); margin-bottom: 10px; font-family: 'Nord', sans-serif;">The Pattern</div>
+      <div style="font-family: 'Editorial Old', serif; font-size: 18px; font-style: italic; line-height: 1.6;" id="contentPattern">
+        When we look at what's connecting, the through-line is clear: [pattern insight goes here].
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 4. GAPS ===== -->
+  <div class="page-section">
+    <div class="section-num">04 — Where You're Leaving Value on the Table</div>
+    <div class="section-title">The Gaps</div>
+    <div class="section-desc">Not to make you feel bad — to show you exactly where the untapped opportunity is.</div>
+
+    <div id="gapsList">
+      <div class="gap-item">
+        <div class="gap-icon">📍</div>
+        <div class="gap-content">
+          <h4>Gap Title</h4>
+          <p>Description of the gap and what it's costing them in real terms — visibility, revenue, authority, or opportunity.</p>
+        </div>
+      </div>
+      <div class="gap-item">
+        <div class="gap-icon">💬</div>
+        <div class="gap-content">
+          <h4>Gap Title</h4>
+          <p>Description</p>
+        </div>
+      </div>
+      <div class="gap-item">
+        <div class="gap-icon">🎨</div>
+        <div class="gap-content">
+          <h4>Gap Title</h4>
+          <p>Description</p>
+        </div>
+      </div>
+      <div class="gap-item">
+        <div class="gap-icon">📡</div>
+        <div class="gap-content">
+          <h4>Gap Title</h4>
+          <p>Description</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 5. RECS ===== -->
+  <div class="page-section">
+    <div class="section-num">05 — The Creative Direction</div>
+    <div class="section-title">What We'd Tell You to Do</div>
+    <div class="section-desc">Specific, actionable moves — not vague strategy. These are ranked by impact.</div>
+
+    <div class="rec-grid" id="recGrid">
+      <div class="rec-item">
+        <div class="rec-priority now">Do This Now</div>
+        <h4>Recommendation 1</h4>
+        <p>Specific, actionable direction with clear expected outcome.</p>
+      </div>
+      <div class="rec-item">
+        <div class="rec-priority now">Do This Now</div>
+        <h4>Recommendation 2</h4>
+        <p>Specific direction</p>
+      </div>
+      <div class="rec-item">
+        <div class="rec-priority soon">Next 30 Days</div>
+        <h4>Recommendation 3</h4>
+        <p>Specific direction</p>
+      </div>
+      <div class="rec-item">
+        <div class="rec-priority soon">Next 30 Days</div>
+        <h4>Recommendation 4</h4>
+        <p>Specific direction</p>
+      </div>
+      <div class="rec-item">
+        <div class="rec-priority later">90-Day Play</div>
+        <h4>Recommendation 5</h4>
+        <p>Specific direction</p>
+      </div>
+      <div class="rec-item">
+        <div class="rec-priority later">90-Day Play</div>
+        <h4>Recommendation 6</h4>
+        <p>Specific direction</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 6. ROADMAP ===== -->
+  <div class="page-section">
+    <div class="section-num">06 — Your 90-Day Roadmap</div>
+    <div class="section-title">The Path Forward</div>
+    <div class="section-desc">Week by week isn't the move. Phases are. Here's the sequence that makes everything else easier.</div>
+
+    <div class="roadmap">
+      <div class="roadmap-phase phase-now">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-label">This Week — The Foundation</div>
+        <div class="roadmap-title" id="road-now-title">Quick wins that shift momentum immediately</div>
+        <ul class="roadmap-items" id="road-now-items">
+          <li><span class="arrow">→</span><span>Action item 1</span></li>
+          <li><span class="arrow">→</span><span>Action item 2</span></li>
+          <li><span class="arrow">→</span><span>Action item 3</span></li>
+        </ul>
+      </div>
+
+      <div class="roadmap-phase phase-30">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-label">Days 7–30 — Build the Engine</div>
+        <div class="roadmap-title" id="road-30-title">Systems and content that compound</div>
+        <ul class="roadmap-items" id="road-30-items">
+          <li><span class="arrow">→</span><span>Action item 1</span></li>
+          <li><span class="arrow">→</span><span>Action item 2</span></li>
+          <li><span class="arrow">→</span><span>Action item 3</span></li>
+        </ul>
+      </div>
+
+      <div class="roadmap-phase phase-90">
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-label">Days 30–90 — Scale What's Working</div>
+        <div class="roadmap-title" id="road-90-title">Double down on what moved the needle</div>
+        <ul class="roadmap-items" id="road-90-items">
+          <li><span class="arrow">→</span><span>Action item 1</span></li>
+          <li><span class="arrow">→</span><span>Action item 2</span></li>
+          <li><span class="arrow">→</span><span>Action item 3</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 7. BOTTOM LINE ===== -->
+  <div class="bottom-line-section">
+    <div class="section-num">07 — The Bottom Line</div>
+    <div class="section-title">What It All Means</div>
+
+    <div class="bottom-callout">
+      <h2>Here's the truth about your brand right now.</h2>
+      <div class="verdict" id="bottomVerdict">
+        Your verdict goes here — one honest, empowering paragraph. Not what's wrong. What's possible, and the single most important shift to get there.
+      </div>
+      <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--primary-red); margin-top: 24px; font-family: 'Nord', sans-serif;">Your Five Takeaways</div>
+      <ul class="takeaways" id="bottomTakeaways">
+        <li><span class="num">1</span><span>Takeaway 1</span></li>
+        <li><span class="num">2</span><span>Takeaway 2</span></li>
+        <li><span class="num">3</span><span>Takeaway 3</span></li>
+        <li><span class="num">4</span><span>Takeaway 4</span></li>
+        <li><span class="num">5</span><span>Takeaway 5</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== CTA ===== -->
+  <div class="cta-section">
+    <h2>Ready to go deeper?</h2>
+    <p>This report tells you where you stand. The workshop tells you exactly how to move.</p>
+    <a href="#" class="cta-btn">☎️ Book Your Session — $499</a>
+    <div class="cta-note">45 minutes with two senior creative directors · Live creative direction · Action plan delivered within 48 hours</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="report-footer">
+    © 2026 <a href="#">The Creative Hotline</a> · This report is confidential and prepared exclusively for the named client.
+  </div>
+</div>
+
+<script>
+  // Score animation helper
+  function setScores(data) {
+    // Pillar scores (out of 10)
+    const pillars = ['positioning', 'messaging', 'execution', 'distribution'];
+    let total = 0;
+
+    pillars.forEach(p => {
+      const val = data[p] || 0;
+      total += val;
+      const bar = document.getElementById('bar-' + p);
+      const valEl = document.getElementById('val-' + p);
+      if (bar) bar.style.width = (val / 10 * 100) + '%';
+      if (valEl) valEl.textContent = val;
+    });
+
+    // Overall score
+    document.getElementById('overallScore').textContent = total;
+    const arc = document.getElementById('scoreArc');
+    if (arc) {
+      const circumference = 2 * Math.PI * 54; // ~339.29
+      const offset = circumference - (total / 40 * circumference);
+      arc.style.strokeDashoffset = offset;
+    }
+
+    // Content health scores (out of 10)
+    const health = ['visual', 'cohesion', 'storytelling', 'conversion'];
+    health.forEach(h => {
+      const val = data[h] || 0;
+      const bar = document.getElementById('bar-' + h);
+      const valEl = document.getElementById('val-' + h);
+      if (bar) bar.style.width = (val / 10 * 100) + '%';
+      if (valEl) valEl.textContent = val + '/10';
+    });
+
+    // Pillar detail badges
+    if (data.positioning) document.getElementById('p1-score').textContent = data.positioning + '/10';
+    if (data.messaging) document.getElementById('p2-score').textContent = data.messaging + '/10';
+    if (data.execution) document.getElementById('p3-score').textContent = data.execution + '/10';
+    if (data.distribution) document.getElementById('p4-score').textContent = data.distribution + '/10';
+  }
+
+  // Set date
+  const now = new Date();
+  document.getElementById('coverDate').textContent = now.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Initialize score arc
+  const arc = document.getElementById('scoreArc');
+  if (arc) arc.style.strokeDashoffset = 339.292;
+
+  // Example usage (uncomment and customize per client):
+  // setScores({ positioning: 5, messaging: 4, execution: 7, distribution: 3, visual: 6, cohesion: 4, storytelling: 3, conversion: 2 });
+</script>
+
+</body>
+</html>

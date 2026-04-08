@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCH — Morning Prep Dashboard</title>
+<style>
+  /* BRAND FONTS */
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype'); font-weight: 400; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype'); font-weight: 800; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype'); font-weight: 500; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype'); font-weight: 700; font-style: italic; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype'); font-weight: 900; font-style: italic; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+
+  :root {
+    --primary-red: #EC3107;
+    --secondary-blue: #2E63E7;
+    --highlight-yellow: #F6ED52;
+    --ink-black: #1C1C1E;
+    --soft-white: #F5F2EB;
+    --border-light: #E8E4DE;
+    --border-dark: #D4CFC7;
+    --megha-blue: #2E63E7;
+    --jake-yellow: #F6ED52;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Nord', sans-serif;
+    background: var(--soft-white);
+    color: var(--ink-black);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* TOP BAR */
+  .topbar {
+    background: var(--ink-black);
+    color: var(--soft-white);
+    padding: 14px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .topbar-brand {
+    font-family: 'Nord', sans-serif;
+    font-size: 18px;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    font-weight: 700;
+  }
+  .topbar-brand span { color: var(--primary-red); }
+  .topbar-meta {
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    font-size: 13px;
+    color: #999;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .topbar-meta .date { color: #ccc; }
+  .topbar-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .status-prep { background: var(--highlight-yellow); color: var(--ink-black); }
+  .status-live { background: var(--primary-red); color: #fff; }
+  .status-review { background: var(--primary-red); color: #fff; }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px;
+  }
+
+  /* SESSION HEADER */
+  .session-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .client-name {
+    font-family: 'Editorial Old', serif;
+    font-size: 48px;
+    line-height: 1.2;
+    margin-bottom: 4px;
+    font-weight: 700;
+  }
+  .client-business {
+    font-size: 14px;
+    color: var(--ink-black);
+    font-weight: 500;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .client-business a { color: var(--primary-red); text-decoration: none; }
+  .client-business a:hover { text-decoration: underline; }
+  .session-time {
+    text-align: right;
+    font-size: 14px;
+    color: var(--ink-black);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .session-time .time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    color: var(--ink-black);
+    font-weight: 500;
+  }
+
+  /* GRID */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+  .full-width { grid-column: 1 / -1; }
+
+  /* CARDS */
+  .card {
+    background: var(--ink-black);
+    border: none;
+    border-left: 4px solid var(--primary-red);
+    border-radius: var(--radius);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(245, 242, 235, 0.1);
+  }
+  .card-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--soft-white);
+    font-family: 'Nord', sans-serif;
+  }
+  .card-icon {
+    font-size: 16px;
+  }
+
+  /* INTAKE DATA */
+  .intake-item {
+    margin-bottom: 16px;
+  }
+  .intake-item:last-child { margin-bottom: 0; }
+  .intake-q {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--primary-red);
+    margin-bottom: 4px;
+    font-family: 'Nord', sans-serif;
+  }
+  .intake-a {
+    font-size: 15px;
+    color: var(--soft-white);
+    line-height: 1.5;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .intake-a.quote {
+    font-style: italic;
+    padding-left: 12px;
+    border-left: 2px solid var(--primary-red);
+  }
+
+  /* TAGS */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    background: rgba(236, 49, 7, 0.15);
+    color: var(--primary-red);
+    border: 1px solid var(--primary-red);
+    font-family: 'Nord', sans-serif;
+  }
+
+  /* EDITABLE FIELDS */
+  .edit-field {
+    width: 100%;
+    min-height: 80px;
+    padding: 12px 16px;
+    border: 1px dashed var(--border-dark);
+    border-radius: var(--radius-sm);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-black);
+    background: var(--soft-white);
+    resize: vertical;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .edit-field:focus {
+    outline: none;
+    border-color: var(--primary-red);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(236, 49, 7, 0.1);
+  }
+  .edit-field::placeholder {
+    color: #999;
+    font-style: italic;
+  }
+  .edit-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-black);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Nord', sans-serif;
+  }
+  .edit-label .who {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .who-megha { background: var(--megha-blue); color: #fff; }
+  .who-jake { background: var(--jake-yellow); color: var(--ink-black); }
+  .who-both { background: rgba(236, 49, 7, 0.15); color: var(--primary-red); }
+
+  /* CHECKLIST */
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid rgba(245, 242, 235, 0.1);
+    color: var(--soft-white);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist input[type="checkbox"] {
+    margin-top: 3px;
+    accent-color: var(--primary-red);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+  }
+
+  /* ARCHETYPE SELECT */
+  .archetype-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .archetype-option {
+    padding: 12px 16px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    background: var(--soft-white);
+    color: var(--ink-black);
+    font-family: 'Nord', sans-serif;
+  }
+  .archetype-option:hover { border-color: var(--primary-red); background: #fff; }
+  .archetype-option.selected { border-color: var(--primary-red); background: rgba(236, 49, 7, 0.08); }
+  .archetype-option .label { font-weight: 600; margin-bottom: 2px; }
+  .archetype-option .desc { font-size: 12px; color: #666; font-family: 'JetBrains Mono', monospace; }
+
+  /* NORTH STAR SELECTOR */
+  .ns-options { display: flex; flex-direction: column; gap: 8px; }
+  .ns-option {
+    padding: 14px 16px;
+    border: 2px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--soft-white);
+    color: var(--ink-black);
+    font-family: 'Nord', sans-serif;
+  }
+  .ns-option:hover { border-color: var(--primary-red); background: #fff; }
+  .ns-option.selected { border-color: var(--primary-red); background: rgba(236, 49, 7, 0.08); }
+  .ns-option .prompt {
+    font-family: 'Editorial Old', serif;
+    font-size: 16px;
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  .ns-option .why { font-size: 12px; color: #666; font-family: 'JetBrains Mono', monospace; }
+
+  /* PILLAR AUDIT */
+  .pillar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .pillar {
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    background: var(--soft-white);
+  }
+  .pillar-name {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-black);
+    font-family: 'Nord', sans-serif;
+  }
+  .pillar-strength {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+  .pillar-dot {
+    width: 24px;
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border-light);
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .pillar-dot.filled { background: var(--primary-red); }
+  .pillar-dot:hover { background: var(--primary-red); }
+
+  /* SECTION DIVIDER */
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 32px 0 24px;
+  }
+  .section-divider .line {
+    flex: 1;
+    height: 2px;
+    background: var(--primary-red);
+  }
+  .section-divider .label {
+    font-family: 'Nord', sans-serif;
+    font-size: 14px;
+    color: var(--ink-black);
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+
+  /* BUTTONS */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-family: 'Nord', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary {
+    background: var(--primary-red);
+    color: white;
+  }
+  .btn-primary:hover { background: #B82102; opacity: 0.9; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-black);
+    border: 2px solid var(--ink-black);
+  }
+  .btn-secondary:hover { background: var(--ink-black); color: var(--soft-white); }
+  .btn-go {
+    background: var(--primary-red);
+    color: white;
+    font-size: 16px;
+    padding: 14px 32px;
+  }
+  .btn-go:hover { background: #B82102; opacity: 0.9; }
+
+  /* ACTION BAR */
+  .action-bar {
+    position: sticky;
+    bottom: 0;
+    background: var(--soft-white);
+    border-top: 2px solid var(--primary-red);
+    padding: 16px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+  }
+  .action-bar-left { display: flex; gap: 12px; align-items: center; }
+  .action-bar-right { display: flex; gap: 12px; }
+
+  .prep-progress {
+    font-size: 13px;
+    color: var(--ink-black);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .prep-progress strong { color: var(--primary-red); font-weight: 700; }
+
+  /* ALIGNMENT NOTES */
+  .alignment-card {
+    background: var(--ink-black);
+    border-left: 4px solid var(--highlight-yellow);
+  }
+
+  /* INTEL CENTER */
+  .intel-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-family: 'Nord', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--soft-white);
+    background: rgba(46, 99, 231, 0.15);
+    border: 1px solid rgba(46, 99, 231, 0.3);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+  .intel-link:hover {
+    background: rgba(46, 99, 231, 0.3);
+    border-color: var(--secondary-blue);
+    color: #fff;
+  }
+  .intel-link.active {
+    background: var(--secondary-blue);
+    border-color: var(--secondary-blue);
+    color: #fff;
+  }
+  .intel-link.empty {
+    opacity: 0.35;
+    border-style: dashed;
+  }
+  .file-card-saved {
+    border: 1px solid rgba(46, 99, 231, 0.3);
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: rgba(46, 99, 231, 0.08);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: block;
+  }
+  .file-card-saved:hover {
+    background: rgba(46, 99, 231, 0.15);
+    border-color: var(--secondary-blue);
+  }
+  .file-card-saved .file-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .file-card-saved .file-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--soft-white);
+    font-family: 'Nord', sans-serif;
+    line-height: 1.3;
+  }
+  .file-card-saved .file-type {
+    font-size: 10px;
+    color: rgba(245,242,235,0.5);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .grid-2, .grid-3, .pillar-grid, .archetype-options { grid-template-columns: 1fr; }
+    .container { padding: 20px; }
+    .topbar { padding: 14px 20px; }
+  }
+
+  /* TABLET BREAKPOINT (768px) */
+  @media (max-width: 768px) {
+    /* Typography scaling - reduce ~15% on tablet */
+    h1.client-name { font-size: 42px; }
+    .session-time .time { font-size: 18px; }
+    .section-divider .label { font-size: 13px; }
+
+    /* Intel Center responsive */
+    .intel-link { padding: 6px 12px; font-size: 12px; }
+
+    /* Card and section padding reduction */
+    .card { padding: 20px; }
+    .container { padding: 20px 16px; }
+    .topbar { padding: 12px 16px; }
+
+    /* Grid adjustments */
+    .grid-2, .grid-3 { gap: 16px; margin-bottom: 16px; }
+    .pillar-grid { gap: 10px; }
+
+    /* Button sizing for touch */
+    .btn { padding: 9px 16px; font-size: 13px; }
+    .btn-go { padding: 12px 24px; font-size: 15px; }
+
+    /* Action bar spacing */
+    .action-bar { padding: 12px 16px; }
+
+    /* Section spacing */
+    .section-divider { margin: 24px 0 16px; gap: 12px; }
+
+    /* Edit field sizing */
+    .edit-field { min-height: 70px; font-size: 13px; }
+
+    /* Card header adjustments */
+    .card-header { margin-bottom: 12px; padding-bottom: 10px; }
+
+    /* Topbar brand visibility */
+    .topbar-brand { font-size: 16px; }
+    .topbar-meta { gap: 16px; font-size: 12px; }
+  }
+
+  /* MOBILE BREAKPOINT (480px) */
+  @media (max-width: 480px) {
+    /* Typography scaling - reduce ~25-30% on mobile */
+    h1.client-name { font-size: 32px; line-height: 1.1; }
+    .session-time .time { font-size: 16px; }
+    .client-business { font-size: 12px; }
+    .section-divider .label { font-size: 12px; letter-spacing: 0.5px; }
+
+    /* Intel Center mobile */
+    .intel-link { padding: 5px 10px; font-size: 11px; gap: 4px; }
+
+    /* Container and spacing - aggressive padding reduction */
+    .container { padding: 16px 12px; }
+    .topbar { padding: 10px 12px; }
+
+    /* Grid and layout stacking */
+    .grid-2, .grid-3, .pillar-grid, .archetype-options {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    /* Card adjustments */
+    .card { padding: 16px; }
+    .card-header {
+      margin-bottom: 10px;
+      padding-bottom: 8px;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .card-label { font-size: 10px; letter-spacing: 0.8px; }
+    .card-icon { font-size: 14px; }
+
+    /* Typography sizing */
+    .intake-q { font-size: 10px; letter-spacing: 0.5px; }
+    .intake-a { font-size: 13px; }
+    .intake-a.quote { padding-left: 8px; }
+
+    /* Edit fields - more compact */
+    .edit-field {
+      min-height: 60px;
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+    .edit-label { font-size: 11px; gap: 4px; }
+    .edit-label .who { font-size: 9px; padding: 2px 6px; }
+
+    /* Buttons - touch-friendly sizing */
+    .btn {
+      padding: 8px 14px;
+      font-size: 12px;
+      gap: 6px;
+    }
+    .btn-go {
+      padding: 10px 18px;
+      font-size: 14px;
+    }
+
+    /* Checklist adjustments */
+    .checklist li {
+      font-size: 13px;
+      padding: 6px 0;
+      gap: 8px;
+    }
+    .checklist input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Archetype and North Star options */
+    .archetype-option {
+      padding: 10px 12px;
+      font-size: 12px;
+    }
+    .archetype-option .label { margin-bottom: 1px; }
+    .archetype-option .desc { font-size: 11px; }
+
+    .ns-option {
+      padding: 12px 14px;
+      font-size: 12px;
+    }
+    .ns-option .prompt { font-size: 14px; }
+    .ns-option .why { font-size: 11px; }
+
+    /* Pillar adjustments */
+    .pillar { padding: 12px; }
+    .pillar-name { font-size: 11px; gap: 6px; }
+
+    /* Section divider spacing */
+    .section-divider {
+      margin: 20px 0 12px;
+      gap: 10px;
+    }
+    .section-divider .line { height: 1px; }
+
+    /* Action bar - stack vertically on very small screens */
+    .action-bar {
+      padding: 10px 12px;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+    .action-bar-left, .action-bar-right { width: 100%; }
+    .action-bar-right { flex-direction: column; }
+
+    /* Topbar adjustments */
+    .topbar { flex-direction: column; gap: 10px; }
+    .topbar-brand { font-size: 14px; letter-spacing: 0.8px; }
+    .topbar-meta {
+      gap: 12px;
+      font-size: 11px;
+      flex-wrap: wrap;
+    }
+
+    /* Session header stacking */
+    .session-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .session-time { text-align: left; }
+
+    /* Tag sizing */
+    .tag {
+      padding: 3px 8px;
+      font-size: 11px;
+    }
+
+    /* Prep progress text */
+    .prep-progress { font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <svg width="180" viewBox="0 0 1743 82" fill="none" xmlns="http://www.w3.org/2000/svg" style="height: auto; margin-right: 16px;">
+    <path d="M30.12 14.64H0V3.24H72.6V14.64H42.6V80.4H30.12V14.64Z" fill="white"/>
+    <path d="M98.055 3.24H110.535V36H158.175V3.24H170.655V80.4H158.175V47.52H110.535V80.4H98.055V3.24Z" fill="white"/>
+    <path d="M201.26 3.24H272.3V14.64H213.74V36H257.3V47.52H213.74V69H272.3V80.4H201.26V3.24Z" fill="white"/>
+    <path d="M342.426 40.92C342.426 29.88 346.026 20.32 353.226 12.24C360.426 4.08 370.066 0 382.146 0C392.786 0 401.586 3.24 408.546 9.72C415.586 16.12 419.866 24.16 421.386 33.84L421.626 35.64H402.546L402.306 34.44C401.186 29.48 398.826 25.44 395.226 22.32C391.706 19.12 387.346 17.52 382.146 17.52C375.746 17.52 370.666 19.84 366.906 24.48C363.226 29.12 361.386 34.6 361.386 40.92C361.386 47.24 363.226 52.72 366.906 57.36C370.666 61.92 375.746 64.2 382.146 64.2C387.346 64.2 391.706 62.64 395.226 59.52C398.826 56.4 401.186 52.36 402.306 47.4L402.546 46.08H421.626L421.386 47.88C419.866 57.64 415.586 65.76 408.546 72.24C401.586 78.72 392.786 81.96 382.146 81.96C374.066 81.96 366.946 80 360.786 76.08C354.626 72.08 350.026 67 346.986 60.84C343.946 54.68 342.426 48.04 342.426 40.92Z" fill="white"/>
+    <path d="M448.647 80.4V1.56H503.007C510.527 1.56 516.327 3.92 520.407 8.64C524.567 13.28 526.647 19 526.647 25.8C526.647 31.4 525.087 36.36 521.967 40.68C518.847 44.92 514.447 47.6 508.767 48.72C508.847 48.8 509.007 49.04 509.247 49.44C509.567 49.84 509.767 50.16 509.847 50.4L527.847 80.4H507.327L488.847 49.32H466.887V80.4H448.647ZM466.887 32.52H503.007C504.687 32.52 506.007 31.96 506.967 30.84C507.927 29.72 508.407 28.28 508.407 26.52V24.36C508.407 22.52 507.927 21.08 506.967 20.04C506.007 18.92 504.687 18.36 503.007 18.36H466.887V32.52Z" fill="white"/>
+    <path d="M555.485 1.56H630.605V18.36H573.725V32.52H615.965V49.32H573.725V63.6H630.605V80.4H555.485V1.56Z" fill="white"/>
+    <path d="M652.321 80.4L683.641 1.56H708.001L739.201 80.4H719.641L712.081 61.08H679.081L671.641 80.4H652.321ZM685.441 44.28H705.841L695.401 19.2L685.441 44.28Z" fill="white"/>
+    <path d="M777.454 18.36H748.294V1.56H824.854V18.36H795.694V80.4H777.454V18.36Z" fill="white"/>
+    <path d="M850.333 1.56H868.573V80.4H850.333V1.56Z" fill="white"/>
+    <path d="M936.483 63.36C936.723 61.04 944.563 40.44 960.003 1.56H979.323L948.123 80.4H923.763L892.443 1.56H911.883L936.483 63.36Z" fill="white"/>
+    <path d="M1003.31 1.56H1078.43V18.36H1021.55V32.52H1063.79V49.32H1021.55V63.6H1078.43V80.4H1003.31V1.56Z" fill="white"/>
+    <path d="M1152.29 3.24H1164.77V36H1212.41V3.24H1224.89V80.4H1212.41V47.52H1164.77V80.4H1152.29V3.24Z" fill="white"/>
+    <path d="M1289.46 1.68C1297.22 1.68 1304.02 3.6 1309.86 7.44C1315.78 11.28 1320.18 16.2 1323.06 22.2C1325.94 28.2 1327.38 34.76 1327.38 41.88C1327.38 52.84 1323.94 62.28 1317.06 70.2C1310.18 78.04 1300.98 81.96 1289.46 81.96C1277.94 81.96 1268.78 78 1261.98 70.08C1255.18 62.16 1251.78 52.76 1251.78 41.88C1251.78 34.84 1253.22 28.32 1256.1 22.32C1258.98 16.24 1263.34 11.28 1269.18 7.44C1275.02 3.6 1281.78 1.68 1289.46 1.68ZM1289.46 13.8C1282.02 13.8 1276.1 16.6 1271.7 22.2C1267.3 27.72 1265.1 34.24 1265.1 41.76C1265.1 49.2 1267.3 55.72 1271.7 61.32C1276.1 66.84 1282.02 69.6 1289.46 69.6C1296.98 69.6 1302.98 66.84 1307.46 61.32C1311.94 55.8 1314.18 49.32 1314.18 41.88C1314.18 34.28 1311.94 27.72 1307.46 22.2C1303.06 16.6 1297.06 13.8 1289.46 13.8Z" fill="white"/>
+    <path d="M1374.4 14.64H1344.28V3.24H1416.88V14.64H1386.88V80.4H1374.4V14.64Z" fill="white"/>
+    <path d="M1442.34 3.24H1454.82V69H1499.94V80.4H1442.34V3.24Z" fill="white"/>
+    <path d="M1525.5 3.24H1537.98V80.4H1525.5V3.24Z" fill="white"/>
+    <path d="M1568.59 3.24H1580.35L1628.71 60.6V3.24H1641.19V80.4H1629.43L1581.07 22.92V80.4H1568.59V3.24Z" fill="white"/>
+    <path d="M1671.79 3.24H1742.83V14.64H1684.27V36H1727.83V47.52H1684.27V69H1742.83V80.4H1671.79V3.24Z" fill="white"/>
+  </svg>
+  <div class="topbar-meta">
+    <span class="date" id="sessionDate">Thursday, March 20, 2026</span>
+    <span>Session 1 of 3 today</span>
+    <span class="topbar-status status-prep">☎️ PREP MODE</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SESSION HEADER -->
+  <div class="session-header">
+    <div>
+      <h1 class="client-name" id="clientName">Rae Solano</h1>
+      <div class="client-business">
+        <span id="clientBiz">Solano Studio</span> — Handmade ceramics + home goods
+        &nbsp;·&nbsp;
+        <a href="#" id="clientLink">solanostudio.com</a>
+        &nbsp;·&nbsp;
+        <a href="#" id="clientIG">@solanostudio</a>
+      </div>
+    </div>
+    <div class="session-time">
+      <div class="time" id="sessionTime">9:30 AM PST</div>
+      <div>45 min · $499</div>
+      <div style="margin-top: 4px; font-size: 12px; color: var(--primary-red);">✓ Intake complete</div>
+    </div>
+  </div>
+
+  <!-- INTEL CENTER -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label" style="color: var(--secondary-blue);">🔍 Intel Center</div>
+    <div class="line"></div>
+  </div>
+
+  <!-- QUICK ACCESS BAR -->
+  <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--secondary-blue);">
+    <div class="card-header">
+      <span class="card-label">Quick Access — One Click</span>
+      <span style="font-size: 12px; color: rgba(245,242,235,0.6);">Opens in new tab · Update links from intake</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+      <a href="#" id="link-website" target="_blank" class="intel-link" onclick="openIntelLink(event, 'website')">🌐 Website</a>
+      <a href="#" id="link-instagram" target="_blank" class="intel-link" onclick="openIntelLink(event, 'instagram')">📸 Instagram</a>
+      <a href="#" id="link-tiktok" target="_blank" class="intel-link" onclick="openIntelLink(event, 'tiktok')">🎵 TikTok</a>
+      <a href="#" id="link-linkedin" target="_blank" class="intel-link" onclick="openIntelLink(event, 'linkedin')">💼 LinkedIn</a>
+      <a href="#" id="link-pinterest" target="_blank" class="intel-link" onclick="openIntelLink(event, 'pinterest')">📌 Pinterest</a>
+      <a href="#" id="link-shop" target="_blank" class="intel-link" onclick="openIntelLink(event, 'shop')">🛒 Shop / Etsy</a>
+      <a href="#" id="link-gdrive" target="_blank" class="intel-link" onclick="openIntelLink(event, 'gdrive')">📁 Client Folder</a>
+      <a href="#" id="link-other" target="_blank" class="intel-link" onclick="openIntelLink(event, 'other')">🔗 Other</a>
+    </div>
+    <div style="margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px;">
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Website URL</div>
+        <input type="url" id="url-website" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="https://..." onchange="updateIntelLink('website')">
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Instagram</div>
+        <input type="text" id="url-instagram" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="@handle or full URL" onchange="updateIntelLink('instagram')">
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">TikTok</div>
+        <input type="text" id="url-tiktok" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="@handle or full URL" onchange="updateIntelLink('tiktok')">
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">LinkedIn</div>
+        <input type="url" id="url-linkedin" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="https://linkedin.com/in/..." onchange="updateIntelLink('linkedin')">
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Pinterest</div>
+        <input type="text" id="url-pinterest" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="@handle or full URL" onchange="updateIntelLink('pinterest')">
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Shop / Etsy</div>
+        <input type="url" id="url-shop" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="https://..." onchange="updateIntelLink('shop')">
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Client Drive Folder</div>
+        <input type="url" id="url-gdrive" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="Google Drive link" onchange="updateIntelLink('gdrive')">
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Other Link</div>
+        <input type="url" id="url-other" class="edit-field" style="min-height: auto; height: 36px; font-size: 12px;" placeholder="Portfolio, Substack, etc." onchange="updateIntelLink('other')">
+      </div>
+    </div>
+  </div>
+
+  <!-- UPLOADED FILES -->
+  <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--secondary-blue);">
+    <div class="card-header">
+      <span class="card-label">Client Files + Uploads</span>
+      <span style="font-size: 12px; color: rgba(245,242,235,0.6);">Mood boards, brand guides, screenshots, past work — anything they sent</span>
+    </div>
+    <div id="uploadedFiles" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px;">
+      <div class="file-card" style="border: 2px dashed rgba(245,242,235,0.2); border-radius: 8px; padding: 20px 16px; text-align: center; color: rgba(245,242,235,0.4); font-size: 12px; font-family: 'Nord', sans-serif; cursor: pointer;" onclick="addFileSlot()">
+        + Add file link
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;" id="fileInputs">
+      <div class="file-input-row" style="display: flex; gap: 8px; align-items: center; width: 100%;">
+        <input type="text" class="edit-field file-name-input" style="min-height: auto; height: 36px; font-size: 12px; flex: 1;" placeholder="File name (e.g., Brand Mood Board)">
+        <input type="url" class="edit-field file-url-input" style="min-height: auto; height: 36px; font-size: 12px; flex: 2;" placeholder="Link to file (Google Drive, Dropbox, etc.)">
+        <select class="edit-field file-type-input" style="min-height: auto; height: 36px; font-size: 12px; flex: 0.5; padding: 4px 8px;">
+          <option value="doc">📄 Doc</option>
+          <option value="image">🖼️ Image</option>
+          <option value="pdf">📑 PDF</option>
+          <option value="video">🎬 Video</option>
+          <option value="link">🔗 Link</option>
+        </select>
+        <button class="btn" style="padding: 6px 12px; font-size: 11px; background: var(--secondary-blue); color: white; border-radius: 6px;" onclick="saveFileEntry(this)">Save</button>
+      </div>
+    </div>
+    <div style="margin-top: 12px; font-size: 11px; color: rgba(245,242,235,0.4); font-family: 'JetBrains Mono', monospace;">
+      Tip: Pull files from Tally intake, email attachments, or client's Google Drive folder
+    </div>
+  </div>
+
+  <!-- SOCIAL SNAPSHOT -->
+  <div class="grid-2" style="margin-bottom: 24px;">
+    <div class="card" style="border-left: 4px solid var(--secondary-blue);">
+      <div class="card-header">
+        <span class="card-label">Social Snapshot — Instagram</span>
+        <span class="card-icon">📸</span>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
+        <div>
+          <div class="edit-label" style="font-size: 10px;">Followers</div>
+          <input type="text" class="edit-field" style="min-height: auto; height: 36px; font-size: 13px;" placeholder="e.g., 2.4K" id="ig-followers">
+        </div>
+        <div>
+          <div class="edit-label" style="font-size: 10px;">Posting Frequency</div>
+          <input type="text" class="edit-field" style="min-height: auto; height: 36px; font-size: 13px;" placeholder="e.g., 2-3x/week" id="ig-frequency">
+        </div>
+        <div>
+          <div class="edit-label" style="font-size: 10px;">Engagement Quality</div>
+          <select class="edit-field" style="min-height: auto; height: 36px; font-size: 12px; padding: 4px 8px;" id="ig-engagement">
+            <option value="">Select...</option>
+            <option value="dead">Dead — posting into void</option>
+            <option value="low">Low — some likes, no conversation</option>
+            <option value="mid">Mid — decent likes, some comments</option>
+            <option value="good">Good — real community engagement</option>
+            <option value="strong">Strong — people are invested</option>
+          </select>
+        </div>
+        <div>
+          <div class="edit-label" style="font-size: 10px;">Audience Vibe</div>
+          <input type="text" class="edit-field" style="min-height: auto; height: 36px; font-size: 13px;" placeholder="e.g., friends, peers, actual customers" id="ig-audience">
+        </div>
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Content Style — What Jumps Out</div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="Product photos only? Behind-the-scenes? Polished or raw? Grid cohesion? Bio copy quality? Story highlights?" id="ig-style"></textarea>
+      </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid var(--secondary-blue);">
+      <div class="card-header">
+        <span class="card-label">Other Channels — Quick Scan</span>
+        <span class="card-icon">📡</span>
+      </div>
+      <div>
+        <div class="edit-label" style="font-size: 10px;">Website / Shop — First Impression</div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="Does it match the work quality? Navigation clear? Copy strong? Pricing visible? Mobile experience?" id="web-impression"></textarea>
+      </div>
+      <div style="margin-top: 12px;">
+        <div class="edit-label" style="font-size: 10px;">Other Platforms — Anything Notable</div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="TikTok presence? Newsletter? YouTube? LinkedIn? Press mentions? Podcast appearances? What's their distribution footprint?" id="other-channels"></textarea>
+      </div>
+      <div style="margin-top: 12px;">
+        <div class="edit-label" style="font-size: 10px;">Email / Newsletter</div>
+        <select class="edit-field" style="min-height: auto; height: 36px; font-size: 12px; padding: 4px 8px;" id="email-status">
+          <option value="">Select...</option>
+          <option value="none">No email list</option>
+          <option value="has-not-using">Has list, not using it</option>
+          <option value="sporadic">Sporadic sends</option>
+          <option value="consistent">Consistent but basic</option>
+          <option value="strong">Strong email game</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- PULLED RESEARCH -->
+  <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--secondary-blue); background: var(--ink-black);">
+    <div class="card-header">
+      <span class="card-label" style="color: var(--secondary-blue);">Pulled Research — Market + Cultural Context</span>
+      <span style="font-size: 12px; color: rgba(245,242,235,0.6);">Drop findings here before the call. This is your ammo.</span>
+    </div>
+    <div style="margin-bottom: 16px;">
+      <a href="tch-research-brief.html" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: var(--secondary-blue); color: #fff; border-radius: 8px; text-decoration: none; font-family: 'Nord', sans-serif; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">🔍 Open Full Research Brief →</a>
+      <span style="margin-left: 12px; font-size: 11px; color: rgba(245,242,235,0.4); font-family: 'JetBrains Mono', monospace;">Deep dive: social audit, top posts, storytelling analysis, creative recs</span>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div>
+        <div class="edit-label" style="color: var(--soft-white); font-size: 10px;">🔥 What's Happening in Their Niche Right Now</div>
+        <textarea class="edit-field" style="min-height: 80px; font-size: 13px; background: rgba(46, 99, 231, 0.05); border-color: rgba(46, 99, 231, 0.3);" placeholder="Market trends, cultural shifts, emerging opportunities, seasonal timing, relevant news..." id="research-niche"></textarea>
+      </div>
+      <div>
+        <div class="edit-label" style="color: var(--soft-white); font-size: 10px;">👀 Who's Doing It Well in Their Space</div>
+        <textarea class="edit-field" style="min-height: 80px; font-size: 13px; background: rgba(46, 99, 231, 0.05); border-color: rgba(46, 99, 231, 0.3);" placeholder="Brands to reference (not competitors — inspirations). What makes them work? What can our client learn?" id="research-benchmarks"></textarea>
+      </div>
+      <div>
+        <div class="edit-label" style="color: var(--soft-white); font-size: 10px;">🎯 Audience Behavior Patterns</div>
+        <textarea class="edit-field" style="min-height: 80px; font-size: 13px; background: rgba(46, 99, 231, 0.05); border-color: rgba(46, 99, 231, 0.3);" placeholder="How does their target audience discover, evaluate, and buy? What platforms matter? What content converts in this space?" id="research-audience"></textarea>
+      </div>
+      <div>
+        <div class="edit-label" style="color: var(--soft-white); font-size: 10px;">💡 Opportunities They Probably Don't See</div>
+        <textarea class="edit-field" style="min-height: 80px; font-size: 13px; background: rgba(46, 99, 231, 0.05); border-color: rgba(46, 99, 231, 0.3);" placeholder="White space, underserved angles, positioning gaps in their market, untapped distribution channels..." id="research-opportunities"></textarea>
+      </div>
+    </div>
+    <div style="margin-top: 16px;">
+      <div class="edit-label" style="color: var(--soft-white); font-size: 10px;">📰 Press, Mentions, or Google Findings</div>
+      <textarea class="edit-field" style="min-height: 60px; font-size: 13px; background: rgba(46, 99, 231, 0.05); border-color: rgba(46, 99, 231, 0.3);" placeholder="Any articles, features, reviews, Reddit threads, or Google results worth noting..." id="research-press"></textarea>
+    </div>
+  </div>
+
+  <!-- INTAKE SNAPSHOT -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">Client Intake</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">What Brought Them Here</span>
+        <span class="card-icon">📞</span>
+      </div>
+      <div class="intake-item">
+        <div class="intake-a quote" id="q1">"I feel like I'm doing a lot but nothing's actually growing."</div>
+      </div>
+      <div class="intake-item" style="margin-top: 16px;">
+        <div class="intake-q">Biggest Challenge</div>
+        <div class="intake-a quote" id="q2">"I have too many ideas and I keep starting new product lines instead of finishing what I have."</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">What Success Looks Like</span>
+        <span class="card-icon">🎯</span>
+      </div>
+      <div class="intake-item">
+        <div class="intake-a quote" id="q3">"Knowing exactly what to focus on for the next 90 days and feeling like my brand actually looks like it's worth what I charge."</div>
+      </div>
+      <div class="intake-item" style="margin-top: 16px;">
+        <div class="intake-q">Looking For</div>
+        <div class="intake-a">Direction — tell me what to do, I'll build it</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Profile</span>
+      </div>
+      <div class="intake-item">
+        <div class="intake-q">Stage</div>
+        <div class="intake-a">Making some money, not enough</div>
+      </div>
+      <div class="intake-item">
+        <div class="intake-q">Role</div>
+        <div class="intake-a">Founder · Does everything</div>
+      </div>
+      <div class="intake-item">
+        <div class="intake-q">Based In</div>
+        <div class="intake-a">Austin, TX</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Tools</span>
+      </div>
+      <div class="tags">
+        <span class="tag">Instagram</span>
+        <span class="tag">Etsy</span>
+        <span class="tag">Canva</span>
+        <span class="tag">Notion</span>
+      </div>
+      <div class="intake-item" style="margin-top: 16px;">
+        <div class="intake-q">Notable Gaps</div>
+        <div class="intake-a" style="font-size: 13px;">No email marketing · No own website (Etsy-dependent) · No design tools beyond Canva</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Extra Context</span>
+      </div>
+      <div class="intake-item">
+        <div class="intake-a quote" id="q9">"I think my brand looks good but people keep telling me it's confusing what I actually sell."</div>
+      </div>
+      <div style="margin-top: 12px; padding: 8px 12px; background: rgba(236, 49, 7, 0.15); border-left: 2px solid var(--primary-red); border-radius: 4px; font-size: 12px; color: var(--primary-red); font-weight: 500;">
+        ⚠️ Brand confusion signal — positioning issue likely
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Pricing + Revenue</span>
+        <span class="card-icon">💰</span>
+      </div>
+      <div class="intake-item">
+        <div class="intake-q">Price Range</div>
+        <div class="intake-a" id="qPrice">$50-$200 per piece</div>
+      </div>
+      <div class="intake-item" style="margin-top: 12px;">
+        <div class="intake-q">Monthly Revenue</div>
+        <div class="intake-a" id="qRevenue">~$4K/month</div>
+      </div>
+      <div class="intake-item" style="margin-top: 12px;">
+        <div class="intake-q">Revenue Goal</div>
+        <div class="intake-a" id="qRevenueGoal">$8-10K/month in 90 days</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Team + Capacity</span>
+        <span class="card-icon">👥</span>
+      </div>
+      <div class="intake-item">
+        <div class="intake-q">Team Size</div>
+        <div class="intake-a" id="qTeam">Just me — solo operator</div>
+      </div>
+      <div class="intake-item" style="margin-top: 12px;">
+        <div class="intake-q">Hours/Week on Business</div>
+        <div class="intake-a" id="qHours">40+ but scattered</div>
+      </div>
+      <div class="intake-item" style="margin-top: 12px;">
+        <div class="intake-q">Budget for Tools/Help</div>
+        <div class="intake-a" id="qBudget">Bootstrap — under $200/month</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- M + J PREP ZONE -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">Your Observations</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="edit-label">
+        <span class="who who-megha">Megha</span>
+        Brand / Positioning / Cultural Read
+      </div>
+      <textarea class="edit-field" placeholder="What's your read on their positioning? What's the blind spot? What cultural moment or audience truth applies here?"></textarea>
+    </div>
+
+    <div class="card">
+      <div class="edit-label">
+        <span class="who who-jake">Jake</span>
+        Design / Visual / Systems Read
+      </div>
+      <textarea class="edit-field" placeholder="What are you seeing in their visual identity? What tools/systems gaps jump out? What design decisions are hurting them?"></textarea>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="edit-label">
+        <span class="who who-megha">Megha</span>
+        What I Already Like
+      </div>
+      <textarea class="edit-field" style="min-height: 60px;" placeholder="Something specific and genuine — not generic praise."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="edit-label">
+        <span class="who who-both">Both</span>
+        Where We Think the Gap Is
+      </div>
+      <textarea class="edit-field" style="min-height: 60px;" placeholder="Hypothesis — 1 line. This kicks off the conversation."></textarea>
+    </div>
+  </div>
+
+  <!-- CLIENT ARCHETYPE -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">Client Archetype</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+      <span class="card-label">Select Archetype</span>
+      <span style="font-size: 12px; color: var(--soft-white);">Shapes tone, action items, and direction</span>
+    </div>
+    <div class="archetype-options">
+      <div class="archetype-option selected" onclick="selectArchetype(this)">
+        <div class="label">🌀 Too Many Ideas</div>
+        <div class="desc">Scattered energy, lots of starts, needs focus + permission to cut</div>
+      </div>
+      <div class="archetype-option" onclick="selectArchetype(this)">
+        <div class="label">👻 Great Product, Invisible Brand</div>
+        <div class="desc">Quality exists but nobody knows. Positioning + distribution gap.</div>
+      </div>
+      <div class="archetype-option" onclick="selectArchetype(this)">
+        <div class="label">🎤 Personal Brand, No Shape</div>
+        <div class="desc">Authority exists but unpackaged. Needs structure + monetization path.</div>
+      </div>
+      <div class="archetype-option" onclick="selectArchetype(this)">
+        <div class="label">⚡ Doing Everything Themselves</div>
+        <div class="desc">Solo operator maxed out. Needs systems, delegation strategy, or simplification.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREATIVE AUTHORITY AUDIT -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">Creative Authority Audit — Pre-Read</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+      <span class="card-label">The Four Pillars — Rate Your Initial Read</span>
+      <span style="font-size: 12px; color: var(--soft-white);">Click dots to rate 1-5 · These are hypotheses — confirm in session</span>
+    </div>
+    <div class="pillar-grid">
+      <div class="pillar">
+        <div class="pillar-name">📍 Positioning</div>
+        <div class="pillar-strength" data-pillar="positioning">
+          <div class="pillar-dot filled" onclick="ratePillar(this, 1)"></div>
+          <div class="pillar-dot filled" onclick="ratePillar(this, 2)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 3)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 4)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 5)"></div>
+        </div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="Who they are is unclear or undifferentiated..."></textarea>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">💬 Messaging</div>
+        <div class="pillar-strength" data-pillar="messaging">
+          <div class="pillar-dot filled" onclick="ratePillar(this, 1)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 2)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 3)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 4)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 5)"></div>
+        </div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="How they talk about it doesn't match the work..."></textarea>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">🎨 Execution</div>
+        <div class="pillar-strength" data-pillar="execution">
+          <div class="pillar-dot filled" onclick="ratePillar(this, 1)"></div>
+          <div class="pillar-dot filled" onclick="ratePillar(this, 2)"></div>
+          <div class="pillar-dot filled" onclick="ratePillar(this, 3)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 4)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 5)"></div>
+        </div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="Output quality or consistency doesn't hold up..."></textarea>
+      </div>
+      <div class="pillar">
+        <div class="pillar-name">📡 Distribution</div>
+        <div class="pillar-strength" data-pillar="distribution">
+          <div class="pillar-dot filled" onclick="ratePillar(this, 1)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 2)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 3)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 4)"></div>
+          <div class="pillar-dot" onclick="ratePillar(this, 5)"></div>
+        </div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="Right people aren't hearing it, or wrong people are..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- NORTH STAR PROMPT SELECTION -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">North Star Prompt — Select for Session</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="card" style="margin-bottom: 24px;">
+    <div class="card-header">
+      <span class="card-label">Opening Question — Pick the One That Fits</span>
+      <span style="font-size: 12px; color: var(--soft-white);">This opens the session. Choose based on archetype + intake.</span>
+    </div>
+    <div class="ns-options">
+      <div class="ns-option selected" onclick="selectNS(this)">
+        <div class="prompt">"If you could only sell one thing for the next year — what would it be and why?"</div>
+        <div class="why">Best for: Too Many Ideas archetype. Forces the cut immediately.</div>
+      </div>
+      <div class="ns-option" onclick="selectNS(this)">
+        <div class="prompt">"When someone asks what you do, what do you say — and does it feel true?"</div>
+        <div class="why">Best for: Positioning confusion. Gets at the gap between identity and communication.</div>
+      </div>
+      <div class="ns-option" onclick="selectNS(this)">
+        <div class="prompt">"What's the version of this brand that scares you a little?"</div>
+        <div class="why">Best for: Playing it safe. Unlocks the bold direction they're sitting on.</div>
+      </div>
+      <div class="ns-option" onclick="selectNS(this)">
+        <div class="prompt">"What would your brand look like if you had unlimited resources and zero fear?"</div>
+        <div class="why">Best for: Constrained thinkers. Separates the vision from the limitations.</div>
+      </div>
+    </div>
+    <div style="margin-top: 16px;">
+      <div class="edit-label">
+        <span class="who who-both">Both</span>
+        Or write a custom prompt for this client
+      </div>
+      <textarea class="edit-field" style="min-height: 50px;" placeholder="Custom opening question..."></textarea>
+    </div>
+  </div>
+
+  <!-- RESEARCH CHECKLIST -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">Prep Checklist</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Research — 5 min</span>
+      </div>
+      <ul class="checklist">
+        <li><input type="checkbox"> Reviewed website / IG / links from intake</li>
+        <li><input type="checkbox"> Quick Google: brand + competitors (landscape scan)</li>
+        <li><input type="checkbox"> Checked industry/niche for cultural moment or trend</li>
+        <li><input type="checkbox"> Noted contradictions between intake answers and actual brand</li>
+        <li><input type="checkbox"> Pattern match: maps to known archetype?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Capability Read — Shapes Action Items</span>
+      </div>
+      <div class="intake-item">
+        <div class="edit-label">What can they execute alone?</div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="Skills, budget level (bootstrap/modest/has resources), what they'll need help with..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPETITIVE LANDSCAPE -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label">Competitive Landscape</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Comp 1</span>
+      </div>
+      <div class="intake-item">
+        <div class="edit-label">Brand Name</div>
+        <input type="text" class="edit-field" style="min-height: auto; height: 40px;" placeholder="e.g., East Fork Pottery">
+      </div>
+      <div class="intake-item" style="margin-top: 10px;">
+        <div class="edit-label">What They Do Better / Differently</div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="One-line observation..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Comp 2</span>
+      </div>
+      <div class="intake-item">
+        <div class="edit-label">Brand Name</div>
+        <input type="text" class="edit-field" style="min-height: auto; height: 40px;" placeholder="e.g., Similar brand in their space">
+      </div>
+      <div class="intake-item" style="margin-top: 10px;">
+        <div class="edit-label">What They Do Better / Differently</div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="One-line observation..."></textarea>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-label">Comp 3</span>
+      </div>
+      <div class="intake-item">
+        <div class="edit-label">Brand Name</div>
+        <input type="text" class="edit-field" style="min-height: auto; height: 40px;" placeholder="e.g., Aspirational peer brand">
+      </div>
+      <div class="intake-item" style="margin-top: 10px;">
+        <div class="edit-label">What They Do Better / Differently</div>
+        <textarea class="edit-field" style="min-height: 50px; font-size: 13px;" placeholder="One-line observation..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIAGNOSIS HYPOTHESIS — THE ALIGNMENT LOCK -->
+  <div class="section-divider">
+    <div class="line"></div>
+    <div class="label" style="color: var(--primary-red);">🔒 Diagnosis Hypothesis</div>
+    <div class="line"></div>
+  </div>
+
+  <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--primary-red); background: var(--ink-black);">
+    <div class="card-header">
+      <span class="card-label" style="color: var(--primary-red);">ONE SENTENCE — What's the real problem?</span>
+      <span style="font-size: 12px; color: rgba(245,242,235,0.6);">M + J must agree on this before the call starts. This is the rudder.</span>
+    </div>
+    <textarea class="edit-field" style="min-height: 70px; font-family: 'Editorial Old', serif; font-size: 18px; font-style: italic; line-height: 1.5; background: rgba(236, 49, 7, 0.05); border-color: rgba(236, 49, 7, 0.3);" placeholder="e.g., 'She has a product, not a brand — and no system to convert the attention she already gets.'"></textarea>
+    <div style="margin-top: 12px; display: flex; gap: 12px;">
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft-white); cursor: pointer; font-family: 'Nord', sans-serif;">
+        <input type="checkbox" style="accent-color: var(--primary-red); width: 16px; height: 16px;"> Megha agrees
+      </label>
+      <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--soft-white); cursor: pointer; font-family: 'Nord', sans-serif;">
+        <input type="checkbox" style="accent-color: var(--secondary-blue); width: 16px; height: 16px;"> Jake agrees
+      </label>
+    </div>
+  </div>
+
+  <!-- ALIGNMENT -->
+  <div class="card alignment-card" style="margin-bottom: 24px;">
+    <div class="card-header">
+      <span class="card-label">⚡ Alignment Notes — M + J</span>
+      <span style="font-size: 12px; color: var(--soft-white);">Where do you agree? Where do you differ? Any tension worth exploring live?</span>
+    </div>
+    <textarea class="edit-field" style="min-height: 80px; background: var(--ink-black);" placeholder="Quick alignment notes before the call..."></textarea>
+  </div>
+
+  <div style="height: 80px;"></div>
+</div>
+
+<!-- STICKY ACTION BAR -->
+<div class="action-bar">
+  <div class="action-bar-left">
+    <div class="prep-progress">
+      Prep: <strong><span id="checkCount">0</span> / 5</strong> research items done
+    </div>
+  </div>
+  <div class="action-bar-right">
+    <button class="btn btn-secondary" onclick="saveDraft()">💾 Save Draft</button>
+    <button class="btn btn-secondary" onclick="exportAllData()">📦 Export Backup</button>
+    <button class="btn btn-primary" onclick="generateWorkshop()">→ Generate Workshop Page</button>
+    <button class="btn btn-go" onclick="goLive()">☎️ Go Live</button>
+  </div>
+</div>
+
+<script>
+  // Archetype selection
+  function selectArchetype(el) {
+    document.querySelectorAll('.archetype-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  // North Star selection
+  function selectNS(el) {
+    document.querySelectorAll('.ns-option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  // Pillar rating
+  function ratePillar(dot, rating) {
+    const container = dot.parentElement;
+    const dots = container.querySelectorAll('.pillar-dot');
+    dots.forEach((d, i) => {
+      d.classList.toggle('filled', i < rating);
+    });
+  }
+
+  // Checklist counter
+  document.querySelectorAll('.checklist input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const checked = document.querySelectorAll('.checklist input[type="checkbox"]:checked').length;
+      document.getElementById('checkCount').textContent = checked;
+    });
+  });
+
+  // Placeholder actions
+  function saveDraft() {
+    alert('Draft saved. All prep notes preserved.');
+  }
+
+  function generateWorkshop() {
+    alert('Generating Workshop Session Page from prep data...\n\nThis will populate Slides 1-2 and pre-select the North Star prompt on the client-facing workshop page.');
+  }
+
+  function goLive() {
+    if(confirm('Ready to go live? This opens the client-facing Workshop Session Page.\n\nMake sure prep is complete.')) {
+      document.querySelector('.topbar-status').textContent = '🔴 LIVE';
+      document.querySelector('.topbar-status').className = 'topbar-status status-live';
+    }
+  }
+
+  // Set today's date
+  const now = new Date();
+  document.getElementById('sessionDate').textContent = now.toLocaleDateString('en-US', {
+    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  // ===== INTEL CENTER =====
+
+  // Link management
+  function updateIntelLink(platform) {
+    const input = document.getElementById('url-' + platform);
+    const link = document.getElementById('link-' + platform);
+    let url = input.value.trim();
+
+    if (url) {
+      // Auto-format social handles to full URLs
+      if (platform === 'instagram' && !url.startsWith('http')) {
+        url = 'https://instagram.com/' + url.replace('@', '');
+        input.value = url;
+      }
+      if (platform === 'tiktok' && !url.startsWith('http')) {
+        url = 'https://tiktok.com/@' + url.replace('@', '');
+        input.value = url;
+      }
+      if (platform === 'pinterest' && !url.startsWith('http')) {
+        url = 'https://pinterest.com/' + url.replace('@', '');
+        input.value = url;
+      }
+
+      link.href = url;
+      link.classList.add('active');
+      link.classList.remove('empty');
+    } else {
+      link.href = '#';
+      link.classList.remove('active');
+      link.classList.add('empty');
+    }
+
+    saveIntelData();
+  }
+
+  function openIntelLink(event, platform) {
+    const input = document.getElementById('url-' + platform);
+    if (!input.value.trim()) {
+      event.preventDefault();
+      input.focus();
+      input.style.borderColor = 'var(--secondary-blue)';
+      input.style.boxShadow = '0 0 0 3px rgba(46, 99, 231, 0.2)';
+      setTimeout(() => {
+        input.style.borderColor = '';
+        input.style.boxShadow = '';
+      }, 2000);
+    }
+  }
+
+  // File management
+  const fileTypeIcons = { doc: '📄', image: '🖼️', pdf: '📑', video: '🎬', link: '🔗' };
+
+  function addFileSlot() {
+    const container = document.getElementById('fileInputs');
+    const row = document.createElement('div');
+    row.className = 'file-input-row';
+    row.style.cssText = 'display: flex; gap: 8px; align-items: center; width: 100%; margin-top: 8px;';
+    row.innerHTML = `
+      <input type="text" class="edit-field file-name-input" style="min-height: auto; height: 36px; font-size: 12px; flex: 1;" placeholder="File name">
+      <input type="url" class="edit-field file-url-input" style="min-height: auto; height: 36px; font-size: 12px; flex: 2;" placeholder="Link to file">
+      <select class="edit-field file-type-input" style="min-height: auto; height: 36px; font-size: 12px; flex: 0.5; padding: 4px 8px;">
+        <option value="doc">📄 Doc</option>
+        <option value="image">🖼️ Image</option>
+        <option value="pdf">📑 PDF</option>
+        <option value="video">🎬 Video</option>
+        <option value="link">🔗 Link</option>
+      </select>
+      <button class="btn" style="padding: 6px 12px; font-size: 11px; background: var(--secondary-blue); color: white; border-radius: 6px;" onclick="saveFileEntry(this)">Save</button>
+    `;
+    container.appendChild(row);
+  }
+
+  function saveFileEntry(btn) {
+    const row = btn.parentElement;
+    const name = row.querySelector('.file-name-input').value.trim();
+    const url = row.querySelector('.file-url-input').value.trim();
+    const type = row.querySelector('.file-type-input').value;
+
+    if (!name || !url) {
+      row.querySelector('.file-name-input').style.borderColor = 'var(--primary-red)';
+      row.querySelector('.file-url-input').style.borderColor = 'var(--primary-red)';
+      setTimeout(() => {
+        row.querySelector('.file-name-input').style.borderColor = '';
+        row.querySelector('.file-url-input').style.borderColor = '';
+      }, 2000);
+      return;
+    }
+
+    const container = document.getElementById('uploadedFiles');
+    const addBtn = container.querySelector('[onclick="addFileSlot()"]');
+
+    const card = document.createElement('a');
+    card.href = url;
+    card.target = '_blank';
+    card.className = 'file-card-saved';
+    card.innerHTML = `
+      <div class="file-icon">${fileTypeIcons[type] || '📄'}</div>
+      <div class="file-label">${name}</div>
+      <div class="file-type">${type}</div>
+    `;
+
+    container.insertBefore(card, addBtn);
+    row.remove();
+    saveIntelData();
+  }
+
+  // Save / Load Intel data via localStorage
+  function saveIntelData() {
+    const data = {
+      urls: {},
+      social: {},
+      research: {},
+      files: []
+    };
+
+    // Save URLs
+    ['website', 'instagram', 'tiktok', 'linkedin', 'pinterest', 'shop', 'gdrive', 'other'].forEach(p => {
+      const input = document.getElementById('url-' + p);
+      if (input) data.urls[p] = input.value;
+    });
+
+    // Save social snapshot
+    ['ig-followers', 'ig-frequency', 'ig-engagement', 'ig-audience', 'ig-style', 'web-impression', 'other-channels', 'email-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data.social[id] = el.value;
+    });
+
+    // Save research
+    ['research-niche', 'research-benchmarks', 'research-audience', 'research-opportunities', 'research-press'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data.research[id] = el.value;
+    });
+
+    // Save file cards
+    document.querySelectorAll('.file-card-saved').forEach(card => {
+      data.files.push({
+        name: card.querySelector('.file-label')?.textContent || '',
+        url: card.href,
+        type: card.querySelector('.file-type')?.textContent || ''
+      });
+    });
+
+    localStorage.setItem('tch-intel-' + (document.getElementById('clientName')?.textContent || 'default'), JSON.stringify(data));
+  }
+
+  function loadIntelData() {
+    const clientName = document.getElementById('clientName')?.textContent || 'default';
+    const saved = localStorage.getItem('tch-intel-' + clientName);
+    if (!saved) return;
+
+    try {
+      const data = JSON.parse(saved);
+
+      // Restore URLs
+      if (data.urls) {
+        Object.entries(data.urls).forEach(([platform, value]) => {
+          const input = document.getElementById('url-' + platform);
+          if (input && value) {
+            input.value = value;
+            updateIntelLink(platform);
+          }
+        });
+      }
+
+      // Restore social snapshot
+      if (data.social) {
+        Object.entries(data.social).forEach(([id, value]) => {
+          const el = document.getElementById(id);
+          if (el && value) el.value = value;
+        });
+      }
+
+      // Restore research
+      if (data.research) {
+        Object.entries(data.research).forEach(([id, value]) => {
+          const el = document.getElementById(id);
+          if (el && value) el.value = value;
+        });
+      }
+
+      // Restore file cards
+      if (data.files && data.files.length > 0) {
+        const container = document.getElementById('uploadedFiles');
+        const addBtn = container.querySelector('[onclick="addFileSlot()"]');
+        data.files.forEach(file => {
+          const card = document.createElement('a');
+          card.href = file.url;
+          card.target = '_blank';
+          card.className = 'file-card-saved';
+          card.innerHTML = `
+            <div class="file-icon">${fileTypeIcons[file.type] || '📄'}</div>
+            <div class="file-label">${file.name}</div>
+            <div class="file-type">${file.type}</div>
+          `;
+          container.insertBefore(card, addBtn);
+        });
+      }
+    } catch(e) {
+      console.log('Intel data load error:', e);
+    }
+  }
+
+  // Auto-save on any input change within Intel Center
+  document.querySelectorAll('#ig-followers, #ig-frequency, #ig-engagement, #ig-audience, #ig-style, #web-impression, #other-channels, #email-status, #research-niche, #research-benchmarks, #research-audience, #research-opportunities, #research-press').forEach(el => {
+    el.addEventListener('change', saveIntelData);
+    el.addEventListener('input', () => { clearTimeout(el._saveTimer); el._saveTimer = setTimeout(saveIntelData, 1000); });
+  });
+
+  // Initialize empty link states
+  document.querySelectorAll('.intel-link').forEach(link => {
+    if (link.href === window.location.href || link.href === '#' || link.getAttribute('href') === '#') {
+      link.classList.add('empty');
+    }
+  });
+
+  // Load saved data on page load
+  loadIntelData();
+
+  // ===== SAFETY NET — EXPORT ALL DATA =====
+  function exportAllData() {
+    const clientName = document.getElementById('clientName')?.textContent || 'Unknown';
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+
+    const data = {
+      _meta: {
+        exportedAt: new Date().toISOString(),
+        template: 'morning-prep',
+        clientName: clientName,
+        version: '2.0'
+      },
+      clientInfo: {
+        name: clientName,
+        business: document.getElementById('clientBiz')?.textContent || '',
+        sessionTime: document.getElementById('sessionTime')?.textContent || '',
+      },
+      intelCenter: {
+        urls: {},
+        social: {},
+        research: {},
+      },
+      intake: {
+        q1: document.getElementById('q1')?.textContent || '',
+        q2: document.getElementById('q2')?.textContent || '',
+        q3: document.getElementById('q3')?.textContent || '',
+        q9: document.getElementById('q9')?.textContent || '',
+        priceRange: document.getElementById('qPrice')?.textContent || '',
+        revenue: document.getElementById('qRevenue')?.textContent || '',
+        revenueGoal: document.getElementById('qRevenueGoal')?.textContent || '',
+        teamSize: document.getElementById('qTeam')?.textContent || '',
+        hoursWeek: document.getElementById('qHours')?.textContent || '',
+        budget: document.getElementById('qBudget')?.textContent || '',
+      },
+      observations: {},
+      archetype: '',
+      pillarScores: {},
+      northStar: '',
+      diagnosisHypothesis: '',
+      alignmentNotes: '',
+    };
+
+    // Intel URLs
+    ['website', 'instagram', 'tiktok', 'linkedin', 'pinterest', 'shop', 'gdrive', 'other'].forEach(p => {
+      const input = document.getElementById('url-' + p);
+      if (input) data.intelCenter.urls[p] = input.value;
+    });
+
+    // Social snapshot
+    ['ig-followers', 'ig-frequency', 'ig-engagement', 'ig-audience', 'ig-style', 'web-impression', 'other-channels', 'email-status'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data.intelCenter.social[id] = el.value;
+    });
+
+    // Research
+    ['research-niche', 'research-benchmarks', 'research-audience', 'research-opportunities', 'research-press'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) data.intelCenter.research[id] = el.value;
+    });
+
+    // All textareas (observations, capability, comps, etc.)
+    document.querySelectorAll('textarea.edit-field').forEach((ta, i) => {
+      if (ta.value.trim()) {
+        const label = ta.closest('.card')?.querySelector('.card-label, .edit-label')?.textContent || 'field-' + i;
+        data.observations[label.trim()] = ta.value;
+      }
+    });
+
+    // Archetype
+    const selectedArch = document.querySelector('.archetype-option.selected .label');
+    if (selectedArch) data.archetype = selectedArch.textContent;
+
+    // Pillar scores
+    document.querySelectorAll('.pillar-strength').forEach(ps => {
+      const name = ps.getAttribute('data-pillar');
+      const filled = ps.querySelectorAll('.pillar-dot.filled').length;
+      data.pillarScores[name] = filled;
+    });
+
+    // North Star
+    const selectedNS = document.querySelector('.ns-option.selected .prompt');
+    if (selectedNS) data.northStar = selectedNS.textContent;
+
+    // File cards
+    data.intelCenter.files = [];
+    document.querySelectorAll('.file-card-saved').forEach(card => {
+      data.intelCenter.files.push({
+        name: card.querySelector('.file-label')?.textContent || '',
+        url: card.href,
+        type: card.querySelector('.file-type')?.textContent || ''
+      });
+    });
+
+    // Download as JSON
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `TCH-Prep-${clientName.replace(/\s+/g, '-')}-${timestamp}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Visual confirmation
+    const bar = document.querySelector('.action-bar');
+    const msg = document.createElement('span');
+    msg.textContent = '✅ Backup exported';
+    msg.style.cssText = 'color: var(--primary-red); font-size: 12px; font-weight: 600; font-family: "JetBrains Mono", monospace; margin-left: 12px;';
+    bar.querySelector('.action-bar-left').appendChild(msg);
+    setTimeout(() => msg.remove(), 3000);
+  }
+</script>
+
+</body>
+</html>

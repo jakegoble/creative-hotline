@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Creative Hotline Action Plan</title>
+<style>
+  /* BRAND FONTS */
+  @font-face {
+    font-family: 'Editorial Old';
+    src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Editorial Old';
+    src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype');
+    font-weight: 400;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Editorial Old';
+    src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype');
+    font-weight: 800;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Editorial Old';
+    src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype');
+    font-weight: 800;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Editorial Old';
+    src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype');
+    font-weight: 200;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Nord';
+    src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype');
+    font-weight: 300;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Nord';
+    src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Nord';
+    src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: 'Nord';
+    src: url('BRAND ASSETS/FONTS/Nord-Italic.ttf') format('truetype');
+    font-weight: 400;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Nord';
+    src: url('BRAND ASSETS/FONTS/Nord-MediumItalic.ttf') format('truetype');
+    font-weight: 500;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Nord';
+    src: url('BRAND ASSETS/FONTS/Nord-BoldItalic.ttf') format('truetype');
+    font-weight: 700;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'Nord';
+    src: url('BRAND ASSETS/FONTS/Nord-BlackItalic.ttf') format('truetype');
+    font-weight: 900;
+    font-style: italic;
+  }
+  @font-face {
+    font-family: 'JetBrains Mono';
+    src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+  }
+
+  :root {
+    --hotline-red: #EC3107;
+    --electric-blue: #2E63E7;
+    --acid-yellow: #F6ED52;
+    --ink-black: #1C1C1E;
+    --soft-white: #F5F2EB;
+    --slate: #6B6B6B;
+    --border: #E8E4DE;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--soft-white);
+    color: var(--ink-black);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* HERO HEADER */
+  .hero {
+    background: var(--hotline-red);
+    color: var(--soft-white);
+    padding: 80px 60px 60px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0, 0, 0, 0.15), transparent 60%);
+  }
+  /* HERO LOGO */
+  .hero-logo {
+    margin-bottom: 32px;
+  }
+  .hero-logo svg {
+    width: 160px;
+    height: auto;
+  }
+
+  /* SESSION BADGE */
+  .session-badge {
+    position: absolute;
+    top: 30px;
+    right: 60px;
+    font-family: 'Nord', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 14px;
+    border-radius: 20px;
+  }
+  .hero h1 {
+    font-family: 'Editorial Old', serif;
+    font-size: 56px;
+    line-height: 1.1;
+    font-weight: 400;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+    position: relative;
+    color: white;
+  }
+  .hero .subtitle {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.75);
+    font-weight: 300;
+    margin-bottom: 32px;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 32px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .hero-meta strong { color: white; font-weight: 500; }
+
+  /* MAIN CONTENT */
+  .content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 48px 40px 80px;
+  }
+
+  /* SECTION */
+  .section {
+    margin-bottom: 48px;
+  }
+  .section-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--hotline-red);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .section h2 {
+    font-family: 'Nord', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .section-intro {
+    font-size: 16px;
+    color: var(--slate);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  /* NORTH STAR CARD */
+  .north-star-card {
+    background: var(--ink-black);
+    color: var(--soft-white);
+    padding: 40px;
+    border-radius: var(--radius);
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    border-left: 4px solid var(--hotline-red);
+  }
+  .north-star-card::after {
+    content: '★';
+    position: absolute;
+    top: 16px;
+    right: 24px;
+    font-size: 40px;
+    opacity: 0.08;
+  }
+  .north-star-card .info-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--hotline-red);
+    margin-bottom: 12px;
+    font-family: 'Nord', sans-serif;
+  }
+  .north-star-card .statement {
+    font-family: 'Editorial Old', serif;
+    font-size: 30px;
+    line-height: 1.35;
+    font-style: italic;
+    letter-spacing: -0.01em;
+  }
+
+  /* DIAGNOSIS CARD */
+  .diagnosis-card {
+    background: var(--soft-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin-bottom: 24px;
+    border-left: 4px solid var(--hotline-red);
+  }
+  .diagnosis-card p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: var(--ink-black);
+    margin-bottom: 16px;
+  }
+  .diagnosis-card p:last-child { margin-bottom: 0; }
+
+  /* WHAT WE LOVE */
+  .love-items {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .love-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px;
+    background: var(--soft-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--hotline-red);
+  }
+  .love-icon {
+    font-size: 24px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    color: var(--hotline-red);
+  }
+  .love-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-black);
+  }
+
+  /* KEY QUOTES */
+  .quote-card {
+    padding: 24px 28px;
+    background: rgba(236, 49, 7, 0.04);
+    border-left: 4px solid var(--hotline-red);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-bottom: 16px;
+  }
+  .quote-text {
+    font-family: 'Editorial Old', serif;
+    font-size: 23px;
+    font-style: italic;
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+    color: var(--ink-black);
+    margin-bottom: 8px;
+  }
+  .quote-context {
+    font-size: 13px;
+    color: var(--slate);
+  }
+
+  /* STOP LIST */
+  .stop-card {
+    padding: 24px;
+    background: var(--ink-black);
+    border: 1px solid rgba(236, 49, 7, 0.2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    border-left: 4px solid var(--hotline-red);
+  }
+  .stop-card .stop-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--hotline-red);
+    margin-bottom: 6px;
+  }
+  .stop-card .stop-text { font-size: 15px; line-height: 1.6; color: var(--soft-white); }
+  .stop-card .stop-why { font-size: 13px; color: rgba(245, 242, 235, 0.6); margin-top: 4px; }
+
+  /* ACTION ITEMS */
+  .action-item {
+    background: var(--soft-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .action-item.quick-win {
+    border-left: 4px solid var(--hotline-red);
+  }
+  .action-item.week-move {
+    border-left: 4px solid var(--electric-blue);
+  }
+  .action-item.month-build {
+    border-left: 4px solid var(--acid-yellow);
+  }
+  .action-timeline {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+  .tl-72hr { background: rgba(236, 49, 7, 0.12); color: var(--hotline-red); }
+  .tl-1wk { background: rgba(46, 99, 231, 0.12); color: var(--electric-blue); }
+  .tl-1mo { background: rgba(246, 237, 82, 0.25); color: #3d3d00; }
+  .action-move {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    line-height: 1.4;
+    color: var(--ink-black);
+  }
+  .action-detail {
+    margin-bottom: 16px;
+  }
+  .action-detail-label {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--hotline-red);
+    margin-bottom: 4px;
+    font-family: 'Nord', sans-serif;
+  }
+  .action-detail-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--ink-black);
+  }
+  .action-paths {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  .action-path {
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .path-diy {
+    background: var(--ink-black);
+    color: var(--soft-white);
+    border-left: 4px solid var(--electric-blue);
+  }
+  .path-invest {
+    background: var(--ink-black);
+    color: var(--soft-white);
+    border-left: 4px solid var(--hotline-red);
+  }
+  .path-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  /* EFFORT/IMPACT GRID */
+  .grid-visual {
+    background: var(--soft-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 32px;
+    margin: 32px 0;
+  }
+  .grid-chart {
+    width: 100%;
+    height: 300px;
+    position: relative;
+    border-left: 2px solid var(--ink-black);
+    border-bottom: 2px solid var(--ink-black);
+    margin: 24px 0 16px 24px;
+  }
+  .grid-label-y {
+    position: absolute;
+    left: -60px;
+    top: 50%;
+    transform: rotate(-90deg) translateX(50%);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--slate);
+  }
+  .grid-label-x {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--slate);
+    margin-top: 8px;
+  }
+  .grid-dot {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .grid-dot:hover { transform: scale(1.3); }
+  .grid-dot.dot-72hr { background: var(--hotline-red); color: white; }
+  .grid-dot.dot-1wk { background: var(--electric-blue); color: white; }
+  .grid-dot.dot-1mo { background: var(--acid-yellow); color: var(--ink-black); }
+
+  /* TOOLS SECTION */
+  .tool-rec {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    background: var(--ink-black);
+    border: 1px solid rgba(236, 49, 7, 0.2);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    align-items: center;
+    border-left: 4px solid var(--hotline-red);
+  }
+  .tool-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: rgba(236, 49, 7, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+  .tool-info { flex: 1; }
+  .tool-name { font-weight: 600; font-size: 15px; margin-bottom: 2px; color: var(--soft-white); }
+  .tool-desc { font-size: 13px; color: rgba(245, 242, 235, 0.6); line-height: 1.5; }
+  .tool-cost { font-size: 12px; font-weight: 600; color: var(--hotline-red); }
+
+  /* GOALS */
+  .goal-card {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: var(--soft-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    margin-bottom: 12px;
+    align-items: flex-start;
+  }
+  .goal-timeframe {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .tf-7d { background: rgba(236, 49, 7, 0.12); color: var(--hotline-red); }
+  .tf-30d { background: rgba(46, 99, 231, 0.12); color: var(--electric-blue); }
+  .tf-90d { background: rgba(246, 237, 82, 0.25); color: #3d3d00; }
+
+  /* CREATIVE FILE CARD */
+  .creative-file-card {
+    padding: 28px 32px;
+    background: var(--ink-black);
+    border-radius: var(--radius);
+    margin-bottom: 32px;
+    border-left: 4px solid var(--hotline-red);
+  }
+  .cf-header {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .cf-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+  .cf-title {
+    font-family: 'Nord', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--soft-white);
+    margin-bottom: 8px;
+  }
+  .cf-sub {
+    font-size: 14px;
+    line-height: 1.7;
+    color: rgba(245, 242, 235, 0.65);
+  }
+
+  /* REBOOK OPTIONS */
+  .rebook-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+  }
+  .rebook-card {
+    padding: 32px;
+    background: var(--soft-white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .rebook-card.featured {
+    background: var(--ink-black);
+    color: var(--soft-white);
+    border-color: var(--hotline-red);
+  }
+  .rebook-badge {
+    position: absolute;
+    top: -10px;
+    right: 20px;
+    background: var(--hotline-red);
+    color: white;
+    font-family: 'Nord', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 12px;
+  }
+  .rebook-label {
+    font-family: 'Nord', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--hotline-red);
+    margin-bottom: 8px;
+  }
+  .rebook-card.featured .rebook-label {
+    color: var(--hotline-red);
+  }
+  .rebook-price {
+    font-family: 'Editorial Old', serif;
+    font-size: 40px;
+    font-weight: 400;
+    margin-bottom: 16px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .rebook-was {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: rgba(245, 242, 235, 0.5);
+  }
+  .rebook-card:not(.featured) .rebook-was {
+    color: var(--slate);
+  }
+  .rebook-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    margin-bottom: 24px;
+    flex: 1;
+  }
+  .rebook-card.featured .rebook-desc {
+    color: rgba(245, 242, 235, 0.7);
+  }
+  .rebook-btn {
+    display: inline-block;
+    text-align: center;
+    padding: 12px 24px;
+    border-radius: var(--radius-sm);
+    font-family: 'Nord', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-decoration: none;
+    color: var(--ink-black);
+    background: var(--soft-white);
+    border: 1px solid var(--border);
+    transition: all 0.3s;
+  }
+  .rebook-btn:hover {
+    background: var(--ink-black);
+    color: var(--soft-white);
+  }
+  .rebook-btn.btn-featured {
+    background: var(--hotline-red);
+    color: white;
+    border: none;
+  }
+  .rebook-btn.btn-featured:hover {
+    background: #d42c06;
+  }
+
+  /* REFERRAL NOTE */
+  .referral-note {
+    text-align: center;
+    font-size: 13px;
+    color: var(--slate);
+    padding: 20px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* FOOTER */
+  .footer {
+    background: var(--ink-black);
+    color: var(--soft-white);
+    padding: 48px 60px;
+    text-align: center;
+  }
+  .footer-logo {
+    margin-bottom: 16px;
+  }
+  .footer-logo svg {
+    width: 120px;
+    height: auto;
+  }
+  .footer-tagline {
+    font-size: 14px;
+    color: rgba(245, 242, 235, 0.55);
+    margin-bottom: 24px;
+  }
+  .footer-links {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    font-size: 14px;
+  }
+  .footer-links a {
+    color: var(--hotline-red);
+    text-decoration: none;
+  }
+  .footer-links a:hover { text-decoration: underline; }
+
+  /* PRODUCTION NOTES - HIDDEN, FOR M+J ONLY */
+  .production-notes {
+    display: none;
+    background: var(--soft-white);
+    border-top: 6px solid var(--acid-yellow);
+    padding: 40px;
+    margin-top: 40px;
+    position: relative;
+  }
+  .production-notes.visible {
+    display: block;
+  }
+  .production-notes-warning {
+    background: rgba(236, 49, 7, 0.08);
+    border: 1px solid rgba(236, 49, 7, 0.2);
+    color: var(--hotline-red);
+    padding: 16px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 24px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+  .pn-section {
+    margin-bottom: 24px;
+  }
+  .pn-label {
+    font-family: 'Nord', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: var(--hotline-red);
+    margin-bottom: 8px;
+  }
+  .pn-input,
+  .pn-textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 14px;
+    color: var(--ink-black);
+  }
+  .pn-textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+  .pn-radio-group {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+  .pn-radio-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .pn-radio-label input[type="radio"] {
+    cursor: pointer;
+  }
+
+  /* PRINT BUTTON - FLOATING, BOTTOM RIGHT */
+  .print-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--hotline-red);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    z-index: 999;
+  }
+  .print-button:hover {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+  }
+  .print-button.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* PRODUCTION NOTES TOGGLE ICON */
+  .pn-toggle {
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    color: var(--slate);
+    opacity: 0.5;
+    transition: opacity 0.2s ease;
+  }
+  .pn-toggle:hover {
+    opacity: 1;
+  }
+
+  /* FULL-BLEED SECTION WRAPPERS */
+  .section-block {
+    padding: 60px 40px;
+    position: relative;
+  }
+  .section-block .section {
+    max-width: 800px;
+    margin: 0 auto;
+    margin-bottom: 0;
+  }
+  .section-block--dark {
+    background: var(--ink-black);
+    color: var(--soft-white);
+  }
+  .section-block--light {
+    background: var(--soft-white);
+    color: var(--ink-black);
+  }
+  .section-block--red {
+    background: var(--hotline-red);
+    color: white;
+  }
+  .section-block--yellow {
+    background: var(--acid-yellow);
+    color: var(--ink-black);
+  }
+
+  /* Separator strips */
+  .sep-strip {
+    padding: 32px;
+    text-align: center;
+    font-size: 24px;
+    width: 100%;
+  }
+  .sep-strip--red {
+    background: var(--hotline-red);
+    color: white;
+  }
+  .sep-strip--yellow {
+    background: var(--acid-yellow);
+    color: var(--ink-black);
+  }
+
+  /* Overrides for elements on different backgrounds */
+
+  /* On RED backgrounds */
+  .section-block--red .section-number { color: rgba(255,255,255,0.5); }
+  .section-block--red h2 { color: white; }
+  .section-block--red .section-intro { color: rgba(255,255,255,0.8); }
+  .section-block--red .love-item {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-left: 4px solid rgba(255,255,255,0.4);
+  }
+  .section-block--red .love-icon { color: var(--acid-yellow); }
+  .section-block--red .love-text { color: white; }
+
+  /* On DARK backgrounds */
+  .section-block--dark .section-number { color: var(--hotline-red); }
+  .section-block--dark h2 { color: var(--soft-white); }
+  .section-block--dark .section-intro { color: rgba(245, 242, 235, 0.65); }
+  .section-block--dark .north-star-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .section-block--dark .quote-card {
+    background: rgba(236, 49, 7, 0.08);
+    border-left-color: var(--hotline-red);
+  }
+  .section-block--dark .quote-text { color: var(--soft-white); }
+  .section-block--dark .quote-context { color: rgba(245, 242, 235, 0.5); }
+  .section-block--dark .goal-card {
+    background: rgba(255,255,255,0.06);
+    border-color: rgba(255,255,255,0.1);
+  }
+  .section-block--dark .goal-card div[style*="font-weight: 600"] { color: var(--soft-white) !important; }
+  .section-block--dark .goal-card div[style*="font-size: 14px"] { color: rgba(245,242,235,0.5) !important; }
+
+  /* Action items on dark bg */
+  .section-block--dark .action-item {
+    background: var(--soft-white);
+    color: var(--ink-black);
+  }
+  .section-block--dark .action-path {
+    color: var(--ink-black);
+  }
+
+  /* SEPARATOR */
+  .sep {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 40px 0;
+  }
+  .sep .line { flex: 1; height: 1px; background: var(--border); }
+  .sep .icon { font-size: 16px; color: var(--hotline-red); }
+
+  /* ========================= */
+  /* RESPONSIVE — TABLET (768) */
+  /* ========================= */
+  @media (max-width: 768px) {
+    .hero {
+      padding: 60px 36px 44px;
+    }
+    .hero-logo svg {
+      width: 120px;
+    }
+    .hero h1 {
+      font-size: 42px;
+    }
+    .hero .subtitle {
+      font-size: 16px;
+    }
+    .hero-meta {
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 12px;
+    }
+    .session-badge {
+      top: 24px;
+      right: 36px;
+      font-size: 10px;
+      padding: 5px 10px;
+    }
+    .section-block {
+      padding: 44px 28px;
+    }
+    .section h2 {
+      font-size: 24px;
+    }
+    .section-intro {
+      font-size: 15px;
+    }
+    .north-star-card {
+      padding: 28px;
+    }
+    .north-star-card .statement {
+      font-size: 24px;
+    }
+    .quote-text {
+      font-size: 20px;
+    }
+    .action-item {
+      padding: 24px;
+    }
+    .action-paths {
+      grid-template-columns: 1fr;
+    }
+    .rebook-options {
+      grid-template-columns: 1fr;
+    }
+    .expect-grid {
+      grid-template-columns: 1fr;
+    }
+    .tool-rec {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .footer {
+      padding: 36px 28px;
+    }
+    .footer-logo svg {
+      width: 100px;
+    }
+    .footer-links {
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+  }
+
+  /* ========================= */
+  /* RESPONSIVE — MOBILE (480) */
+  /* ========================= */
+  @media (max-width: 480px) {
+    .hero {
+      padding: 48px 24px 36px;
+    }
+    .hero-logo svg {
+      width: 100px;
+    }
+    .hero h1 {
+      font-size: 34px;
+      line-height: 1.1;
+    }
+    .hero .subtitle {
+      font-size: 15px;
+      margin-bottom: 24px;
+    }
+    .hero-meta {
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+    }
+    .session-badge {
+      position: static;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    .section-block {
+      padding: 36px 20px;
+    }
+    .section h2 {
+      font-size: 20px;
+      letter-spacing: 0.5px;
+    }
+    .section-intro {
+      font-size: 14px;
+    }
+    .north-star-card {
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .north-star-card .statement {
+      font-size: 20px;
+    }
+    .diagnosis-card {
+      padding: 20px;
+    }
+    .diagnosis-card p {
+      font-size: 14px;
+    }
+    .love-item {
+      padding: 16px;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .love-text {
+      font-size: 14px;
+    }
+    .quote-card {
+      padding: 16px 20px;
+    }
+    .quote-text {
+      font-size: 18px;
+    }
+    .quote-context {
+      font-size: 12px;
+    }
+    .stop-card {
+      padding: 16px;
+    }
+    .stop-card .stop-text {
+      font-size: 14px;
+    }
+    .action-item {
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .action-move {
+      font-size: 16px;
+    }
+    .action-detail-text {
+      font-size: 14px;
+    }
+    .action-paths {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    .action-path {
+      padding: 14px;
+      font-size: 13px;
+    }
+    .grid-visual {
+      padding: 20px;
+      overflow-x: auto;
+    }
+    .tool-rec {
+      padding: 14px;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .tool-name {
+      font-size: 14px;
+    }
+    .tool-desc {
+      font-size: 12px;
+    }
+    .goal-card {
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px;
+    }
+    .rebook-options {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+    .rebook-card {
+      padding: 24px;
+    }
+    .rebook-price {
+      font-size: 32px;
+    }
+    .creative-file-card {
+      padding: 20px;
+    }
+    .cf-header {
+      flex-direction: column;
+      gap: 12px;
+    }
+    .sep-strip {
+      padding: 20px;
+      font-size: 20px;
+    }
+    .footer {
+      padding: 32px 20px;
+    }
+    .footer-logo svg {
+      width: 80px;
+    }
+    .footer-tagline {
+      font-size: 18px !important;
+    }
+    .footer-links {
+      flex-direction: column;
+      gap: 12px;
+      font-size: 13px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="session-badge">SESSION 01</div>
+  <div class="hero-logo">
+    <svg width="474" height="263" viewBox="0 0 474 263" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M56.445 33.086H45.724L40.47 51.191H51.475V55.948H39.121L34.364 72.42H29.536L34.293 55.948H18.957L14.2 72.42H9.372L14.129 55.948H4.473V51.191H15.478L20.732 33.086H9.443V28.329H22.081L26.554 12.78H31.382L26.909 28.329H42.245L46.718 12.78H51.546L47.073 28.329H56.445V33.086ZM35.642 51.191L40.896 33.086H25.56L20.306 51.191H35.642ZM87.2263 24.47H65.3563V11.87H122.776V24.47H100.906V71H87.2263V24.47ZM141.886 11.87H155.566V35.09H185.716V11.87H199.306V71H185.716V47.69H155.566V71H141.886V11.87ZM222.278 11.87H278.618V24.47H235.958V35.09H267.638V47.69H235.958V58.4H278.618V71H222.278V11.87ZM8.82 131.96C6.66 127.4 5.58 122.51 5.58 117.29C5.58 112.07 6.66 107.18 8.82 102.62C11.04 98.06 14.25 94.4 18.45 91.64C22.65 88.82 27.6 87.41 33.3 87.41C37.8 87.41 41.88 88.34 45.54 90.2C49.26 92 52.35 94.52 54.81 97.76C57.27 101 59.01 104.66 60.03 108.74L60.3 109.82H51.84L51.66 109.19C50.34 104.99 48.03 101.57 44.73 98.93C41.49 96.29 37.65 94.97 33.21 94.97C29.25 94.97 25.8 96.05 22.86 98.21C19.92 100.31 17.67 103.07 16.11 106.49C14.61 109.85 13.86 113.42 13.86 117.2C13.86 120.98 14.61 124.58 16.11 128C17.67 131.42 19.92 134.21 22.86 136.37C25.8 138.47 29.25 139.52 33.21 139.52C37.65 139.52 41.49 138.23 44.73 135.65C48.03 133.01 50.34 129.59 51.66 125.39L51.84 124.76H60.3L60.03 125.75C58.47 132.11 55.32 137.3 50.58 141.32C45.84 145.28 40.08 147.26 33.3 147.26C27.6 147.26 22.65 145.85 18.45 143.03C14.25 140.21 11.04 136.52 8.82 131.96ZM81.938 146H74.288V88.58H113.438C116.678 88.58 119.438 89.33 121.718 90.83C124.058 92.27 125.798 94.22 126.938 96.68C128.078 99.14 128.648 101.84 128.648 104.78C128.648 108.98 127.508 112.64 125.228 115.76C123.008 118.82 119.708 120.47 115.328 120.71L112.718 120.8L127.208 146H118.658L104.348 120.8H81.938V146ZM81.938 95.69V113.78H113.438C115.958 113.78 117.848 112.97 119.108 111.35C120.368 109.67 120.998 107.51 120.998 104.87C120.998 102.29 120.338 100.13 119.018 98.39C117.758 96.59 115.898 95.69 113.438 95.69H81.938ZM143.018 146V88.58H195.038V95.69H150.668V113.78H183.698V120.8H150.668V138.98H195.038V146H143.018ZM213.139 146H205.039L229.789 88.22H237.889L263.449 146H255.169L248.509 130.7H219.619L213.139 146ZM233.929 95.96L222.229 123.68H246.169L233.929 95.96ZM286.721 146V95.69H263.951V88.58H317.231V95.69H294.371V146H286.721ZM330.05 146V88.58H337.7V146H330.05ZM374.018 146L349.268 88.22H357.368L378.158 136.55L399.398 88.22H407.678L382.118 146H374.018ZM419.347 146V88.58H471.367V95.69H426.997V113.78H460.027V120.8H426.997V138.98H471.367V146H419.347ZM8.37 161.87H22.05V185.09H52.2V161.87H65.79V221H52.2V197.69H22.05V221H8.37V161.87ZM85.9718 191.39C85.9718 183.11 88.6718 175.94 94.0718 169.88C99.4718 163.76 106.702 160.7 115.762 160.7C124.822 160.7 132.052 163.76 137.452 169.88C142.852 175.94 145.552 183.11 145.552 191.39C145.552 196.73 144.412 201.71 142.132 206.33C139.852 210.95 136.402 214.76 131.782 217.76C127.162 220.7 121.822 222.17 115.762 222.17C109.702 222.17 104.362 220.7 99.7418 217.76C95.1218 214.76 91.6718 210.95 89.3918 206.33C87.1118 201.71 85.9718 196.73 85.9718 191.39ZM131.422 191.39C131.422 186.65 130.012 182.54 127.192 179.06C124.372 175.58 120.562 173.84 115.762 173.84C110.962 173.84 107.152 175.58 104.332 179.06C101.572 182.54 100.192 186.65 100.192 191.39C100.192 196.13 101.572 200.24 104.332 203.72C107.152 207.14 110.962 208.85 115.762 208.85C120.562 208.85 124.372 207.14 127.192 203.72C130.012 200.24 131.422 196.13 131.422 191.39ZM180.12 174.47H158.25V161.87H215.67V174.47H193.8V221H180.12V174.47ZM234.78 161.87H248.46V208.4H281.22V221H234.78V161.87ZM300.406 161.87H314.086V221H300.406V161.87ZM337.028 161.87H348.818L380.858 198.68V161.87H394.448V221H382.568L350.708 184.1V221H337.028V161.87ZM417.42 161.87H473.76V174.47H431.1V185.09H462.78V197.69H431.1V208.4H473.76V221H417.42V161.87Z" fill="white"/>
+    </svg>
+  </div>
+  <h1>Your Action Plan</h1>
+  <div class="subtitle">Rae Solano — Solano Studio</div>
+  <div class="hero-meta">
+    <span>Session: <strong>March 20, 2026</strong></span>
+    <span>With: <strong>Megha + Jake</strong></span>
+    <span>Prepared: <strong>March 21, 2026</strong></span>
+  </div>
+</div>
+
+<!-- SECTION 1: NORTH STAR -->
+<div class="section-block section-block--dark">
+  <div class="section">
+    <div class="section-number">01</div>
+    <h2>Your North Star</h2>
+    <div class="north-star-card">
+      <div class="info-label">The Direction</div>
+      <div class="statement">[North Star statement goes here — the one-liner that captures the entire creative direction for the next 90 days. Filled from session.]</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: WHAT WE LEARNED -->
+<div class="section-block section-block--light">
+  <div class="section">
+    <div class="section-number">02</div>
+    <h2>What We Learned</h2>
+    <div class="section-intro">Here's what surfaced during your session — the patterns we saw, the tension we named, and the direction that unlocks everything else.</div>
+    <div class="diagnosis-card">
+      <p>[Bespoke diagnosis paragraph 1 — the thing beneath the thing. This is the section that cannot be templated. It references what they said, what we saw in research, and connects dots they couldn't see from the inside.]</p>
+      <p>[Bespoke diagnosis paragraph 2 — the implication. What this means for their brand, their business, their next move. Written in Megha's voice — sharp, warm, specific.]</p>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: WHAT WE LOVE -->
+<div class="section-block section-block--red">
+  <div class="section">
+    <div class="section-number">03</div>
+    <h2>What We Love About Your Brand</h2>
+    <div class="love-items">
+      <div class="love-item">
+        <div class="love-icon">✦</div>
+        <div class="love-text">[Specific thing we love — not generic. References something real from their brand, their work, or what they said in session.]</div>
+      </div>
+      <div class="love-item">
+        <div class="love-icon">✦</div>
+        <div class="love-text">[Second specific thing — different angle. Could be visual, strategic, or about their story.]</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: KEY QUOTES -->
+<div class="section-block section-block--dark">
+  <div class="section">
+    <div class="section-number">04</div>
+    <h2>Things You Said That Matter</h2>
+    <div class="section-intro">Your words, not ours. These surfaced during the session and they're worth holding onto.</div>
+    <div class="quote-card">
+      <div class="quote-text">"[Verbatim quote from session]"</div>
+      <div class="quote-context">Why this matters: [1 line context]</div>
+    </div>
+    <div class="quote-card">
+      <div class="quote-text">"[Verbatim quote from session]"</div>
+      <div class="quote-context">Why this matters: [1 line context]</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: WHAT WE'RE NOT DOING -->
+<div class="section-block section-block--light">
+  <div class="section">
+    <div class="section-number">05</div>
+    <h2>What We're Not Doing</h2>
+    <div class="section-intro">These are the things that feel urgent but will dilute your energy, position, or brand if you chase them right now.</div>
+    <div class="stop-card">
+      <div class="stop-label">⛔ Stop</div>
+      <div class="stop-text">[Specific thing to stop]</div>
+      <div class="stop-why">Why: [1 sentence]</div>
+    </div>
+    <div class="stop-card">
+      <div class="stop-label">⏸ Not Yet</div>
+      <div class="stop-text">[Thing that seems important but isn't time]</div>
+      <div class="stop-why">Revisit: [when]</div>
+    </div>
+  </div>
+</div>
+
+<!-- SEPARATOR RED STRIP -->
+<div class="sep-strip sep-strip--red">☎️</div>
+
+<!-- SECTION 6: ACTION PLAN -->
+<div class="section-block section-block--dark">
+  <div class="section">
+    <div class="section-number">06</div>
+    <h2>Your Action Plan</h2>
+    <div class="section-intro">Three moves. Clear timing. Each one has a DIY path and a leveled-up path — you choose what fits.</div>
+
+    <!-- 72-Hour Quick Win -->
+    <div class="action-item quick-win">
+      <div class="action-timeline tl-72hr">⚡ 72-Hour Win</div>
+      <div class="action-move">[The specific action]</div>
+      <div class="action-detail">
+        <div class="action-detail-label">Why Now</div>
+        <div class="action-detail-text">[Tied to diagnosis — references what they said]</div>
+      </div>
+      <div class="action-detail">
+        <div class="action-detail-label">What Changes</div>
+        <div class="action-detail-text">[Observable outcome]</div>
+      </div>
+      <div class="action-paths">
+        <div class="action-path path-diy">
+          <div class="path-label">🛠 DIY Path</div>
+          [Step by step, tools they already have or free ones]
+        </div>
+        <div class="action-path path-invest">
+          <div class="path-label">⬆️ Level Up</div>
+          [Invested path — hire someone, use a better tool, or come back to us]
+        </div>
+      </div>
+    </div>
+
+    <!-- 1-Week Move -->
+    <div class="action-item week-move">
+      <div class="action-timeline tl-1wk">📋 1-Week Move</div>
+      <div class="action-move">[The specific action]</div>
+      <div class="action-detail">
+        <div class="action-detail-label">Why Now</div>
+        <div class="action-detail-text">[Tied to diagnosis]</div>
+      </div>
+      <div class="action-detail">
+        <div class="action-detail-label">What Changes</div>
+        <div class="action-detail-text">[Observable outcome]</div>
+      </div>
+      <div class="action-paths">
+        <div class="action-path path-diy">
+          <div class="path-label">🛠 DIY Path</div>
+          [Step by step]
+        </div>
+        <div class="action-path path-invest">
+          <div class="path-label">⬆️ Level Up</div>
+          [Invested path]
+        </div>
+      </div>
+    </div>
+
+    <!-- 1-Month Build -->
+    <div class="action-item month-build">
+      <div class="action-timeline tl-1mo">📅 1-Month Build</div>
+      <div class="action-move">[The specific action]</div>
+      <div class="action-detail">
+        <div class="action-detail-label">Why Now</div>
+        <div class="action-detail-text">[Tied to diagnosis]</div>
+      </div>
+      <div class="action-detail">
+        <div class="action-detail-label">What Changes</div>
+        <div class="action-detail-text">[Observable outcome]</div>
+      </div>
+      <div class="action-paths">
+        <div class="action-path path-diy">
+          <div class="path-label">🛠 DIY Path</div>
+          [Step by step]
+        </div>
+        <div class="action-path path-invest">
+          <div class="path-label">⬆️ Level Up</div>
+          [Invested path]
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+  </div>
+</div>
+
+<!-- SECTION 7: TOOLS -->
+<div class="section-block section-block--light">
+  <div class="section">
+    <div class="section-number">07</div>
+    <h2>Tools We Recommend</h2>
+    <div class="section-intro">Matched to where you are right now — not where you'll be in a year.</div>
+
+    <div class="tool-rec">
+      <div class="tool-icon">🔧</div>
+      <div class="tool-info">
+        <div class="tool-name">[Tool name]</div>
+        <div class="tool-desc">[What it does for them specifically, tied to action item]</div>
+      </div>
+      <div class="tool-cost">[Free / $X/mo]</div>
+    </div>
+    <div class="tool-rec">
+      <div class="tool-icon">🔧</div>
+      <div class="tool-info">
+        <div class="tool-name">[Tool name]</div>
+        <div class="tool-desc">[What it does for them]</div>
+      </div>
+      <div class="tool-cost">[Free / $X/mo]</div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 8: GOALS -->
+<div class="section-block section-block--dark">
+  <div class="section">
+    <div class="section-number">08</div>
+    <h2>What Success Looks Like</h2>
+    <div class="section-intro">Realistic benchmarks. Not aspirational fluff — things you can actually measure.</div>
+
+    <div class="goal-card">
+      <div class="goal-timeframe tf-7d">7 days</div>
+      <div>
+        <div style="font-weight: 600; margin-bottom: 4px;">[7-day goal]</div>
+        <div style="font-size: 14px; color: var(--slate);">[How to know you hit it]</div>
+      </div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-timeframe tf-30d">30 days</div>
+      <div>
+        <div style="font-weight: 600; margin-bottom: 4px;">[30-day goal]</div>
+        <div style="font-size: 14px; color: var(--slate);">[How to know you hit it]</div>
+      </div>
+    </div>
+    <div class="goal-card">
+      <div class="goal-timeframe tf-90d">90 days</div>
+      <div>
+        <div style="font-weight: 600; margin-bottom: 4px;">[90-day goal]</div>
+        <div style="font-size: 14px; color: var(--slate);">[How to know you hit it]</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEPARATOR YELLOW STRIP -->
+<div class="sep-strip sep-strip--yellow">✦</div>
+
+<!-- SECTION 9: CONTINUE THE CONVERSATION -->
+<div class="section-block section-block--light">
+  <div class="section">
+    <div class="section-number">09</div>
+    <h2>Continue the Conversation</h2>
+    <div class="section-intro">We started something today. Your Creative File is open — every insight, every direction, every pattern we named lives here. When you're ready to go deeper, we pick up exactly where we left off.</div>
+
+    <!-- YOUR CREATIVE FILE concept -->
+    <div class="creative-file-card">
+      <div class="cf-header">
+        <div class="cf-icon">📁</div>
+        <div>
+          <div class="cf-title">Your Creative File</div>
+          <div class="cf-sub">Session notes, brand research, audit findings, and action plan — all saved. Your next call starts where this one ended.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TWO OPTIONS - not salesy, framed as natural next steps -->
+    <div class="rebook-options">
+      <div class="rebook-card">
+        <div class="rebook-label">FOLLOW-UP SESSION</div>
+        <div class="rebook-price">$699</div>
+        <div class="rebook-desc">Check in on progress. Pressure-test new work. Get fresh direction on what surfaced after this session. We already know your brand — no ramp-up time.</div>
+        <a href="#" class="rebook-btn">Book a Follow-Up</a>
+      </div>
+      <div class="rebook-card featured">
+        <div class="rebook-badge">SAVE $300</div>
+        <div class="rebook-label">CLARITY BUNDLE</div>
+        <div class="rebook-price">$1,500 <span class="rebook-was">for 3 sessions</span></div>
+        <div class="rebook-desc">Three sessions. Use within 60 days. For founders who want ongoing creative direction without the retainer commitment. Each session builds on the last — your Creative File grows with you.</div>
+        <a href="#" class="rebook-btn btn-featured">Lock In the Bundle</a>
+      </div>
+    </div>
+
+    <!-- Subtle referral mention -->
+    <div class="referral-note">Know someone who needs this? Send them our way and you both get $100 off your next session.</div>
+  </div>
+</div>
+
+<!-- TRANSCRIPT LINK -->
+<div class="section-block section-block--dark">
+  <div class="section" style="text-align: center;">
+    <div style="font-size: 14px; color: rgba(245, 242, 235, 0.7); margin-bottom: 12px;">Your full session transcript is available in your shared folder.</div>
+    <a href="#" style="color: var(--hotline-red); font-weight: 600; text-decoration: none; font-size: 15px;">View Transcript →</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-logo">
+    <svg width="474" height="263" viewBox="0 0 474 263" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M56.445 33.086H45.724L40.47 51.191H51.475V55.948H39.121L34.364 72.42H29.536L34.293 55.948H18.957L14.2 72.42H9.372L14.129 55.948H4.473V51.191H15.478L20.732 33.086H9.443V28.329H22.081L26.554 12.78H31.382L26.909 28.329H42.245L46.718 12.78H51.546L47.073 28.329H56.445V33.086ZM35.642 51.191L40.896 33.086H25.56L20.306 51.191H35.642ZM87.2263 24.47H65.3563V11.87H122.776V24.47H100.906V71H87.2263V24.47ZM141.886 11.87H155.566V35.09H185.716V11.87H199.306V71H185.716V47.69H155.566V71H141.886V11.87ZM222.278 11.87H278.618V24.47H235.958V35.09H267.638V47.69H235.958V58.4H278.618V71H222.278V11.87ZM8.82 131.96C6.66 127.4 5.58 122.51 5.58 117.29C5.58 112.07 6.66 107.18 8.82 102.62C11.04 98.06 14.25 94.4 18.45 91.64C22.65 88.82 27.6 87.41 33.3 87.41C37.8 87.41 41.88 88.34 45.54 90.2C49.26 92 52.35 94.52 54.81 97.76C57.27 101 59.01 104.66 60.03 108.74L60.3 109.82H51.84L51.66 109.19C50.34 104.99 48.03 101.57 44.73 98.93C41.49 96.29 37.65 94.97 33.21 94.97C29.25 94.97 25.8 96.05 22.86 98.21C19.92 100.31 17.67 103.07 16.11 106.49C14.61 109.85 13.86 113.42 13.86 117.2C13.86 120.98 14.61 124.58 16.11 128C17.67 131.42 19.92 134.21 22.86 136.37C25.8 138.47 29.25 139.52 33.21 139.52C37.65 139.52 41.49 138.23 44.73 135.65C48.03 133.01 50.34 129.59 51.66 125.39L51.84 124.76H60.3L60.03 125.75C58.47 132.11 55.32 137.3 50.58 141.32C45.84 145.28 40.08 147.26 33.3 147.26C27.6 147.26 22.65 145.85 18.45 143.03C14.25 140.21 11.04 136.52 8.82 131.96ZM81.938 146H74.288V88.58H113.438C116.678 88.58 119.438 89.33 121.718 90.83C124.058 92.27 125.798 94.22 126.938 96.68C128.078 99.14 128.648 101.84 128.648 104.78C128.648 108.98 127.508 112.64 125.228 115.76C123.008 118.82 119.708 120.47 115.328 120.71L112.718 120.8L127.208 146H118.658L104.348 120.8H81.938V146ZM81.938 95.69V113.78H113.438C115.958 113.78 117.848 112.97 119.108 111.35C120.368 109.67 120.998 107.51 120.998 104.87C120.998 102.29 120.338 100.13 119.018 98.39C117.758 96.59 115.898 95.69 113.438 95.69H81.938ZM143.018 146V88.58H195.038V95.69H150.668V113.78H183.698V120.8H150.668V138.98H195.038V146H143.018ZM213.139 146H205.039L229.789 88.22H237.889L263.449 146H255.169L248.509 130.7H219.619L213.139 146ZM233.929 95.96L222.229 123.68H246.169L233.929 95.96ZM286.721 146V95.69H263.951V88.58H317.231V95.69H294.371V146H286.721ZM330.05 146V88.58H337.7V146H330.05ZM374.018 146L349.268 88.22H357.368L378.158 136.55L399.398 88.22H407.678L382.118 146H374.018ZM419.347 146V88.58H471.367V95.69H426.997V113.78H460.027V120.8H426.997V138.98H471.367V146H419.347ZM8.37 161.87H22.05V185.09H52.2V161.87H65.79V221H52.2V197.69H22.05V221H8.37V161.87ZM85.9718 191.39C85.9718 183.11 88.6718 175.94 94.0718 169.88C99.4718 163.76 106.702 160.7 115.762 160.7C124.822 160.7 132.052 163.76 137.452 169.88C142.852 175.94 145.552 183.11 145.552 191.39C145.552 196.73 144.412 201.71 142.132 206.33C139.852 210.95 136.402 214.76 131.782 217.76C127.162 220.7 121.822 222.17 115.762 222.17C109.702 222.17 104.362 220.7 99.7418 217.76C95.1218 214.76 91.6718 210.95 89.3918 206.33C87.1118 201.71 85.9718 196.73 85.9718 191.39ZM131.422 191.39C131.422 186.65 130.012 182.54 127.192 179.06C124.372 175.58 120.562 173.84 115.762 173.84C110.962 173.84 107.152 175.58 104.332 179.06C101.572 182.54 100.192 186.65 100.192 191.39C100.192 196.13 101.572 200.24 104.332 203.72C107.152 207.14 110.962 208.85 115.762 208.85C120.562 208.85 124.372 207.14 127.192 203.72C130.012 200.24 131.422 196.13 131.422 191.39ZM180.12 174.47H158.25V161.87H215.67V174.47H193.8V221H180.12V174.47ZM234.78 161.87H248.46V208.4H281.22V221H234.78V161.87ZM300.406 161.87H314.086V221H300.406V161.87ZM337.028 161.87H348.818L380.858 198.68V161.87H394.448V221H382.568L350.708 184.1V221H337.028V161.87ZM417.42 161.87H473.76V174.47H431.1V185.09H462.78V197.69H431.1V208.4H473.76V221H417.42V161.87Z" fill="white"/>
+    </svg>
+  </div>
+  <div class="footer-tagline" style="font-family: 'Editorial Old', serif; font-style: italic; font-size: 22px; letter-spacing: -0.02em;">Stop spiraling. Start creating.</div>
+  <div class="footer-links">
+    <a href="#">Book a Session</a>
+    <a href="#">The 3-Pack</a>
+    <a href="#">About Us</a>
+  </div>
+  <button class="pn-toggle" id="pnToggle" title="Toggle production notes">☎</button>
+</div>
+
+<!-- PRODUCTION NOTES - INTERNAL ONLY -->
+<div class="production-notes" id="productionNotes">
+  <div class="production-notes-warning">INTERNAL — DO NOT SEND WITH THIS VISIBLE</div>
+
+  <div class="pn-section">
+    <div class="pn-label">Session Score</div>
+    <input type="text" class="pn-input" id="sessionScore" placeholder="___/10">
+  </div>
+
+  <div class="pn-section">
+    <div class="pn-label">Non-Obvious Insight From This Session</div>
+    <textarea class="pn-textarea" id="sessionInsight" placeholder="What surprised you? What pattern did you name that the client didn't see coming?"></textarea>
+  </div>
+
+  <div class="pn-section">
+    <div class="pn-label">Upsell Signal</div>
+    <div class="pn-radio-group">
+      <label class="pn-radio-label">
+        <input type="radio" name="upsellSignal" value="Strong">
+        <span>Strong</span>
+      </label>
+      <label class="pn-radio-label">
+        <input type="radio" name="upsellSignal" value="Medium">
+        <span>Medium</span>
+      </label>
+      <label class="pn-radio-label">
+        <input type="radio" name="upsellSignal" value="Weak">
+        <span>Weak</span>
+      </label>
+      <label class="pn-radio-label">
+        <input type="radio" name="upsellSignal" value="None">
+        <span>None</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="pn-section">
+    <div class="pn-label">Follow-Up Plan</div>
+    <textarea class="pn-textarea" id="followUpPlan" placeholder="What should happen next? When should we check in?"></textarea>
+  </div>
+
+  <div class="pn-section">
+    <div class="pn-label">Day 14 Reference Point (For Megha's Personal Note)</div>
+    <textarea class="pn-textarea" id="day14Reference" placeholder="What should Megha remember about this session in 2 weeks?"></textarea>
+  </div>
+
+  <div class="pn-section">
+    <div class="pn-label">B-Side Items to Route</div>
+    <textarea class="pn-textarea" id="bSideItems" placeholder="What came up that doesn't fit in this plan but should be captured somewhere?"></textarea>
+  </div>
+</div>
+
+<!-- PRINT BUTTON -->
+<button class="print-button" id="printButton" title="Export to PDF">🖨</button>
+
+<script>
+  // Production Notes Toggle
+  const pnToggle = document.getElementById('pnToggle');
+  const productionNotes = document.getElementById('productionNotes');
+
+  pnToggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    productionNotes.classList.toggle('visible');
+  });
+
+  // Print Button Visibility
+  const printButton = document.getElementById('printButton');
+
+  document.addEventListener('mousemove', function(e) {
+    const footerBottom = window.innerHeight - 100;
+    const footerRight = window.innerWidth - 100;
+
+    if (e.clientY > footerBottom || e.clientX > footerRight) {
+      printButton.classList.add('visible');
+    } else {
+      printButton.classList.remove('visible');
+    }
+  });
+
+  // Print Functionality
+  printButton.addEventListener('click', function() {
+    window.print();
+  });
+
+  // Hide production notes when printing
+  window.addEventListener('beforeprint', function() {
+    productionNotes.classList.remove('visible');
+  });
+</script>
+
+</body>
+</html>

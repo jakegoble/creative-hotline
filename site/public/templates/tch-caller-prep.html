@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TCH — Before Your Call</title>
+<style>
+  /* BRAND FONTS */
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Regular.otf') format('opentype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Italic.otf') format('opentype'); font-weight: 400; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultrabold.otf') format('opentype'); font-weight: 800; font-style: normal; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-UltraboldItalic.otf') format('opentype'); font-weight: 800; font-style: italic; }
+  @font-face { font-family: 'Editorial Old'; src: url('BRAND ASSETS/FONTS/PPEditorialOld-Ultralight.otf') format('opentype'); font-weight: 200; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Light.otf') format('opentype'); font-weight: 300; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Book.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+  @font-face { font-family: 'Nord'; src: url('BRAND ASSETS/FONTS/Nord-Medium.ttf') format('truetype'); font-weight: 500; font-style: normal; }
+  @font-face { font-family: 'JetBrains Mono'; src: url('BRAND ASSETS/FONTS/JetBrainsMono-Regular.ttf') format('truetype'); font-weight: 400; font-style: normal; }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --red: #EC3107;
+    --blue: #2E63E7;
+    --yellow: #F6ED52;
+    --black: #1C1C1E;
+    --white: #F5F2EB;
+  }
+
+  html, body {
+    width: 100%;
+    height: 100%;
+  }
+
+  body {
+    font-family: 'JetBrains Mono', monospace;
+    background: var(--black);
+    color: var(--white);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 9:16 CONTAINER — fluid on small screens, fixed on desktop */
+  .page {
+    width: 100%;
+    max-width: 1080px;
+    min-height: 100vh;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* === HERO SECTION === */
+  .hero {
+    background: var(--red);
+    padding: 80px 72px 60px;
+    position: relative;
+  }
+  .hero-logo {
+    margin-bottom: 40px;
+  }
+  .hero-logo svg {
+    width: 200px;
+    height: auto;
+  }
+  .hero-title {
+    font-family: 'Editorial Old', serif;
+    font-size: 72px;
+    font-weight: 400;
+    font-style: italic;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    color: white;
+    margin-bottom: 20px;
+  }
+  .hero-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    max-width: 700px;
+  }
+
+  /* === RED DIVIDER === */
+  .divider {
+    height: 6px;
+    background: var(--red);
+    width: 100%;
+  }
+
+  /* === BODY SECTION === */
+  .body {
+    flex: 1;
+    background: var(--black);
+    padding: 56px 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  /* SECTION LABEL */
+  .section-label {
+    font-family: 'Nord', sans-serif;
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--red);
+    margin-bottom: 28px;
+  }
+
+  /* RULE ITEMS */
+  .rules {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+  .rule {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+  .rule-num {
+    font-family: 'Editorial Old', serif;
+    font-size: 48px;
+    font-weight: 200;
+    color: var(--red);
+    line-height: 1;
+    min-width: 52px;
+    text-align: right;
+  }
+  .rule-content {
+    flex: 1;
+    padding-top: 6px;
+  }
+  .rule-title {
+    font-family: 'Nord', sans-serif;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  .rule-desc {
+    font-size: 17px;
+    color: rgba(245,242,235,0.55);
+    line-height: 1.6;
+  }
+
+  /* === WHAT TO HAVE READY === */
+  .ready-section {
+    margin-bottom: 48px;
+  }
+  .ready-card {
+    background: rgba(245,242,235,0.04);
+    border-radius: 12px;
+    padding: 32px 28px;
+    border: 1px solid rgba(245,242,235,0.08);
+  }
+  .ready-list {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .ready-item {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+  .ready-check {
+    font-size: 20px;
+    color: var(--red);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .ready-text {
+    font-size: 16px;
+    color: rgba(245,242,235,0.8);
+    line-height: 1.5;
+  }
+
+  /* === WHAT TO EXPECT === */
+  .expect-section {
+    margin-bottom: 48px;
+  }
+  .expect-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .expect-card {
+    padding: 28px 24px;
+    border-radius: 12px;
+    border-left: 4px solid var(--red);
+    background: rgba(245,242,235,0.04);
+  }
+  .expect-time {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: var(--red);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .expect-what {
+    font-family: 'Nord', sans-serif;
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .expect-detail {
+    font-size: 14px;
+    color: rgba(245,242,235,0.45);
+    line-height: 1.5;
+  }
+
+  /* === BOTTOM STRIP === */
+  .bottom-strip {
+    background: var(--yellow);
+    padding: 36px 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .bottom-tagline {
+    font-family: 'Editorial Old', serif;
+    font-style: italic;
+    font-size: 30px;
+    color: var(--black);
+    letter-spacing: -0.02em;
+  }
+  .bottom-url {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: var(--red);
+    font-weight: 500;
+  }
+
+  /* === FRANKIE NOTE === */
+  .frankie-note {
+    background: rgba(245,242,235,0.06);
+    border-radius: 12px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    border: 1px solid rgba(245,242,235,0.08);
+    position: relative;
+  }
+  .frankie-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--yellow);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .frankie-text {
+    font-size: 18px;
+    color: rgba(245,242,235,0.75);
+    line-height: 1.7;
+    font-style: italic;
+  }
+
+  /* === FRANKIE SAYS PULL QUOTE === */
+  .frankie-quote {
+    border-left: 4px solid var(--red);
+    padding-left: 24px;
+    margin-bottom: 48px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+  }
+  .frankie-quote-text {
+    font-size: 16px;
+    color: rgba(245,242,235,0.7);
+    line-height: 1.7;
+    font-style: italic;
+    font-family: 'Editorial Old', serif;
+  }
+
+  /* RESPONSIVE — TABLET */
+  @media (max-width: 768px) {
+    .hero { padding: 56px 40px 44px; }
+    .hero-logo svg { width: 140px; }
+    .hero-title { font-size: 54px; }
+    .hero-sub { font-size: 17px; }
+    .body { padding: 40px 40px; }
+    .rule-num { font-size: 40px; min-width: 44px; }
+    .rule-title { font-size: 20px; }
+    .rule-desc { font-size: 15px; }
+    .expect-grid { grid-template-columns: 1fr 1fr; gap: 16px; }
+    .expect-card { padding: 22px 20px; }
+    .bottom-strip { padding: 28px 40px; flex-wrap: wrap; gap: 12px; }
+    .bottom-tagline { font-size: 24px; }
+    .frankie-note { padding: 22px 24px; }
+    .frankie-text { font-size: 16px; }
+  }
+
+  /* RESPONSIVE — MOBILE */
+  @media (max-width: 480px) {
+    .hero { padding: 40px 24px 32px; }
+    .hero-logo svg { width: 110px; }
+    .hero-title { font-size: 38px; }
+    .hero-sub { font-size: 15px; max-width: 100%; }
+    .body { padding: 32px 24px; gap: 0; }
+    .section-label { font-size: 13px; letter-spacing: 3px; margin-bottom: 20px; }
+    .rules { gap: 24px; margin-bottom: 36px; }
+    .rule { gap: 16px; }
+    .rule-num { font-size: 32px; min-width: 36px; }
+    .rule-title { font-size: 17px; }
+    .rule-desc { font-size: 14px; }
+    .expect-grid { grid-template-columns: 1fr; gap: 12px; }
+    .expect-card { padding: 18px 16px; }
+    .expect-time { font-size: 12px; }
+    .expect-what { font-size: 16px; }
+    .expect-detail { font-size: 13px; }
+    .bottom-strip {
+      padding: 24px;
+      flex-direction: column;
+      text-align: center;
+      gap: 8px;
+    }
+    .bottom-tagline { font-size: 20px; }
+    .bottom-url { font-size: 14px; }
+    .frankie-note { padding: 18px 20px; margin-bottom: 32px; }
+    .frankie-tag { font-size: 11px; }
+    .frankie-text { font-size: 15px; }
+    .ready-card { padding: 24px 20px; }
+    .ready-item { gap: 12px; }
+    .ready-text { font-size: 15px; }
+    .frankie-quote { padding-left: 20px; margin-bottom: 36px; }
+    .frankie-quote-text { font-size: 15px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-logo">
+      <svg width="474" height="263" viewBox="0 0 474 263" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M56.445 33.086H45.724L40.47 51.191H51.475V55.948H39.121L34.364 72.42H29.536L34.293 55.948H18.957L14.2 72.42H9.372L14.129 55.948H4.473V51.191H15.478L20.732 33.086H9.443V28.329H22.081L26.554 12.78H31.382L26.909 28.329H42.245L46.718 12.78H51.546L47.073 28.329H56.445V33.086ZM35.642 51.191L40.896 33.086H25.56L20.306 51.191H35.642ZM87.2263 24.47H65.3563V11.87H122.776V24.47H100.906V71H87.2263V24.47ZM141.886 11.87H155.566V35.09H185.716V11.87H199.306V71H185.716V47.69H155.566V71H141.886V11.87ZM222.278 11.87H278.618V24.47H235.958V35.09H267.638V47.69H235.958V58.4H278.618V71H222.278V11.87ZM8.82 131.96C6.66 127.4 5.58 122.51 5.58 117.29C5.58 112.07 6.66 107.18 8.82 102.62C11.04 98.06 14.25 94.4 18.45 91.64C22.65 88.82 27.6 87.41 33.3 87.41C37.8 87.41 41.88 88.34 45.54 90.2C49.26 92 52.35 94.52 54.81 97.76C57.27 101 59.01 104.66 60.03 108.74L60.3 109.82H51.84L51.66 109.19C50.34 104.99 48.03 101.57 44.73 98.93C41.49 96.29 37.65 94.97 33.21 94.97C29.25 94.97 25.8 96.05 22.86 98.21C19.92 100.31 17.67 103.07 16.11 106.49C14.61 109.85 13.86 113.42 13.86 117.2C13.86 120.98 14.61 124.58 16.11 128C17.67 131.42 19.92 134.21 22.86 136.37C25.8 138.47 29.25 139.52 33.21 139.52C37.65 139.52 41.49 138.23 44.73 135.65C48.03 133.01 50.34 129.59 51.66 125.39L51.84 124.76H60.3L60.03 125.75C58.47 132.11 55.32 137.3 50.58 141.32C45.84 145.28 40.08 147.26 33.3 147.26C27.6 147.26 22.65 145.85 18.45 143.03C14.25 140.21 11.04 136.52 8.82 131.96ZM81.938 146H74.288V88.58H113.438C116.678 88.58 119.438 89.33 121.718 90.83C124.058 92.27 125.798 94.22 126.938 96.68C128.078 99.14 128.648 101.84 128.648 104.78C128.648 108.98 127.508 112.64 125.228 115.76C123.008 118.82 119.708 120.47 115.328 120.71L112.718 120.8L127.208 146H118.658L104.348 120.8H81.938V146ZM81.938 95.69V113.78H113.438C115.958 113.78 117.848 112.97 119.108 111.35C120.368 109.67 120.998 107.51 120.998 104.87C120.998 102.29 120.338 100.13 119.018 98.39C117.758 96.59 115.898 95.69 113.438 95.69H81.938ZM143.018 146V88.58H195.038V95.69H150.668V113.78H183.698V120.8H150.668V138.98H195.038V146H143.018ZM213.139 146H205.039L229.789 88.22H237.889L263.449 146H255.169L248.509 130.7H219.619L213.139 146ZM233.929 95.96L222.229 123.68H246.169L233.929 95.96ZM286.721 146V95.69H263.951V88.58H317.231V95.69H294.371V146H286.721ZM330.05 146V88.58H337.7V146H330.05ZM374.018 146L349.268 88.22H357.368L378.158 136.55L399.398 88.22H407.678L382.118 146H374.018ZM419.347 146V88.58H471.367V95.69H426.997V113.78H460.027V120.8H426.997V138.98H471.367V146H419.347ZM8.37 161.87H22.05V185.09H52.2V161.87H65.79V221H52.2V197.69H22.05V221H8.37V161.87ZM85.9718 191.39C85.9718 183.11 88.6718 175.94 94.0718 169.88C99.4718 163.76 106.702 160.7 115.762 160.7C124.822 160.7 132.052 163.76 137.452 169.88C142.852 175.94 145.552 183.11 145.552 191.39C145.552 196.73 144.412 201.71 142.132 206.33C139.852 210.95 136.402 214.76 131.782 217.76C127.162 220.7 121.822 222.17 115.762 222.17C109.702 222.17 104.362 220.7 99.7418 217.76C95.1218 214.76 91.6718 210.95 89.3918 206.33C87.1118 201.71 85.9718 196.73 85.9718 191.39ZM131.422 191.39C131.422 186.65 130.012 182.54 127.192 179.06C124.372 175.58 120.562 173.84 115.762 173.84C110.962 173.84 107.152 175.58 104.332 179.06C101.572 182.54 100.192 186.65 100.192 191.39C100.192 196.13 101.572 200.24 104.332 203.72C107.152 207.14 110.962 208.85 115.762 208.85C120.562 208.85 124.372 207.14 127.192 203.72C130.012 200.24 131.422 196.13 131.422 191.39ZM180.12 174.47H158.25V161.87H215.67V174.47H193.8V221H180.12V174.47ZM234.78 161.87H248.46V208.4H281.22V221H234.78V161.87ZM300.406 161.87H314.086V221H300.406V161.87ZM337.028 161.87H348.818L380.858 198.68V161.87H394.448V221H382.568L350.708 184.1V221H337.028V161.87ZM417.42 161.87H473.76V174.47H431.1V185.09H462.78V197.69H431.1V208.4H473.76V221H417.42V161.87Z" fill="white"/>
+      </svg>
+    </div>
+    <div class="hero-title">Before Your Call</div>
+    <div class="hero-sub">This isn't a regular meeting. Here's how we make your 45 minutes count.</div>
+  </div>
+
+  <!-- BODY -->
+  <div class="body">
+
+    <!-- FRANKIE NOTE -->
+    <div class="frankie-note">
+      <div class="frankie-tag">A note from us</div>
+      <div class="frankie-text">We've already done our homework on you. We've reviewed your brand, your content, your positioning — everything you sent us plus what we found ourselves. You don't need to present or explain. Just show up ready to talk.</div>
+    </div>
+
+    <!-- THE RULES -->
+    <div class="section-label">How This Works</div>
+    <div class="rules">
+      <div class="rule">
+        <div class="rule-num">01</div>
+        <div class="rule-content">
+          <div class="rule-title">It's 45 minutes. Sharp.</div>
+          <div class="rule-desc">We keep it tight because constraints create clarity. The clock runs the whole time — we'll keep us on track.</div>
+        </div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">02</div>
+        <div class="rule-content">
+          <div class="rule-title">We lead. You react.</div>
+          <div class="rule-desc">We'll share what we found in our research, name what we see, and pressure-test it with you. This isn't a brainstorm — it's a diagnosis + direction.</div>
+        </div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">03</div>
+        <div class="rule-content">
+          <div class="rule-title">Off-topic ideas go to the B-Side.</div>
+          <div class="rule-desc">If something great comes up that isn't on-agenda, we capture it separately. Nothing gets lost — it just gets filed for later.</div>
+        </div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">04</div>
+        <div class="rule-content">
+          <div class="rule-title">Everything is recorded.</div>
+          <div class="rule-desc">Don't worry about notes. The full session is transcribed and you'll get a link to review. Focus on the conversation, not capturing it.</div>
+        </div>
+      </div>
+      <div class="rule">
+        <div class="rule-num">05</div>
+        <div class="rule-content">
+          <div class="rule-title">Your action plan arrives after.</div>
+          <div class="rule-desc">Within 48 hours, you'll receive a custom action plan with clear next moves, timelines, tools, and two paths for every recommendation — DIY or level up.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WHAT TO HAVE READY -->
+    <div class="ready-section">
+      <div class="section-label">What to Have Ready</div>
+      <div class="ready-card">
+        <div class="ready-list">
+          <div class="ready-item">
+            <div class="ready-check">✓</div>
+            <div class="ready-text">Your intake form — completed</div>
+          </div>
+          <div class="ready-item">
+            <div class="ready-check">✓</div>
+            <div class="ready-text">Your website / IG open on your screen</div>
+          </div>
+          <div class="ready-item">
+            <div class="ready-check">✓</div>
+            <div class="ready-text">A quiet space with good wifi</div>
+          </div>
+          <div class="ready-item">
+            <div class="ready-check">✓</div>
+            <div class="ready-text">Something to drink. This goes fast.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FRANKIE SAYS -->
+    <div class="frankie-quote">
+      <div class="frankie-quote-text">"Between us? The ones who get the most out of this show up with one real question — not ten. Pick the thing that's been keeping you up. We'll handle the rest. — F"</div>
+    </div>
+
+    <!-- WHAT TO EXPECT -->
+    <div class="section-label">What to Expect</div>
+    <div class="expect-grid">
+      <div class="expect-card">
+        <div class="expect-time">0:00 — 2:00</div>
+        <div class="expect-what">Quick intros</div>
+        <div class="expect-detail">60 seconds each. Who you are, what you're working on, what's keeping you up at night.</div>
+      </div>
+      <div class="expect-card">
+        <div class="expect-time">2:00 — 12:00</div>
+        <div class="expect-what">Our findings</div>
+        <div class="expect-detail">We share what we found in our research. You tell us what lands and what we're missing.</div>
+      </div>
+      <div class="expect-card">
+        <div class="expect-time">12:00 — 25:00</div>
+        <div class="expect-what">Direction + diagnosis</div>
+        <div class="expect-detail">Your north star, the creative audit, and the honest read on where you are.</div>
+      </div>
+      <div class="expect-card">
+        <div class="expect-time">25:00 — 45:00</div>
+        <div class="expect-what">The plan</div>
+        <div class="expect-detail">Concrete moves. What to do this week, this month, and what to stop doing entirely.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM STRIP -->
+  <div class="bottom-strip">
+    <div>
+      <div class="bottom-tagline">Stop spiraling. Start creating.</div>
+      <div style="font-family: 'JetBrains Mono', monospace; font-size: 14px; color: rgba(28,28,30,0.6); margin-top: 8px;">Questions before your call? hello@thecreativehotline.com</div>
+    </div>
+    <div class="bottom-url">thecreativehotline.com</div>
+  </div>
+
+</div>
+
+</body>
+</html>
