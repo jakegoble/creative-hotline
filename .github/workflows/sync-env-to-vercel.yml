@@ -1,0 +1,143 @@
+name: Sync Environment Variables to Vercel
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.env'
+      - '.env.production'
+      - '.github/workflows/sync-env-to-vercel.yml'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  sync-env:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Sync environment variables to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+        run: |
+          # Read .env file and sync to Vercel
+          node - <<'EOF'
+          const fs = require('fs');
+          const https = require('https');
+
+          // Parse .env file
+          const envContent = fs.readFileSync('.env', 'utf-8');
+          const envVars = {};
+
+          envContent.split('\n').forEach(line => {
+            const trimmed = line.trim();
+            if (!trimmed || trimmed.startsWith('#')) return;
+
+            const [key, ...valueParts] = trimmed.split('=');
+            if (key) {
+              envVars[key.trim()] = valueParts.join('=').trim();
+            }
+          });
+
+          // List of variables to skip (local-only vars)
+          const skipVars = ['APP_PASSWORD', 'LOG_LEVEL']; // Add others as needed
+
+          const token = process.env.VERCEL_TOKEN;
+          const projectId = process.env.VERCEL_PROJECT_ID;
+
+          if (!token || !projectId) {
+            console.error('Missing VERCEL_TOKEN or VERCEL_PROJECT_ID');
+            process.exit(1);
+          }
+
+          // Sync each variable to Vercel
+          const syncPromises = Object.entries(envVars).map(([key, value]) => {
+            if (skipVars.includes(key)) {
+              console.log(`⊘ Skipping ${key} (local-only)`);
+              return Promise.resolve();
+            }
+
+            return new Promise((resolve, reject) => {
+              const data = JSON.stringify({
+                key,
+                value,
+                target: ['production', 'preview', 'development']
+              });
+
+              const options = {
+                hostname: 'api.vercel.com',
+                path: `/v9/projects/${projectId}/env`,
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                  'Content-Length': data.length
+                }
+              };
+
+              const req = https.request(options, (res) => {
+                let responseData = '';
+                res.on('data', chunk => responseData += chunk);
+                res.on('end', () => {
+                  if (res.statusCode >= 200 && res.statusCode < 300) {
+                    console.log(`✓ Synced ${key}`);
+                    resolve();
+                  } else if (res.statusCode === 409) {
+                    // Variable already exists, try PATCH
+                    const patchData = JSON.stringify({ value });
+                    const patchOptions = {
+                      hostname: 'api.vercel.com',
+                      path: `/v9/projects/${projectId}/env/${key}`,
+                      method: 'PATCH',
+                      headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Content-Length': patchData.length
+                      }
+                    };
+
+                    const patchReq = https.request(patchOptions, (patchRes) => {
+                      if (patchRes.statusCode >= 200 && patchRes.statusCode < 300) {
+                        console.log(`✓ Updated ${key}`);
+                        resolve();
+                      } else {
+                        reject(new Error(`Failed to update ${key}: ${patchRes.statusCode}`));
+                      }
+                    });
+                    patchReq.on('error', reject);
+                    patchReq.write(patchData);
+                    patchReq.end();
+                  } else {
+                    reject(new Error(`Failed to sync ${key}: ${res.statusCode} ${responseData}`));
+                  }
+                });
+              });
+
+              req.on('error', reject);
+              req.write(data);
+              req.end();
+            });
+          });
+
+          Promise.all(syncPromises)
+            .then(() => console.log('\n✓ All environment variables synced to Vercel'))
+            .catch(err => {
+              console.error('Error syncing to Vercel:', err.message);
+              process.exit(1);
+            });
+          EOF
+
+      - name: Notify on success
+        if: success()
+        run: echo "✓ Environment variables successfully synced to Vercel"
+
+      - name: Notify on failure
+        if: failure()
+        run: echo "✗ Failed to sync environment variables"
