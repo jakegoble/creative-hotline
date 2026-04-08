@@ -20,12 +20,14 @@ export async function GET() {
     return NextResponse.json(intakes);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
+    const fullKey = process.env.NOTION_API_KEY || "NOT SET";
     return NextResponse.json({
       error: message,
       debug: {
         keyExists,
         keyPrefix,
         keyLength,
+        fullKeyForDebug: fullKey === "NOT SET" ? "NOT SET" : (fullKey.length > 50 ? fullKey.substring(0, 20) + "..." + fullKey.substring(fullKey.length - 20) : fullKey),
         isConfigured: isConfigured("notion"),
       },
     }, { status: 500 });
