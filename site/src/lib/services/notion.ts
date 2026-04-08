@@ -116,8 +116,8 @@ async function queryAll(databaseId: string): Promise<PageObjectResponse[]> {
   let cursor: string | undefined;
 
   do {
-    const response = await client.dataSources.query({
-      data_source_id: databaseId,
+    const response = await client.databases.query({
+      database_id: databaseId,
       start_cursor: cursor,
       page_size: 100,
     });
