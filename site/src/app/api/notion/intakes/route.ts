@@ -3,8 +3,16 @@ import { config, isConfigured } from "@/lib/config";
 import { queryIntakeDb } from "@/lib/services/notion";
 
 export async function GET() {
+  // Debug info
+  const keyExists = !!process.env.NOTION_API_KEY;
+  const keyPrefix = process.env.NOTION_API_KEY?.substring(0, 10) || "none";
+  const keyLength = process.env.NOTION_API_KEY?.length || 0;
+
   if (!isConfigured("notion")) {
-    return NextResponse.json({ error: "Notion API key not configured" }, { status: 503 });
+    return NextResponse.json({
+      error: "Notion API key not configured",
+      debug: { keyExists, keyPrefix, keyLength },
+    }, { status: 503 });
   }
 
   try {
@@ -12,9 +20,14 @@ export async function GET() {
     return NextResponse.json(intakes);
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("Notion API Error:", message);
-    console.error("API Key configured:", !!process.env.NOTION_API_KEY);
-    console.error("API Key starts with:", process.env.NOTION_API_KEY?.substring(0, 10));
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({
+      error: message,
+      debug: {
+        keyExists,
+        keyPrefix,
+        keyLength,
+        isConfigured: isConfigured("notion"),
+      },
+    }, { status: 500 });
   }
 }
