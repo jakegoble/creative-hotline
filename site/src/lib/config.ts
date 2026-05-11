@@ -44,6 +44,26 @@ export const config = {
   fireflies: {
     apiKey: process.env.FIREFLIES_API_KEY ?? "",
   },
+
+  sendgrid: {
+    apiKey: process.env.SENDGRID_API_KEY ?? "",
+  },
+
+  /** V2 Frankie onboarding emails — off by default until SendGrid is verified. */
+  frankieEmails: {
+    enabled: process.env.ENABLE_FRANKIE_EMAILS === "true",
+    /** Calendly product URLs by Stripe product mapping (Batch 2 wire-up). */
+    calendlyUrls: {
+      firstCall: process.env.CALENDLY_URL_FIRST_CALL ?? "",
+      singleCall: process.env.CALENDLY_URL_SINGLE_CALL ?? "",
+      clarityBundle: process.env.CALENDLY_URL_CLARITY_BUNDLE ?? "",
+    },
+    /** Tally intake URL (prefilled with email at send time). */
+    tallyUrl: process.env.TALLY_INTAKE_URL ?? "https://tally.so/r/intake",
+    /** Service agreement hosted URL — populated when Megha approves draft. */
+    serviceAgreementUrl:
+      process.env.SERVICE_AGREEMENT_URL ?? "https://thecreativehotline.com/legal/service-agreement",
+  },
 } as const;
 
 type ServiceKey =

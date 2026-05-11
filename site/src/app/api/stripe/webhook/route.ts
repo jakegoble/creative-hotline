@@ -23,6 +23,7 @@ import {
   constructWebhookEvent,
 } from "@/lib/services/stripe-webhook";
 import { createPaymentRecord } from "@/lib/services/notion-payments-write";
+import { sendConfirmationFromStripeSession } from "@/lib/email/send-frankie";
 
 // Stripe needs the raw, un-parsed body to verify the signature.
 // Next.js App Router gives us `request.text()` which preserves the raw bytes.
@@ -63,10 +64,24 @@ export async function POST(request: Request) {
         console.log(
           `[stripe-webhook] checkout.session.completed → notion ${result.created ? "created" : "deduped"} ${result.pageId} for ${input.email}`,
         );
+
+        // Frankie confirmation email — fire-and-log only on NEW payments
+        // (don't re-email on retries that hit the idempotency dedup path).
+        // Gated by ENABLE_FRANKIE_EMAILS env var. Never throws.
+        let emailStatus: { ok: boolean; reason?: string } = { ok: false, reason: "skipped_dedup" };
+        if (result.created) {
+          emailStatus = await sendConfirmationFromStripeSession(session, input.product);
+          console.log(
+            `[stripe-webhook] frankie confirmation: ok=${emailStatus.ok}${emailStatus.reason ? ` reason=${emailStatus.reason}` : ""}`,
+          );
+        }
+
         return NextResponse.json({
           received: true,
           notion_page_id: result.pageId,
           created: result.created,
+          email_sent: emailStatus.ok,
+          email_reason: emailStatus.reason,
         });
       }
 
