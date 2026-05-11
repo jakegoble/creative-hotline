@@ -79,18 +79,29 @@ function markdownToHtml(md: string): string {
     return `<p style="margin:0 0 16px 0;line-height:1.55;font-size:16px;color:#1B1B1B">${lines}</p>`;
   });
 
+  // Table-based wrapper for reliable centering across email clients (Gmail
+  // ignores `margin:0 auto` on divs in some viewports — tables with align=
+  // "center" are the canonical email-safe centering pattern).
   return `
-    <div style="font-family:'JetBrains Mono','Courier New',monospace;background:#FFF8F0;padding:32px 24px;color:#1B1B1B">
-      <div style="max-width:560px;margin:0 auto;background:#FFFFFF;padding:32px 28px;border-radius:8px;border:1px solid #1B1B1B">
-        ${paragraphs.join("\n        ")}
-        <hr style="border:none;border-top:1px solid #E6E6E6;margin:24px 0">
-        <p style="margin:0;font-size:13px;color:#666;line-height:1.4">
-          ☎️ <strong>The Creative Hotline</strong><br>
-          <a href="https://thecreativehotline.com" style="color:#666;text-decoration:none">thecreativehotline.com</a><br>
-          <em>Stop spiraling. Start creating.</em>
-        </p>
-      </div>
-    </div>
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background:#FFF8F0;font-family:'JetBrains Mono','Courier New',monospace;color:#1B1B1B">
+      <tr>
+        <td align="center" style="padding:32px 24px">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="560" style="max-width:560px;width:100%;background:#FFFFFF;border-radius:8px;border:1px solid #1B1B1B">
+            <tr>
+              <td style="padding:32px 28px">
+                ${paragraphs.join("\n                ")}
+                <hr style="border:none;border-top:1px solid #E6E6E6;margin:24px 0">
+                <p style="margin:0;font-size:13px;color:#666;line-height:1.4">
+                  ☎️ <strong>The Creative Hotline</strong><br>
+                  <a href="https://thecreativehotline.com" style="color:#666;text-decoration:none">thecreativehotline.com</a><br>
+                  <em>Stop spiraling. Start creating.</em>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
   `;
 }
 
