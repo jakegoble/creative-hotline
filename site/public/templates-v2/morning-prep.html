@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morning Prep · The Creative Hotline</title>
+<style>
+  /* V2 brand: red=Megha, blue=Jake, yellow=client, black=automated, green=urgent */
+  :root {
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --ink: #1B1B1B;
+    --muted: #666666;
+    --line: #E6E6E6;
+    --megha: #E63946;
+    --jake: #2D77E0;
+    --client: #F4B400;
+    --auto: #1B1B1B;
+    --urgent: #2BAE66;
+    --warn: #B95F00;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 20px 64px;
+  }
+  header {
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  header .meta {
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .controls input[type="date"] {
+    font: inherit;
+    padding: 6px 8px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--card);
+  }
+  button {
+    font: inherit;
+    padding: 8px 14px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    transition: background 0.1s ease;
+  }
+  button:hover:not(:disabled) { background: var(--bg); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary {
+    background: var(--jake);
+    color: #fff;
+    border-color: var(--jake);
+  }
+  button.primary:hover:not(:disabled) { background: #245fb0; }
+  button.urgent {
+    background: var(--urgent);
+    color: #fff;
+    border-color: var(--urgent);
+  }
+  button.megha {
+    background: var(--megha);
+    color: #fff;
+    border-color: var(--megha);
+  }
+  section {
+    background: var(--card);
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  section h2 {
+    margin: 0 0 12px;
+    font-size: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .empty {
+    color: var(--muted);
+    font-style: italic;
+    padding: 12px 0;
+  }
+  .session-card {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-top: 12px;
+    background: var(--bg);
+  }
+  .session-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .session-head strong { font-size: 16px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #fff;
+  }
+  .badge.prep    { background: #888; }
+  .badge.session { background: var(--jake); }
+  .badge.debrief { background: #9333ea; }
+  .badge.review  { background: var(--warn); }
+  .badge.sent    { background: var(--urgent); }
+  .badge.unknown { background: #444; }
+  .badge.brief-ready { background: var(--urgent); }
+  .badge.brief-pending, .badge.brief-not_generated { background: #aaa; }
+  .badge.brief-generating { background: var(--client); color: var(--ink); }
+  .badge.brief-failed { background: var(--megha); }
+  .session-meta {
+    color: var(--muted);
+    font-size: 13px;
+    margin: 4px 0 12px;
+  }
+  .session-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .brief-detail {
+    margin-top: 12px;
+    padding: 12px 14px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    overflow-x: auto;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  .promote-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .promote-form select,
+  .promote-form input {
+    font: inherit;
+    padding: 8px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--ink);
+  }
+  @media (max-width: 640px) {
+    .promote-form { grid-template-columns: 1fr; }
+  }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--megha); }
+  footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+  }
+  a { color: var(--jake); }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>☎️ Morning Prep</h1>
+      <div class="meta" id="dateLabel">Loading…</div>
+    </div>
+    <div class="controls">
+      <input type="date" id="dateInput">
+      <button id="reloadBtn">Reload</button>
+    </div>
+  </header>
+
+  <section id="sessionsSection">
+    <h2>Today's Sessions</h2>
+    <div id="sessionsBody"><div class="empty">Loading…</div></div>
+  </section>
+
+  <section id="promoteSection">
+    <h2>Promote a Payment to a Session</h2>
+    <p style="margin:0 0 8px;color:var(--muted);font-size:13px">
+      Manual fallback until the Calendly webhook is wired. Pick a paid client + their booked time.
+    </p>
+    <div class="promote-form">
+      <select id="paymentSelect">
+        <option value="">Loading payments…</option>
+      </select>
+      <input type="datetime-local" id="scheduledAtInput">
+      <button class="primary" id="promoteBtn">Promote</button>
+    </div>
+  </section>
+
+  <footer>
+    The Creative Hotline · V2 Morning Prep · Batch 3b
+  </footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  const dateInput = document.getElementById('dateInput');
+  const dateLabel = document.getElementById('dateLabel');
+  const sessionsBody = document.getElementById('sessionsBody');
+  const reloadBtn = document.getElementById('reloadBtn');
+  const paymentSelect = document.getElementById('paymentSelect');
+  const scheduledAtInput = document.getElementById('scheduledAtInput');
+  const promoteBtn = document.getElementById('promoteBtn');
+  const toast = document.getElementById('toast');
+
+  function todayISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function showToast(msg, isError) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    if (iso.length === 10) return iso;
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        weekday: 'short', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit',
+      });
+    } catch { return iso; }
+  }
+
+  function fmtMoney(n) {
+    if (typeof n !== 'number' || n === 0) return '—';
+    return '$' + (n / 100).toFixed(0);
+  }
+
+  function badgeClass(prefix, value) {
+    return `badge ${prefix}-${(value || 'unknown').toLowerCase().replace(/\s+/g, '_')}`;
+  }
+
+  function renderSessions(data) {
+    dateLabel.textContent = `${data.date} · ${data.count} session${data.count === 1 ? '' : 's'}`;
+    if (!data.sessions || data.sessions.length === 0) {
+      sessionsBody.innerHTML = '<div class="empty">No sessions scheduled. Use the Promote form below to create one from a Payment.</div>';
+      return;
+    }
+    sessionsBody.innerHTML = data.sessions.map(renderSessionCard).join('');
+    // Wire generate-brief buttons
+    document.querySelectorAll('.gen-brief-btn').forEach(btn => {
+      btn.addEventListener('click', () => generateBrief(btn.dataset.intakeId, btn));
+    });
+    document.querySelectorAll('.view-brief-btn').forEach(btn => {
+      btn.addEventListener('click', () => toggleBrief(btn.dataset.intakeId, btn));
+    });
+  }
+
+  function renderSessionCard(s) {
+    const stateBadge = `<span class="${badgeClass('badge', s.state)}">${s.state}</span>`;
+    const briefBadge = `<span class="${badgeClass('badge brief', s.briefStatus)}">Brief: ${s.briefStatus}</span>`;
+    const intakeId = s.intake ? s.intake.id : '';
+    const paymentInfo = s.payment
+      ? `${s.payment.product || '—'} · ${fmtMoney(s.payment.amount)} · ${s.payment.email}`
+      : '<em>no payment linked</em>';
+    const intakeInfo = s.intake
+      ? `intake ${s.intake.status || 'unknown'}`
+      : '<em>no intake linked</em>';
+
+    const briefBtn = intakeId
+      ? (s.briefStatus === 'Ready'
+          ? `<button class="view-brief-btn" data-intake-id="${intakeId}">View Brief</button>`
+          : `<button class="primary gen-brief-btn" data-intake-id="${intakeId}">Generate Brief</button>`)
+      : '<span style="color:var(--muted);font-size:12px">link intake to generate brief</span>';
+
+    return `
+      <div class="session-card" data-session-id="${s.id}">
+        <div class="session-head">
+          <div>
+            <strong>${escapeHtml(s.clientName || 'Untitled')}</strong>
+            ${s.sessionId ? `<span style="color:var(--muted);font-size:12px">#${s.sessionId}</span>` : ''}
+          </div>
+          <div>${stateBadge} ${briefBadge}</div>
+        </div>
+        <div class="session-meta">
+          ${fmtTime(s.scheduledAt)} · ${paymentInfo} · ${intakeInfo}
+        </div>
+        <div class="session-actions">
+          ${briefBtn}
+        </div>
+        <div class="brief-detail" id="brief-${intakeId}" style="display:none"></div>
+      </div>
+    `;
+  }
+
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  async function generateBrief(intakeId, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Generating…';
+    try {
+      const res = await fetch('/api/research-brief/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intakeId }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        showToast(`Generate failed: ${body.message || body.error}`, true);
+        btn.disabled = false;
+        btn.textContent = 'Generate Brief';
+        return;
+      }
+      showToast('Brief ready — reloading…');
+      setTimeout(loadSessions, 600);
+    } catch (err) {
+      showToast(`Generate failed: ${err.message}`, true);
+      btn.disabled = false;
+      btn.textContent = 'Generate Brief';
+    }
+  }
+
+  async function toggleBrief(intakeId, btn) {
+    const target = document.getElementById(`brief-${intakeId}`);
+    if (!target) return;
+    if (target.style.display === 'block') {
+      target.style.display = 'none';
+      btn.textContent = 'View Brief';
+      return;
+    }
+    btn.disabled = true;
+    target.style.display = 'block';
+    target.textContent = 'Loading brief…';
+    try {
+      // Fetch intake page directly via Notion API would need a server route;
+      // for now, regenerate-and-show isn't appropriate. Use a dedicated GET if/when needed.
+      // Quick approach: re-call /api/research-brief/generate is wasteful. Instead,
+      // we'll fetch a tiny GET endpoint. Until that exists, just hint at pulling from Notion.
+      const res = await fetch(`/api/research-brief/get?intakeId=${encodeURIComponent(intakeId)}`);
+      if (!res.ok) {
+        // Fallback message — endpoint may not exist yet.
+        target.textContent = `Brief is ready in Notion (intake ${intakeId.slice(0,8)}…). A dedicated GET endpoint will be added in Batch 3c.`;
+      } else {
+        const body = await res.json();
+        target.textContent = body.json
+          ? JSON.stringify(JSON.parse(body.json), null, 2)
+          : 'Brief field empty.';
+      }
+    } catch (err) {
+      target.textContent = `Error loading brief: ${err.message}`;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Hide Brief';
+    }
+  }
+
+  async function loadSessions() {
+    const date = dateInput.value || todayISO();
+    sessionsBody.innerHTML = '<div class="empty">Loading…</div>';
+    try {
+      const res = await fetch(`/api/sessions/today?date=${encodeURIComponent(date)}`);
+      const body = await res.json();
+      if (!res.ok) {
+        sessionsBody.innerHTML = `<div class="empty" style="color:var(--megha)">Error: ${body.message || body.error}</div>`;
+        return;
+      }
+      renderSessions(body);
+    } catch (err) {
+      sessionsBody.innerHTML = `<div class="empty" style="color:var(--megha)">Network error: ${err.message}</div>`;
+    }
+  }
+
+  async function loadUnpromotedPayments() {
+    try {
+      const res = await fetch('/api/payments/unpromoted');
+      const body = await res.json();
+      if (!res.ok) {
+        paymentSelect.innerHTML = `<option value="">Error loading</option>`;
+        return;
+      }
+      if (!body.payments || body.payments.length === 0) {
+        paymentSelect.innerHTML = `<option value="">No unpromoted payments</option>`;
+        return;
+      }
+      paymentSelect.innerHTML = '<option value="">— pick a payment —</option>' +
+        body.payments.map(p => {
+          const label = `${p.clientName || p.email} · ${p.product || '—'} · ${p.paymentDate || ''}`;
+          return `<option value="${p.id}">${escapeHtml(label)}</option>`;
+        }).join('');
+    } catch (err) {
+      paymentSelect.innerHTML = `<option value="">Network error</option>`;
+    }
+  }
+
+  async function promote() {
+    const paymentId = paymentSelect.value;
+    const scheduledAt = scheduledAtInput.value;
+    if (!paymentId) {
+      showToast('Pick a payment first.', true);
+      return;
+    }
+    if (!scheduledAt) {
+      showToast('Set a scheduled time.', true);
+      return;
+    }
+    promoteBtn.disabled = true;
+    promoteBtn.textContent = 'Promoting…';
+    try {
+      // Convert datetime-local (no TZ) to ISO with local offset.
+      const localDate = new Date(scheduledAt);
+      const iso = localDate.toISOString();
+      const res = await fetch('/api/sessions/from-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId, scheduledAt: iso }),
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        showToast(`Promote failed: ${body.message || body.error}`, true);
+        return;
+      }
+      showToast(body.created ? 'Session created.' : 'Already existed (deduped).');
+      paymentSelect.value = '';
+      scheduledAtInput.value = '';
+      // Set date filter to the promoted date so the new session appears.
+      dateInput.value = scheduledAt.slice(0, 10);
+      await Promise.all([loadSessions(), loadUnpromotedPayments()]);
+    } catch (err) {
+      showToast(`Network error: ${err.message}`, true);
+    } finally {
+      promoteBtn.disabled = false;
+      promoteBtn.textContent = 'Promote';
+    }
+  }
+
+  // Init.
+  dateInput.value = todayISO();
+  reloadBtn.addEventListener('click', loadSessions);
+  dateInput.addEventListener('change', loadSessions);
+  promoteBtn.addEventListener('click', promote);
+  loadSessions();
+  loadUnpromotedPayments();
+})();
+</script>
+</body>
+</html>

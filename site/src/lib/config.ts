@@ -13,6 +13,8 @@ export const config = {
       process.env.NOTION_PAYMENTS_DB ?? "3030e73f-fadc-8029-9357-000b74a5a2f7",
     intakeDbId:
       process.env.NOTION_INTAKE_DB ?? "2f60e73f-fadc-80fb-beb5-000bdddbc915",
+    sessionsDbId:
+      process.env.NOTION_SESSIONS_DB ?? "0003001f-6446-4f0e-ae9b-fed8887cc0a3",
   },
 
   stripe: {
