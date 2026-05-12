@@ -26,6 +26,12 @@ export const config = {
     apiKey: process.env.CALENDLY_API_KEY ?? "",
     orgUri: process.env.CALENDLY_ORG_URI ?? "",
     userUri: process.env.CALENDLY_USER_URI ?? "",
+    /**
+     * Webhook signing key. Returned by Calendly when you create the webhook
+     * subscription via POST /webhook_subscriptions (NOT the same as your
+     * personal access token). Stored verbatim — used as the HMAC secret.
+     */
+    webhookSecret: process.env.CALENDLY_WEBHOOK_SECRET ?? "",
   },
 
   anthropic: {

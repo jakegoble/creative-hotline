@@ -53,6 +53,33 @@ export async function findPaymentByStripeSessionId(
 }
 
 /**
+ * Find a Payments page by email. Returns the most recently-created match or
+ * null. Used by the Calendly webhook to auto-link a fresh booking back to the
+ * Payment row that triggered it.
+ *
+ * Mirror of findIntakeIdByEmail in notion-intake-read.ts. Email is the only
+ * stable cross-source key (Tally + Calendly + Stripe all collect it) — see
+ * project_tch_v2_implementation.md.
+ */
+export async function findPaymentByEmail(
+  email: string,
+): Promise<string | null> {
+  if (!email) return null;
+  const client = getClient();
+  const response = await client.dataSources.query({
+    data_source_id: config.notion.paymentsDbId,
+    filter: {
+      property: "Email",
+      email: { equals: email },
+    },
+    sorts: [{ timestamp: "created_time", direction: "descending" }],
+    page_size: 1,
+  });
+  const first = response.results[0];
+  return first ? first.id : null;
+}
+
+/**
  * Create a Payments DB row from a Stripe checkout session.
  *
  * Idempotent: if a row already exists for the given Stripe Session ID, returns
