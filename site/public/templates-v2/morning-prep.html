@@ -185,7 +185,13 @@
     border-radius: 4px;
     background: var(--card);
     color: var(--ink);
+    /* Grid items default to min-width:auto, which makes a <select> grow to
+       fit its widest <option>. Force it to honor its 1fr allocation and
+       truncate visually instead of overflowing the row. */
+    min-width: 0;
+    max-width: 100%;
   }
+  .promote-form select { text-overflow: ellipsis; }
   @media (max-width: 640px) {
     .promote-form { grid-template-columns: 1fr; }
   }
