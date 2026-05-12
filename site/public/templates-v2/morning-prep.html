@@ -425,9 +425,12 @@
 
   async function loadSessions() {
     const date = dateInput.value || todayISO();
+    // Send local TZ offset so the API can translate the local calendar day
+    // into a UTC datetime range (Notion filters in UTC).
+    const tz = new Date().getTimezoneOffset();
     sessionsBody.innerHTML = '<div class="empty">Loading…</div>';
     try {
-      const res = await fetch(`/api/sessions/today?date=${encodeURIComponent(date)}`);
+      const res = await fetch(`/api/sessions/today?date=${encodeURIComponent(date)}&tz=${tz}`);
       const body = await res.json();
       if (!res.ok) {
         sessionsBody.innerHTML = `<div class="empty" style="color:var(--megha)">Error: ${body.message || body.error}</div>`;

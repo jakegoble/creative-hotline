@@ -134,21 +134,40 @@ function parseSession(page: PageObjectResponse): SessionRecord {
 // ---------------------------------------------------------------------------
 
 /**
- * Get all sessions whose Session Date falls on the given calendar date
- * (interpreted in the date's local TZ — we filter on the date string).
+ * Get all sessions whose Session Date falls on the given calendar date.
  *
- * @param dateISO YYYY-MM-DD. Defaults to today (server's UTC date).
+ * Notion's date filter operates in UTC, so a session stored as
+ * 2026-05-12T00:29Z (5:29 PM PT on May 11) won't match a filter for the
+ * date string "2026-05-11". To handle this correctly, callers must pass
+ * `tzOffsetMinutes` — the user's local TZ offset in minutes west of UTC
+ * (matches `Date.getTimezoneOffset()` semantics: PT = +420, ET = +240).
+ *
+ * @param dateISO YYYY-MM-DD in the user's local TZ. Defaults to today UTC.
+ * @param tzOffsetMinutes Offset in minutes west of UTC. Defaults to 0 (UTC).
  */
 export async function getSessionsForDate(
   dateISO?: string,
+  tzOffsetMinutes: number = 0,
 ): Promise<SessionRecord[]> {
   const date = dateISO ?? new Date().toISOString().slice(0, 10);
   const client = getClient();
 
+  // Convert the user's local calendar day to a UTC datetime range.
+  // Local 00:00 of `date` in UTC = `date`T00:00 + tzOffsetMinutes minutes.
+  const startUtcMs =
+    Date.UTC(
+      Number(date.slice(0, 4)),
+      Number(date.slice(5, 7)) - 1,
+      Number(date.slice(8, 10)),
+    ) + tzOffsetMinutes * 60 * 1000;
+  const endUtcMs = startUtcMs + 24 * 60 * 60 * 1000 - 1;
+  const startIso = new Date(startUtcMs).toISOString();
+  const endIso = new Date(endUtcMs).toISOString();
+
   const filter: QueryDataSourceParameters["filter"] = {
     and: [
-      { property: "Session Date", date: { on_or_after: date } },
-      { property: "Session Date", date: { on_or_before: date } },
+      { property: "Session Date", date: { on_or_after: startIso } },
+      { property: "Session Date", date: { on_or_before: endIso } },
     ],
   };
 

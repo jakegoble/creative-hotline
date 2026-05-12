@@ -116,10 +116,18 @@ async function fetchIntake(id: string): Promise<IntakeSummary | null> {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const dateParam = url.searchParams.get("date") ?? undefined;
+  // tz offset in minutes west of UTC (matches JS `Date.getTimezoneOffset()`).
+  // PT = +420, ET = +240. Defaults to 0 (interpret date as UTC) for callers
+  // that don't send it.
+  const tzParam = url.searchParams.get("tz");
+  const tzOffsetMinutes = tzParam ? Number(tzParam) : 0;
 
   let sessions;
   try {
-    sessions = await getSessionsForDate(dateParam);
+    sessions = await getSessionsForDate(
+      dateParam,
+      Number.isFinite(tzOffsetMinutes) ? tzOffsetMinutes : 0,
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : "sessions_query_failed";
     return NextResponse.json({ error: "sessions_query_failed", message }, { status: 500 });
