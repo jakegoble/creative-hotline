@@ -13,6 +13,8 @@ export const config = {
       process.env.NOTION_PAYMENTS_DB ?? "3030e73f-fadc-8029-9357-000b74a5a2f7",
     intakeDbId:
       process.env.NOTION_INTAKE_DB ?? "2f60e73f-fadc-80fb-beb5-000bdddbc915",
+    sessionsDbId:
+      process.env.NOTION_SESSIONS_DB ?? "0003001f-6446-4f0e-ae9b-fed8887cc0a3",
   },
 
   stripe: {
@@ -24,6 +26,12 @@ export const config = {
     apiKey: process.env.CALENDLY_API_KEY ?? "",
     orgUri: process.env.CALENDLY_ORG_URI ?? "",
     userUri: process.env.CALENDLY_USER_URI ?? "",
+    /**
+     * Webhook signing key. Returned by Calendly when you create the webhook
+     * subscription via POST /webhook_subscriptions (NOT the same as your
+     * personal access token). Stored verbatim — used as the HMAC secret.
+     */
+    webhookSecret: process.env.CALENDLY_WEBHOOK_SECRET ?? "",
   },
 
   anthropic: {
@@ -43,6 +51,26 @@ export const config = {
 
   fireflies: {
     apiKey: process.env.FIREFLIES_API_KEY ?? "",
+  },
+
+  sendgrid: {
+    apiKey: process.env.SENDGRID_API_KEY ?? "",
+  },
+
+  /** V2 Frankie onboarding emails — off by default until SendGrid is verified. */
+  frankieEmails: {
+    enabled: process.env.ENABLE_FRANKIE_EMAILS === "true",
+    /** Calendly product URLs by Stripe product mapping (Batch 2 wire-up). */
+    calendlyUrls: {
+      firstCall: process.env.CALENDLY_URL_FIRST_CALL ?? "",
+      singleCall: process.env.CALENDLY_URL_SINGLE_CALL ?? "",
+      clarityBundle: process.env.CALENDLY_URL_CLARITY_BUNDLE ?? "",
+    },
+    /** Tally intake URL (prefilled with email at send time). */
+    tallyUrl: process.env.TALLY_INTAKE_URL ?? "https://tally.so/r/intake",
+    /** Service agreement hosted URL — populated when Megha approves draft. */
+    serviceAgreementUrl:
+      process.env.SERVICE_AGREEMENT_URL ?? "https://thecreativehotline.com/legal/service-agreement",
   },
 } as const;
 
