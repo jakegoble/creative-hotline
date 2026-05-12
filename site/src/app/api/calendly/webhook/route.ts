@@ -66,7 +66,11 @@ export async function POST(request: Request) {
     }
 
     const inv = event.payload;
-    const email = inv.email?.trim().toLowerCase() ?? "";
+    // Note: don't normalize case here — match existing findIntakeIdByEmail
+    // and Stripe write paths (both pass the raw email to Notion). Notion's
+    // email-property equals filter is case-insensitive server-side, so this
+    // stays consistent with the rest of the V2 pipeline.
+    const email = inv.email?.trim() ?? "";
     if (!email) {
       console.warn(
         `[calendly-webhook] invitee.created missing email; uri=${inv.uri}`,

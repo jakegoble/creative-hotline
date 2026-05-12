@@ -295,8 +295,10 @@
   }
 
   function fmtMoney(n) {
+    // Notion's "Payment Amount" stores dollars (cents→dollars conversion happens
+    // in the Stripe webhook before write). Do not divide again here.
     if (typeof n !== 'number' || n === 0) return '—';
-    return '$' + (n / 100).toFixed(0);
+    return '$' + Math.round(n).toLocaleString('en-US');
   }
 
   function badgeClass(prefix, value) {
