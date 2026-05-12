@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Workshop · The Creative Hotline</title>
+<style>
+  /* V2 brand: red=Megha, blue=Jake, yellow=client, black=automated, green=urgent */
+  :root {
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --ink: #1B1B1B;
+    --muted: #666666;
+    --line: #E6E6E6;
+    --megha: #E63946;
+    --jake: #2D77E0;
+    --client: #F4B400;
+    --auto: #1B1B1B;
+    --urgent: #2BAE66;
+    --warn: #B95F00;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+  header {
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  header .meta {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  button, a.btn {
+    font: inherit;
+    padding: 8px 14px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.1s ease;
+  }
+  button:hover:not(:disabled), a.btn:hover { background: var(--bg); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary {
+    background: var(--jake);
+    color: #fff;
+    border-color: var(--jake);
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #fff;
+    vertical-align: middle;
+  }
+  .badge.prep    { background: #888; }
+  .badge.session { background: var(--jake); }
+  .badge.debrief { background: #9333ea; }
+  .badge.review  { background: var(--warn); }
+  .badge.sent    { background: var(--urgent); }
+  .badge.unknown { background: #444; }
+
+  section {
+    background: var(--card);
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  section h2 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* North Star */
+  .north-star input {
+    font: inherit;
+    font-size: 18px;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--bg);
+  }
+  .north-star input::placeholder { color: var(--muted); font-style: italic; }
+
+  /* Workshop layout: inbox + 2x2 grid */
+  .workshop {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 900px) {
+    .workshop { grid-template-columns: 1fr; }
+  }
+
+  .inbox {
+    background: var(--card);
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    padding: 16px;
+    min-height: 200px;
+  }
+  .inbox h2 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .inbox .hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0 0 12px;
+    font-style: italic;
+  }
+  .inbox-list {
+    min-height: 60px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .add-idea {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+  }
+  .add-idea input {
+    flex: 1;
+    font: inherit;
+    padding: 8px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--bg);
+  }
+  .add-idea button {
+    padding: 8px 12px;
+    background: var(--client);
+    border-color: var(--client);
+  }
+
+  /* 2x2 grid */
+  .matrix {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 14px;
+    min-height: 600px;
+    position: relative;
+  }
+  /* On the narrowest screens, stack the quadrants */
+  @media (max-width: 540px) {
+    .matrix { grid-template-columns: 1fr; grid-template-rows: repeat(4, auto); }
+  }
+  .quadrant {
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    padding: 14px;
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+  }
+  .quadrant-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .quadrant-head strong {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .quadrant-head .axes {
+    color: var(--muted);
+    font-size: 11px;
+  }
+  .quadrant.quick_wins  { background: #FFFCEC; border-color: var(--urgent); }
+  .quadrant.big_bets    { background: #EEF4FF; border-color: var(--jake); }
+  .quadrant.fill_ins    { background: #F8F8F8; border-color: var(--muted); }
+  .quadrant.time_sinks  { background: #FFF0F0; border-color: var(--megha); }
+  .quadrant-list {
+    flex: 1;
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .quadrant-list:empty::after {
+    content: "Drag ideas here";
+    color: var(--muted);
+    font-style: italic;
+    font-size: 12px;
+    padding: 8px 0;
+    text-align: center;
+  }
+
+  /* Idea cards */
+  .idea-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: grab;
+    transition: box-shadow 0.1s ease;
+  }
+  .idea-card:active { cursor: grabbing; }
+  .quadrant .idea-card { background: rgba(255,255,255,0.85); }
+  .idea-card.sortable-ghost { opacity: 0.4; }
+  .idea-card.sortable-drag { box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+
+  .idea-head {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .idea-text {
+    flex: 1;
+    font: inherit;
+    border: none;
+    background: transparent;
+    padding: 2px 0;
+    resize: none;
+    overflow: hidden;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .idea-text:focus { outline: 1px dashed var(--jake); outline-offset: 2px; }
+  .idea-delete {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+    padding: 0 4px;
+  }
+  .idea-delete:hover { color: var(--megha); }
+
+  /* Path A / Path B — only visible when the card is inside a quadrant */
+  .idea-paths { display: none; }
+  .quadrant .idea-card .idea-paths {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+  }
+  @media (max-width: 640px) {
+    .quadrant .idea-card .idea-paths { grid-template-columns: 1fr; }
+  }
+  .path label {
+    display: block;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 4px;
+  }
+  .path textarea {
+    font: inherit;
+    font-size: 13px;
+    width: 100%;
+    min-height: 50px;
+    padding: 6px 8px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--bg);
+    resize: vertical;
+    color: var(--ink);
+  }
+  .path textarea:focus { outline: 1px solid var(--jake); border-color: var(--jake); }
+
+  /* Save indicator + toast */
+  .save-status {
+    color: var(--muted);
+    font-size: 12px;
+    font-style: italic;
+  }
+  .save-status.saving { color: var(--warn); }
+  .save-status.saved  { color: var(--urgent); }
+  .save-status.error  { color: var(--megha); font-style: normal; }
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--megha); }
+
+  footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+  }
+  a { color: var(--jake); }
+  .error-screen {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--megha);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>🎯 Live Workshop</h1>
+      <div class="meta" id="metaLine">Loading session…</div>
+    </div>
+    <div class="controls">
+      <span class="save-status" id="saveStatus">—</span>
+      <a class="btn" href="/templates-v2/morning-prep.html">← Morning Prep</a>
+    </div>
+  </header>
+
+  <div id="errorScreen" style="display:none" class="error-screen"></div>
+
+  <div id="workshopRoot" style="display:none">
+
+    <section class="north-star">
+      <h2>★ North Star</h2>
+      <input type="text" id="northStar" placeholder="What's the one outcome this workshop should deliver?">
+    </section>
+
+    <div class="workshop">
+
+      <aside class="inbox">
+        <h2>💡 Ideas</h2>
+        <p class="hint">Capture raw ideas here. Drag to a quadrant when ready.</p>
+        <div class="inbox-list" id="inboxList"></div>
+        <div class="add-idea">
+          <input type="text" id="ideaInput" placeholder="New idea…">
+          <button id="addIdeaBtn" type="button">+ Add</button>
+        </div>
+      </aside>
+
+      <div class="matrix">
+        <div class="quadrant quick_wins" data-quadrant="quick_wins">
+          <div class="quadrant-head">
+            <strong>Quick Wins</strong>
+            <span class="axes">high impact · low effort</span>
+          </div>
+          <div class="quadrant-list" data-quadrant-list="quick_wins"></div>
+        </div>
+        <div class="quadrant big_bets" data-quadrant="big_bets">
+          <div class="quadrant-head">
+            <strong>Big Bets</strong>
+            <span class="axes">high impact · high effort</span>
+          </div>
+          <div class="quadrant-list" data-quadrant-list="big_bets"></div>
+        </div>
+        <div class="quadrant fill_ins" data-quadrant="fill_ins">
+          <div class="quadrant-head">
+            <strong>Fill-ins</strong>
+            <span class="axes">low impact · low effort</span>
+          </div>
+          <div class="quadrant-list" data-quadrant-list="fill_ins"></div>
+        </div>
+        <div class="quadrant time_sinks" data-quadrant="time_sinks">
+          <div class="quadrant-head">
+            <strong>Time Sinks</strong>
+            <span class="axes">low impact · high effort</span>
+          </div>
+          <div class="quadrant-list" data-quadrant-list="time_sinks"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <footer>
+      The Creative Hotline · V2 Live Workshop · Batch 4 · Autosave on
+    </footer>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+<script>
+(function () {
+  // ---- URL ---------------------------------------------------------------
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('sessionId');
+
+  // ---- DOM refs ----------------------------------------------------------
+  const errorScreen = document.getElementById('errorScreen');
+  const workshopRoot = document.getElementById('workshopRoot');
+  const metaLine = document.getElementById('metaLine');
+  const saveStatus = document.getElementById('saveStatus');
+  const northStarInput = document.getElementById('northStar');
+  const inboxList = document.getElementById('inboxList');
+  const ideaInput = document.getElementById('ideaInput');
+  const addIdeaBtn = document.getElementById('addIdeaBtn');
+  const toast = document.getElementById('toast');
+  const quadrantLists = {
+    quick_wins: document.querySelector('[data-quadrant-list="quick_wins"]'),
+    big_bets:   document.querySelector('[data-quadrant-list="big_bets"]'),
+    fill_ins:   document.querySelector('[data-quadrant-list="fill_ins"]'),
+    time_sinks: document.querySelector('[data-quadrant-list="time_sinks"]'),
+  };
+  const QUADRANTS = ['quick_wins', 'big_bets', 'fill_ins', 'time_sinks'];
+
+  // ---- State -------------------------------------------------------------
+  /** @type {{version:1, northStar:string, ideas:Array, updatedAt:string|null}} */
+  let state = {
+    version: 1,
+    northStar: '',
+    ideas: [],
+    updatedAt: null,
+  };
+  let currentSessionState = 'Unknown';
+
+  // ---- Utilities ---------------------------------------------------------
+  function showError(msg) {
+    errorScreen.style.display = 'block';
+    errorScreen.textContent = msg;
+    workshopRoot.style.display = 'none';
+  }
+  function showToast(msg, isError) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    if (iso.length === 10) return iso;
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        weekday: 'short', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit',
+      });
+    } catch { return iso; }
+  }
+  function fmtNow() {
+    return new Date().toLocaleTimeString(undefined, {
+      hour: 'numeric', minute: '2-digit'
+    });
+  }
+  function escapeAttr(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  }
+  function newIdeaId() {
+    return 'idea_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  }
+  function badgeClass(state) {
+    return 'badge ' + (state || 'unknown').toLowerCase();
+  }
+
+  // ---- Save (debounced autosave) -----------------------------------------
+  let saveTimer = null;
+  let inflightSave = null;
+  const SAVE_DEBOUNCE_MS = 2000;
+
+  function scheduleSave() {
+    if (!sessionId) return;
+    saveStatus.textContent = 'unsaved…';
+    saveStatus.className = 'save-status saving';
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, SAVE_DEBOUNCE_MS);
+  }
+
+  async function doSave() {
+    saveTimer = null;
+    state.updatedAt = new Date().toISOString();
+    const payload = { workshopJson: JSON.stringify(state) };
+
+    saveStatus.textContent = 'saving…';
+    saveStatus.className = 'save-status saving';
+
+    try {
+      // If a save is already inflight, wait for it before starting another —
+      // prevents race conditions where an older save lands after a newer one.
+      if (inflightSave) await inflightSave;
+      inflightSave = fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-workshop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const res = await inflightSave;
+      inflightSave = null;
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        saveStatus.textContent = `save failed: ${body.message || body.error || 'unknown'}`;
+        saveStatus.className = 'save-status error';
+        return;
+      }
+      saveStatus.textContent = `saved ${fmtNow()}`;
+      saveStatus.className = 'save-status saved';
+      // If the server transitioned Prep → Session, update our badge.
+      if (body.advanced && body.state && body.state !== currentSessionState) {
+        currentSessionState = body.state;
+        updateMetaLine();
+        showToast('Session locked in — Prep → Session');
+      } else if (body.state) {
+        currentSessionState = body.state;
+      }
+    } catch (err) {
+      inflightSave = null;
+      saveStatus.textContent = `save failed: ${err.message}`;
+      saveStatus.className = 'save-status error';
+    }
+  }
+
+  // ---- Rendering ---------------------------------------------------------
+  // Strategy: we render each idea card once and let Sortable.js physically
+  // move the DOM node between containers when the user drags. State.ideas[i]
+  // .quadrant is updated in the Sortable onAdd callback. We DO NOT re-render
+  // on every move — that would tear down Sortable's drag state.
+
+  function renderAll() {
+    // Clear all containers.
+    inboxList.innerHTML = '';
+    QUADRANTS.forEach(q => quadrantLists[q].innerHTML = '');
+
+    // Place each idea into the right container based on its quadrant.
+    state.ideas.forEach(idea => {
+      const card = buildCard(idea);
+      const target = idea.quadrant && quadrantLists[idea.quadrant]
+        ? quadrantLists[idea.quadrant]
+        : inboxList;
+      target.appendChild(card);
+    });
+  }
+
+  function buildCard(idea) {
+    const card = document.createElement('div');
+    card.className = 'idea-card';
+    card.dataset.ideaId = idea.id;
+    card.innerHTML = `
+      <div class="idea-head">
+        <textarea class="idea-text" rows="1" placeholder="(empty)">${escapeText(idea.text)}</textarea>
+        <button class="idea-delete" type="button" aria-label="Delete idea">×</button>
+      </div>
+      <div class="idea-paths">
+        <div class="path">
+          <label>Path A — DIY</label>
+          <textarea class="path-a" placeholder="What can the client do themselves?">${escapeText(idea.pathA)}</textarea>
+        </div>
+        <div class="path">
+          <label>Path B — Level Up</label>
+          <textarea class="path-b" placeholder="What changes if we (TCH) take it on?">${escapeText(idea.pathB)}</textarea>
+        </div>
+      </div>
+    `;
+
+    const textEl = card.querySelector('.idea-text');
+    autoGrow(textEl);
+    textEl.addEventListener('input', () => {
+      idea.text = textEl.value;
+      autoGrow(textEl);
+      scheduleSave();
+    });
+    const pathAEl = card.querySelector('.path-a');
+    pathAEl.addEventListener('input', () => {
+      idea.pathA = pathAEl.value;
+      scheduleSave();
+    });
+    const pathBEl = card.querySelector('.path-b');
+    pathBEl.addEventListener('input', () => {
+      idea.pathB = pathBEl.value;
+      scheduleSave();
+    });
+    const delBtn = card.querySelector('.idea-delete');
+    delBtn.addEventListener('click', () => {
+      if (!confirm('Delete this idea?')) return;
+      state.ideas = state.ideas.filter(i => i.id !== idea.id);
+      card.remove();
+      scheduleSave();
+    });
+
+    return card;
+  }
+
+  function escapeText(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function autoGrow(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight) + 'px';
+  }
+
+  // ---- Sortable setup ----------------------------------------------------
+  function setupSortables() {
+    const opts = (quadrantName) => ({
+      group: 'ideas',
+      animation: 150,
+      ghostClass: 'sortable-ghost',
+      dragClass: 'sortable-drag',
+      onAdd: (evt) => {
+        const ideaId = evt.item.dataset.ideaId;
+        const idea = state.ideas.find(i => i.id === ideaId);
+        if (idea && idea.quadrant !== quadrantName) {
+          idea.quadrant = quadrantName;
+          // Re-run autogrow on path textareas now that they're visible.
+          evt.item.querySelectorAll('textarea').forEach(autoGrow);
+          scheduleSave();
+        }
+      },
+    });
+    Sortable.create(inboxList, opts(null));
+    QUADRANTS.forEach(q => Sortable.create(quadrantLists[q], opts(q)));
+  }
+
+  // ---- Add idea ----------------------------------------------------------
+  function addIdea() {
+    const text = ideaInput.value.trim();
+    if (!text) return;
+    const idea = {
+      id: newIdeaId(),
+      text,
+      quadrant: null,
+      pathA: '',
+      pathB: '',
+      createdAt: new Date().toISOString(),
+    };
+    state.ideas.push(idea);
+    const card = buildCard(idea);
+    inboxList.appendChild(card);
+    ideaInput.value = '';
+    ideaInput.focus();
+    scheduleSave();
+  }
+
+  // ---- North Star --------------------------------------------------------
+  northStarInput.addEventListener('input', () => {
+    state.northStar = northStarInput.value;
+    scheduleSave();
+  });
+
+  // ---- Add-idea wiring ---------------------------------------------------
+  addIdeaBtn.addEventListener('click', addIdea);
+  ideaInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addIdea();
+    }
+  });
+
+  // ---- Initial load ------------------------------------------------------
+  function updateMetaLine(session) {
+    const state = currentSessionState || 'Unknown';
+    const badge = `<span class="${badgeClass(state)}">${state}</span>`;
+    if (session) {
+      const product = session.payment?.product || '—';
+      const when = fmtTime(session.scheduledAt);
+      const sid = session.sessionId ? `#${session.sessionId}` : '';
+      metaLine.innerHTML = `${escapeText(session.clientName)} ${sid} · ${escapeText(product)} · ${when} · ${badge}`;
+    } else {
+      // Re-render with whatever clientName we have stashed
+      const existing = metaLine.dataset.base || '';
+      metaLine.innerHTML = `${existing} · ${badge}`;
+    }
+  }
+
+  async function loadSession() {
+    if (!sessionId) {
+      showError('Missing ?sessionId= in URL. Open this page from Morning Prep.');
+      return;
+    }
+
+    try {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+      const body = await res.json();
+      if (!res.ok) {
+        showError(`Failed to load session: ${body.message || body.error}`);
+        return;
+      }
+
+      currentSessionState = body.state || 'Unknown';
+      document.title = `${body.clientName || 'Workshop'} · Live Workshop · TCH`;
+      metaLine.dataset.base = `${body.clientName || 'Untitled'} · ${body.payment?.product || '—'} · ${fmtTime(body.scheduledAt)}`;
+      updateMetaLine(body);
+
+      // Restore prior workshop blob if it exists.
+      if (body.workshopJson) {
+        try {
+          const parsed = JSON.parse(body.workshopJson);
+          if (parsed && typeof parsed === 'object') {
+            state = {
+              version: 1,
+              northStar: typeof parsed.northStar === 'string' ? parsed.northStar : '',
+              ideas: Array.isArray(parsed.ideas) ? parsed.ideas.map(sanitizeIdea).filter(Boolean) : [],
+              updatedAt: parsed.updatedAt || null,
+            };
+          }
+        } catch (err) {
+          console.warn('Could not parse existing workshopJson — starting fresh.', err);
+        }
+      }
+
+      northStarInput.value = state.northStar;
+      workshopRoot.style.display = '';
+      renderAll();
+      setupSortables();
+      saveStatus.textContent = state.ideas.length > 0 || state.northStar ? 'loaded' : 'ready';
+      saveStatus.className = 'save-status';
+    } catch (err) {
+      showError(`Network error loading session: ${err.message}`);
+    }
+  }
+
+  function sanitizeIdea(raw) {
+    if (!raw || typeof raw !== 'object') return null;
+    const quadrant = QUADRANTS.includes(raw.quadrant) ? raw.quadrant : null;
+    return {
+      id: typeof raw.id === 'string' ? raw.id : newIdeaId(),
+      text: typeof raw.text === 'string' ? raw.text : '',
+      quadrant,
+      pathA: typeof raw.pathA === 'string' ? raw.pathA : '',
+      pathB: typeof raw.pathB === 'string' ? raw.pathB : '',
+      createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : new Date().toISOString(),
+    };
+  }
+
+  // ---- Warn on unsaved exit ---------------------------------------------
+  window.addEventListener('beforeunload', (e) => {
+    if (saveTimer || inflightSave) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  loadSession();
+})();
+</script>
+</body>
+</html>
