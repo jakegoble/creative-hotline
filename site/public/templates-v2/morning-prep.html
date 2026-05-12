@@ -317,6 +317,9 @@
     document.querySelectorAll('.view-brief-btn').forEach(btn => {
       btn.addEventListener('click', () => toggleBrief(btn.dataset.intakeId, btn));
     });
+    document.querySelectorAll('.link-and-gen-btn').forEach(btn => {
+      btn.addEventListener('click', () => linkAndGenerate(btn.dataset.sessionId, btn.dataset.intakeId, btn));
+    });
   }
 
   function renderSessionCard(s) {
@@ -330,11 +333,17 @@
       ? `intake ${s.intake.status || 'unknown'}`
       : '<em>no intake linked</em>';
 
-    const briefBtn = intakeId
-      ? (s.briefStatus === 'Ready'
-          ? `<button class="view-brief-btn" data-intake-id="${intakeId}">View Brief</button>`
-          : `<button class="primary gen-brief-btn" data-intake-id="${intakeId}">Generate Brief</button>`)
-      : '<span style="color:var(--muted);font-size:12px">link intake to generate brief</span>';
+    let briefBtn;
+    if (intakeId) {
+      briefBtn = (s.briefStatus === 'Ready'
+        ? `<button class="view-brief-btn" data-intake-id="${intakeId}">View Brief</button>`
+        : `<button class="primary gen-brief-btn" data-intake-id="${intakeId}">Generate Brief</button>`);
+    } else if (s.suggestedIntakeId) {
+      briefBtn = `<button class="urgent link-and-gen-btn" data-session-id="${s.id}" data-intake-id="${s.suggestedIntakeId}">Link Intake + Generate Brief</button>
+        <span style="color:var(--muted);font-size:12px;margin-left:6px">auto-detected by email</span>`;
+    } else {
+      briefBtn = '<span style="color:var(--muted);font-size:12px">no intake found for this email yet</span>';
+    }
 
     return `
       <div class="session-card" data-session-id="${s.id}">
@@ -386,6 +395,45 @@
       showToast(`Generate failed: ${err.message}`, true);
       btn.disabled = false;
       btn.textContent = 'Generate Brief';
+    }
+  }
+
+  async function linkAndGenerate(sessionId, intakeId, btn) {
+    btn.disabled = true;
+    btn.textContent = 'Linking…';
+    try {
+      // 1. Link intake to session
+      const linkRes = await fetch('/api/sessions/link-intake', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId, intakeId }),
+      });
+      if (!linkRes.ok) {
+        const body = await linkRes.json();
+        showToast(`Link failed: ${body.message || body.error}`, true);
+        btn.disabled = false;
+        btn.textContent = 'Link Intake + Generate Brief';
+        return;
+      }
+      // 2. Generate brief on the now-linked intake
+      btn.textContent = 'Generating…';
+      const genRes = await fetch('/api/research-brief/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intakeId }),
+      });
+      const genBody = await genRes.json();
+      if (!genRes.ok) {
+        showToast(`Generate failed (linked OK though): ${genBody.message || genBody.error}`, true);
+        setTimeout(loadSessions, 600);
+        return;
+      }
+      showToast('Linked + brief ready — reloading…');
+      setTimeout(loadSessions, 600);
+    } catch (err) {
+      showToast(`Link/generate failed: ${err.message}`, true);
+      btn.disabled = false;
+      btn.textContent = 'Link Intake + Generate Brief';
     }
   }
 

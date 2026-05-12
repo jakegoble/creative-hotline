@@ -29,6 +29,7 @@ import { Client as NotionClient } from "@notionhq/client";
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 import { config } from "@/lib/config";
 import { getSessionsForDate } from "@/lib/services/notion-sessions-read";
+import { findIntakeIdByEmail } from "@/lib/services/notion-intake-read";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -134,12 +135,25 @@ export async function GET(request: Request) {
   }
 
   // Enrich each session with payment + intake summaries (parallel per-session).
+  // When no Intake is linked, attempt an email-based auto-detect against the
+  // payment's email — surfaces as `suggestedIntakeId` so the dashboard can
+  // offer a one-click "Link Intake" button.
   const enriched = await Promise.all(
     sessions.map(async (s) => {
       const [payment, intake] = await Promise.all([
         s.linkedPaymentIds[0] ? fetchPayment(s.linkedPaymentIds[0]) : null,
         s.linkedIntakeIds[0] ? fetchIntake(s.linkedIntakeIds[0]) : null,
       ]);
+
+      let suggestedIntakeId: string | null = null;
+      if (!intake && payment?.email) {
+        try {
+          suggestedIntakeId = await findIntakeIdByEmail(payment.email);
+        } catch {
+          suggestedIntakeId = null;
+        }
+      }
+
       const briefStatus = intake?.briefStatus ?? "Not Generated";
       return {
         id: s.id,
@@ -149,6 +163,7 @@ export async function GET(request: Request) {
         scheduledAt: s.scheduledAt,
         payment,
         intake,
+        suggestedIntakeId,
         hasBrief: briefStatus === "Ready",
         briefStatus,
       };
