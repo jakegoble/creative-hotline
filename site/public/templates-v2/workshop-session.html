@@ -603,7 +603,12 @@
     `;
 
     const textEl = card.querySelector('.idea-text');
-    autoGrow(textEl);
+    // Defer autoGrow until the card is in the DOM — detached textareas
+    // report scrollHeight ~4px, which would lock the height too small.
+    requestAnimationFrame(() => {
+      autoGrow(textEl);
+      card.querySelectorAll('.path-a, .path-b').forEach(autoGrow);
+    });
     textEl.addEventListener('input', () => {
       idea.text = textEl.value;
       autoGrow(textEl);
