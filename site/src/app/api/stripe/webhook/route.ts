@@ -2,15 +2,24 @@
  * POST /api/stripe/webhook
  *
  * Stripe → here on payment events. Signature-verified, idempotent.
- * Handles: checkout.session.completed
+ * Handles:
+ *   - checkout.session.completed  (Stripe Checkout flow — direct on-site checkout)
+ *   - payment_intent.succeeded    (Calendly+Stripe flow — Calendly creates PI directly)
+ *
+ * The two handlers write to the same Notion Payments DB via createPaymentRecord
+ * and dedupe on the Stripe object ID (cs_ or pi_) stored in "Stripe Session ID".
  *
  * On success: lands a Payments DB row in Notion with status
- * "Paid - Needs Booking", including any redeemed promo code (referral tracking).
+ * "Paid - Needs Booking", including any redeemed promo code (referral tracking)
+ * — promo code is only populated on the CheckoutSession path; Calendly does not
+ * pass promo codes through to Stripe metadata.
  *
  * Stripe webhook setup:
  *   1. Stripe Dashboard → Developers → Webhooks → Add endpoint
  *   2. URL: https://<deployed-domain>/api/stripe/webhook
- *   3. Events: checkout.session.completed
+ *   3. Events: subscribe to BOTH checkout.session.completed AND
+ *      payment_intent.succeeded. The Calendly+Stripe integration only fires the
+ *      PI event; the direct on-site Checkout flow only fires the session event.
  *   4. Copy signing secret → STRIPE_WEBHOOK_SECRET env var in Vercel
  *
  * V2 Batch 1.
@@ -21,6 +30,7 @@ import type Stripe from "stripe";
 import {
   checkoutSessionToPaymentInput,
   constructWebhookEvent,
+  paymentIntentToPaymentInput,
 } from "@/lib/services/stripe-webhook";
 import { createPaymentRecord } from "@/lib/services/notion-payments-write";
 import { sendConfirmationFromStripeSession } from "@/lib/email/send-frankie";
@@ -82,6 +92,38 @@ export async function POST(request: Request) {
           created: result.created,
           email_sent: emailStatus.ok,
           email_reason: emailStatus.reason,
+        });
+      }
+
+      case "payment_intent.succeeded": {
+        const pi = event.data.object as Stripe.PaymentIntent;
+        const input = await paymentIntentToPaymentInput(pi);
+        if (!input.email) {
+          // Calendly-initiated PaymentIntents reliably have receipt_email, but
+          // tolerate the unexpected case: log and ack so Stripe stops retrying.
+          console.warn(
+            `[stripe-webhook] payment_intent.succeeded missing receipt_email; pi=${pi.id}`,
+          );
+          return NextResponse.json({ received: true, skipped: "no_email" });
+        }
+        const result = await createPaymentRecord(input);
+        console.log(
+          `[stripe-webhook] payment_intent.succeeded → notion ${result.created ? "created" : "deduped"} ${result.pageId} for ${input.email}`,
+        );
+
+        // Frankie email is intentionally NOT fired on the PaymentIntent path.
+        // The existing template assumes a "BOOK YOUR CALL" CTA — but in the
+        // Calendly flow the customer has already booked their call before
+        // paying. Sending Frankie here would tell them to book a call they
+        // already booked. Calendly's own confirmation email covers this case.
+        // TODO: design a separate Frankie variant for Calendly-paid clients
+        // that links to intake + service agreement only, no booking CTA.
+        return NextResponse.json({
+          received: true,
+          notion_page_id: result.pageId,
+          created: result.created,
+          email_sent: false,
+          email_reason: "frankie_skipped_for_calendly_path",
         });
       }
 

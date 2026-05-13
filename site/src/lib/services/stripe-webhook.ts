@@ -61,7 +61,37 @@ function mapProductName(input: string | undefined): ProductPurchased | undefined
   if (normalized.includes("3-pack") || normalized.includes("3 pack")) return "3-Pack Sprint";
   if (normalized.includes("clarity")) return "3-Session Clarity Sprint";
   if (normalized.includes("standard")) return "Standard Call";
+  // Calendly event type name for the $499 SKU is "Creative Hotline Call" — map to
+  // the canonical Notion enum option "First Call". If the SKU lineup grows we'll
+  // need a more nuanced mapping.
+  if (normalized.includes("creative hotline call")) return "First Call";
   return undefined;
+}
+
+/**
+ * Parse a Calendly-formatted Stripe PaymentIntent description.
+ *
+ * Calendly sets PaymentIntent.description to:
+ *   "[Calendly] {event_type_name} with {invitee_name}"
+ *
+ * Example: "[Calendly] Creative Hotline Call with Jake Goble"
+ *   → { product: "Creative Hotline Call", clientName: "Jake Goble" }
+ *
+ * Returns empty fields if the description is missing or doesn't match the
+ * expected shape — the webhook route tolerates partial data.
+ */
+function parseCalendlyDescription(
+  description: string | null | undefined,
+): { product?: string; clientName?: string } {
+  if (!description) return {};
+  const stripped = description.replace(/^\[Calendly\]\s*/i, "").trim();
+  if (!stripped) return {};
+  const match = stripped.match(/^(.*?)\s+with\s+(.+)$/i);
+  if (match) {
+    return { product: match[1].trim(), clientName: match[2].trim() };
+  }
+  // No " with " separator — treat the whole string as the product name.
+  return { product: stripped };
 }
 
 /**
@@ -162,6 +192,69 @@ export async function checkoutSessionToPaymentInput(
     paymentDate,
     product,
     redeemedCode,
+    leadSource: "Website",
+  };
+}
+
+/**
+ * Convert a Stripe `payment_intent.succeeded` event payload into the shape our
+ * Notion write helper accepts.
+ *
+ * This is the Calendly-initiated payment path: Calendly creates a PaymentIntent
+ * directly (not a Checkout Session) for paid event types. The customer pays
+ * inside Calendly's UI, Calendly captures, then Stripe fires
+ * `payment_intent.succeeded`. We never see a `checkout.session.completed` event
+ * for this flow.
+ *
+ * Field sources differ from CheckoutSession:
+ *   - email:       `pi.receipt_email` (CheckoutSession used customer_details.email)
+ *   - product:     parsed from `pi.description`  — Calendly format
+ *                  "[Calendly] {event_type} with {invitee_name}"
+ *   - clientName:  parsed from `pi.description` (same source)
+ *   - amount:      `pi.amount_received / 100`
+ *   - paymentDate: `pi.created` (Unix seconds)
+ *
+ * Known gaps vs CheckoutSession path:
+ *   - `redeemedCode` is always undefined. Calendly does NOT attach promo codes
+ *     to Stripe metadata for the PaymentIntent. Referral tracking through Stripe
+ *     is not possible for Calendly bookings. Future: cross-reference with the
+ *     Calendly invitee.created webhook, which DOES carry the redeemed promo.
+ *   - `phone` is undefined here. Available on `latest_charge.billing_details.phone`
+ *     but we skip the extra Stripe API roundtrip to keep the handler fast.
+ *     Phone for Calendly bookings flows in via the invitee.created webhook,
+ *     which writes a Session row that later links to the Payments row by email.
+ *
+ * Idempotency: we pass `pi.id` (e.g. `pi_3TWPmh...`) as `stripeSessionId`. The
+ * Notion field is named "Stripe Session ID" but used as an opaque dedup key —
+ * the value works regardless of whether it's a `cs_` or `pi_` prefix.
+ */
+export async function paymentIntentToPaymentInput(
+  pi: Stripe.PaymentIntent,
+): Promise<PaymentCreateInput> {
+  const email = pi.receipt_email ?? "";
+
+  const parsed = parseCalendlyDescription(pi.description);
+  const clientName = parsed.clientName;
+  const product = mapProductName(parsed.product);
+
+  const amount =
+    typeof pi.amount_received === "number"
+      ? pi.amount_received / 100
+      : undefined;
+
+  const paymentDate = pi.created
+    ? new Date(pi.created * 1000).toISOString()
+    : new Date().toISOString();
+
+  return {
+    stripeSessionId: pi.id,
+    email,
+    clientName,
+    phone: undefined,
+    amount,
+    paymentDate,
+    product,
+    redeemedCode: undefined,
     leadSource: "Website",
   };
 }
