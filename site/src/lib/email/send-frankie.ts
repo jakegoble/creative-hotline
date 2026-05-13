@@ -14,9 +14,13 @@
 
 import type Stripe from "stripe";
 import { config } from "../config";
-import { confirmationEmail, type ConfirmationInput } from "./templates/frankie";
+import {
+  confirmationEmail,
+  type ConfirmationInput,
+  calendlyConfirmationEmail,
+} from "./templates/frankie";
 import { sendEmail } from "../services/email";
-import type { ProductPurchased } from "../v2-types";
+import type { PaymentCreateInput, ProductPurchased } from "../v2-types";
 
 /**
  * Build the per-client confirmation email inputs from a Stripe checkout session
@@ -78,6 +82,69 @@ export async function sendConfirmationFromStripeSession(
     const tmpl = confirmationEmail(input);
     const result = await sendEmail({
       to: email,
+      subject: tmpl.subject,
+      bodyMarkdown: tmpl.bodyMarkdown,
+      previewText: tmpl.previewText,
+      categories: tmpl.categories,
+    });
+    return result.ok
+      ? { ok: true }
+      : { ok: false, reason: result.reason ?? "send_failed" };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    return { ok: false, reason: `template_or_send_threw: ${message}` };
+  }
+}
+
+/**
+ * Build the confirmation email for the Calendly-paid path and send it.
+ *
+ * Used by the `payment_intent.succeeded` branch of the Stripe webhook. The
+ * customer paid inside Calendly's checkout, so they already have their meeting
+ * time. This template skips the "BOOK YOUR CALL" CTA from the Checkout flow.
+ *
+ * Returns ok=true on send, or with a reason describing why we skipped.
+ * Never throws.
+ */
+export async function sendConfirmationFromCalendlyPayment(
+  input: PaymentCreateInput,
+): Promise<{ ok: boolean; reason?: string }> {
+  // Hard gate — don't even attempt sends until explicitly enabled.
+  if (!config.frankieEmails.enabled) {
+    return { ok: false, reason: "frankie_disabled" };
+  }
+
+  if (!input.email) {
+    return { ok: false, reason: "no_recipient_email" };
+  }
+
+  // First name — prefer the parsed clientName from the PaymentIntent
+  // description, fall back to email-prefix.
+  const fullName = input.clientName ?? "";
+  const firstName =
+    fullName.split(/\s+/)[0] || input.email.split("@")[0];
+
+  // Tally URL — prefill the email so the client doesn't re-type it.
+  const tallyUrl = (() => {
+    const base = config.frankieEmails.tallyUrl;
+    if (!base) return "";
+    const sep = base.includes("?") ? "&" : "?";
+    return `${base}${sep}email=${encodeURIComponent(input.email)}`;
+  })();
+
+  // Product label for subject-line personalization. Only included if mapped
+  // cleanly — synthetic / test events may have undefined product.
+  const productLabel = input.product ?? undefined;
+
+  try {
+    const tmpl = calendlyConfirmationEmail({
+      firstName,
+      tallyUrl,
+      serviceAgreementUrl: config.frankieEmails.serviceAgreementUrl,
+      productLabel,
+    });
+    const result = await sendEmail({
+      to: input.email,
       subject: tmpl.subject,
       bodyMarkdown: tmpl.bodyMarkdown,
       previewText: tmpl.previewText,

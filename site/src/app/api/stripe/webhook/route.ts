@@ -22,7 +22,8 @@
  *      PI event; the direct on-site Checkout flow only fires the session event.
  *   4. Copy signing secret → STRIPE_WEBHOOK_SECRET env var in Vercel
  *
- * V2 Batch 1.
+ * V2 Batch 1 (CheckoutSession path) + PaymentIntent path added 2026-05-12 for
+ * the Calendly+Stripe integration discovered to use Payment Intents directly.
  */
 
 import { NextResponse } from "next/server";
@@ -33,7 +34,10 @@ import {
   paymentIntentToPaymentInput,
 } from "@/lib/services/stripe-webhook";
 import { createPaymentRecord } from "@/lib/services/notion-payments-write";
-import { sendConfirmationFromStripeSession } from "@/lib/email/send-frankie";
+import {
+  sendConfirmationFromCalendlyPayment,
+  sendConfirmationFromStripeSession,
+} from "@/lib/email/send-frankie";
 
 // Stripe needs the raw, un-parsed body to verify the signature.
 // Next.js App Router gives us `request.text()` which preserves the raw bytes.
@@ -111,19 +115,27 @@ export async function POST(request: Request) {
           `[stripe-webhook] payment_intent.succeeded → notion ${result.created ? "created" : "deduped"} ${result.pageId} for ${input.email}`,
         );
 
-        // Frankie email is intentionally NOT fired on the PaymentIntent path.
-        // The existing template assumes a "BOOK YOUR CALL" CTA — but in the
-        // Calendly flow the customer has already booked their call before
-        // paying. Sending Frankie here would tell them to book a call they
-        // already booked. Calendly's own confirmation email covers this case.
-        // TODO: design a separate Frankie variant for Calendly-paid clients
-        // that links to intake + service agreement only, no booking CTA.
+        // Frankie confirmation email (Calendly-paid variant) — fire-and-log
+        // only on NEW payments. The template skips the "BOOK YOUR CALL" CTA
+        // because the customer already booked inside Calendly. Gated by
+        // ENABLE_FRANKIE_EMAILS env var. Never throws.
+        let emailStatus: { ok: boolean; reason?: string } = {
+          ok: false,
+          reason: "skipped_dedup",
+        };
+        if (result.created) {
+          emailStatus = await sendConfirmationFromCalendlyPayment(input);
+          console.log(
+            `[stripe-webhook] frankie (calendly-path) confirmation: ok=${emailStatus.ok}${emailStatus.reason ? ` reason=${emailStatus.reason}` : ""}`,
+          );
+        }
+
         return NextResponse.json({
           received: true,
           notion_page_id: result.pageId,
           created: result.created,
-          email_sent: false,
-          email_reason: "frankie_skipped_for_calendly_path",
+          email_sent: emailStatus.ok,
+          email_reason: emailStatus.reason,
         });
       }
 

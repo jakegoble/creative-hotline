@@ -9,9 +9,13 @@
  *   2. Look up the Intake row by the same email (best-effort)
  *   3. Create a Session row in "Prep" state, linked to the Payment + Intake
  *
- * If no Payment exists for that email, we ack-and-skip — the row will land
- * later when Stripe fires checkout.session.completed, and the next inbound
- * Calendly event (e.g., invitee.canceled or rescheduled) can reconcile.
+ * Race condition with Stripe: Calendly fires invitee.created and Stripe fires
+ * payment_intent.succeeded roughly in parallel. If Calendly hits this handler
+ * before Stripe has finished writing the Payment row, the lookup misses. To
+ * handle that, we retry the Payment lookup once after a short delay (well
+ * inside Calendly's 30s webhook timeout). If still no Payment after the retry,
+ * we ack-and-skip — manual Promote from the Morning Prep dashboard remains the
+ * fallback.
  *
  * Idempotency: createSession dedupes on Linked Payment relation, so retries
  * or duplicate Calendly deliveries return the existing Session page id without
@@ -78,12 +82,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, skipped: "no_email" });
     }
 
-    const paymentPageId = await findPaymentByEmail(email);
+    // First lookup. If Stripe's webhook has already landed (typical case),
+    // this returns the Payment page ID and we proceed immediately.
+    let paymentPageId = await findPaymentByEmail(email);
     if (!paymentPageId) {
-      // No Payment yet — Stripe hasn't fired or this booking is org-internal.
-      // Ack so Calendly doesn't retry; manual Promote remains the fallback.
+      // Race-window retry. Wait briefly to give Stripe's payment_intent.succeeded
+      // handler time to write the Payment row, then try once more. Worst-case
+      // adds ~3s of latency on the rare miss; well inside Calendly's 30s
+      // webhook timeout.
+      await new Promise((r) => setTimeout(r, 3000));
+      paymentPageId = await findPaymentByEmail(email);
+    }
+    if (!paymentPageId) {
+      // Still no Payment after retry. Likely an org-internal booking with no
+      // Stripe payment, OR the Stripe path is broken/lagging. Ack so Calendly
+      // doesn't retry — manual Promote from Morning Prep is the fallback.
       console.warn(
-        `[calendly-webhook] no Payment row for email=${email}; will not auto-create Session`,
+        `[calendly-webhook] no Payment row for email=${email} after retry; will not auto-create Session`,
       );
       return NextResponse.json({
         received: true,

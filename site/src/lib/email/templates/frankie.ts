@@ -69,6 +69,65 @@ Talk soon,
 }
 
 // ---------------------------------------------------------------------------
+// EMAIL 1b · Confirmation (Calendly-paid path)
+// ---------------------------------------------------------------------------
+//
+// Variant of EMAIL 1 for clients who paid INSIDE the Calendly checkout flow
+// (the production path: Calendly creates the Stripe PaymentIntent, captures,
+// and we receive `payment_intent.succeeded`). At this point the customer has
+// already locked their booking time, so the "BOOK YOUR CALL" CTA from EMAIL 1
+// makes no sense. This template skips it and goes straight to intake + service
+// agreement.
+//
+// Triggered from: stripe webhook route, case "payment_intent.succeeded".
+
+export interface CalendlyConfirmationInput {
+  firstName: string;
+  /** Tally intake URL prefilled with their email. */
+  tallyUrl: string;
+  /** Service agreement hosted URL or PDF link. */
+  serviceAgreementUrl: string;
+  /** Optional — e.g. "Creative Hotline Call" for subject-line personalization. */
+  productLabel?: string;
+}
+
+export function calendlyConfirmationEmail(
+  input: CalendlyConfirmationInput,
+): FrankieEmail {
+  const productPhrase = input.productLabel
+    ? ` for your ${input.productLabel}`
+    : "";
+  return {
+    subject: "You're on the line. ☎️ One thing before we meet.",
+    previewText:
+      "Welcome to The Creative Hotline. Time's locked in — now tell us a bit about you.",
+    categories: ["onboarding", "frankie", "confirmation_calendly"],
+    bodyMarkdown: `Hey ${input.firstName} —
+
+You're booked${productPhrase}. Welcome to The Creative Hotline.
+
+I'm Frankie. I run the wires around here. Your call time is locked in — Calendly has your meeting details and a calendar invite is on its way. So here's what's left, in order:
+
+**1 · Fill out your intake.**
+Takes about 8 minutes. Be honest, not polished. The messier the better — that's where we find the real thing. We use it to prep the call so the 45 minutes actually count.
+[START INTAKE →](${input.tallyUrl})
+
+**2 · Show up ready.**
+The night before your call, I'll send you a one-pager so you walk in dialed in. Until then, just keep doing what you're doing.
+
+One thing to know: your action plan lands in your inbox **24 hours after the call**. We don't sit on it. That's the promise.
+
+**Service agreement:** [Read it here](${input.serviceAgreementUrl})
+**Receipt:** Stripe will email you a copy.
+
+Questions? Hit reply or text the hotline at +1 (413) 767-4332.
+
+Talk soon,
+— F`,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // EMAIL 2 · Intake Nudge
 // ---------------------------------------------------------------------------
 
