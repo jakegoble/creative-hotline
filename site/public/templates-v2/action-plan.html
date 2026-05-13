@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Action Plan · The Creative Hotline</title>
+<style>
+  :root {
+    --bg: #FFF8F0;
+    --paper: #FFFFFF;
+    --ink: #1B1B1B;
+    --muted: #6B6B6B;
+    --line: #E8E4DE;
+    --hotline-red: #EC3107;
+    --electric-blue: #2D77E0;
+    --acid-yellow: #F4B400;
+    --urgent: #2BAE66;
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+  }
+
+  /* Brand mark / header */
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+  }
+  .brand .dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 999px;
+    background: var(--hotline-red);
+    transform: translateY(1px);
+  }
+
+  .doc-meta {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+
+  /* Headline + summary */
+  .headline {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+    margin: 0 0 18px;
+  }
+  @media (max-width: 540px) {
+    .headline { font-size: 26px; }
+  }
+  .summary {
+    font-size: 17px;
+    line-height: 1.65;
+    margin-bottom: 36px;
+    color: #2a2a2a;
+  }
+
+  /* Sections */
+  section {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 28px;
+    margin-bottom: 22px;
+    box-shadow: var(--shadow-md);
+  }
+  section h2 {
+    margin: 0 0 4px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--hotline-red);
+  }
+  section .sub {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+
+  ol.steps {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    counter-reset: step;
+  }
+  ol.steps > li {
+    counter-increment: step;
+    position: relative;
+    padding: 14px 0 14px 44px;
+    border-top: 1px solid var(--line);
+  }
+  ol.steps > li:first-child { border-top: none; padding-top: 6px; }
+  ol.steps > li:last-child  { padding-bottom: 4px; }
+  ol.steps > li::before {
+    content: counter(step);
+    position: absolute;
+    left: 0;
+    top: 14px;
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    background: var(--electric-blue);
+    color: #fff;
+    text-align: center;
+    font-size: 13px;
+    line-height: 30px;
+    font-weight: 700;
+  }
+  ol.steps > li:first-child::before { top: 6px; }
+  .step-title {
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .step-detail {
+    color: #333;
+    margin-top: 4px;
+  }
+  .owner-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .owner-tag.client { background: #FFF7DA; color: #6B5400; }
+  .owner-tag.tch    { background: #EEF4FF; color: var(--electric-blue); }
+
+  ul.questions, ul.resources {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  ul.questions > li, ul.resources > li {
+    padding: 10px 0 10px 26px;
+    border-top: 1px solid var(--line);
+    position: relative;
+  }
+  ul.questions > li:first-child,
+  ul.resources > li:first-child { border-top: none; }
+  ul.questions > li::before {
+    content: "?";
+    position: absolute;
+    left: 0; top: 10px;
+    width: 18px; height: 18px;
+    border-radius: 999px;
+    background: var(--acid-yellow);
+    color: var(--ink);
+    text-align: center;
+    line-height: 18px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  ul.resources > li::before {
+    content: "→";
+    position: absolute;
+    left: 0; top: 10px;
+    color: var(--hotline-red);
+    font-weight: 700;
+  }
+  ul.resources a { color: var(--electric-blue); word-break: break-all; }
+
+  .closing {
+    background: #FFFAF1;
+    border: 1px dashed var(--hotline-red);
+    border-radius: 14px;
+    padding: 22px 26px;
+    margin-bottom: 28px;
+    font-style: italic;
+    color: #3a3a3a;
+    line-height: 1.65;
+  }
+  .closing-from {
+    display: block;
+    margin-top: 12px;
+    font-style: normal;
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* Edit mode (internal preview) */
+  .editor-bar {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin: -16px 0 28px;
+    padding: 12px 16px;
+    background: var(--paper);
+    border: 1px dashed var(--electric-blue);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .editor-bar.show { display: flex; }
+  .editor-bar strong { color: var(--electric-blue); }
+  .editor-bar button, .editor-bar a {
+    font: inherit;
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid var(--electric-blue);
+    background: var(--paper);
+    color: var(--electric-blue);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .editor-bar button.urgent {
+    background: var(--electric-blue);
+    color: #fff;
+  }
+
+  footer {
+    margin-top: 60px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+  }
+  .error-screen {
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--hotline-red);
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="editor-bar" id="editorBar">
+    <span><strong>Internal preview.</strong> Add <code>?edit=1</code> to URL to see this bar. The client never sees it.</span>
+    <button id="regenerateBtn" type="button">↻ Regenerate</button>
+    <a id="debriefLinkBtn" href="#">← Edit Debrief</a>
+    <span id="editorStatus" style="margin-left:auto;color:var(--muted)"></span>
+  </div>
+
+  <div class="brand">
+    <span class="dot"></span>
+    <span>The Creative Hotline · Action Plan</span>
+  </div>
+  <div class="doc-meta" id="docMeta">Loading…</div>
+
+  <div id="errorScreen" style="display:none" class="error-screen"></div>
+
+  <div id="planRoot" style="display:none">
+    <h1 class="headline" id="headline"></h1>
+    <p class="summary" id="summary"></p>
+
+    <section id="immediateSection">
+      <h2>Start this week</h2>
+      <p class="sub">The first moves. Begin with these.</p>
+      <ol class="steps" id="immediateList"></ol>
+    </section>
+
+    <section id="thirtyDaySection">
+      <h2>Next 30 days</h2>
+      <p class="sub">Bigger moves to set up after the first wins land.</p>
+      <ol class="steps" id="thirtyDayList"></ol>
+    </section>
+
+    <section id="questionsSection">
+      <h2>Open Questions</h2>
+      <p class="sub">A few things to think on — feel free to reply with answers.</p>
+      <ul class="questions" id="questionsList"></ul>
+    </section>
+
+    <section id="resourcesSection" style="display:none">
+      <h2>Resources</h2>
+      <p class="sub">Worth a look.</p>
+      <ul class="resources" id="resourcesList"></ul>
+    </section>
+
+    <div class="closing" id="closingBlock" style="display:none">
+      <div id="closingText"></div>
+      <span class="closing-from">— Megha, The Creative Hotline</span>
+    </div>
+
+    <footer>
+      Generated by The Creative Hotline · Questions? Just reply to the email we sent you.
+    </footer>
+  </div>
+</div>
+
+<script>
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('sessionId');
+  const editMode = params.get('edit') === '1';
+
+  const errorScreen = document.getElementById('errorScreen');
+  const planRoot = document.getElementById('planRoot');
+  const editorBar = document.getElementById('editorBar');
+  const editorStatus = document.getElementById('editorStatus');
+  const regenerateBtn = document.getElementById('regenerateBtn');
+  const debriefLinkBtn = document.getElementById('debriefLinkBtn');
+  const docMeta = document.getElementById('docMeta');
+
+  const headline = document.getElementById('headline');
+  const summary = document.getElementById('summary');
+  const immediateList = document.getElementById('immediateList');
+  const thirtyDayList = document.getElementById('thirtyDayList');
+  const thirtyDaySection = document.getElementById('thirtyDaySection');
+  const questionsList = document.getElementById('questionsList');
+  const questionsSection = document.getElementById('questionsSection');
+  const resourcesList = document.getElementById('resourcesList');
+  const resourcesSection = document.getElementById('resourcesSection');
+  const closingBlock = document.getElementById('closingBlock');
+  const closingText = document.getElementById('closingText');
+
+  function showError(msg) {
+    errorScreen.style.display = 'block';
+    errorScreen.textContent = msg;
+    planRoot.style.display = 'none';
+  }
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function linkify(s) {
+    return escapeHtml(s).replace(
+      /(https?:\/\/[^\s<>"']+)/g,
+      '<a href="$1" target="_blank" rel="noopener">$1</a>',
+    );
+  }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        month: 'long', day: 'numeric', year: 'numeric',
+      });
+    } catch { return iso; }
+  }
+
+  function renderPlan(plan, clientName) {
+    document.title = `${clientName || 'Action Plan'} · The Creative Hotline`;
+    headline.textContent = plan.headline || 'Your Action Plan';
+    summary.textContent = plan.summary || '';
+
+    immediateList.innerHTML = (plan.immediateNextSteps || [])
+      .map(renderStep).join('') || '<li><em>(No immediate steps yet.)</em></li>';
+
+    if ((plan.thirtyDayMoves || []).length === 0) {
+      thirtyDaySection.style.display = 'none';
+    } else {
+      thirtyDaySection.style.display = '';
+      thirtyDayList.innerHTML = plan.thirtyDayMoves.map(renderStep).join('');
+    }
+
+    if ((plan.openQuestions || []).length === 0) {
+      questionsSection.style.display = 'none';
+    } else {
+      questionsSection.style.display = '';
+      questionsList.innerHTML = plan.openQuestions
+        .map((q) => `<li>${escapeHtml(q)}</li>`).join('');
+    }
+
+    if ((plan.resources || []).length === 0) {
+      resourcesSection.style.display = 'none';
+    } else {
+      resourcesSection.style.display = '';
+      resourcesList.innerHTML = plan.resources
+        .map((r) => `<li>${linkify(r)}</li>`).join('');
+    }
+
+    if (plan.closingNote) {
+      closingText.innerHTML = escapeHtml(plan.closingNote).replace(/\n/g, '<br>');
+      closingBlock.style.display = '';
+    } else {
+      closingBlock.style.display = 'none';
+    }
+  }
+
+  function renderStep(item) {
+    const ownerTag = item.owner === 'tch'
+      ? '<span class="owner-tag tch">TCH</span>'
+      : '<span class="owner-tag client">You</span>';
+    return `
+      <li>
+        <div class="step-title">${escapeHtml(item.title || '')} ${ownerTag}</div>
+        <div class="step-detail">${escapeHtml(item.detail || '').replace(/\n/g, '<br>')}</div>
+      </li>
+    `;
+  }
+
+  async function load() {
+    if (!sessionId) {
+      showError('Missing ?sessionId= in URL.');
+      return;
+    }
+    if (editMode) {
+      editorBar.classList.add('show');
+      debriefLinkBtn.href = `/templates-v2/debrief.html?sessionId=${encodeURIComponent(sessionId)}`;
+    }
+
+    try {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+      const body = await res.json();
+      if (!res.ok) {
+        showError(`Could not load your plan: ${body.message || body.error}`);
+        return;
+      }
+      if (!body.actionPlanJson) {
+        showError("This action plan hasn't been generated yet. (If you're the client and seeing this, your strategist will be in touch shortly.)");
+        return;
+      }
+      let plan;
+      try { plan = JSON.parse(body.actionPlanJson); } catch (e) {
+        showError('We hit a snag rendering your plan. Reply to the email and we will resend.');
+        return;
+      }
+      docMeta.textContent = `Prepared for ${body.clientName || 'you'} · ${fmtDate(plan.generatedAt)}`;
+      renderPlan(plan, body.clientName);
+      planRoot.style.display = '';
+    } catch (err) {
+      showError(`Network error: ${err.message}`);
+    }
+  }
+
+  // ---- Edit-mode: regenerate -------------------------------------------
+  regenerateBtn?.addEventListener('click', async () => {
+    if (!sessionId) return;
+    if (!confirm('Regenerate this action plan? The current version will be replaced.')) return;
+    regenerateBtn.disabled = true;
+    const orig = regenerateBtn.textContent;
+    regenerateBtn.textContent = '⏳ Generating…';
+    editorStatus.textContent = 'Calling Claude…';
+    try {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/generate-action-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const body = await res.json();
+      if (!res.ok) {
+        editorStatus.textContent = `failed: ${body.message || body.error}`;
+        regenerateBtn.disabled = false;
+        regenerateBtn.textContent = orig;
+        return;
+      }
+      editorStatus.textContent = 'regenerated — reloading…';
+      setTimeout(() => window.location.reload(), 600);
+    } catch (err) {
+      editorStatus.textContent = `failed: ${err.message}`;
+      regenerateBtn.disabled = false;
+      regenerateBtn.textContent = orig;
+    }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

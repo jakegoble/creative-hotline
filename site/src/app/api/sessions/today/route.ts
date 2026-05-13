@@ -161,6 +161,10 @@ export async function GET(request: Request) {
         clientName: s.clientName,
         state: s.state,
         scheduledAt: s.scheduledAt,
+        // Surface debrief / action-plan presence so Morning Prep can show
+        // state-aware nav buttons without a second round-trip per row.
+        hasDebrief: s.debriefJson.length > 0,
+        actionPlanUrl: s.actionPlanUrl ?? null,
         payment,
         intake,
         suggestedIntakeId,

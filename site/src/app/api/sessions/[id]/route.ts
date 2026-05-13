@@ -9,11 +9,17 @@
  * Response shape:
  *   {
  *     id, sessionId, clientName, state, scheduledAt,
- *     workshopJson: string,    // empty string if never saved
+ *     workshopJson: string,      // empty string if never saved
+ *     debriefJson: string,       // empty string if never saved
+ *     actionPlanJson: string,    // empty string if never generated
+ *     actionPlanUrl: string|null,
+ *     firefliesUrl: string|null,
  *     payment: { id, email, product, amount } | null
  *   }
  *
  * V2 Batch 4 — Live Workshop screen.
+ * V2 Batch 5 — added debriefJson + firefliesUrl in response.
+ * V2 Batch 6 — added actionPlanJson + actionPlanUrl in response.
  */
 
 import { NextResponse } from "next/server";
@@ -93,6 +99,10 @@ export async function GET(
     state: session.state,
     scheduledAt: session.scheduledAt,
     workshopJson: session.workshopJson,
+    debriefJson: session.debriefJson,
+    actionPlanJson: session.actionPlanJson,
+    actionPlanUrl: session.actionPlanUrl ?? null,
+    firefliesUrl: session.firefliesUrl ?? null,
     payment,
   });
 }

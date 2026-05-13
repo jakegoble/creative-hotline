@@ -353,6 +353,20 @@
       briefBtn = '<span style="color:var(--muted);font-size:12px">no intake found for this email yet</span>';
     }
 
+    // State-aware nav buttons. The workshop link is always shown (mid-call
+    // edits are normal). Debrief link appears once the call is in motion or
+    // beyond. Action Plan link appears once one's been generated.
+    const sid = encodeURIComponent(s.id);
+    const workshopBtn = `<a class="workshop-link" href="/templates-v2/workshop-session.html?sessionId=${sid}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 14px;border:1px solid var(--jake);border-radius:4px;background:var(--card);color:var(--jake);text-decoration:none;font:inherit">Open Workshop →</a>`;
+    const showDebrief = ['Session', 'Debrief', 'Review', 'Sent'].includes(s.state);
+    const debriefBtn = showDebrief
+      ? `<a href="/templates-v2/debrief.html?sessionId=${sid}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 14px;border:1px solid #9333ea;border-radius:4px;background:#9333ea;color:#fff;text-decoration:none;font:inherit">Open Debrief →</a>`
+      : '';
+    const showActionPlan = ['Review', 'Sent'].includes(s.state) || !!s.actionPlanUrl;
+    const actionPlanBtn = showActionPlan
+      ? `<a href="/templates-v2/action-plan.html?sessionId=${sid}&edit=1" target="_blank" rel="noopener" style="display:inline-block;padding:8px 14px;border:1px solid var(--urgent);border-radius:4px;background:var(--urgent);color:#fff;text-decoration:none;font:inherit">Action Plan →</a>`
+      : '';
+
     return `
       <div class="session-card" data-session-id="${s.id}">
         <div class="session-head">
@@ -367,7 +381,9 @@
         </div>
         <div class="session-actions">
           ${briefBtn}
-          <a class="workshop-link" href="/templates-v2/workshop-session.html?sessionId=${encodeURIComponent(s.id)}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 14px;border:1px solid var(--jake);border-radius:4px;background:var(--card);color:var(--jake);text-decoration:none;font:inherit">Open Workshop →</a>
+          ${workshopBtn}
+          ${debriefBtn}
+          ${actionPlanBtn}
         </div>
         <div class="brief-detail" id="brief-${intakeId}" style="display:none"></div>
       </div>

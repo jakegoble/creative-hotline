@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debrief · The Creative Hotline</title>
+<style>
+  /* V2 brand: red=Megha, blue=Jake, yellow=client, black=automated, green=urgent */
+  :root {
+    --bg: #FFF8F0;
+    --card: #FFFFFF;
+    --ink: #1B1B1B;
+    --muted: #666666;
+    --line: #E6E6E6;
+    --megha: #E63946;
+    --jake: #2D77E0;
+    --client: #F4B400;
+    --auto: #1B1B1B;
+    --urgent: #2BAE66;
+    --warn: #B95F00;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+  .container {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+  header {
+    border-bottom: 1px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  header .meta {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  button, a.btn {
+    font: inherit;
+    padding: 8px 14px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--card);
+    color: var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: background 0.1s ease;
+  }
+  button:hover:not(:disabled), a.btn:hover { background: var(--bg); }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.primary {
+    background: var(--jake);
+    color: #fff;
+    border-color: var(--jake);
+  }
+  button.megha {
+    background: var(--megha);
+    color: #fff;
+    border-color: var(--megha);
+  }
+  button.urgent {
+    background: var(--urgent);
+    color: #fff;
+    border-color: var(--urgent);
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #fff;
+    vertical-align: middle;
+  }
+  .badge.prep    { background: #888; }
+  .badge.session { background: var(--jake); }
+  .badge.debrief { background: #9333ea; }
+  .badge.review  { background: var(--warn); }
+  .badge.sent    { background: var(--urgent); }
+  .badge.unknown { background: #444; }
+
+  section {
+    background: var(--card);
+    border: 1px solid var(--ink);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 18px;
+  }
+  section h2 {
+    margin: 0 0 6px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  section .help {
+    color: var(--muted);
+    font-size: 12px;
+    font-style: italic;
+    margin: 0 0 12px;
+  }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 720px) {
+    .field-grid { grid-template-columns: 1fr; }
+  }
+
+  textarea {
+    font: inherit;
+    width: 100%;
+    min-height: 110px;
+    padding: 10px 12px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--ink);
+    resize: vertical;
+    line-height: 1.55;
+  }
+  textarea:focus { outline: 1px solid var(--jake); border-color: var(--jake); }
+  textarea::placeholder { color: var(--muted); font-style: italic; }
+
+  input[type="url"] {
+    font: inherit;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--ink);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  input[type="url"]:focus { outline: 1px solid var(--jake); border-color: var(--jake); }
+  input[type="url"]::placeholder { color: var(--muted); font-style: italic; }
+
+  .save-status {
+    color: var(--muted);
+    font-size: 12px;
+    font-style: italic;
+  }
+  .save-status.saving { color: var(--warn); }
+  .save-status.saved  { color: var(--urgent); }
+  .save-status.error  { color: var(--megha); font-style: normal; }
+
+  .toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .toast.show { opacity: 1; }
+  .toast.error { background: var(--megha); }
+
+  .actions-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  footer {
+    margin-top: 32px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+  }
+  a { color: var(--jake); }
+  .error-screen {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--megha);
+  }
+
+  .pill-link {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #EEF4FF;
+    color: var(--jake);
+    text-decoration: none;
+    font-size: 12px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div>
+      <h1>📝 Debrief</h1>
+      <div class="meta" id="metaLine">Loading session…</div>
+    </div>
+    <div class="controls">
+      <span class="save-status" id="saveStatus">—</span>
+      <a class="btn" id="workshopLink" href="#">← Workshop</a>
+    </div>
+  </header>
+
+  <div id="errorScreen" style="display:none" class="error-screen"></div>
+
+  <div id="debriefRoot" style="display:none">
+
+    <section>
+      <h2>★ Workshop Recap</h2>
+      <p class="help" id="recapHint">Pulled from the live workshop blob. Read-only — go back to the workshop to edit.</p>
+      <div id="recap" style="font-size:13px;color:var(--muted)"></div>
+    </section>
+
+    <section>
+      <h2>📂 Fireflies Transcript</h2>
+      <p class="help">Paste the meeting URL or recording link. Optional — but the action plan is much sharper if it can read what you and the client actually said.</p>
+      <input type="url" id="firefliesUrl" placeholder="https://app.fireflies.ai/view/...">
+    </section>
+
+    <div class="field-grid">
+
+      <section>
+        <h2>🏆 Top Wins</h2>
+        <p class="help">The 2-3 things from the workshop most worth doing right now. Bullet or freeform.</p>
+        <textarea id="topWins" placeholder="• ...&#10;• ...&#10;• ..."></textarea>
+      </section>
+
+      <section>
+        <h2>🎯 Big Bet Pick + Why</h2>
+        <p class="help">Of the Big Bets quadrant, which one (or two) should the client commit to? Why this over the others?</p>
+        <textarea id="bigBetPick" placeholder="We're picking ___ because ___."></textarea>
+      </section>
+
+      <section>
+        <h2>❓ Open Questions</h2>
+        <p class="help">What's still unclear? What does the client need to figure out / answer / share with you?</p>
+        <textarea id="openQuestions" placeholder="• ...&#10;• ..."></textarea>
+      </section>
+
+      <section>
+        <h2>💡 Megha's Recommendation</h2>
+        <p class="help">1-2 sentence final POV. The line you'd open the follow-up email with.</p>
+        <textarea id="meghaRecommendation" placeholder="My recommendation: ___."></textarea>
+      </section>
+
+    </div>
+
+    <section>
+      <h2>⚡ Action Plan</h2>
+      <p class="help">When the debrief is good enough, generate the action plan. Claude will use the workshop, this debrief, and the Fireflies transcript (if linked) to produce a structured plan for the client. Saves to Notion and gives you a public URL to share.</p>
+      <div class="actions-row">
+        <button class="primary" id="generateBtn">⚡ Generate Action Plan</button>
+        <a id="viewPlanLink" class="btn urgent" style="display:none">View Action Plan →</a>
+        <span id="generateStatus" class="save-status"></span>
+      </div>
+    </section>
+
+    <footer>
+      The Creative Hotline · V2 Debrief · Batch 5 · Autosave on
+    </footer>
+
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  // ---- URL ---------------------------------------------------------------
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('sessionId');
+
+  // ---- DOM refs ----------------------------------------------------------
+  const errorScreen = document.getElementById('errorScreen');
+  const debriefRoot = document.getElementById('debriefRoot');
+  const metaLine = document.getElementById('metaLine');
+  const saveStatus = document.getElementById('saveStatus');
+  const recap = document.getElementById('recap');
+  const firefliesInput = document.getElementById('firefliesUrl');
+  const topWinsEl = document.getElementById('topWins');
+  const bigBetPickEl = document.getElementById('bigBetPick');
+  const openQuestionsEl = document.getElementById('openQuestions');
+  const meghaRecEl = document.getElementById('meghaRecommendation');
+  const generateBtn = document.getElementById('generateBtn');
+  const generateStatus = document.getElementById('generateStatus');
+  const viewPlanLink = document.getElementById('viewPlanLink');
+  const workshopLink = document.getElementById('workshopLink');
+  const toast = document.getElementById('toast');
+
+  // ---- State -------------------------------------------------------------
+  let state = {
+    version: 1,
+    topWins: '',
+    bigBetPick: '',
+    openQuestions: '',
+    meghaRecommendation: '',
+    firefliesUrl: '',
+    updatedAt: null,
+  };
+  let currentSessionState = 'Unknown';
+
+  // ---- Utilities ---------------------------------------------------------
+  function showError(msg) {
+    errorScreen.style.display = 'block';
+    errorScreen.textContent = msg;
+    debriefRoot.style.display = 'none';
+  }
+  function showToast(msg, isError) {
+    toast.textContent = msg;
+    toast.classList.toggle('error', !!isError);
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  }
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    if (iso.length === 10) return iso;
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        weekday: 'short', month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit',
+      });
+    } catch { return iso; }
+  }
+  function fmtNow() {
+    return new Date().toLocaleTimeString(undefined, {
+      hour: 'numeric', minute: '2-digit'
+    });
+  }
+  function escapeHtml(s) {
+    return String(s || '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function badgeClass(state) {
+    return 'badge ' + (state || 'unknown').toLowerCase();
+  }
+
+  // ---- Save (debounced autosave) -----------------------------------------
+  let saveTimer = null;
+  let inflightSave = null;
+  const SAVE_DEBOUNCE_MS = 1500;
+
+  function scheduleSave() {
+    if (!sessionId) return;
+    saveStatus.textContent = 'unsaved…';
+    saveStatus.className = 'save-status saving';
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(doSave, SAVE_DEBOUNCE_MS);
+  }
+
+  async function doSave() {
+    saveTimer = null;
+    state.updatedAt = new Date().toISOString();
+    const payload = {
+      debriefJson: JSON.stringify(state),
+      firefliesUrl: state.firefliesUrl || null,
+    };
+
+    saveStatus.textContent = 'saving…';
+    saveStatus.className = 'save-status saving';
+
+    try {
+      if (inflightSave) await inflightSave;
+      inflightSave = fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-debrief`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const res = await inflightSave;
+      inflightSave = null;
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        saveStatus.textContent = `save failed: ${body.message || body.error || 'unknown'}`;
+        saveStatus.className = 'save-status error';
+        return;
+      }
+      saveStatus.textContent = `saved ${fmtNow()}`;
+      saveStatus.className = 'save-status saved';
+      if (body.advanced && body.state && body.state !== currentSessionState) {
+        currentSessionState = body.state;
+        updateMetaLine();
+        showToast('Session → Debrief');
+      } else if (body.state) {
+        currentSessionState = body.state;
+      }
+    } catch (err) {
+      inflightSave = null;
+      saveStatus.textContent = `save failed: ${err.message}`;
+      saveStatus.className = 'save-status error';
+    }
+  }
+
+  // ---- Wiring ------------------------------------------------------------
+  function bindAutosave(el, key) {
+    el.addEventListener('input', () => {
+      state[key] = el.value;
+      scheduleSave();
+    });
+  }
+  bindAutosave(topWinsEl, 'topWins');
+  bindAutosave(bigBetPickEl, 'bigBetPick');
+  bindAutosave(openQuestionsEl, 'openQuestions');
+  bindAutosave(meghaRecEl, 'meghaRecommendation');
+  bindAutosave(firefliesInput, 'firefliesUrl');
+
+  // ---- Workshop recap render ---------------------------------------------
+  function renderRecap(workshopJson) {
+    if (!workshopJson) {
+      recap.innerHTML = '<em>No workshop data on file. (Are you sure the call happened?)</em>';
+      return;
+    }
+    let w;
+    try { w = JSON.parse(workshopJson); } catch { w = null; }
+    if (!w) {
+      recap.innerHTML = '<em>Could not parse workshop blob.</em>';
+      return;
+    }
+    const northStar = w.northStar || '—';
+    const counts = { quick_wins: 0, big_bets: 0, fill_ins: 0, time_sinks: 0, unsorted: 0 };
+    (w.ideas || []).forEach(i => {
+      if (i && i.quadrant && counts[i.quadrant] !== undefined) counts[i.quadrant]++;
+      else counts.unsorted++;
+    });
+    recap.innerHTML = `
+      <div><strong style="color:var(--ink)">North Star:</strong> ${escapeHtml(northStar)}</div>
+      <div style="margin-top:6px">
+        ${counts.quick_wins} Quick Wins · ${counts.big_bets} Big Bets ·
+        ${counts.fill_ins} Fill-ins · ${counts.time_sinks} Time Sinks
+        ${counts.unsorted ? ` · ${counts.unsorted} in inbox` : ''}
+      </div>
+    `;
+  }
+
+  // ---- Meta line ---------------------------------------------------------
+  function updateMetaLine(session) {
+    const stateName = currentSessionState || 'Unknown';
+    const badge = `<span class="${badgeClass(stateName)}">${stateName}</span>`;
+    if (session) {
+      const product = session.payment?.product || '—';
+      const when = fmtTime(session.scheduledAt);
+      const sid = session.sessionId ? `#${session.sessionId}` : '';
+      metaLine.innerHTML = `${escapeHtml(session.clientName)} ${sid} · ${escapeHtml(product)} · ${when} · ${badge}`;
+    } else {
+      const existing = metaLine.dataset.base || '';
+      metaLine.innerHTML = `${existing} · ${badge}`;
+    }
+  }
+
+  // ---- Generate Action Plan ----------------------------------------------
+  generateBtn.addEventListener('click', async () => {
+    if (!sessionId) return;
+    // Flush any pending save first.
+    if (saveTimer) { clearTimeout(saveTimer); await doSave(); }
+    if (inflightSave) await inflightSave;
+
+    generateBtn.disabled = true;
+    const orig = generateBtn.textContent;
+    generateBtn.textContent = '⏳ Generating (~10-20s)…';
+    generateStatus.textContent = 'Calling Claude…';
+    generateStatus.className = 'save-status saving';
+
+    try {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/generate-action-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        generateStatus.textContent = `generate failed: ${body.message || body.error || 'unknown'}`;
+        generateStatus.className = 'save-status error';
+        showToast(`Action plan failed: ${body.message || body.error}`, true);
+        generateBtn.disabled = false;
+        generateBtn.textContent = orig;
+        return;
+      }
+      generateStatus.textContent = `generated ${fmtNow()}`;
+      generateStatus.className = 'save-status saved';
+      showToast('Action plan ready');
+      if (body.state) {
+        currentSessionState = body.state;
+        updateMetaLine();
+      }
+      if (body.actionPlanUrl) {
+        viewPlanLink.href = body.actionPlanUrl;
+        viewPlanLink.style.display = 'inline-block';
+        // Open it in a new tab so the user can preview without losing this screen.
+        window.open(body.actionPlanUrl, '_blank', 'noopener');
+      }
+      generateBtn.disabled = false;
+      generateBtn.textContent = '↻ Regenerate Action Plan';
+    } catch (err) {
+      generateStatus.textContent = `generate failed: ${err.message}`;
+      generateStatus.className = 'save-status error';
+      generateBtn.disabled = false;
+      generateBtn.textContent = orig;
+    }
+  });
+
+  // ---- Initial load ------------------------------------------------------
+  async function loadSession() {
+    if (!sessionId) {
+      showError('Missing ?sessionId= in URL. Open this page from the Workshop or Morning Prep.');
+      return;
+    }
+    workshopLink.href = `/templates-v2/workshop-session.html?sessionId=${encodeURIComponent(sessionId)}`;
+
+    try {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+      const body = await res.json();
+      if (!res.ok) {
+        showError(`Failed to load session: ${body.message || body.error}`);
+        return;
+      }
+
+      currentSessionState = body.state || 'Unknown';
+      document.title = `${body.clientName || 'Debrief'} · Debrief · TCH`;
+      metaLine.dataset.base = `${body.clientName || 'Untitled'} · ${body.payment?.product || '—'} · ${fmtTime(body.scheduledAt)}`;
+      updateMetaLine(body);
+
+      renderRecap(body.workshopJson);
+
+      // Restore prior debrief blob if it exists.
+      if (body.debriefJson) {
+        try {
+          const parsed = JSON.parse(body.debriefJson);
+          if (parsed && typeof parsed === 'object') {
+            state = {
+              version: 1,
+              topWins: typeof parsed.topWins === 'string' ? parsed.topWins : '',
+              bigBetPick: typeof parsed.bigBetPick === 'string' ? parsed.bigBetPick : '',
+              openQuestions: typeof parsed.openQuestions === 'string' ? parsed.openQuestions : '',
+              meghaRecommendation: typeof parsed.meghaRecommendation === 'string' ? parsed.meghaRecommendation : '',
+              firefliesUrl: typeof parsed.firefliesUrl === 'string' ? parsed.firefliesUrl : (body.firefliesUrl || ''),
+              updatedAt: parsed.updatedAt || null,
+            };
+          }
+        } catch (err) {
+          console.warn('Could not parse existing debriefJson — starting fresh.', err);
+        }
+      } else if (body.firefliesUrl) {
+        // First-time debrief — pre-fill firefliesUrl from the Notion field if set.
+        state.firefliesUrl = body.firefliesUrl;
+      }
+
+      topWinsEl.value = state.topWins;
+      bigBetPickEl.value = state.bigBetPick;
+      openQuestionsEl.value = state.openQuestions;
+      meghaRecEl.value = state.meghaRecommendation;
+      firefliesInput.value = state.firefliesUrl;
+
+      // If an action plan already exists, show the view link.
+      if (body.actionPlanUrl) {
+        viewPlanLink.href = body.actionPlanUrl;
+        viewPlanLink.style.display = 'inline-block';
+        generateBtn.textContent = '↻ Regenerate Action Plan';
+      }
+
+      debriefRoot.style.display = '';
+      saveStatus.textContent = state.updatedAt ? `loaded · last saved ${fmtTime(state.updatedAt)}` : 'ready';
+      saveStatus.className = 'save-status';
+    } catch (err) {
+      showError(`Network error loading session: ${err.message}`);
+    }
+  }
+
+  // ---- Warn on unsaved exit ---------------------------------------------
+  window.addEventListener('beforeunload', (e) => {
+    if (saveTimer || inflightSave) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  });
+
+  loadSession();
+})();
+</script>
+</body>
+</html>

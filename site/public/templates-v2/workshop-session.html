@@ -366,6 +366,7 @@
     <div class="controls">
       <span class="save-status" id="saveStatus">—</span>
       <a class="btn" href="/templates-v2/morning-prep.html">← Morning Prep</a>
+      <a class="btn" id="debriefLink" href="#" style="display:none;background:#9333ea;color:#fff;border-color:#9333ea">Debrief →</a>
     </div>
   </header>
 
@@ -445,6 +446,7 @@
   const workshopRoot = document.getElementById('workshopRoot');
   const metaLine = document.getElementById('metaLine');
   const saveStatus = document.getElementById('saveStatus');
+  const debriefLink = document.getElementById('debriefLink');
   const northStarInput = document.getElementById('northStar');
   const inboxList = document.getElementById('inboxList');
   const ideaInput = document.getElementById('ideaInput');
@@ -735,6 +737,10 @@
       }
 
       currentSessionState = body.state || 'Unknown';
+      // The Debrief link is always available once a session exists — Jake/Megha
+      // may want to start drafting debrief notes mid-call.
+      debriefLink.href = `/templates-v2/debrief.html?sessionId=${encodeURIComponent(sessionId)}`;
+      debriefLink.style.display = 'inline-block';
       document.title = `${body.clientName || 'Workshop'} · Live Workshop · TCH`;
       metaLine.dataset.base = `${body.clientName || 'Untitled'} · ${body.payment?.product || '—'} · ${fmtTime(body.scheduledAt)}`;
       updateMetaLine(body);
