@@ -133,23 +133,12 @@
 <div class="layout">
   <aside class="client-rail">
     <h3>Today's Sessions</h3>
-    <div class="day"><em>Thursday</em>, Mar 20</div>
-    <div class="day-meta">3 sessions · review by 5:00 PM</div>
-    <div class="client-card active" onclick="loadClient(this, 'rae')">
-      <div class="urgent-flag" title="Diagnosis confidence under 7"></div>
-      <div class="name">Rae <em>Solano</em></div>
-      <div class="biz">Solano Studio · Ceramics</div>
-      <div class="stage-row"><span class="stage-pill review">In Review</span><span>9:30 AM</span></div>
-    </div>
-    <div class="client-card" onclick="loadClient(this, 'marcus')">
-      <div class="name">Marcus <em>Chen</em></div>
-      <div class="biz">Evergreen Co · DTC Skincare</div>
-      <div class="stage-row"><span class="stage-pill debrief">Debrief</span><span>10:35 AM</span></div>
-    </div>
-    <div class="client-card" onclick="loadClient(this, 'talia')">
-      <div class="name">Talia <em>Brooks</em></div>
-      <div class="biz">TALIA · Fashion Consulting</div>
-      <div class="stage-row"><span class="stage-pill prep">Prep</span><span>11:40 AM</span></div>
+    <div class="day" id="dayLabel"><em>Loading…</em></div>
+    <div class="day-meta" id="dayMeta">—</div>
+    <div id="clientList">
+      <div class="client-card" style="opacity:0.6;cursor:default">
+        <div class="name">Loading <em>…</em></div>
+      </div>
     </div>
   </aside>
 
@@ -298,25 +287,261 @@
 </div>
 
 <script>
+(function () {
+  // -------------------------------------------------------------------------
+  // State machine + DOM hooks
+  // -------------------------------------------------------------------------
+  const STATES = ['prep', 'session', 'debrief', 'review', 'sent'];
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    try {
+      return new Date(iso).toLocaleString(undefined, {
+        hour: 'numeric', minute: '2-digit',
+      });
+    } catch { return iso; }
+  }
+  function fmtMoney(n) {
+    if (typeof n !== 'number' || n === 0) return '—';
+    return '$' + Math.round(n).toLocaleString('en-US');
+  }
+  function todayWeekday() {
+    return new Date().toLocaleDateString(undefined, { weekday: 'long' });
+  }
+  function todayShort() {
+    return new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  // -------------------------------------------------------------------------
+  // Set the active state column (Prep/Session/Debrief/Review/Sent)
+  // -------------------------------------------------------------------------
   function setState(state) {
-    document.querySelectorAll('.state-content').forEach(s => s.classList.remove('active'));
-    document.getElementById('state-' + state).classList.add('active');
-    document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 's-prep', 's-session', 's-debrief', 's-review', 's-sent'));
-    const idx = ['prep','session','debrief','review','sent'].indexOf(state);
-    document.querySelectorAll('.step')[idx].classList.add('active', 's-' + state);
-    document.getElementById('snapshot').className = 'snapshot stage-' + state;
-    try { localStorage.setItem('tch_hub_state', state); } catch(e) {}
+    // Normalize — Notion returns "Prep"/"Session"/etc. (TitleCase). UI uses lowercase.
+    const s = String(state || '').toLowerCase();
+    const idx = STATES.indexOf(s);
+    if (idx < 0) return;
+
+    document.querySelectorAll('.state-content').forEach(el => el.classList.remove('active'));
+    document.getElementById('state-' + s).classList.add('active');
+
+    document.querySelectorAll('.step').forEach(el =>
+      el.classList.remove('active', 's-prep', 's-session', 's-debrief', 's-review', 's-sent'),
+    );
+    document.querySelectorAll('.step')[idx].classList.add('active', 's-' + s);
+
+    // Mark earlier states as complete
+    document.querySelectorAll('.step').forEach((el, i) => {
+      if (i < idx) el.classList.add('complete');
+      else el.classList.remove('complete');
+    });
+
+    document.getElementById('snapshot').className = 'snapshot stage-' + s;
+    try { localStorage.setItem('tch_hub_state_' + currentSessionId, s); } catch (e) {}
   }
-  function loadClient(el, id) {
-    document.querySelectorAll('.client-card').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-  }
+  window.setState = setState;
+
+  // -------------------------------------------------------------------------
+  // Role toggle (purely cosmetic until per-section permissions exist)
+  // -------------------------------------------------------------------------
   function toggleRole() {
     const t = document.getElementById('userRole');
-    if (t.classList.contains('jake')) { t.classList.remove('jake'); t.textContent = 'Logged in as: Megha'; }
-    else { t.classList.add('jake'); t.textContent = 'Logged in as: Jake'; }
+    if (t.classList.contains('jake')) {
+      t.classList.remove('jake'); t.textContent = 'Logged in as: Megha';
+    } else {
+      t.classList.add('jake'); t.textContent = 'Logged in as: Jake';
+    }
   }
-  try { const saved = localStorage.getItem('tch_hub_state'); if (saved) setState(saved); } catch(e) {}
+  window.toggleRole = toggleRole;
+
+  // -------------------------------------------------------------------------
+  // Live-data load: render client rail from /api/sessions/today
+  // -------------------------------------------------------------------------
+  let currentSessionId = '';
+  let sessionsCache = [];
+
+  function renderClientRail(sessions, dateISO) {
+    const list = document.getElementById('clientList');
+    document.getElementById('dayLabel').innerHTML =
+      `<em>${escapeHtml(todayWeekday())}</em>, ${escapeHtml(todayShort())}`;
+    document.getElementById('dayMeta').textContent =
+      sessions.length + ' session' + (sessions.length === 1 ? '' : 's');
+
+    if (sessions.length === 0) {
+      list.innerHTML = '<div class="client-card" style="opacity:0.55;cursor:default"><div class="name">No <em>sessions</em></div><div class="biz">Nothing scheduled today.</div></div>';
+      return;
+    }
+
+    list.innerHTML = sessions.map(s => {
+      const stage = (s.state || 'prep').toLowerCase();
+      const stagePill = stage === 'session' ? 'session'
+        : stage === 'debrief' ? 'debrief'
+        : stage === 'review'  ? 'review'
+        : stage === 'sent'    ? 'sent'
+        : 'prep';
+      const stageLabel = stage.charAt(0).toUpperCase() + stage.slice(1);
+      const time = fmtTime(s.scheduledAt);
+      const clientName = (s.payment?.clientName || s.clientName || 'Untitled')
+        .replace(/ - [A-Z0-9_-]+ applied$/i, '');     // strip stale coupon-suffix display
+      const parts = clientName.split(/\s+/);
+      const first = escapeHtml(parts[0] || clientName);
+      const last  = escapeHtml(parts.slice(1).join(' '));
+      const biz   = escapeHtml(
+        (s.payment?.product ? s.payment.product : '—') +
+        (s.intake?.id ? ' · intake linked' : '')
+      );
+      return `
+        <div class="client-card" data-session-id="${escapeHtml(s.id)}" onclick="window.loadClient('${escapeHtml(s.id)}')">
+          <div class="name">${first}${last ? ' <em>' + last + '</em>' : ''}</div>
+          <div class="biz">${biz}</div>
+          <div class="stage-row">
+            <span class="stage-pill ${stagePill}">${stageLabel}</span>
+            <span>${time}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // -------------------------------------------------------------------------
+  // Load a single session: rebuild snapshot, set state, swap internal links.
+  // -------------------------------------------------------------------------
+  async function loadClient(sessionId) {
+    if (!sessionId) return;
+    currentSessionId = sessionId;
+
+    // Highlight the active card
+    document.querySelectorAll('.client-card').forEach(c => c.classList.remove('active'));
+    const activeCard = document.querySelector(`.client-card[data-session-id="${sessionId}"]`);
+    if (activeCard) activeCard.classList.add('active');
+
+    // Update URL without reloading so deep links are shareable
+    try {
+      const u = new URL(window.location.href);
+      u.searchParams.set('sessionId', sessionId);
+      window.history.replaceState({}, '', u.toString());
+    } catch (e) {}
+
+    // Fetch session detail
+    let s;
+    try {
+      const r = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+      s = await r.json();
+      if (!r.ok) throw new Error(s.message || s.error || 'fetch_failed');
+    } catch (err) {
+      console.warn('[hub] could not load session', sessionId, err);
+      return;
+    }
+
+    // Snapshot
+    const clientName = (s.payment?.clientName || s.clientName || 'Untitled')
+      .replace(/ - [A-Z0-9_-]+ applied$/i, '');
+    const parts = clientName.split(/\s+/);
+    document.querySelector('.snap-left h2').innerHTML =
+      `${escapeHtml(parts[0] || clientName)}${parts.length > 1 ? ' <em>' + escapeHtml(parts.slice(1).join(' ')) + '</em>' : ''}`;
+    const bizParts = [
+      s.payment?.product || '—',
+      s.payment?.email ? s.payment.email : '',
+      s.sessionId ? `#TCH-${s.sessionId}` : '',
+    ].filter(Boolean);
+    document.querySelector('.snap-left .biz').textContent = bizParts.join(' · ');
+
+    // Snapshot stats: replace mock authority/diagnosis scores with state + paid + brief
+    const stats = document.querySelectorAll('.snap-grid .snap-stat');
+    if (stats[0]) {
+      stats[0].querySelector('.k').textContent = 'State';
+      stats[0].querySelector('.v').textContent = s.state || '—';
+    }
+    if (stats[1]) {
+      stats[1].querySelector('.k').textContent = 'Paid';
+      stats[1].querySelector('.v').textContent = fmtMoney(s.payment?.amount ?? 0);
+    }
+    if (stats[2]) {
+      stats[2].querySelector('.k').textContent = 'Intake';
+      stats[2].querySelector('.v').textContent =
+        s.payment?.email ? (s.actionPlanUrl ? '✓ plan ready' : s.firefliesUrl ? '✓ fireflies' : '✓ linked') : '—';
+      stats[2].querySelector('.v').style.color = '';
+    }
+
+    // Update internal links so they carry the session ID
+    const sid = encodeURIComponent(sessionId);
+    document.querySelectorAll('a[href]').forEach(a => {
+      const href = a.getAttribute('href');
+      if (!href) return;
+      // Internal-only — relative .html links inside templates-v2
+      if (/^(morning-prep|workshop-session|debrief|review-dashboard|action-plan)\.html/.test(href)) {
+        const [path] = href.split('?');
+        a.setAttribute('href', `${path}?sessionId=${sid}${path === 'action-plan.html' ? '&edit=1' : ''}`);
+      }
+    });
+
+    // Hint Sent panel with the actual referral code if we have one
+    if (s.actionPlanUrl) {
+      const code = (parts[0] || 'GUEST').toUpperCase().replace(/[^A-Z0-9]/g, '') + '-DIAL-100';
+      const codeBlock = document.querySelector('#state-sent .input-block.auto .body');
+      if (codeBlock && codeBlock.textContent.includes('RAE-DIAL-100')) {
+        codeBlock.textContent = code;
+      }
+    }
+
+    // Pick which state column to show: prefer URL hash, then localStorage, then session.state
+    const urlState = (new URL(window.location.href)).hash.replace('#', '');
+    let target = STATES.includes(urlState) ? urlState : null;
+    if (!target) {
+      try {
+        const saved = localStorage.getItem('tch_hub_state_' + sessionId);
+        if (saved && STATES.includes(saved)) target = saved;
+      } catch (e) {}
+    }
+    if (!target) target = (s.state || 'prep').toLowerCase();
+    if (!STATES.includes(target)) target = 'prep';
+    setState(target);
+  }
+  window.loadClient = loadClient;
+
+  // -------------------------------------------------------------------------
+  // Bootstrap
+  // -------------------------------------------------------------------------
+  async function boot() {
+    // Try to load today's sessions
+    const today = new Date();
+    const dateISO = today.toISOString().slice(0, 10);
+    const tz = today.getTimezoneOffset();
+
+    let body;
+    try {
+      const r = await fetch(`/api/sessions/today?date=${encodeURIComponent(dateISO)}&tz=${tz}`);
+      body = await r.json();
+      if (!r.ok) throw new Error(body.message || body.error || 'sessions_today_failed');
+    } catch (err) {
+      console.warn('[hub] /api/sessions/today failed', err);
+      document.getElementById('clientList').innerHTML =
+        '<div class="client-card" style="opacity:0.55;cursor:default"><div class="name">Couldn’t <em>load</em></div><div class="biz">Reload the page or check the API.</div></div>';
+      return;
+    }
+
+    sessionsCache = body.sessions || [];
+    renderClientRail(sessionsCache, dateISO);
+
+    // Pick which session to load: URL ?sessionId=, else the first today's
+    const url = new URL(window.location.href);
+    const requested = url.searchParams.get('sessionId');
+    const target = requested && sessionsCache.find(s => s.id === requested)
+      ? requested
+      : (sessionsCache[0]?.id || requested);
+
+    if (target) {
+      await loadClient(target);
+    }
+  }
+  boot();
+})();
 </script>
 </body>
 </html>

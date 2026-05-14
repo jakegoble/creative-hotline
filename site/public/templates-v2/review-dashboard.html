@@ -287,281 +287,69 @@
     <div class="day-title" id="dayTitle">Thursday, Mar 20</div>
     <div class="day-meta">3 sessions · review by 5:00 PM</div>
 
-    <div class="queue">
-      <div class="queue-item active">
-        <div class="name">Rae Solano</div>
-        <div class="biz">Solano Studio · Ceramics</div>
-        <div class="row"><span class="status-tag in-review">In Review</span> <span>9.0</span></div>
-      </div>
-      <div class="queue-item">
-        <div class="name">Marcus Chen</div>
-        <div class="biz">Evergreen Co · DTC Skincare</div>
-        <div class="row"><span class="status-tag drafting">Drafting</span> <span>—</span></div>
-      </div>
-      <div class="queue-item">
-        <div class="name">Talia Brooks</div>
-        <div class="biz">TALIA · Fashion Consulting</div>
-        <div class="row"><span class="status-tag drafting">Drafting</span> <span>—</span></div>
+    <div class="queue" id="reviewQueue">
+      <div class="queue-item" style="opacity:0.6;cursor:default">
+        <div class="name">Loading…</div>
+        <div class="biz">fetching review queue</div>
       </div>
     </div>
 
     <div class="sidebar-summary">
-      <h3>Today's Stats</h3>
-      <div class="summary-line"><span>Sessions completed</span><span><strong>3 / 3</strong></span></div>
-      <div class="summary-line"><span>Drafts ready</span><span><strong>1 / 3</strong></span></div>
-      <div class="summary-line"><span>Approved</span><span><strong>0 / 3</strong></span></div>
-      <div class="summary-line"><span>Sent</span><span><strong>0 / 3</strong></span></div>
+      <h3>Queue Stats</h3>
+      <div class="summary-line"><span>In review</span><span><strong id="statInReview">—</strong></span></div>
+      <div class="summary-line"><span>Approved</span><span><strong id="statApproved">—</strong></span></div>
+      <div class="summary-line"><span>Sent today</span><span><strong id="statSent">—</strong></span></div>
     </div>
   </aside>
 
   <main class="main">
     <div class="session-head">
-      <div class="breadcrumb">Review · Action Plan Draft</div>
-      <h1 id="reviewClientName">Rae Solano — Solano Studio</h1>
-      <div class="meta">
-        <span>Session: <strong>9:30 AM</strong></span>
-        <span>Score: <strong>9.0</strong></span>
-        <span>Diagnosis confidence: <strong>8.5</strong></span>
-        <span>Drafted by Claude: <strong>2:14 PM</strong></span>
+      <div class="breadcrumb" id="reviewBreadcrumb">Review · Action Plan Draft</div>
+      <h1 id="reviewClientName">Select a session from the queue →</h1>
+      <div class="meta" id="reviewMeta">
+        <span>Session: <strong id="metaScheduled">—</strong></span>
+        <span>State: <strong id="metaState">—</strong></span>
+        <span>Action Plan: <strong id="metaActionPlan">—</strong></span>
+        <span>Drafted: <strong id="metaDrafted">—</strong></span>
       </div>
     </div>
 
-    <div class="debrief-summary">
+    <div class="debrief-summary" id="debriefSummary" style="display:none;">
       <div class="head">↳ From the debrief</div>
-      <div class="row">
-        <div class="item"><div class="k">Tone</div><div class="v">Direct + Sharp</div></div>
-        <div class="item"><div class="k">Landed Hardest</div><div class="v">Positioning Shift</div></div>
-        <div class="item"><div class="k">Path</div><div class="v">Mixed</div></div>
-        <div class="item"><div class="k">Upsell</div><div class="v">Strong</div></div>
-        <div class="item"><div class="k">First Move</div><div class="v">Did it ✓</div></div>
-        <div class="item"><div class="k">Authority</div><div class="v">12 / 20</div></div>
-      </div>
-      <div class="insight">"She came in scattered, but the real issue is she's afraid to commit — her mom built the family business on multi-line. The hero-product move IS the inheritance conversation."</div>
+      <div class="row" id="debriefRow"></div>
+      <div class="insight" id="debriefInsight"></div>
     </div>
 
-    <!-- SECTION CARDS -->
-    <div class="section-card">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">01</span>
-          <span class="section-name">North Star</span>
-          <span class="tch-owner m">M · Lead Strategist</span>
-        </div>
-        <div class="section-actions">
-          <button class="icon-btn">✏ Edit</button>
-          <button class="icon-btn" onclick="addComment(this)">💬 Comment</button>
-        </div>
-      </div>
-      <div class="section-content" contenteditable="true">"For the next 90 days, I'm building Solano Studio around one hero collection — and saying no to everything else."</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill done">M ✓</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn approved" disabled>M Approved</button></div>
-      </div>
-    </div>
+    <!-- Live action plan sections (rendered from session.actionPlanJson) -->
+    <div id="sectionsContainer"><!-- populated by JS --></div>
 
-    <div class="section-card">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">02</span>
-          <span class="section-name">What We Learned</span>
-          <span class="tch-owner m">M · Lead Strategist</span>
-        </div>
-        <div class="section-actions">
-          <button class="icon-btn">✏ Edit</button>
-          <button class="icon-btn" onclick="addComment(this)">💬 Comment</button>
-        </div>
-      </div>
-      <div class="section-content" contenteditable="true">[Diagnosis paragraph 1 — the thing beneath the thing.]<br><br><em>"You're not scattered. You're inheriting."</em><br><br>[Diagnosis paragraph 2 — the implication for brand and business.]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve My Edit</button></div>
-      </div>
-      <div class="comment-thread">
-        <div class="comment">
-          <div class="who j">Jake · 2:08 PM</div>
-          <div>The pull-quote is sharp. But the second paragraph is hedging. Commit to the inheritance frame harder — "Your mother built on more. Yours grows on less."</div>
-        </div>
-        <div class="resolve"><button>Resolve</button></div>
-      </div>
-    </div>
+    <!-- SECTION CARDS (dynamic — see sectionsContainer above) -->
 
-    <div class="section-card shared">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">03</span>
-          <span class="section-name">Creative Authority Read</span>
-          <span class="tch-owner shared">Shared · Both Approve</span>
-        </div>
-        <div class="section-actions">
-          <button class="icon-btn">✏ Edit</button>
-          <button class="icon-btn" onclick="addComment(this)">💬 Comment</button>
-        </div>
-      </div>
-      <div class="section-content" contenteditable="true">Total: 12 / 20 · Positioning 2 · Messaging 3 · Execution 4 · Distribution 3 · [Per-pillar narrative reads from session...]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval (BOTH): <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">04</span>
-          <span class="section-name">What We Love</span>
-          <span class="tch-owner m">M · Lead Strategist</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">✦ [Specific thing 1] · ✦ [Specific thing 2]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">05</span>
-          <span class="section-name">Things You Said That Matter</span>
-          <span class="tch-owner m">M · Lead Strategist</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">[3 verbatim quotes auto-extracted from Fireflies + 1-line context per quote]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">06</span>
-          <span class="section-name">What We're Not Doing</span>
-          <span class="tch-owner m">M · Lead Strategist</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">⛔ Stop: [items from session] · ⏸ Not Yet: [items from session]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card j">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">07</span>
-          <span class="section-name">Action Plan (72hr / 1wk / 1mo)</span>
-          <span class="tch-owner j">J · Lead Operator</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">[3 moves with DIY (Path A) and Level Up (Path B) for each timeframe]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card shared">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">08</span>
-          <span class="section-name">Effort / Impact Map</span>
-          <span class="tch-owner shared">Shared · Both Approve</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">[Quadrant map populated from live workshop — assigned per-session, may default to J]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval (BOTH): <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card j">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">09</span>
-          <span class="section-name">Tools We Recommend</span>
-          <span class="tch-owner j">J · Lead Operator</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">[Tools matched to current capacity, with pricing]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card j">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">10</span>
-          <span class="section-name">What Success Looks Like</span>
-          <span class="tch-owner j">J · Lead Operator</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">[7-day / 30-day / 90-day benchmarks with how-to-know-you-hit-it]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <div class="section-card shared">
-      <div class="section-head">
-        <div class="left">
-          <span class="section-num-tag-r">11</span>
-          <span class="section-name">Continue the Conversation</span>
-          <span class="tch-owner shared">Shared · Both Approve</span>
-        </div>
-        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
-      </div>
-      <div class="section-content" contenteditable="true">[Creative File access · Follow-Up $699 · Clarity Bundle $1,500 · Referral plant]</div>
-      <div class="approval-row">
-        <div class="approval-state">Approval (BOTH): <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
-        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
-      </div>
-    </div>
-
-    <button class="tch-btn ghost" style="margin-top:14px;">👁 Preview Full Deliverable</button>
+    <button class="tch-btn ghost" id="previewBtn" style="margin-top:14px;display:none;">👁 Preview Full Deliverable</button>
   </main>
 
   <aside class="approval-panel">
     <h3>Send Gates</h3>
 
-    <div class="gate-card">
-      <div class="label">M's sections approved</div>
-      <div class="state" id="gate1State">3 of 5</div>
-      <div class="progress"><div class="bar" style="width: 60%"></div></div>
+    <div class="gate-card" id="gateActionPlan">
+      <div class="label">Action plan generated</div>
+      <div class="state" id="gateActionPlanState">—</div>
+      <div class="progress"><div class="bar" style="width:0%"></div></div>
     </div>
-    <div class="gate-card">
-      <div class="label">J's sections approved</div>
-      <div class="state red" id="gate2State">0 of 3 — waiting for Jake</div>
-      <div class="progress"><div class="bar" style="width: 0%"></div></div>
+    <div class="gate-card" id="gateSections">
+      <div class="label">All sections approved</div>
+      <div class="state" id="gateSectionsState">0 of 0</div>
+      <div class="progress"><div class="bar" style="width:0%"></div></div>
     </div>
-    <div class="gate-card">
-      <div class="label">Shared sections (both approve)</div>
-      <div class="state" id="gate3State">0 of 3</div>
-      <div class="progress"><div class="bar" style="width: 0%"></div></div>
+    <div class="gate-card" id="gateMegha">
+      <div class="label">Megha sign-off</div>
+      <div class="state red" id="gateMeghaState">awaiting</div>
+      <div class="progress"><div class="bar" style="width:0%"></div></div>
     </div>
-    <div class="gate-card">
-      <div class="label">Comments resolved</div>
-      <div class="state" id="gate4State">2 of 3 open</div>
-      <div class="progress"><div class="bar" style="width: 33%"></div></div>
-    </div>
-
-    <div class="tie-break-banner" style="display:none;" id="tieBreakBanner">
-      <div class="head">⚖ Tie-Breaker Required</div>
-      <p style="font-family: var(--tch-mono); font-size: 12px;">Megha — there's a disagreement on a shared section. As current tie-breaker, your call locks the section.</p>
+    <div class="gate-card" id="gateJake">
+      <div class="label">Jake sign-off</div>
+      <div class="state red" id="gateJakeState">awaiting</div>
+      <div class="progress"><div class="bar" style="width:0%"></div></div>
     </div>
 
     <div class="send-section">
@@ -570,68 +358,475 @@
         <div class="channel-chip">📧 Email</div>
         <div class="channel-chip">📱 SMS</div>
       </div>
-      <p style="font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.6); margin-bottom: 14px;">Frankie sends both simultaneously. Status flips to Sent. Slack notifies M+J.</p>
-      <button class="send-btn" id="sendBtn">Send via Frankie ☎</button>
-      <p style="font-family: var(--tch-mono); font-size: 10px; color: rgba(245,242,235,0.4); margin-top: 10px;">Disabled until all gates clear.</p>
+      <p style="font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.6); margin-bottom: 14px;">Frankie sends both simultaneously. Status flips to Sent.</p>
+      <button class="send-btn" id="sendBtn" disabled>Send via Frankie ☎</button>
+      <p id="sendHelpText" style="font-family: var(--tch-mono); font-size: 10px; color: rgba(245,242,235,0.4); margin-top: 10px;">Disabled until all gates clear.</p>
     </div>
 
-    <div class="edit-log">
-      <h3>Edit Log</h3>
-      <div class="entry"><span class="time">2:14P</span><span class="who m">M</span><span>02 — refined positioning language</span></div>
-      <div class="entry"><span class="time">2:08P</span><span class="who j">J</span><span>02 — left comment on diagnosis hedge</span></div>
-      <div class="entry"><span class="time">1:52P</span><span class="who m">M</span><span>04 — verified quote accuracy</span></div>
-      <div class="entry"><span class="time">1:45P</span><span class="who m">M</span><span>01 — approved North Star</span></div>
+    <div class="edit-log" id="editLogContainer">
+      <h3>Session Status</h3>
+      <div class="entry"><span class="who m">·</span><span id="statusReferral">Referral: —</span></div>
+      <div class="entry"><span class="who j">·</span><span id="statusEmail">Email: —</span></div>
+      <div class="entry"><span class="who j">·</span><span id="statusSms">SMS: —</span></div>
+      <div class="entry"><span class="who m">·</span><span id="statusSentAt">Sent At: —</span></div>
     </div>
   </aside>
 </div>
 
 <script>
-  function approve(btn) {
-    btn.classList.add('approved');
-    btn.textContent = '✓ Approved';
-    btn.disabled = true;
-    checkSendReady();
+  // =====================================================================
+  // Review Dashboard — live wiring against /api/sessions/in-review + /api/sessions/[id]
+  // =====================================================================
+  // - Sidebar queue: GET /api/sessions/in-review → render each Review session
+  // - Main panel: when a queue item is clicked, GET /api/sessions/[id] for full
+  //   record (incl. actionPlanJson + debriefJson), render section cards
+  // - Send Gates: derive from section approvals + the role-based sign-off pills
+  // - Send button: POST /api/sessions/[id]/send with { approvedByMegha, approvedByJake }
+  //
+  // Approvals are tracked client-side per (sessionId, sectionIndex) in localStorage —
+  // until the Notion DB has Megha/Jake approval fields, this is the durable layer.
+  // localStorage key: tch_review_approvals_${sessionId} = { '0': {m:true,j:false}, ... }
+  // Role-level sign-off: tch_review_signoff_${sessionId} = { m:true, j:false }
+  // =====================================================================
+
+  const STATE = {
+    currentSessionId: null,
+    currentSession: null,
+    actionPlan: null,
+    role: 'm',         // 'm' (Megha) or 'j' (Jake)
+    sessions: [],
+  };
+
+  // -------- helpers -----------------------------------------------------
+  function approvalsKey(sid) { return `tch_review_approvals_${sid}`; }
+  function signoffKey(sid) { return `tch_review_signoff_${sid}`; }
+  function getApprovals(sid) {
+    try { return JSON.parse(localStorage.getItem(approvalsKey(sid)) || '{}'); }
+    catch { return {}; }
   }
-  function checkSendReady() {
-    const total = document.querySelectorAll('.approve-btn').length;
-    const approved = document.querySelectorAll('.approve-btn.approved').length;
-    const send = document.getElementById('sendBtn');
-    if (approved === total) { send.classList.add('ready'); send.disabled = false; }
+  function setApproval(sid, idx, who, value) {
+    const a = getApprovals(sid);
+    a[idx] = Object.assign({}, a[idx] || {});
+    a[idx][who] = value;
+    localStorage.setItem(approvalsKey(sid), JSON.stringify(a));
   }
-  function addComment(btn) {
-    const text = prompt('Add your comment:');
-    if (!text) return;
-    const card = btn.closest('.section-card');
-    let thread = card.querySelector('.comment-thread');
-    if (!thread) {
-      thread = document.createElement('div');
-      thread.className = 'comment-thread';
-      card.appendChild(thread);
-    }
-    const who = document.getElementById('userRole').classList.contains('jake') ? 'j' : 'm';
-    const c = document.createElement('div');
-    c.className = 'comment';
-    c.innerHTML = `<div class="who ${who}">${who === 'm' ? 'Megha' : 'Jake'} · ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</div><div>${text}</div>`;
-    thread.appendChild(c);
+  function getSignoff(sid) {
+    try { return JSON.parse(localStorage.getItem(signoffKey(sid)) || '{}'); }
+    catch { return {}; }
   }
-  document.getElementById('sendBtn').addEventListener('click', () => {
-    if (!document.getElementById('sendBtn').classList.contains('ready')) return;
-    if (!confirm('Confirm send? Email + SMS go simultaneously via Frankie.')) return;
-    const b = document.getElementById('sendBtn');
-    b.classList.remove('ready'); b.classList.add('sent');
-    b.textContent = '✓ Sent'; b.disabled = true;
-    alert('Sent. Email + SMS dispatched. Status: Sent. Slack notified.');
-  });
-  function toggleRole() {
+  function setSignoff(sid, who, value) {
+    const s = getSignoff(sid);
+    s[who] = value;
+    localStorage.setItem(signoffKey(sid), JSON.stringify(s));
+  }
+  function fmtTime(iso) {
+    if (!iso) return '—';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'});
+    } catch { return iso; }
+  }
+  function fmtDate(iso) {
+    if (!iso) return '—';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString([], {month:'short', day:'numeric'});
+    } catch { return iso; }
+  }
+  function esc(s) {
+    return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  }
+
+  // -------- role toggle -------------------------------------------------
+  window.toggleRole = function() {
     const t = document.getElementById('userRole');
-    if (t.classList.contains('jake')) {
-      t.classList.remove('jake');
-      t.textContent = 'Reviewing as: Megha';
-    } else {
+    if (STATE.role === 'm') {
+      STATE.role = 'j';
       t.classList.add('jake');
       t.textContent = 'Reviewing as: Jake';
+    } else {
+      STATE.role = 'm';
+      t.classList.remove('jake');
+      t.textContent = 'Reviewing as: Megha';
+    }
+    renderSections();
+    updateGates();
+  };
+
+  // -------- boot --------------------------------------------------------
+  async function boot() {
+    await loadQueue();
+    const params = new URLSearchParams(location.search);
+    const sid = params.get('sessionId') || (STATE.sessions[0] && STATE.sessions[0].id);
+    if (sid) {
+      await loadSession(sid);
+    } else {
+      renderEmpty();
     }
   }
+
+  // -------- queue (sidebar) ---------------------------------------------
+  async function loadQueue() {
+    const queueEl = document.getElementById('reviewQueue');
+    try {
+      const res = await fetch('/api/sessions/in-review?includeSent=true');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      STATE.sessions = data.sessions || [];
+    } catch (err) {
+      queueEl.innerHTML = `<div class="queue-item" style="opacity:0.6"><div class="name">Failed to load</div><div class="biz">${esc(err.message)}</div></div>`;
+      return;
+    }
+    renderQueue();
+  }
+
+  function renderQueue() {
+    const queueEl = document.getElementById('reviewQueue');
+    if (!STATE.sessions.length) {
+      queueEl.innerHTML = `<div class="queue-item" style="opacity:0.6"><div class="name">No sessions in review</div><div class="biz">Run a session → debrief → generate action plan to populate this queue.</div></div>`;
+      document.getElementById('statInReview').textContent = '0';
+      document.getElementById('statApproved').textContent = '0';
+      document.getElementById('statSent').textContent = '0';
+      return;
+    }
+    const today = new Date().toISOString().slice(0,10);
+    let nInReview = 0, nApproved = 0, nSentToday = 0;
+    queueEl.innerHTML = STATE.sessions.map(s => {
+      const isActive = s.id === STATE.currentSessionId;
+      const isSent = s.state === 'Sent';
+      const statusClass = isSent ? 'sent' : (s.hasActionPlan ? 'in-review' : 'drafting');
+      const statusLabel = isSent ? 'Sent' : (s.hasActionPlan ? 'In Review' : 'Drafting');
+      if (s.state === 'Review') nInReview += 1;
+      const signoff = getSignoff(s.id);
+      if (signoff.m && signoff.j) nApproved += 1;
+      if (isSent && s.sentAt && s.sentAt.slice(0,10) === today) nSentToday += 1;
+      const biz = s.payment?.product ? `${esc(s.payment.product)} · $${(s.payment.amount/100).toFixed(0)}` : '—';
+      return `
+        <div class="queue-item ${isActive ? 'active' : ''}" data-sid="${s.id}">
+          <div class="name">${esc(s.clientName || s.payment?.clientName || 'Unnamed')}</div>
+          <div class="biz">${biz}</div>
+          <div class="row"><span class="status-tag ${statusClass}">${statusLabel}</span> <span>${fmtTime(s.scheduledAt)}</span></div>
+        </div>`;
+    }).join('');
+
+    // wire clicks
+    queueEl.querySelectorAll('.queue-item[data-sid]').forEach(el => {
+      el.addEventListener('click', () => {
+        const sid = el.getAttribute('data-sid');
+        const url = new URL(location.href);
+        url.searchParams.set('sessionId', sid);
+        history.replaceState(null, '', url.toString());
+        loadSession(sid);
+      });
+    });
+
+    document.getElementById('statInReview').textContent = nInReview;
+    document.getElementById('statApproved').textContent = nApproved;
+    document.getElementById('statSent').textContent = nSentToday;
+  }
+
+  // -------- session detail ---------------------------------------------
+  async function loadSession(sid) {
+    STATE.currentSessionId = sid;
+    renderQueue(); // update active highlight
+    try {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sid)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const session = await res.json();
+      STATE.currentSession = session;
+      STATE.actionPlan = null;
+      if (session.actionPlanJson) {
+        try { STATE.actionPlan = JSON.parse(session.actionPlanJson); }
+        catch { STATE.actionPlan = null; }
+      }
+    } catch (err) {
+      document.getElementById('reviewClientName').textContent = `Failed to load: ${err.message}`;
+      return;
+    }
+    renderHeader();
+    renderDebrief();
+    renderSections();
+    updateGates();
+    renderSendStatus();
+  }
+
+  function renderEmpty() {
+    document.getElementById('reviewClientName').textContent = 'Select a session from the queue →';
+    document.getElementById('sectionsContainer').innerHTML = '';
+    document.getElementById('debriefSummary').style.display = 'none';
+  }
+
+  function renderHeader() {
+    const s = STATE.currentSession;
+    const ap = STATE.actionPlan;
+    const clientLabel = s.payment?.clientName
+      ? `${esc(s.payment.clientName)} — ${esc(s.payment.product || s.clientName)}`
+      : esc(s.clientName);
+    document.getElementById('reviewClientName').textContent = clientLabel;
+    document.getElementById('metaScheduled').textContent = s.scheduledAt
+      ? `${fmtDate(s.scheduledAt)} ${fmtTime(s.scheduledAt)}`
+      : '—';
+    document.getElementById('metaState').textContent = s.state || '—';
+    document.getElementById('metaActionPlan').textContent = s.actionPlanJson ? 'Drafted' : 'Not generated';
+    document.getElementById('metaDrafted').textContent = ap?.generatedAt ? fmtTime(ap.generatedAt) : '—';
+  }
+
+  function renderDebrief() {
+    const s = STATE.currentSession;
+    const wrap = document.getElementById('debriefSummary');
+    if (!s.debriefJson) {
+      wrap.style.display = 'none';
+      return;
+    }
+    let debrief;
+    try { debrief = JSON.parse(s.debriefJson); }
+    catch { wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+    // Build a row from whichever keys the debrief has
+    const row = document.getElementById('debriefRow');
+    const items = [];
+    const fields = [
+      ['Tone', debrief.tone],
+      ['Landed Hardest', debrief.landedHardest],
+      ['Path', debrief.path],
+      ['Upsell Read', debrief.upsell],
+      ['First Move', debrief.firstMove],
+      ['Authority', debrief.authority || debrief.authorityScore],
+    ];
+    fields.forEach(([k,v]) => {
+      if (v) items.push(`<div class="item"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`);
+    });
+    row.innerHTML = items.join('') || `<div class="item"><div class="k">Debrief</div><div class="v">Saved (no structured fields)</div></div>`;
+    document.getElementById('debriefInsight').textContent = debrief.meghaTake || debrief.insight || debrief.summary || '';
+  }
+
+  function renderSections() {
+    const container = document.getElementById('sectionsContainer');
+    const ap = STATE.actionPlan;
+    const sid = STATE.currentSessionId;
+    if (!ap) {
+      container.innerHTML = `<div class="section-card" style="border-left-color: var(--tch-yellow);">
+        <div class="section-name" style="margin-bottom:10px;">No action plan yet</div>
+        <p style="font-family: var(--tch-mono); font-size: 13px;">Generate the action plan from the Debrief screen, then return here to review.</p>
+      </div>`;
+      return;
+    }
+    // Action plan shape may vary. Prefer ap.sections array; fall back to known keys.
+    let sections = Array.isArray(ap.sections) ? ap.sections.slice() : [];
+    if (!sections.length) {
+      const known = [
+        ['North Star', ap.northStar, 'm'],
+        ['What We Learned', ap.whatWeLearned, 'm'],
+        ['Creative Authority Read', ap.authorityRead, 'shared'],
+        ['What We Love', ap.whatWeLove, 'm'],
+        ['Things You Said That Matter', ap.thingsYouSaid, 'm'],
+        ['What We\'re Not Doing', ap.notDoing, 'm'],
+        ['Action Plan (72hr / 1wk / 1mo)', ap.actionPlan, 'j'],
+        ['Effort / Impact Map', ap.effortImpact, 'shared'],
+        ['Tools We Recommend', ap.tools, 'j'],
+        ['What Success Looks Like', ap.success, 'j'],
+        ['Continue the Conversation', ap.continueConversation, 'shared'],
+      ];
+      known.forEach(([title, body, owner]) => {
+        if (body !== undefined && body !== null) {
+          sections.push({ title, body: typeof body === 'string' ? body : JSON.stringify(body, null, 2), owner });
+        }
+      });
+    }
+    const approvals = getApprovals(sid);
+    container.innerHTML = sections.map((sec, idx) => {
+      const owner = sec.owner || (idx < 6 ? 'm' : 'j');
+      const ownerClass = owner === 'shared' ? 'shared' : (owner === 'j' ? 'j' : '');
+      const ownerLabel = owner === 'shared' ? 'Shared · Both Approve' : (owner === 'j' ? 'J · Lead Operator' : 'M · Lead Strategist');
+      const approved = approvals[idx] || {};
+      const mDone = approved.m === true;
+      const jDone = approved.j === true;
+      const both = mDone && jDone;
+      const myApproved = approved[STATE.role] === true;
+      const showM = owner === 'm' || owner === 'shared';
+      const showJ = owner === 'j' || owner === 'shared';
+      const body = (typeof sec.body === 'string') ? sec.body : JSON.stringify(sec.body, null, 2);
+      const num = String(idx + 1).padStart(2,'0');
+      return `
+        <div class="section-card ${ownerClass}" data-section-idx="${idx}">
+          <div class="section-head">
+            <div class="left">
+              <span class="section-num-tag-r">${num}</span>
+              <span class="section-name">${esc(sec.title || 'Section')}</span>
+              <span class="tch-owner ${owner}">${esc(ownerLabel)}</span>
+            </div>
+          </div>
+          <div class="section-content" contenteditable="false">${esc(body).replace(/\n/g, '<br>')}</div>
+          <div class="approval-row">
+            <div class="approval-state">Approval: <span class="checks">
+              ${showM ? `<span class="check-pill ${mDone?'done':''}">${mDone?'M ✓':'M'}</span>` : ''}
+              ${showJ ? `<span class="check-pill ${jDone?'done':''}">${jDone?'J ✓':'J'}</span>` : ''}
+            </span></div>
+            <div>
+              <button class="approve-btn ${myApproved?'approved':''}" data-action="approve" data-idx="${idx}" ${myApproved?'disabled':''}>
+                ${myApproved ? '✓ Approved' : `Approve as ${STATE.role.toUpperCase()}`}
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Wire approve buttons
+    container.querySelectorAll('button[data-action="approve"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = btn.getAttribute('data-idx');
+        setApproval(sid, idx, STATE.role, true);
+        renderSections();
+        updateGates();
+      });
+    });
+  }
+
+  function isSectionFullyApproved(sec, approvals, idx) {
+    const owner = sec.owner || (idx < 6 ? 'm' : 'j');
+    const a = approvals[idx] || {};
+    if (owner === 'shared') return a.m === true && a.j === true;
+    if (owner === 'j') return a.j === true;
+    return a.m === true;
+  }
+
+  function getSectionsArray() {
+    const ap = STATE.actionPlan;
+    if (!ap) return [];
+    if (Array.isArray(ap.sections)) return ap.sections;
+    const known = ['northStar','whatWeLearned','authorityRead','whatWeLove','thingsYouSaid','notDoing','actionPlan','effortImpact','tools','success','continueConversation'];
+    const list = [];
+    known.forEach((k, idx) => {
+      if (ap[k] !== undefined && ap[k] !== null) {
+        list.push({ key: k, owner: (idx===2||idx===7||idx===10) ? 'shared' : (idx>=6 ? 'j' : 'm') });
+      }
+    });
+    return list;
+  }
+
+  function updateGates() {
+    const sid = STATE.currentSessionId;
+    const s = STATE.currentSession;
+    if (!s) return;
+    const sections = getSectionsArray();
+    const approvals = getApprovals(sid);
+
+    // gate 1: action plan generated
+    const ap = !!s.actionPlanJson;
+    setGate('ActionPlan', ap, ap ? 'Generated' : 'Not yet generated');
+
+    // gate 2: all sections approved
+    const total = sections.length;
+    const approved = sections.filter((sec, idx) => isSectionFullyApproved(sec, approvals, idx)).length;
+    setGate('Sections', total > 0 && approved === total, `${approved} of ${total}`, total ? (approved/total*100) : 0);
+
+    // gate 3 + 4: role sign-offs
+    const signoff = getSignoff(sid);
+    setGate('Megha', !!signoff.m, signoff.m ? 'Signed off' : 'awaiting');
+    setGate('Jake', !!signoff.j, signoff.j ? 'Signed off' : 'awaiting');
+
+    // already sent?
+    const alreadySent = s.state === 'Sent';
+    const allGood = ap && total > 0 && approved === total && signoff.m && signoff.j && !alreadySent;
+    const sendBtn = document.getElementById('sendBtn');
+    const helpText = document.getElementById('sendHelpText');
+    if (alreadySent) {
+      sendBtn.classList.remove('ready');
+      sendBtn.classList.add('sent');
+      sendBtn.disabled = true;
+      sendBtn.textContent = '✓ Already Sent';
+      helpText.textContent = `Sent at ${fmtTime(s.sentAt)} · do not re-send`;
+    } else if (allGood) {
+      sendBtn.classList.add('ready');
+      sendBtn.classList.remove('sent');
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'Send via Frankie ☎';
+      helpText.textContent = 'All gates cleared — ready to deliver.';
+    } else {
+      sendBtn.classList.remove('ready');
+      sendBtn.classList.remove('sent');
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Send via Frankie ☎';
+      helpText.textContent = 'Disabled until all gates clear.';
+    }
+
+    // Render role-sign-off toggles inside the gate cards as click targets
+    const meghaCard = document.getElementById('gateMegha');
+    const jakeCard = document.getElementById('gateJake');
+    meghaCard.style.cursor = STATE.role === 'm' ? 'pointer' : 'default';
+    jakeCard.style.cursor = STATE.role === 'j' ? 'pointer' : 'default';
+    meghaCard.onclick = STATE.role === 'm' ? () => { setSignoff(sid, 'm', !getSignoff(sid).m); updateGates(); } : null;
+    jakeCard.onclick = STATE.role === 'j' ? () => { setSignoff(sid, 'j', !getSignoff(sid).j); updateGates(); } : null;
+  }
+
+  function setGate(name, done, stateText, pct) {
+    const card = document.getElementById('gate' + name);
+    const stateEl = document.getElementById('gate' + name + 'State');
+    if (!card || !stateEl) return;
+    card.classList.toggle('done', !!done);
+    stateEl.textContent = stateText;
+    stateEl.classList.toggle('green', !!done);
+    stateEl.classList.toggle('red', !done);
+    const bar = card.querySelector('.bar');
+    if (bar) bar.style.width = (done ? 100 : (typeof pct === 'number' ? pct : 0)) + '%';
+  }
+
+  function renderSendStatus() {
+    const s = STATE.currentSession;
+    document.getElementById('statusReferral').textContent = `Referral: ${s.referralCode || '—'}`;
+    document.getElementById('statusEmail').textContent = `Email: ${s.emailSent ? 'sent' : 'not sent'}`;
+    document.getElementById('statusSms').textContent = `SMS: ${s.smsSent ? 'sent' : 'not sent'}`;
+    document.getElementById('statusSentAt').textContent = `Sent At: ${s.sentAt ? fmtTime(s.sentAt) : '—'}`;
+  }
+
+  // -------- send --------------------------------------------------------
+  document.getElementById('sendBtn').addEventListener('click', async () => {
+    const btn = document.getElementById('sendBtn');
+    if (btn.disabled) return;
+    const sid = STATE.currentSessionId;
+    if (!sid) return;
+    const signoff = getSignoff(sid);
+    if (!signoff.m || !signoff.j) {
+      alert('Both Megha and Jake must sign off before sending.');
+      return;
+    }
+    if (!confirm('Confirm send? Email + SMS go simultaneously via Frankie.')) return;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    try {
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sid)}/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          approvedByMegha: signoff.m === true,
+          approvedByJake: signoff.j === true,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.ok) {
+        const msg = data.message || data.error || `HTTP ${res.status}`;
+        btn.classList.remove('ready');
+        btn.disabled = false;
+        btn.textContent = 'Send via Frankie ☎';
+        alert(`Send failed: ${msg}`);
+        return;
+      }
+      btn.classList.remove('ready');
+      btn.classList.add('sent');
+      btn.textContent = '✓ Sent';
+      const e = data.delivery?.email?.ok ? 'sent' : `failed (${data.delivery?.email?.reason || 'unknown'})`;
+      const sm = data.delivery?.sms?.ok ? 'sent' : `failed (${data.delivery?.sms?.reason || 'unknown'})`;
+      alert(`Sent.\nEmail: ${e}\nSMS: ${sm}\nReferral: ${data.referralCode}`);
+      await loadSession(sid); // refetch to update header + status
+      await loadQueue();
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Send via Frankie ☎';
+      alert(`Send threw: ${err.message}`);
+    }
+  });
+
+  boot();
 </script>
 </body>
 </html>

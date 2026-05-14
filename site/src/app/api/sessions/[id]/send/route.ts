@@ -4,17 +4,20 @@
  * The Day-0 delivery step of the V2 pipeline. After Megha + Jake approve the
  * action plan in the Review Dashboard, this route:
  *
+ *   0. **Approval gate** — body MUST include { approvedByMegha: true,
+ *      approvedByJake: true }, or pass ?force=true&token=<SEND_FORCE_TOKEN>
+ *      for ops bypass. Missing sign-off → 403.
  *   1. Fetches the Session + linked Payment from Notion
- *   2. Generates the referral code `<FIRST>-DIAL-100` (deterministic — safe
+ *   2. Refuses to re-fire if state === Sent (use ?force=true to override)
+ *   3. Generates the referral code `<FIRST>-DIAL-100` (deterministic — safe
  *      to call repeatedly; we always emit the same code for the same client)
- *   3. Stores the code on the Session row
- *   4. Fires SendGrid email + Twilio SMS in parallel via Frankie
- *   5. Marks Email Sent / SMS Sent / Sent At on the Session row
- *   6. Transitions State Review → Sent
+ *   4. Stores the code on the Session row
+ *   5. Fires SendGrid email + Twilio SMS in parallel via Frankie
+ *   6. Marks Email Sent / SMS Sent / Sent At on the Session row
+ *   7. Transitions State Review → Sent
  *
- * Idempotent: re-running on a Session already in Sent state will simply re-fire
- * the delivery (useful for re-send after a delivery failure). Use carefully —
- * we don't dedupe by message ID. Caller should add a confirm dialog in the UI.
+ * Body shape:
+ *   { approvedByMegha: boolean, approvedByJake: boolean }
  *
  * Response shape:
  *   {
@@ -29,6 +32,7 @@
  *   }
  *
  * V2 Batch 7 — Send pipeline.
+ * V2 Round A — added Megha+Jake approval gate + Sent-state refusal.
  */
 
 import { NextResponse } from "next/server";
@@ -94,6 +98,47 @@ function buildActionPlanUrl(sessionId: string, request: Request): string {
   }
 }
 
+/**
+ * Parse the approval flags out of the request body. The Review Dashboard sends:
+ *   { approvedByMegha: boolean, approvedByJake: boolean }
+ * Missing body or non-true flags fail the gate. Bypass for legacy callers (e.g.
+ * smoke tests) is allowed via `?force=true` query param when the server's
+ * SEND_FORCE_TOKEN env matches `&token=...` — keeps the gate honest in prod but
+ * gives ops an escape hatch during testing.
+ */
+async function checkApprovalGate(request: Request): Promise<
+  | { ok: true; approvedByMegha: boolean; approvedByJake: boolean }
+  | { ok: false; reason: string }
+> {
+  const url = new URL(request.url);
+  const force = url.searchParams.get("force") === "true";
+  const token = url.searchParams.get("token") || "";
+
+  if (force) {
+    const expected = process.env.SEND_FORCE_TOKEN || "";
+    if (!expected) {
+      return { ok: false, reason: "force_disabled_no_token_configured" };
+    }
+    if (token !== expected) {
+      return { ok: false, reason: "force_token_mismatch" };
+    }
+    // Force-allow; record sign-offs as system overrides.
+    return { ok: true, approvedByMegha: true, approvedByJake: true };
+  }
+
+  let body: { approvedByMegha?: unknown; approvedByJake?: unknown } = {};
+  try {
+    body = await request.clone().json();
+  } catch {
+    return { ok: false, reason: "missing_or_invalid_json_body" };
+  }
+  const approvedByMegha = body.approvedByMegha === true;
+  const approvedByJake = body.approvedByJake === true;
+  if (!approvedByMegha) return { ok: false, reason: "megha_signoff_required" };
+  if (!approvedByJake) return { ok: false, reason: "jake_signoff_required" };
+  return { ok: true, approvedByMegha, approvedByJake };
+}
+
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> },
@@ -103,10 +148,39 @@ export async function POST(
     return NextResponse.json({ error: "missing_id" }, { status: 400 });
   }
 
+  // 0. Gate: both reviewers must sign off (or force-token must match).
+  const gate = await checkApprovalGate(request);
+  if (!gate.ok) {
+    return NextResponse.json(
+      {
+        error: "approval_gate_failed",
+        reason: gate.reason,
+        message:
+          "Both Megha and Jake must sign off before sending. POST with " +
+          "{ approvedByMegha: true, approvedByJake: true } in the body.",
+      },
+      { status: 403 },
+    );
+  }
+
   // 1. Fetch session
   const session = await getSessionById(id).catch(() => null);
   if (!session) {
     return NextResponse.json({ error: "session_not_found" }, { status: 404 });
+  }
+
+  // Gate: don't allow re-sending sessions already in the Sent state. The
+  // approval gate stops a fresh send, but if the Notion row is already Sent
+  // we refuse before even hitting Frankie — keeps us from spamming the client.
+  if (session.state === "Sent" && session.emailSent) {
+    return NextResponse.json(
+      {
+        error: "already_sent",
+        message:
+          "Session is already in Sent state with Email Sent=true. Use ?force=true&token=... to re-fire deliberately.",
+      },
+      { status: 409 },
+    );
   }
 
   // Gate: we don't allow sending if there's no action plan to deliver.
@@ -229,7 +303,8 @@ export async function POST(
       (delivery.email.reason ? ` email.reason=${delivery.email.reason}` : "") +
       ` sms.ok=${delivery.sms.ok}` +
       (delivery.sms.reason ? ` sms.reason=${delivery.sms.reason}` : "") +
-      ` code=${referralCode}`,
+      ` code=${referralCode}` +
+      ` approvals=M:${gate.approvedByMegha}|J:${gate.approvedByJake}`,
   );
 
   return NextResponse.json({
