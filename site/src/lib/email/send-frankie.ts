@@ -18,8 +18,11 @@ import {
   confirmationEmail,
   type ConfirmationInput,
   calendlyConfirmationEmail,
+  actionPlanDeliveredEmail,
+  actionPlanDeliveredSms,
 } from "./templates/frankie";
 import { sendEmail } from "../services/email";
+import { sendSms } from "../services/twilio";
 import type { PaymentCreateInput, ProductPurchased } from "../v2-types";
 
 /**
@@ -157,4 +160,102 @@ export async function sendConfirmationFromCalendlyPayment(
     const message = err instanceof Error ? err.message : "unknown";
     return { ok: false, reason: `template_or_send_threw: ${message}` };
   }
+}
+
+// ---------------------------------------------------------------------------
+// Send pipeline — Day 0 action plan delivery (V2 Batch 7)
+// ---------------------------------------------------------------------------
+
+export interface ActionPlanDeliveryInput {
+  /** Recipient email — from Payment row. */
+  email: string;
+  /** Recipient phone in E.164 format — from Payment row (may be missing). */
+  phone?: string | null;
+  /** Client first name — for personalization. */
+  firstName: string;
+  /** Public action plan URL. */
+  actionPlanUrl: string;
+  /** Generated referral code, e.g. JAKE-DIAL-100. */
+  referralCode: string;
+}
+
+export interface ActionPlanDeliveryResult {
+  email: { ok: boolean; reason?: string };
+  sms: { ok: boolean; reason?: string; sid?: string };
+}
+
+/**
+ * Fire the Day 0 action plan email + SMS in parallel via Frankie.
+ *
+ * Email is always attempted (gated by ENABLE_FRANKIE_EMAILS). SMS is attempted
+ * only if a phone number is on file AND Twilio is configured. Either failure
+ * does not block the other — we return both results so the caller can mark
+ * partial-success on the Session row.
+ *
+ * Never throws.
+ */
+export async function sendActionPlanDelivery(
+  input: ActionPlanDeliveryInput,
+): Promise<ActionPlanDeliveryResult> {
+  // ---- Email half --------------------------------------------------------
+  const emailResultP: Promise<{ ok: boolean; reason?: string }> = (async () => {
+    if (!config.frankieEmails.enabled) {
+      return { ok: false, reason: "frankie_disabled" };
+    }
+    if (!input.email) {
+      return { ok: false, reason: "no_recipient_email" };
+    }
+    try {
+      const tmpl = actionPlanDeliveredEmail({
+        firstName: input.firstName,
+        actionPlanUrl: input.actionPlanUrl,
+        referralCode: input.referralCode,
+      });
+      const result = await sendEmail({
+        to: input.email,
+        subject: tmpl.subject,
+        bodyMarkdown: tmpl.bodyMarkdown,
+        previewText: tmpl.previewText,
+        categories: tmpl.categories,
+      });
+      return result.ok
+        ? { ok: true }
+        : { ok: false, reason: result.reason ?? "send_failed" };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "unknown";
+      return { ok: false, reason: `email_threw: ${message}` };
+    }
+  })();
+
+  // ---- SMS half ----------------------------------------------------------
+  const smsResultP: Promise<{ ok: boolean; reason?: string; sid?: string }> =
+    (async () => {
+      if (!input.phone) {
+        return { ok: false, reason: "no_phone_on_file" };
+      }
+      if (!config.twilio.accountSid || !config.twilio.authToken) {
+        return { ok: false, reason: "twilio_not_configured" };
+      }
+      try {
+        const smsBody = actionPlanDeliveredSms({
+          firstName: input.firstName,
+          actionPlanUrl: input.actionPlanUrl,
+          referralCode: input.referralCode,
+        });
+        const result = await sendSms({
+          to: input.phone,
+          body: smsBody,
+        });
+        return result.ok
+          ? { ok: true, sid: result.sid }
+          : { ok: false, reason: result.error ?? "sms_send_failed" };
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "unknown";
+        return { ok: false, reason: `sms_threw: ${message}` };
+      }
+    })();
+
+  // Fire in parallel — independent failure modes.
+  const [emailRes, smsRes] = await Promise.all([emailResultP, smsResultP]);
+  return { email: emailRes, sms: smsRes };
 }

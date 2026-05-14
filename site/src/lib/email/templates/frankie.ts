@@ -206,3 +206,71 @@ ${input.callerPrepUrl ? `Full one-pager: [${input.callerPrepUrl}](${input.caller
 — F`,
   };
 }
+
+// ---------------------------------------------------------------------------
+// EMAIL 4 · Action Plan Delivered (Day 0)
+// ---------------------------------------------------------------------------
+//
+// Fires from the Send pipeline (V2 Batch 7) after Megha + Jake approve the
+// action plan in the Review Dashboard. SendGrid email goes out simultaneously
+// with a Twilio SMS that links to the same hosted action-plan page.
+//
+// Promised in confirmation email: "your action plan lands in your inbox 24
+// hours after the call." This is that email.
+
+export interface ActionPlanDeliveredInput {
+  firstName: string;
+  /** Public URL to the hosted action plan, e.g.
+   *  https://api.thecreativehotline.com/templates-v2/action-plan.html?sessionId=... */
+  actionPlanUrl: string;
+  /** Referral code in the form `<FIRST>-DIAL-100`. */
+  referralCode: string;
+}
+
+export function actionPlanDeliveredEmail(
+  input: ActionPlanDeliveredInput,
+): FrankieEmail {
+  return {
+    subject: "Your plan is live ☎️",
+    previewText:
+      "Action plan from your Hotline call — and a $100 referral code to share.",
+    categories: ["delivery", "frankie", "action_plan"],
+    bodyMarkdown: `Hey ${input.firstName} —
+
+Here's the playbook from your call. Wall, matrix, B-Side — all folded in.
+
+[OPEN YOUR ACTION PLAN →](${input.actionPlanUrl})
+
+A few notes before you dig in:
+
+· **Save the link.** This is your Creative File. Everything we made together lives here.
+· **One move first.** Pick the 72-hour win and start there. The rest waits.
+· **Reply with reactions.** Tomorrow morning I'll text you with three quick prompts ("I liked / I wished / I wondered"). Don't overthink it — first instinct.
+
+**Pay it forward.**
+Your referral code: \`${input.referralCode}\`
+
+Anyone you share it with gets $100 off their First Call. You get $100 off your next session when they use it.
+
+Talk soon,
+— F
+
+☎️ thecreativehotline.com
+*Stop spiraling. Start creating.*`,
+  };
+}
+
+/**
+ * SMS body for the Day 0 action plan delivery. Pairs with the email above —
+ * fires from the same Send route via Twilio. Keep under 320 chars (2-segment
+ * GSM-7) so we don't get billed as 3 messages.
+ *
+ * The hosted URL is short enough; we don't bother with link shortening.
+ */
+export function actionPlanDeliveredSms(
+  input: ActionPlanDeliveredInput,
+): string {
+  return `☎️ ${input.firstName}, your Creative Hotline action plan is live: ${input.actionPlanUrl}
+
+Share your code ${input.referralCode} — friends get $100 off, you get $100 off your next session. — F`;
+}

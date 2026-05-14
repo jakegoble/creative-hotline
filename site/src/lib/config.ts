@@ -57,6 +57,13 @@ export const config = {
     apiKey: process.env.SENDGRID_API_KEY ?? "",
   },
 
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID ?? "",
+    authToken: process.env.TWILIO_AUTH_TOKEN ?? "",
+    /** E.164 format, e.g. +14137674332 (the TCH hotline number). */
+    fromNumber: process.env.TWILIO_FROM_NUMBER ?? "",
+  },
+
   /** V2 Frankie onboarding emails — off by default until SendGrid is verified. */
   frankieEmails: {
     enabled: process.env.ENABLE_FRANKIE_EMAILS === "true",

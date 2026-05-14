@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCH · Facilitator Guide</title>
+<link rel="stylesheet" href="tch-brand.css" />
+<style>
+  body { background: var(--tch-cream); }
+
+  .top {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 14px 28px;
+    border-bottom: 4px solid var(--tch-red);
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .top::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px);
+    pointer-events: none;
+  }
+  .top h1 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1); position: relative;
+  }
+  .top .subtitle {
+    font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.18em;
+    font-size: 11px; color: rgba(245,242,235,0.7); text-transform: uppercase;
+    margin-left: 14px;
+  }
+  .top .left { display: flex; align-items: center; gap: 14px; position: relative; z-index: 2; }
+  .top .right { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.16em; font-size: 11px; color: var(--tch-yellow); text-transform: uppercase; position: relative; z-index: 2; }
+
+  main { max-width: 1100px; margin: 0 auto; padding: 36px 32px 80px; }
+
+  .doc-hero {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 36px;
+    border: 3px solid var(--tch-ink);
+    box-shadow: 8px 8px 0 var(--tch-ink);
+    margin-bottom: 50px;
+    transform: rotate(-0.3deg);
+  }
+  .doc-hero h2 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-4); line-height: 0.95; margin-bottom: 12px;
+  }
+  .doc-hero h2 em { color: var(--tch-red); font-style: italic; }
+  .doc-hero p {
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
+    max-width: 640px; margin-bottom: 14px;
+  }
+  .doc-hero .version {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase;
+    color: rgba(28,28,30,0.6);
+  }
+
+  /* TIMELINE QUICK REFERENCE */
+  .timeline {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 36px;
+    margin-bottom: 50px;
+    border: 2px solid var(--tch-ink);
+    position: relative; overflow: hidden;
+  }
+  .timeline::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.03) 2px 3px);
+    pointer-events: none;
+  }
+  .timeline > * { position: relative; z-index: 2; }
+  .timeline h3 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); color: var(--tch-yellow); margin-bottom: 6px;
+  }
+  .timeline .sub {
+    font-family: var(--tch-mono); font-size: 12px;
+    color: rgba(245,242,235,0.6); margin-bottom: 24px;
+  }
+  .tl-grid { display: grid; gap: 6px; }
+  .tl-row {
+    display: grid; grid-template-columns: 100px 1fr 100px;
+    gap: 16px; padding: 12px 0;
+    border-bottom: 1px dashed rgba(245,242,235,0.15);
+    align-items: center;
+  }
+  .tl-row:last-child { border-bottom: none; }
+  .tl-time {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1); color: var(--tch-yellow);
+  }
+  .tl-act {
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
+  }
+  .tl-act strong { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 11px; text-transform: uppercase; color: var(--tch-cream); }
+  .tl-lead {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 10px;
+    text-align: right; text-transform: uppercase;
+  }
+  .tl-lead.m { color: var(--tch-red); }
+  .tl-lead.j { color: var(--tch-blue); }
+  .tl-lead.both { color: var(--tch-yellow); }
+
+  .timing-tip {
+    background: rgba(246,237,82,0.1);
+    padding: 16px 20px;
+    margin-top: 22px;
+    border-left: 4px solid var(--tch-yellow);
+    font-family: var(--tch-mono); font-size: 13px;
+  }
+  .timing-tip strong { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; font-size: 11px; color: var(--tch-yellow); }
+
+  /* SECTION-BY-SECTION NOTES */
+  .section-note {
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink);
+    padding: 32px;
+    margin-bottom: 22px;
+    box-shadow: var(--tch-shadow-hard-sm);
+    position: relative;
+  }
+  .section-note .num-tag {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-5); line-height: 0.9;
+    color: rgba(28,28,30,0.12);
+    position: absolute; top: 18px; right: 24px;
+  }
+  .section-note .badge {
+    display: inline-block; padding: 4px 12px;
+    background: var(--tch-red); color: var(--tch-cream);
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    margin-bottom: 14px; text-transform: uppercase;
+  }
+  .section-note h3 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); line-height: 1.0; margin-bottom: 14px;
+  }
+  .section-note h3 em { color: var(--tch-red); font-style: italic; }
+  .section-note h4 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 12px;
+    margin: 22px 0 8px; text-transform: uppercase;
+    color: var(--tch-ink);
+  }
+  .section-note p { margin-bottom: 12px; font-size: var(--tch-step-0); }
+  .section-note .listening {
+    background: rgba(46,99,231,0.08);
+    padding: 16px 20px;
+    border-left: 3px solid var(--tch-blue);
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .section-note .pull-q {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 14px 18px;
+    margin: 16px 0;
+    border: 2px solid var(--tch-ink);
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1);
+    transform: rotate(-0.3deg);
+  }
+  .section-note .pro-tip {
+    background: rgba(28,28,30,0.05);
+    padding: 14px 18px;
+    margin: 14px 0;
+    border-left: 3px solid var(--tch-ink);
+    font-size: 13px;
+  }
+  .section-note .pro-tip strong { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; font-size: 11px; }
+
+  /* RED FLAGS / EMERGENCY */
+  .red-flags {
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 36px;
+    margin-bottom: 36px;
+    border: 2px solid var(--tch-ink);
+    box-shadow: 8px 8px 0 var(--tch-ink);
+  }
+  .red-flags h3 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); margin-bottom: 18px;
+  }
+  .red-flags h3 em { color: var(--tch-yellow); font-style: italic; }
+  .flag-grid { display: grid; gap: 16px; }
+  .flag-row {
+    background: rgba(28,28,30,0.2);
+    padding: 16px;
+    border-left: 3px solid var(--tch-yellow);
+  }
+  .flag-row .pattern {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.06em; font-size: 12px;
+    color: var(--tch-yellow); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .flag-row .move {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1); margin-bottom: 6px;
+  }
+  .flag-row .why { font-family: var(--tch-mono); font-size: 12px; opacity: 0.85; }
+
+  /* CHECKLIST */
+  .checklist-card {
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink);
+    padding: 28px;
+    margin-bottom: 22px;
+  }
+  .checklist-card h3 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-2); margin-bottom: 16px;
+  }
+  .checklist-card ul { list-style: none; }
+  .checklist-card li {
+    padding: 8px 0; padding-left: 28px;
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
+    border-bottom: 1px dashed var(--tch-ink-line);
+    position: relative;
+  }
+  .checklist-card li:last-child { border-bottom: none; }
+  .checklist-card li::before {
+    content: '⬜'; position: absolute; left: 0; color: var(--tch-red);
+  }
+
+  /* TOC */
+  .toc {
+    background: var(--tch-cream);
+    border: 2px dashed var(--tch-ink);
+    padding: 22px 28px;
+    margin-bottom: 40px;
+  }
+  .toc h4 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    color: var(--tch-red); margin-bottom: 12px; text-transform: uppercase;
+  }
+  .toc ol { padding-left: 28px; }
+  .toc li {
+    font-family: var(--tch-mono); font-size: 13px;
+    padding: 4px 0;
+  }
+  .toc a { color: var(--tch-ink); text-decoration: none; }
+  .toc a:hover { color: var(--tch-red); }
+
+  /* DIVIDER */
+  .div-rule {
+    border: none;
+    border-top: 4px solid var(--tch-ink);
+    margin: 40px 0;
+  }
+
+  @media (max-width: 768px) {
+    .tl-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="left">
+    <span class="tch-logo-3stack-white" style="height: 32px; width: 72px;"></span>
+    <h1>Facilitator Guide</h1>
+    <span class="subtitle">For M + J Eyes Only</span>
+  </div>
+  <div class="right">v2.0 · Live-Call Playbook</div>
+</header>
+
+<main>
+
+  <div class="doc-hero">
+    <h2>Run the <em>session</em>. Don't perform it.</h2>
+    <p>This is your in-call playbook. The post-session debrief moved out of this doc — it lives in <strong>debrief.html</strong>. This is purely live-call: timing, moves, red flags, emergency plays.</p>
+    <div class="version">Version 2.0 · April 2026</div>
+  </div>
+
+  <!-- TOC -->
+  <div class="toc">
+    <h4>↳ Quick Navigation</h4>
+    <ol>
+      <li><a href="#timeline">45-Min Session Timeline</a></li>
+      <li><a href="#redflags">Red Flags + Recovery</a></li>
+      <li><a href="#sec0">00 · Introductions (0:00–2:00)</a></li>
+      <li><a href="#sec1">01 · Your Story (2:00–7:00)</a></li>
+      <li><a href="#sec2">02 · Dialing In · What We Found (7:00–12:00)</a></li>
+      <li><a href="#sec3">03 · North Star (12:00–15:00) — moved here in V2</a></li>
+      <li><a href="#sec4">04 · What We See (15:00–25:00) · diagnosis · BLACK BG</a></li>
+      <li><a href="#somatic">~25:00 · Somatic Reset (NEW)</a></li>
+      <li><a href="#sec5">05 · Your Moves (25:00–35:00)</a></li>
+      <li><a href="#ei">06 · Effort/Impact Map (35:00–40:00) · NEW · replaces The Wall</a></li>
+      <li><a href="#firstmove">⚡ First Move (40:00–42:00) · NEW</a></li>
+      <li><a href="#sec6">07 · The Close (42:00–45:00)</a></li>
+      <li><a href="#presession">Pre-Session Checklist</a></li>
+      <li><a href="#emergency">Emergency Plays</a></li>
+    </ol>
+  </div>
+
+  <!-- TIMELINE -->
+  <section class="timeline" id="timeline">
+    <h3>The 45-Minute Session</h3>
+    <div class="sub">Use this to stay locked in. When you're running behind, you know what to compress.</div>
+
+    <div class="tl-grid">
+      <div class="tl-row"><span class="tl-time">0:00–2:00</span><div class="tl-act"><strong>Introductions</strong> · ground rules, B-Side intro, timer explanation</div><span class="tl-lead both">M + J</span></div>
+      <div class="tl-row"><span class="tl-time">2:00–7:00</span><div class="tl-act"><strong>Your Story</strong> · reflect intake, "what's really going on?"</div><span class="tl-lead both">M + J</span></div>
+      <div class="tl-row"><span class="tl-time">7:00–12:00</span><div class="tl-act"><strong>Dialing In</strong> · gap hypothesis, hunch reveal</div><span class="tl-lead m">M leads</span></div>
+      <div class="tl-row"><span class="tl-time">12:00–15:00</span><div class="tl-act"><strong>North Star</strong> · the one question, captured verbatim · <em>moved here in V2</em></div><span class="tl-lead both">M + J</span></div>
+      <div class="tl-row"><span class="tl-time">15:00–25:00</span><div class="tl-act"><strong>What We See</strong> · audit walkthrough, diagnosis · BLACK BG</div><span class="tl-lead m">M + J</span></div>
+      <div class="tl-row"><span class="tl-time">~25:00</span><div class="tl-act"><strong>Somatic Reset</strong> · 30 sec pulse, "what's landing?" · <em>NEW</em></div><span class="tl-lead both">M + J</span></div>
+      <div class="tl-row"><span class="tl-time">25:00–35:00</span><div class="tl-act"><strong>Your Moves</strong> · pressure-test pre-drafted plan</div><span class="tl-lead both">M + J</span></div>
+      <div class="tl-row"><span class="tl-time">35:00–40:00</span><div class="tl-act"><strong>Effort/Impact Map</strong> · drag moves into 2×2 · <em>NEW · replaces The Wall</em></div><span class="tl-lead j">J leads</span></div>
+      <div class="tl-row"><span class="tl-time">40:00–42:00</span><div class="tl-act"><strong>First Move</strong> · 60 sec, client does ONE thing on call · <em>NEW</em></div><span class="tl-lead both">M + J</span></div>
+      <div class="tl-row"><span class="tl-time">42:00–45:00</span><div class="tl-act"><strong>The Close</strong> · close script, 24-hr promise, referral plant</div><span class="tl-lead m">M leads</span></div>
+    </div>
+
+    <div class="timing-tip">
+      <strong>Timing pro tip</strong> — sections 4–5 (15:00–35:00) are where you spend the most oxygen. Diagnosis sets up the moves. If you're light on diagnosis time, the moves still land because they're pre-drafted. If you're light on moves time, the diagnosis lands but the action plan needs more polish in review. Never skip the First Move — that's where buy-in calcifies.
+    </div>
+  </section>
+
+  <!-- RED FLAGS -->
+  <section class="red-flags" id="redflags">
+    <h3>Red Flags + <em>Recovery</em></h3>
+    <div class="flag-grid">
+      <div class="flag-row">
+        <div class="pattern">Can't articulate what they want</div>
+        <div class="move">"What's one thing that would make this feel worth doing?"</div>
+        <div class="why">Strips away abstraction. Forces a concrete anchor.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Pushes back on the diagnosis</div>
+        <div class="move">"Tell me more about that."</div>
+        <div class="why">Adjust if they're right. Don't defend the read. Being wrong fast = trust earned.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Wants execution during the call</div>
+        <div class="move">"That's a build, not a call. Let's map what that build looks like."</div>
+        <div class="why">Then move to Section 5 / the moves.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">In actual crisis (funding, layoffs, etc.)</div>
+        <div class="move">"Before strategy — are you okay?"</div>
+        <div class="why">Shift from diagnosis to support. Sometimes the workshop needs to become a different conversation.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Gives the polished investor pitch answer</div>
+        <div class="move">"That sounds like the version you tell investors. What's the real version?"</div>
+        <div class="why">Cuts to the actual question.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Session isn't landing by minute 15</div>
+        <div class="move">Trigger Recalibration check early.</div>
+        <div class="why">Better to reset than push through a session that's off.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">M + J disagree in real time</div>
+        <div class="move">"There's a tension here worth exploring."</div>
+        <div class="why">Make it visible. Don't smooth it over. Disagreement is signal — name it.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION-BY-SECTION NOTES -->
+
+  <section class="section-note" id="sec0">
+    <div class="num-tag">00</div>
+    <span class="badge">0:00–2:00 · Both</span>
+    <h3>Introductions — set the <em>pace</em>.</h3>
+    <p>Fast, warm, no fluff. You model the cadence for the entire session. If the intro drags, everything drags.</p>
+    <h4>The Flow</h4>
+    <p><strong>Megha (30 sec)</strong> — name, what you do, one thing.<br><strong>Jake (30 sec)</strong> — same structure.<br><strong>Client (60 sec)</strong> — start the micro-timer. Let them talk.</p>
+    <div class="pro-tip"><strong>The Move</strong> · If client rambles past 45 sec: "Love that — hold that thought, we're going to get into all of it." Plants seed: we're going deeper, just not now.</div>
+  </section>
+
+  <section class="section-note" id="sec1">
+    <div class="num-tag">01</div>
+    <span class="badge">2:00–7:00 · Both</span>
+    <h3>Your Story — listen for the <em>thing beneath</em>.</h3>
+    <p>Their intake answers are reflected back on screen. Read them, then ask the printed question exactly as written. Let them talk. Don't interrupt. Listen for the thing beneath the thing.</p>
+    <div class="pull-q">"So — what's <em>really</em> going on?"</div>
+    <h4>Who's Listening For What</h4>
+    <div class="listening"><strong>Megha:</strong> positioning gaps. Messaging misalignment. Emotional drivers. The brand stuff they're not saying.<br><br><strong>Jake:</strong> visual/system gaps. Distance between vision and reality. Design/execution disconnects.</div>
+    <div class="pro-tip"><strong>Hard rule</strong> · Do NOT let this section run past 7:00. If they're still talking at 6:50, Jake jumps in: "I want to honor your time — let me share what we found."</div>
+  </section>
+
+  <section class="section-note" id="sec2">
+    <div class="num-tag">02</div>
+    <span class="badge">7:00–12:00 · M leads</span>
+    <h3>Dialing In — present the <em>hunch</em>.</h3>
+    <p>"What we like" cards (M + J) are pre-filled from morning prep. Read them. Then drop the gap hypothesis (also pre-filled).</p>
+    <div class="pull-q">"Here's our hunch. Before we go deeper — is this the real problem?"</div>
+    <h4>If they say yes</h4>
+    <p>Proceed. You're aligned.</p>
+    <h4>If they push back</h4>
+    <p>"Tell me more about that." Adjust. Listen. Don't defend the hypothesis. <em>Senior move = being wrong fast.</em></p>
+  </section>
+
+  <section class="section-note" id="sec3">
+    <div class="num-tag">03</div>
+    <span class="badge">12:00–15:00 · Both · Moved in V2</span>
+    <h3>North Star — one question. <em>One answer.</em></h3>
+    <p>The question is huge on screen. Let it land. Pause before you ask it. <em>The silence is the setup.</em></p>
+    <div class="pull-q">"If you could only do one thing for the next 90 days — what would it be?"</div>
+    <p>When they answer: <strong>type it EXACTLY as they say it.</strong> Don't clean it up. The authenticity is load-bearing.</p>
+    <h4>If they're stuck</h4>
+    <p>"Close your eyes. What does success look like in 90 days? Describe the scene." (Helps them see, not think.)</p>
+    <h4>If they give a long answer</h4>
+    <p>"Say that in one sentence." Push for clarity.</p>
+  </section>
+
+  <section class="section-note" id="sec4">
+    <div class="num-tag">04</div>
+    <span class="badge">15:00–25:00 · M + J · BLACK BG</span>
+    <h3>What We See — name the <em>real problem</em>.</h3>
+    <p>The 4 audit pillars come pre-scored from morning prep (M + J each set their score). Walk the client through them. Ask <em>where they think they are</em> first — their self-assessment vs your assessment IS the diagnosis.</p>
+    <h4>The flow</h4>
+    <p>1. Show audit pillars (Positioning · Messaging · Execution · Distribution) <br>2. Walk through one pillar at a time<br>3. Drop the hunch ("Megha's read") which is pre-filled<br>4. Around minute 20, Jake triggers <strong>Recalibration Check</strong></p>
+    <h4>Recalibration Check (~minute 20)</h4>
+    <p>"How's this landing?" Three pills: <strong>Yes — keep going / Adjust / Pivot</strong></p>
+    <div class="pro-tip"><strong>Pattern</strong> · Most clients have 1 dominant weak pillar and 1 secondary. The real problem lives at the intersection. That's the diagnosis.</div>
+    <h4>Planting the upsell seed (~min 24)</h4>
+    <p>"There's deeper work here. I'll put what that looks like in the plan." Don't hard-sell. Just name it.</p>
+  </section>
+
+  <section class="section-note" id="somatic">
+    <div class="num-tag">~25</div>
+    <span class="badge" style="background:var(--tch-yellow); color: var(--tch-ink);">~25:00 · Somatic Reset · NEW</span>
+    <h3>A breath. <em>What's landing?</em></h3>
+    <p>This is the move 99% of strategy workshops skip. Once you've named the gap, the client's body goes into low-grade fight/flight. They're processing. If you immediately jump into "here's the plan," you bypass integration.</p>
+    <h4>The flow</h4>
+    <p>30 seconds. M or J says: "We just gave you a lot. Take a breath. What's landing?"</p>
+    <p>Three pills on screen — <strong>🟢 With us / 🟡 Processing / 🔴 Stuck</strong>. Client clicks one.</p>
+    <div class="pro-tip"><strong>Why bounded</strong> · An open "how are you doing?" runs over 30 sec — clients spiral. The 3-pill structure forces a fast emotional read without losing time.</div>
+    <h4>If they pick 🔴 Stuck</h4>
+    <p>"What part isn't sitting right?" Listen. Adjust before moving to Moves.</p>
+  </section>
+
+  <section class="section-note" id="sec5">
+    <div class="num-tag">05</div>
+    <span class="badge">25:00–35:00 · Both</span>
+    <h3>Your Moves — pressure-test the <em>plan</em>.</h3>
+    <p>72-hour win + 1-week move + 1-month build are pre-drafted from morning prep. Read them. Edit live with the client. Match the action to what they can actually execute.</p>
+    <h4>The capability rule</h4>
+    <p>You saw their capacity in intake. Don't prescribe something they can't do.</p>
+    <h4>What We're Not Doing</h4>
+    <p>Pre-filled list. Client can ADD to it live. Name the moves NOT on the list. <em>"Here's what we're not doing. Here's why."</em></p>
+    <h4>What to Leave Alone</h4>
+    <p>Pre-filled. Strengths to protect. Client can add.</p>
+    <div class="pro-tip"><strong>If they love everything</strong> · Something's wrong. Push: "What feels hardest? What's the resistance?" The friction is the signal.</div>
+  </section>
+
+  <section class="section-note" id="ei">
+    <div class="num-tag">06</div>
+    <span class="badge" style="background:var(--tch-yellow); color: var(--tch-ink);">35:00–40:00 · J leads · NEW</span>
+    <h3>Effort / Impact Map — <em>the map</em>.</h3>
+    <p>This replaces The Wall (V1). Drag each move into the 2×2 quadrant. The exercise forces prioritization in real time AND becomes a takeaway artifact in the action plan.</p>
+    <h4>The flow</h4>
+    <p>1. Show the matrix on screen<br>2. Each pre-drafted move appears as a sticky note<br>3. Client + Jake drag stickies into the right quadrant<br>4. M reads the result aloud — confirms or pushes back</p>
+    <h4>Quadrant decision shortcuts</h4>
+    <p><strong>High impact + low effort</strong> = DIY (Path A) — do this NOW<br><strong>High impact + high effort</strong> = Level Up (Path B) — where we help<br><strong>Low impact + low effort</strong> = quick wins / nice to do<br><strong>Low impact + high effort</strong> = What We're Not Doing</p>
+    <div class="pro-tip"><strong>If they fight a placement</strong> · Honor it. The fight IS the data — it tells you what they're attached to. Then ask "is this attachment serving you?"</div>
+  </section>
+
+  <section class="section-note" id="firstmove">
+    <div class="num-tag">⚡</div>
+    <span class="badge" style="background:var(--tch-red); color: var(--tch-cream);">40:00–42:00 · Both · NEW</span>
+    <h3>First Move — one thing. <em>Right now.</em></h3>
+    <p>Behavioral activation moment. Before they hang up — they DO one tiny thing on the call. Update the bio. Archive the line. Draft the subject. We watch.</p>
+    <h4>The flow</h4>
+    <p>1. M or J names the micro-move (the smallest first crack of their 72-hour win)<br>2. Start the 60-second timer on screen<br>3. Client does the thing<br>4. Click <strong>Did It / Partial / Saved For After</strong></p>
+    <div class="pro-tip"><strong>Why</strong> · Implementation intention. Workshops without this have ~20% follow-through. Workshops with it land 70%+. Cheapest move available. Do not skip.</div>
+    <h4>If they freeze</h4>
+    <p>Make it smaller. "Just open the page." Then "just type one word." Momentum is the goal, not the polished result.</p>
+  </section>
+
+  <section class="section-note" id="sec6">
+    <div class="num-tag">07</div>
+    <span class="badge">42:00–45:00 · M leads</span>
+    <h3>The Close — land the <em>plane</em>.</h3>
+    <p>Megha leads. Q&A first ("Anything that didn't land?"), then the close script.</p>
+    <div class="pull-q">"You came in with ___. We found ___. That changes ___."</div>
+    <p>Say it out loud as you type it. The words landing in their ears matter.</p>
+    <h4>The Three Plants</h4>
+    <p><strong>Timeline</strong> · "In your inbox in 24 hours."<br><strong>Referral</strong> · "If this was valuable, send it to one person. $100 off both of you."<br><strong>Deeper work</strong> · You planted in section 4. If it's right, it'll come up. Don't push.</p>
+    <div class="pro-tip"><strong>Don't oversell the bundle in the close.</strong> The close is about them, not you. If deeper work is right, they'll feel it.</div>
+  </section>
+
+  <hr class="div-rule">
+
+  <!-- CHECKLISTS -->
+  <div class="checklist-card" id="presession">
+    <h3>Pre-Session Checklist</h3>
+    <ul>
+      <li>Morning Prep dashboard submitted by both M + J</li>
+      <li>Workshop session screen generated with pre-populated content</li>
+      <li>Fireflies recording armed</li>
+      <li>Timer tested · counts up from 0:00</li>
+      <li>B-Side floating tab visible</li>
+      <li>Effort/Impact stickies pre-loaded with draft moves</li>
+      <li>Both facilitators have water + clear desk</li>
+      <li>Screen-share URL tested</li>
+    </ul>
+  </div>
+
+  <!-- EMERGENCY PLAYS -->
+  <div class="red-flags" id="emergency">
+    <h3>Emergency <em>Plays</em></h3>
+    <div class="flag-grid">
+      <div class="flag-row">
+        <div class="pattern">Client won't stop talking (sec 1–2)</div>
+        <div class="move">Jake: "I want to honor your time. Let me share what we found."</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Client is crying</div>
+        <div class="move">Pause. Sit with it. "Take your time. We're here." Wait 30 seconds. Then "What came up for you?"</div>
+        <div class="why">Don't rush past emotion — it means you hit something real.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Client hates the diagnosis (sec 4)</div>
+        <div class="move">"I hear you. What do YOU think the real problem is?" Follow them.</div>
+        <div class="why">Your job is to illuminate, not convince.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Timer at 40:00 and you're stuck in section 3</div>
+        <div class="move">Skip to section 5. "Let me jump to the plan."</div>
+        <div class="why">The plan is the priority.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Tech breaks (screen freezes, URL fails)</div>
+        <div class="move">"Let me share this from my notes while we sort that out." Keep talking.</div>
+        <div class="why">The page is a visual aid. The session lives in the conversation.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">Client is quiet / not engaging</div>
+        <div class="move">"What's not landing?" Silence is feedback.</div>
+      </div>
+      <div class="flag-row">
+        <div class="pattern">You realize mid-session your prep was wrong</div>
+        <div class="move">Name it. "I want to adjust what we prepped. Hearing you, the real issue is ___."</div>
+        <div class="why">Flexibility = trust. Better to be wrong fast.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CLOSING NOTE -->
+  <div class="doc-hero" style="background: var(--tch-ink); color: var(--tch-cream); transform: rotate(0.4deg);">
+    <h2 style="color: var(--tch-cream);">Final note.</h2>
+    <p style="color: rgba(245,242,235,0.85);">The workshop is a conversation, not a presentation. You're there to illuminate, not convince. The session works when three things happen:</p>
+    <p style="color: rgba(245,242,235,0.85);"><strong>1.</strong> They feel heard (sections 1–2)<br><strong>2.</strong> They see the gap clearly (sections 3–4)<br><strong>3.</strong> They leave with a plan that fits (sections 5–7)</p>
+    <p style="color: rgba(245,242,235,0.85);">Stay focused on those three moments. Everything else is detail.</p>
+    <div class="version" style="color: var(--tch-yellow);">↳ The post-session debrief lives in debrief.html</div>
+  </div>
+
+</main>
+</body>
+</html>

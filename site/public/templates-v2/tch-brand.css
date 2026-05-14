@@ -1,0 +1,163 @@
+/* =================================================================
+   THE CREATIVE HOTLINE — V2 SHARED BRAND SYSTEM
+   Use this stylesheet across all TCH workshop docs.
+   Bold. Retro-digital. Tactile. Zine. Show-stopping.
+   ================================================================= */
+
+/* ---------- TYPOGRAPHY ---------- */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:wght@400;500;700;800&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&display=swap');
+
+/* TODO — When Jake hosts the licensed PP Editorial Old + NORD font files,
+   uncomment these and they take precedence over the Google Fonts fallbacks above.
+
+@font-face {
+  font-family: 'PP Editorial Old';
+  src: url('./tch-assets/fonts/PPEditorialOld-Italic.otf') format('opentype');
+  font-style: italic; font-weight: 400;
+}
+@font-face {
+  font-family: 'PP Editorial Old';
+  src: url('./tch-assets/fonts/PPEditorialOld-UltraboldItalic.otf') format('opentype');
+  font-style: italic; font-weight: 800;
+}
+@font-face {
+  font-family: 'NORD';
+  src: url('./tch-assets/fonts/Nord-Regular.otf') format('opentype');
+  font-weight: 400;
+}
+@font-face {
+  font-family: 'NORD';
+  src: url('./tch-assets/fonts/Nord-Medium.otf') format('opentype');
+  font-weight: 500;
+}
+@font-face {
+  font-family: 'NORD';
+  src: url('./tch-assets/fonts/Nord-Bold.otf') format('opentype');
+  font-weight: 700;
+}
+*/
+
+/* ---------- ROOT TOKENS ---------- */
+:root {
+  --tch-red: #EC3107;          /* Hotline Red — primary energy / Megha */
+  --tch-blue: #2E63E7;         /* Electric Blue — digital accent / Jake */
+  --tch-yellow: #F6ED52;       /* Acid Yellow — client-facing / highlights */
+  --tch-ink: #1C1C1E;          /* Ink Black — ground / automated */
+  --tch-cream: #F5F2EB;        /* Soft White — breathing room */
+  --tch-green: #4ADE80;        /* Sharp Green — URGENT / flagged / needs attention */
+
+  --tch-ink-soft: rgba(28,28,30,0.10);
+  --tch-ink-line: rgba(28,28,30,0.18);
+  --tch-cream-line: rgba(245,242,235,0.18);
+  --tch-cream-soft: rgba(245,242,235,0.06);
+
+  --tch-display: 'PP Editorial Old', 'Playfair Display', Georgia, serif;
+  --tch-nord: 'NORD', 'Bebas Neue', 'Oswald', sans-serif;
+  --tch-mono: 'JetBrains Mono', ui-monospace, 'Courier New', monospace;
+
+  --tch-step--2: 0.7rem;
+  --tch-step--1: 0.82rem;
+  --tch-step-0: 0.95rem;
+  --tch-step-1: 1.15rem;
+  --tch-step-2: 1.5rem;
+  --tch-step-3: 2.1rem;
+  --tch-step-4: 3rem;
+  --tch-step-5: 4.4rem;
+  --tch-step-6: 6.2rem;
+
+  --tch-shadow-hard: 4px 4px 0 var(--tch-ink);
+  --tch-shadow-hard-sm: 2px 2px 0 var(--tch-ink);
+  --tch-shadow-hard-red: 4px 4px 0 var(--tch-red);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: var(--tch-mono); background: var(--tch-cream); color: var(--tch-ink); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+
+/* TEXTURES */
+.tch-halftone-bg { background-color: var(--tch-cream); background-image: radial-gradient(circle, var(--tch-ink) 1px, transparent 1px); background-size: 8px 8px; }
+.tch-halftone-overlay::after { content: ''; position: absolute; inset: 0; background-image: radial-gradient(circle, rgba(28,28,30,0.18) 1.2px, transparent 1.2px); background-size: 6px 6px; pointer-events: none; mix-blend-mode: multiply; opacity: 0.6; }
+.tch-scanlines::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 3px); pointer-events: none; mix-blend-mode: multiply; }
+.tch-scanlines-light::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0, transparent 2px, rgba(255,255,255,0.04) 2px, rgba(255,255,255,0.04) 3px); pointer-events: none; }
+
+@keyframes tch-flicker { 0%, 95%, 100% { opacity: 1; } 96% { opacity: 0.92; } 97% { opacity: 1; } 98% { opacity: 0.96; } }
+.tch-crt { animation: tch-flicker 8s infinite; }
+@keyframes tch-glitch { 0%, 100% { transform: translate(0); } 20% { transform: translate(-1px, 1px); } 40% { transform: translate(1px, -1px); } 60% { transform: translate(-1px, -1px); } 80% { transform: translate(1px, 1px); } }
+.tch-glitchable:hover { animation: tch-glitch 0.3s steps(2); }
+
+/* TYPE PRIMITIVES — selective bold italic: base 400, emphasis 700 */
+.tch-display { font-family: var(--tch-display); font-style: italic; font-weight: 400; letter-spacing: -0.01em; line-height: 1.05; }
+.tch-display em { font-style: italic; font-weight: 700; color: var(--tch-red); }
+.tch-display.on-ink em { color: var(--tch-yellow); }
+.tch-sec-h1 { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: clamp(48px, 7vw, 88px); line-height: 1.0; letter-spacing: -0.015em; margin-bottom: 14px; }
+.tch-sec-h1 em { font-style: italic; font-weight: 700; color: var(--tch-red); }
+.tch-sec-h1.on-ink em { color: var(--tch-yellow); }
+.tch-nord { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; }
+.tch-mono { font-family: var(--tch-mono); }
+.tch-eyebrow { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; font-size: var(--tch-step--2); color: var(--tch-red); }
+
+/* COMPONENTS */
+.tch-tag { display: inline-block; padding: 4px 10px; background: var(--tch-ink); color: var(--tch-cream); font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase; }
+.tch-tag.red { background: var(--tch-red); }
+.tch-tag.blue { background: var(--tch-blue); }
+.tch-tag.yellow { background: var(--tch-yellow); color: var(--tch-ink); }
+.tch-tag.cream { background: var(--tch-cream); color: var(--tch-ink); border: 1px solid var(--tch-ink); }
+
+.tch-btn { display: inline-block; padding: 12px 22px; background: var(--tch-ink); color: var(--tch-cream); font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase; cursor: pointer; border: 2px solid var(--tch-ink); box-shadow: var(--tch-shadow-hard-sm); transition: transform 0.08s, box-shadow 0.08s; text-decoration: none; }
+.tch-btn:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--tch-ink); }
+.tch-btn.red { background: var(--tch-red); border-color: var(--tch-red); }
+.tch-btn.yellow { background: var(--tch-yellow); color: var(--tch-ink); border-color: var(--tch-ink); }
+.tch-btn.blue { background: var(--tch-blue); border-color: var(--tch-blue); }
+.tch-btn.ghost { background: transparent; color: var(--tch-ink); }
+
+/* OWNER BADGES */
+.tch-owner { display: inline-block; padding: 3px 10px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 10px; text-transform: uppercase; border: 1.5px solid var(--tch-ink); }
+.tch-owner.m { background: var(--tch-red); color: var(--tch-cream); }
+.tch-owner.j { background: var(--tch-blue); color: var(--tch-cream); }
+.tch-owner.shared { background: var(--tch-yellow); color: var(--tch-ink); }
+
+/* INPUTS */
+.tch-input, .tch-textarea { width: 100%; background: var(--tch-cream); border: 2px solid var(--tch-ink); padding: 10px 12px; font-family: var(--tch-mono); font-size: var(--tch-step-0); color: var(--tch-ink); }
+.tch-input:focus, .tch-textarea:focus { outline: none; background: var(--tch-yellow); }
+.tch-textarea { resize: vertical; min-height: 80px; }
+
+/* LAYOUT */
+.tch-page { min-height: 100vh; background: var(--tch-cream); }
+.tch-page.on-ink { background: var(--tch-ink); color: var(--tch-cream); }
+.tch-container { max-width: 1080px; margin: 0 auto; padding: 32px; }
+
+/* HOTLINE BAR */
+.tch-hotline-bar { background: var(--tch-ink); color: var(--tch-cream); padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--tch-red); position: relative; }
+.tch-hotline-bar::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px); pointer-events: none; }
+
+/* LOGO MARKS — real TCH 3-stack inline as data URI */
+.tch-logo-3stack-white { width: 88px; height: 40px; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 470 211' fill='%23F5F2EB'><path d='M51.972 21.216H41.251L35.997 39.321H47.002V44.078H34.648L29.891 60.55H25.063L29.82 44.078H14.484L9.727 60.55H4.899L9.656 44.078H0V39.321H11.005L16.259 21.216H4.97V16.459H17.608L22.081 0.91H26.909L22.436 16.459H37.772L42.245 0.91H47.073L42.6 16.459H51.972V21.216ZM31.169 39.321L36.423 21.216H21.087L15.833 39.321H31.169Z'/><path d='M82.753 12.6H60.883V0H118.303V12.6H96.433V59.13H82.753V12.6Z'/><path d='M137.413 0H151.093V23.22H181.243V0H194.833V59.13H181.243V35.82H151.093V59.13H137.413V0Z'/><path d='M217.805 0H274.145V12.6H231.485V23.22H263.165V35.82H231.485V46.53H274.145V59.13H217.805V0Z'/><path d='M3.897 150H17.577V173.22H47.727V150H61.317V209.13H47.727V185.82H17.577V209.13H3.897V150Z'/><path d='M81.499 179.52C81.499 171.24 84.199 164.07 89.599 158.01C94.999 151.89 102.229 148.83 111.289 148.83C120.349 148.83 127.579 151.89 132.979 158.01C138.379 164.07 141.079 171.24 141.079 179.52C141.079 184.86 139.939 189.84 137.659 194.46C135.379 199.08 131.929 202.89 127.309 205.89C122.689 208.83 117.349 210.3 111.289 210.3C105.229 210.3 99.889 208.83 95.269 205.89C90.649 202.89 87.199 199.08 84.919 194.46C82.639 189.84 81.499 184.86 81.499 179.52ZM126.949 179.52C126.949 174.78 125.539 170.67 122.719 167.19C119.899 163.71 116.089 161.97 111.289 161.97C106.489 161.97 102.679 163.71 99.859 167.19C97.099 170.67 95.719 174.78 95.719 179.52C95.719 184.26 97.099 188.37 99.859 191.85C102.679 195.27 106.489 196.98 111.289 196.98C116.089 196.98 119.899 195.27 122.719 191.85C125.539 188.37 126.949 184.26 126.949 179.52Z'/><path d='M175.647 162.6H153.777V150H211.197V162.6H189.327V209.13H175.647V162.6Z'/><path d='M230.307 150H243.987V196.53H276.747V209.13H230.307V150Z'/><path d='M295.933 150H309.613V209.13H295.933V150Z'/><path d='M332.555 150H344.345L376.385 186.81V150H389.975V209.13H378.095L346.235 172.23V209.13H332.555V150Z'/><path d='M412.947 150H469.287V162.6H426.627V173.22H458.307V185.82H426.627V196.53H469.287V209.13H412.947V150Z'/></svg>"); background-repeat: no-repeat; background-size: contain; background-position: left center; display: inline-block; }
+
+/* URGENT / FLAG SYSTEM (green) */
+.tch-urgent { background: var(--tch-green); color: var(--tch-ink); padding: 4px 10px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase; border: 2px solid var(--tch-ink); display: inline-block; animation: tch-urgent-pulse 2s ease-in-out infinite; }
+@keyframes tch-urgent-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(74,222,128,0.55); } 50% { box-shadow: 0 0 0 6px rgba(74,222,128,0); } }
+.tch-flag-dot { display: inline-block; width: 10px; height: 10px; background: var(--tch-green); border-radius: 50%; border: 1.5px solid var(--tch-ink); margin-right: 6px; vertical-align: middle; }
+.tch-flag-row { border-left: 4px solid var(--tch-green); background: rgba(74,222,128,0.10); padding: 12px 16px; }
+
+/* COUPON COMPONENT */
+.tch-coupon-wrap { margin-top: 32px; position: relative; }
+.tch-coupon { background: var(--tch-yellow); color: var(--tch-ink); border: 3px dashed var(--tch-ink); padding: 28px 36px; display: grid; grid-template-columns: 1fr auto; gap: 36px; align-items: center; position: relative; }
+.tch-coupon::before, .tch-coupon::after { content: ''; position: absolute; width: 18px; height: 18px; background: var(--tch-cream); border: 2px solid var(--tch-ink); border-radius: 50%; top: 50%; transform: translateY(-50%); }
+.tch-coupon::before { left: -10px; }
+.tch-coupon::after { right: -10px; }
+.tch-coupon-left .stamp { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.22em; font-size: 11px; color: var(--tch-red); margin-bottom: 8px; text-transform: uppercase; }
+.tch-coupon-left h4 { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: clamp(22px, 3vw, 32px); line-height: 1.05; margin-bottom: 12px; }
+.tch-coupon-left h4 em { font-weight: 700; color: var(--tch-red); }
+.tch-coupon-left p { font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.7); margin-bottom: 12px; }
+.tch-coupon-code-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.tch-coupon-code { display: inline-block; background: var(--tch-ink); color: var(--tch-yellow); padding: 6px 14px; font-family: var(--tch-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.16em; border: 2px solid var(--tch-ink); }
+.tch-coupon-code-label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 10px; text-transform: uppercase; color: rgba(28,28,30,0.6); }
+.tch-coupon-right { text-align: center; border-left: 2px dashed var(--tch-ink); padding-left: 36px; }
+.tch-coupon-amount { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: clamp(54px, 8vw, 92px); line-height: 0.85; color: var(--tch-red); }
+.tch-coupon-detail { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 10px; text-transform: uppercase; margin-top: 6px; }
+
+@media (max-width: 768px) {
+  :root { --tch-step-3: 1.6rem; --tch-step-4: 2.2rem; --tch-step-5: 3rem; --tch-step-6: 4rem; }
+  .tch-coupon { grid-template-columns: 1fr; }
+  .tch-coupon-right { border-left: none; border-top: 2px dashed var(--tch-ink); padding: 14px 0 0; }
+}
+@media print { body { background: white; } }
