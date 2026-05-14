@@ -74,6 +74,13 @@ function mapProductName(input: string | undefined): ProductPurchased | undefined
  * Calendly sets PaymentIntent.description to:
  *   "[Calendly] {event_type_name} with {invitee_name}"
  *
+ * When a coupon is applied at Calendly checkout, Calendly appends
+ * " - <COUPON_CODE> applied" to the description. Example seen in prod:
+ *   "[Calendly] Creative Hotline Call with Jake Goble - DOLLAR-TEST applied"
+ *
+ * We strip that suffix before extracting the invitee name. Without the strip,
+ * the Payment row title becomes "Jake Goble - DOLLAR-TEST applied" — wrong.
+ *
  * Example: "[Calendly] Creative Hotline Call with Jake Goble"
  *   → { product: "Creative Hotline Call", clientName: "Jake Goble" }
  *
@@ -84,8 +91,15 @@ function parseCalendlyDescription(
   description: string | null | undefined,
 ): { product?: string; clientName?: string } {
   if (!description) return {};
-  const stripped = description.replace(/^\[Calendly\]\s*/i, "").trim();
+  // 1. Strip the leading "[Calendly] " tag.
+  let stripped = description.replace(/^\[Calendly\]\s*/i, "").trim();
   if (!stripped) return {};
+  // 2. Strip trailing " - <CODE> applied" suffix added when a coupon is used.
+  //    Code is alphanumeric + dashes/underscores, case-insensitive but
+  //    canonically uppercase. Tolerates extra whitespace either side.
+  stripped = stripped.replace(/\s*-\s*[A-Za-z0-9_-]+\s+applied\s*$/i, "").trim();
+  if (!stripped) return {};
+  // 3. Split on " with " into product + invitee name.
   const match = stripped.match(/^(.*?)\s+with\s+(.+)$/i);
   if (match) {
     return { product: match[1].trim(), clientName: match[2].trim() };

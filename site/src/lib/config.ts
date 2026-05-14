@@ -68,9 +68,12 @@ export const config = {
     },
     /** Tally intake URL (prefilled with email at send time). */
     tallyUrl: process.env.TALLY_INTAKE_URL ?? "https://tally.so/r/intake",
-    /** Service agreement hosted URL — populated when Megha approves draft. */
+    /** Service agreement hosted URL — populated when Megha approves draft.
+     *  Default points at our Vercel-hosted working-draft page so the link
+     *  always resolves; override via env var to point at the Webflow page
+     *  (or a different hosted URL) once final legal copy is published. */
     serviceAgreementUrl:
-      process.env.SERVICE_AGREEMENT_URL ?? "https://thecreativehotline.com/legal/service-agreement",
+      process.env.SERVICE_AGREEMENT_URL ?? "https://api.thecreativehotline.com/legal/service-agreement.html",
   },
 } as const;
 
