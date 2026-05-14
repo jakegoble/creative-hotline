@@ -242,17 +242,50 @@ async function processSession(
   return { result };
 }
 
-function checkAuth(request: Request): boolean {
-  const expected = process.env.CRON_SECRET || "";
-  if (!expected) return false; // refuse if unconfigured — never run in the open
-  const header = request.headers.get("authorization") || "";
-  return header === `Bearer ${expected}`;
+interface AuthCheck {
+  ok: boolean;
+  /** Diagnostic — non-leaking signal of what the runtime sees. */
+  debug: {
+    secretConfigured: boolean;
+    secretLength: number;
+    headerPresent: boolean;
+    headerStartsWithBearer: boolean;
+    headerTokenLength: number;
+    tokenMatchesSecret: boolean;
+  };
+}
+
+function checkAuth(request: Request): AuthCheck {
+  const raw = process.env.CRON_SECRET ?? "";
+  const expected = raw.trim();
+  const header = request.headers.get("authorization") ?? "";
+  const startsWithBearer = /^Bearer\s+/i.test(header);
+  const token = startsWithBearer
+    ? header.replace(/^Bearer\s+/i, "").trim()
+    : "";
+  const ok = expected.length > 0 && token === expected;
+  return {
+    ok,
+    debug: {
+      secretConfigured: raw.length > 0,
+      secretLength: expected.length,
+      headerPresent: header.length > 0,
+      headerStartsWithBearer: startsWithBearer,
+      headerTokenLength: token.length,
+      tokenMatchesSecret: token === expected,
+    },
+  };
 }
 
 async function handle(request: Request) {
-  if (!checkAuth(request)) {
+  const auth = checkAuth(request);
+  if (!auth.ok) {
     return NextResponse.json(
-      { error: "unauthorized", message: "Missing or invalid Bearer CRON_SECRET." },
+      {
+        error: "unauthorized",
+        message: "Missing or invalid Bearer CRON_SECRET.",
+        debug: auth.debug,
+      },
       { status: 401 },
     );
   }
