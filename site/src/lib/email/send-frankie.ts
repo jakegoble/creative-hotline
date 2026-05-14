@@ -20,6 +20,8 @@ import {
   calendlyConfirmationEmail,
   actionPlanDeliveredEmail,
   actionPlanDeliveredSms,
+  intakeNudgeEmail,
+  callerPrepEmail,
 } from "./templates/frankie";
 import { sendEmail } from "../services/email";
 import { sendSms } from "../services/twilio";
@@ -258,4 +260,90 @@ export async function sendActionPlanDelivery(
   // Fire in parallel — independent failure modes.
   const [emailRes, smsRes] = await Promise.all([emailResultP, smsResultP]);
   return { email: emailRes, sms: smsRes };
+}
+
+// ---------------------------------------------------------------------------
+// Followups — Frankie #2 (Intake Nudge) + Frankie #3 (Caller Prep)
+//   Fired by the nightly cron at /api/cron/frankie-followups.
+//   Idempotency is handled by the caller writing intakeNudgeSent /
+//   callerPrepSent back to Notion after success.
+// ---------------------------------------------------------------------------
+
+export interface FollowupSendInput {
+  email: string;
+  firstName: string;
+  /** Pretty-printed time the call is on, e.g. "Wednesday at 10:00 AM PT". */
+  sessionTime: string;
+}
+
+export interface FollowupSendResult {
+  ok: boolean;
+  reason?: string;
+}
+
+/**
+ * Send Frankie #2 — fires 24h pre-session when intake has not been submitted.
+ * Caller is responsible for the intake-not-submitted gate; this function does
+ * not re-check (lets the cron batch the lookup).
+ */
+export async function sendIntakeNudge(
+  input: FollowupSendInput & { tallyUrl: string },
+): Promise<FollowupSendResult> {
+  if (!config.frankieEmails.enabled) {
+    return { ok: false, reason: "frankie_disabled" };
+  }
+  if (!input.email) return { ok: false, reason: "no_recipient_email" };
+  try {
+    const tmpl = intakeNudgeEmail({
+      firstName: input.firstName,
+      sessionTime: input.sessionTime,
+      tallyUrl: input.tallyUrl,
+    });
+    const result = await sendEmail({
+      to: input.email,
+      subject: tmpl.subject,
+      bodyMarkdown: tmpl.bodyMarkdown,
+      previewText: tmpl.previewText,
+      categories: tmpl.categories,
+    });
+    return result.ok
+      ? { ok: true }
+      : { ok: false, reason: result.reason ?? "send_failed" };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    return { ok: false, reason: `template_or_send_threw: ${message}` };
+  }
+}
+
+/**
+ * Send Frankie #3 — the night-before caller-prep one-pager. Fired the day
+ * before the session at the cron's run time (target 4 PM PT).
+ */
+export async function sendCallerPrep(
+  input: FollowupSendInput & { callerPrepUrl?: string },
+): Promise<FollowupSendResult> {
+  if (!config.frankieEmails.enabled) {
+    return { ok: false, reason: "frankie_disabled" };
+  }
+  if (!input.email) return { ok: false, reason: "no_recipient_email" };
+  try {
+    const tmpl = callerPrepEmail({
+      firstName: input.firstName,
+      sessionTime: input.sessionTime,
+      callerPrepUrl: input.callerPrepUrl,
+    });
+    const result = await sendEmail({
+      to: input.email,
+      subject: tmpl.subject,
+      bodyMarkdown: tmpl.bodyMarkdown,
+      previewText: tmpl.previewText,
+      categories: tmpl.categories,
+    });
+    return result.ok
+      ? { ok: true }
+      : { ok: false, reason: result.reason ?? "send_failed" };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "unknown";
+    return { ok: false, reason: `template_or_send_threw: ${message}` };
+  }
 }

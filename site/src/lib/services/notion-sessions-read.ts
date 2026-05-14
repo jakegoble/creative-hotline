@@ -90,6 +90,11 @@ export interface SessionRecord {
   emailSent: boolean;
   smsSent: boolean;
   sentAt?: string;
+  // V2 Round B — Frankie #2 / #3 followup tracking (idempotency for the
+  // nightly cron). Backed by Notion checkbox fields "Intake Nudge Sent" +
+  // "Caller Prep Sent". Returns false when the field doesn't exist yet.
+  intakeNudgeSent: boolean;
+  callerPrepSent: boolean;
   created: string;
   updated: string;
 }
@@ -124,6 +129,8 @@ function parseSession(page: PageObjectResponse): SessionRecord {
     emailSent: getCheckbox(p, "Email Sent"),
     smsSent: getCheckbox(p, "SMS Sent"),
     sentAt: getDate(p, "Sent At"),
+    intakeNudgeSent: getCheckbox(p, "Intake Nudge Sent"),
+    callerPrepSent: getCheckbox(p, "Caller Prep Sent"),
     created: page.created_time,
     updated: page.last_edited_time,
   };

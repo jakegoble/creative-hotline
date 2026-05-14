@@ -152,6 +152,9 @@ export async function updateSessionFields(
     emailSent?: boolean;
     smsSent?: boolean;
     sentAt?: string;
+    // V2 Round B — Frankie #2 / #3 idempotency flags.
+    intakeNudgeSent?: boolean;
+    callerPrepSent?: boolean;
   },
 ): Promise<void> {
   const client = getClient();
@@ -184,6 +187,12 @@ export async function updateSessionFields(
   }
   if (updates.sentAt) {
     properties["Sent At"] = { date: { start: updates.sentAt } };
+  }
+  if (typeof updates.intakeNudgeSent === "boolean") {
+    properties["Intake Nudge Sent"] = { checkbox: updates.intakeNudgeSent };
+  }
+  if (typeof updates.callerPrepSent === "boolean") {
+    properties["Caller Prep Sent"] = { checkbox: updates.callerPrepSent };
   }
 
   if (Object.keys(properties).length === 0) return;
