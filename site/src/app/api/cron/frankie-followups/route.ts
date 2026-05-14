@@ -242,50 +242,24 @@ async function processSession(
   return { result };
 }
 
-interface AuthCheck {
-  ok: boolean;
-  /** Diagnostic — non-leaking signal of what the runtime sees. */
-  debug: {
-    secretConfigured: boolean;
-    secretLength: number;
-    headerPresent: boolean;
-    headerStartsWithBearer: boolean;
-    headerTokenLength: number;
-    tokenMatchesSecret: boolean;
-  };
-}
-
-function checkAuth(request: Request): AuthCheck {
-  const raw = process.env.CRON_SECRET ?? "";
-  const expected = raw.trim();
+/**
+ * Bearer-token auth check. Trims both the env value and the header token
+ * before compare to defend against copy-paste whitespace mishaps. Refuses if
+ * the env var is unset — we never run open.
+ */
+function checkAuth(request: Request): boolean {
+  const expected = (process.env.CRON_SECRET ?? "").trim();
+  if (!expected) return false;
   const header = request.headers.get("authorization") ?? "";
-  const startsWithBearer = /^Bearer\s+/i.test(header);
-  const token = startsWithBearer
-    ? header.replace(/^Bearer\s+/i, "").trim()
-    : "";
-  const ok = expected.length > 0 && token === expected;
-  return {
-    ok,
-    debug: {
-      secretConfigured: raw.length > 0,
-      secretLength: expected.length,
-      headerPresent: header.length > 0,
-      headerStartsWithBearer: startsWithBearer,
-      headerTokenLength: token.length,
-      tokenMatchesSecret: token === expected,
-    },
-  };
+  if (!/^Bearer\s+/i.test(header)) return false;
+  const token = header.replace(/^Bearer\s+/i, "").trim();
+  return token === expected;
 }
 
 async function handle(request: Request) {
-  const auth = checkAuth(request);
-  if (!auth.ok) {
+  if (!checkAuth(request)) {
     return NextResponse.json(
-      {
-        error: "unauthorized",
-        message: "Missing or invalid Bearer CRON_SECRET.",
-        debug: auth.debug,
-      },
+      { error: "unauthorized", message: "Missing or invalid Bearer CRON_SECRET." },
       { status: 401 },
     );
   }
