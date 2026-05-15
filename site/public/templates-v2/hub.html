@@ -490,43 +490,150 @@
       }
     }
 
-    // Replace the static placeholder text in the Prep panel with real status pulled
-    // from the loaded session. Static demo strings ("Doing a lot but nothing's
-    // actually growing." / "Voice: trying elevated, reading functional...") are
-    // hardcoded fallback copy from Megha's spec template — swap them for real data
-    // when available, otherwise nudge the user to the morning-prep screen.
+    // Replace static placeholder copy across all state panels with real data
+    // pulled from the loaded session. Megha's spec template baked in mock data
+    // ("Rae Solano" / "Audit Score: 12 / 20" / "RAE-DIAL-100" / etc.) — those
+    // get swapped here when real values exist, with sensible empty-state copy
+    // when they don't.
     try {
+      // Parse the heavyweight JSON blobs once for downstream use.
+      let workshop = null;
+      let debrief = null;
+      let actionPlan = null;
+      try { if (s.workshopJson) workshop = JSON.parse(s.workshopJson); } catch {}
+      try { if (s.debriefJson) debrief = JSON.parse(s.debriefJson); } catch {}
+      try { if (s.actionPlanJson) actionPlan = JSON.parse(s.actionPlanJson); } catch {}
+
+      // ----- PREP PANEL -----
       const prepPanel = document.getElementById('state-prep');
       if (prepPanel) {
         const blocks = prepPanel.querySelectorAll('.input-block.auto .body');
-        // First block: From Tally Intake
         if (blocks[0]) {
           if (s.intake && s.intake.status === 'Submitted') {
-            blocks[0].textContent = `Intake submitted. Full intake in the Morning Prep dashboard →`;
+            blocks[0].textContent = 'Intake submitted. Full intake in the Morning Prep dashboard →';
           } else if (s.intake) {
             blocks[0].textContent = `Intake status: ${s.intake.status || 'Not Started'}`;
           } else {
             blocks[0].textContent = 'No intake submitted yet — client received the Tally link in Frankie #1.';
           }
         }
-        // Second block: Claude's Research Brief
         if (blocks[1]) {
           const bs = (s.intake && s.intake.briefStatus) || 'Not Generated';
-          if (bs === 'Ready') {
-            blocks[1].textContent = 'Research brief ready. Open Morning Prep to read →';
-          } else if (bs === 'Generating') {
-            blocks[1].textContent = 'Research brief generating… check back in 30s.';
-          } else if (bs === 'Failed') {
-            blocks[1].textContent = 'Research brief failed. Re-run from Morning Prep.';
+          if (bs === 'Ready') blocks[1].textContent = 'Research brief ready. Open Morning Prep to read →';
+          else if (bs === 'Generating') blocks[1].textContent = 'Research brief generating… check back in 30s.';
+          else if (bs === 'Failed') blocks[1].textContent = 'Research brief failed. Re-run from Morning Prep.';
+          else blocks[1].textContent = 'Research brief not yet generated — kick it off from Morning Prep.';
+        }
+      }
+
+      // ----- DEBRIEF PANEL · LEFT (Just-Captured) -----
+      const debriefPanel = document.getElementById('state-debrief');
+      if (debriefPanel) {
+        const blocks = debriefPanel.querySelectorAll('.panel.left .input-block.auto .body');
+        // Block 1: Audit Score — sum the 4 pillar scores out of 20 if we have an action plan,
+        // otherwise show the average session score from debrief.
+        if (blocks[0]) {
+          if (actionPlan && actionPlan.authorityRead && Array.isArray(actionPlan.authorityRead.pillars)) {
+            const total = actionPlan.authorityRead.pillars.reduce((sum, p) => sum + (Number(p.score) || 0), 0);
+            blocks[0].textContent = `Total: ${total} / 20`;
+          } else if (debrief && (debrief.sessionScoreM || debrief.sessionScoreJ)) {
+            const avg = ((Number(debrief.sessionScoreM) + Number(debrief.sessionScoreJ)) / 2).toFixed(1);
+            blocks[0].textContent = `Session score average: ${avg} / 10`;
           } else {
-            blocks[1].textContent = 'Research brief not yet generated — kick it off from Morning Prep.';
+            blocks[0].textContent = '—';
           }
         }
-        // Third block: Client Library — leave the static link unless we have real files
-        // (no API support yet for client-uploaded files; future Tally → Drive integration).
+        // Block 2: North Star · Their Words
+        if (blocks[1]) {
+          const ns = (actionPlan && actionPlan.northStar) || (workshop && workshop.northStar) || '';
+          blocks[1].textContent = ns ? `"${ns}"` : 'Not captured yet.';
+        }
+        // Block 3: First Move Result
+        if (blocks[2]) {
+          const fm = debrief && debrief.firstMoveDone;
+          const label = fm === 'yes' ? '✓ Did it on call'
+                      : fm === 'partial' ? '~ Partial'
+                      : fm === 'no' ? '✗ Did not'
+                      : '—';
+          blocks[2].textContent = label;
+        }
+      }
+
+      // ----- REVIEW PANEL · LEFT (Reference) -----
+      const reviewPanel = document.getElementById('state-review');
+      if (reviewPanel) {
+        const blocks = reviewPanel.querySelectorAll('.panel.left .input-block.auto .body');
+        // Block 1: Debrief Summary
+        if (blocks[0] && debrief) {
+          const parts = [];
+          if (debrief.sessionScoreM || debrief.sessionScoreJ) {
+            const avg = ((Number(debrief.sessionScoreM) + Number(debrief.sessionScoreJ)) / 2).toFixed(1);
+            parts.push(`Score ${avg}`);
+          }
+          if (debrief.confidenceM || debrief.confidenceJ) {
+            const cavg = ((Number(debrief.confidenceM) + Number(debrief.confidenceJ)) / 2);
+            const flag = cavg < 7 ? ' ⚠' : '';
+            parts.push(`Conf ${cavg.toFixed(1)}${flag}`);
+          }
+          if (debrief.diagnosisTone) {
+            const toneLabel = { direct_sharp: 'Direct + Sharp', warm_direct: 'Warm-Direct', gentle: 'Gentle' }[debrief.diagnosisTone] || debrief.diagnosisTone;
+            parts.push(`Tone: ${toneLabel}`);
+          }
+          if (debrief.upsellSignal) {
+            const upLabel = debrief.upsellSignal.charAt(0).toUpperCase() + debrief.upsellSignal.slice(1);
+            parts.push(`Upsell: ${upLabel}`);
+          }
+          blocks[0].textContent = parts.join(' · ') || '—';
+        } else if (blocks[0]) {
+          blocks[0].textContent = 'No debrief on file.';
+        }
+        // Block 2: Transcript link (pull href from firefliesUrl if available)
+        const transcriptAnchor = reviewPanel.querySelector('.panel.left .quick-link');
+        if (transcriptAnchor) {
+          if (s.firefliesUrl) {
+            transcriptAnchor.setAttribute('href', s.firefliesUrl);
+            transcriptAnchor.setAttribute('target', '_blank');
+            transcriptAnchor.setAttribute('rel', 'noopener');
+            const transcriptHead = transcriptAnchor.closest('.input-block')?.querySelector('.who');
+            if (transcriptHead) transcriptHead.textContent = 'Transcript · Ready ✓';
+          } else {
+            transcriptAnchor.removeAttribute('href');
+            const transcriptHead = transcriptAnchor.closest('.input-block')?.querySelector('.who');
+            if (transcriptHead) transcriptHead.textContent = 'Transcript · Not linked';
+          }
+        }
+      }
+
+      // ----- SENT PANEL · LEFT (Delivered) -----
+      const sentPanel = document.getElementById('state-sent');
+      if (sentPanel) {
+        const deliveredBlocks = sentPanel.querySelectorAll('.panel.left .input-block.auto .body');
+        if (deliveredBlocks[0]) {
+          if (s.sentAt) {
+            const when = new Date(s.sentAt).toLocaleString(undefined, {
+              month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZoneName: 'short',
+            });
+            const emailMark = s.emailSent ? '✓' : '✗';
+            const smsMark = s.smsSent ? '✓' : (s.payment?.phone ? '✗' : '— no phone');
+            deliveredBlocks[0].innerHTML = `${escapeHtml(when)}<br>Email: ${emailMark} · SMS: ${smsMark}`;
+          } else {
+            deliveredBlocks[0].textContent = 'Not yet sent.';
+          }
+        }
+        // Upsell Signal in right panel
+        const upsellBlock = sentPanel.querySelector('.panel.right .input-block.m .body');
+        if (upsellBlock && debrief && debrief.upsellSignal) {
+          const label = debrief.upsellSignal.toUpperCase();
+          upsellBlock.innerHTML = `<strong>${escapeHtml(label)}</strong>`;
+        }
+        // Referral Code (already partially handled below — but use real value if present)
+        const refBlock = sentPanel.querySelector('.panel.right .input-block.auto .body');
+        if (refBlock && s.referralCode) {
+          refBlock.textContent = s.referralCode;
+        }
       }
     } catch (e) {
-      console.warn('[hub] could not update prep panel status', e);
+      console.warn('[hub] could not update dynamic panel content', e);
     }
 
     // Pick which state column to show: prefer URL hash, then localStorage, then session.state

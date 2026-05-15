@@ -103,6 +103,12 @@ export async function GET(
     actionPlanJson: session.actionPlanJson,
     actionPlanUrl: session.actionPlanUrl ?? null,
     firefliesUrl: session.firefliesUrl ?? null,
+    // Send-pipeline state — surfaced for the Hub's Sent panel + downstream UI.
+    // Added 2026-05-15 alongside the Hub dynamic-panel wiring.
+    referralCode: session.referralCode || null,
+    emailSent: !!session.emailSent,
+    smsSent: !!session.smsSent,
+    sentAt: session.sentAt ?? null,
     payment,
   });
 }
