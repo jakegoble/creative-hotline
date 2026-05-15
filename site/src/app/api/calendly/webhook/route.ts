@@ -2,12 +2,21 @@
  * POST /api/calendly/webhook
  *
  * Calendly → here on booking events. Signature-verified, idempotent.
- * Handles: invitee.created
+ * Handles: invitee.created, invitee.canceled
  *
  * On invitee.created we:
  *   1. Look up the Payment row by invitee email (stable cross-source key)
  *   2. Look up the Intake row by the same email (best-effort)
- *   3. Create a Session row in "Prep" state, linked to the Payment + Intake
+ *   3. Create a Session row in "Prep" state, linked to the Payment + Intake,
+ *      with the Calendly event URI stored for later cancellation lookups.
+ *
+ * On invitee.canceled we:
+ *   1. Look up the Session row by stored Calendly Event URI
+ *   2. Decide Canceled vs. Rescheduled based on payload.rescheduled (Calendly
+ *      sends invitee.canceled on the OLD booking when someone reschedules)
+ *   3. Transition the Session's State accordingly. Sessions already in "Sent"
+ *      state are left alone — once delivered, the relationship outcome is
+ *      orthogonal to a calendar event change.
  *
  * Race condition with Stripe: Calendly fires invitee.created and Stripe fires
  * payment_intent.succeeded roughly in parallel. If Calendly hits this handler
@@ -19,26 +28,41 @@
  *
  * Idempotency: createSession dedupes on Linked Payment relation, so retries
  * or duplicate Calendly deliveries return the existing Session page id without
- * creating a second row.
+ * creating a second row. Canceled handler is idempotent because writing the
+ * same State value twice is a no-op.
  *
  * Webhook setup:
  *   1. POST https://api.calendly.com/webhook_subscriptions with:
  *        url: https://<deployed-domain>/api/calendly/webhook
- *        events: ["invitee.created"]
+ *        events: ["invitee.created", "invitee.canceled"]
  *        signing_key: <choose a string, mirror to CALENDLY_WEBHOOK_SECRET>
  *   2. Add CALENDLY_WEBHOOK_SECRET to Vercel project env (same value).
  *
  * V2 Batch 3c (Calendly auto-link).
+ * V2 cancel-handler — added 2026-05-15 evening.
  */
 
 import { NextResponse } from "next/server";
 import {
   constructCalendlyEvent,
+  extractPhoneFromQA,
   inviteeCreatedToSessionInput,
+  type CalendlyInviteeCreatedPayload,
+  type CalendlyInviteeCanceledPayload,
 } from "@/lib/services/calendly-webhook";
 import { findPaymentByEmail } from "@/lib/services/notion-payments-write";
 import { findIntakeIdByEmail } from "@/lib/services/notion-intake-read";
-import { createSession } from "@/lib/services/notion-sessions-write";
+import {
+  createSession,
+  updateSessionState,
+} from "@/lib/services/notion-sessions-write";
+import { findSessionByCalendlyEventUri } from "@/lib/services/notion-sessions-read";
+import {
+  findContactByEmail,
+  findContactByPhone,
+  normalizePhoneE164,
+  upsertContactByPhone,
+} from "@/lib/services/notion-messaging";
 
 // Calendly needs the raw, un-parsed body to verify the signature.
 export const runtime = "nodejs";
@@ -64,12 +88,73 @@ export async function POST(request: Request) {
   }
 
   try {
+    // -------- invitee.canceled --------
+    // Calendly fires this on real cancellations AND on the OLD booking when
+    // an invitee reschedules (the NEW booking arrives separately as
+    // invitee.created with rescheduled=true on the payload).
+    if (event.event === "invitee.canceled") {
+      const canceled = event as CalendlyInviteeCanceledPayload;
+      const eventUri = canceled.payload?.scheduled_event?.uri ?? "";
+      if (!eventUri) {
+        console.warn(
+          `[calendly-webhook] invitee.canceled missing scheduled_event.uri`,
+        );
+        return NextResponse.json({
+          received: true,
+          skipped: "no_event_uri",
+        });
+      }
+      const session = await findSessionByCalendlyEventUri(eventUri);
+      if (!session) {
+        // No Session has this URI — likely a booking that pre-dates the
+        // Calendly Event URI field, or one promoted manually without it.
+        console.warn(
+          `[calendly-webhook] invitee.canceled: no Session row with Calendly Event URI=${eventUri}`,
+        );
+        return NextResponse.json({
+          received: true,
+          skipped: "no_session_for_event_uri",
+          event_uri: eventUri,
+        });
+      }
+      // Once the action plan has been delivered, the calendar state is no
+      // longer relevant — leave Sent alone.
+      if (session.state === "Sent") {
+        console.log(
+          `[calendly-webhook] invitee.canceled: session ${session.id} already Sent — not transitioning`,
+        );
+        return NextResponse.json({
+          received: true,
+          session_page_id: session.id,
+          skipped: "already_sent",
+        });
+      }
+      const newState = canceled.payload?.rescheduled
+        ? "Rescheduled"
+        : "Canceled";
+      await updateSessionState(session.id, newState);
+      console.log(
+        `[calendly-webhook] invitee.canceled → session ${session.id} → ${newState}`,
+      );
+      return NextResponse.json({
+        received: true,
+        session_page_id: session.id,
+        previous_state: session.state,
+        new_state: newState,
+      });
+    }
+
     if (event.event !== "invitee.created") {
       // Ack other event types so Calendly stops retrying.
       return NextResponse.json({ received: true, ignored: event.event });
     }
 
-    const inv = event.payload;
+    // After the early-return above we know event.event === "invitee.created",
+    // but the union type from constructCalendlyEvent doesn't narrow cleanly
+    // because it has a catchall member. Cast to the specific shape — the
+    // discriminant check is what makes it safe.
+    const inviteeEvent = event as CalendlyInviteeCreatedPayload;
+    const inv = inviteeEvent.payload;
     // Note: don't normalize case here — match existing findIntakeIdByEmail
     // and Stripe write paths (both pass the raw email to Notion). Notion's
     // email-property equals filter is case-insensitive server-side, so this
@@ -112,7 +197,7 @@ export async function POST(request: Request) {
     const intakePageId = (await findIntakeIdByEmail(email)) ?? undefined;
 
     const sessionInput = inviteeCreatedToSessionInput(
-      event,
+      inviteeEvent,
       paymentPageId,
       intakePageId,
     );
@@ -122,6 +207,56 @@ export async function POST(request: Request) {
       `[calendly-webhook] invitee.created → notion ${result.created ? "created" : "deduped"} session ${result.pageId} for ${email}` +
         (intakePageId ? ` (intake linked)` : ` (no intake)`),
     );
+
+    // Cross-flow connection: mark the Messaging Contact (if any) as booked.
+    // This closes the loop between SMS marketing → actual booking. The contact
+    // gets "booked" tag + Drip Stage = "completed", so the drip cron stops
+    // nudging them. Fire-and-forget — the booking is the load-bearing path
+    // here, CRM sync is best-effort.
+    void (async () => {
+      try {
+        const rawPhone = extractPhoneFromQA(inv);
+        const phoneE164 = normalizePhoneE164(rawPhone);
+        // Try phone first (most reliable connector if Calendly captured it),
+        // then fall back to email.
+        let contact =
+          phoneE164 ? await findContactByPhone(phoneE164) : null;
+        if (!contact) {
+          contact = await findContactByEmail(email);
+        }
+        if (contact) {
+          await upsertContactByPhone({
+            phone: contact.phone,
+            email,
+            addTags: ["booked"],
+            dripStage: "completed",
+            complianceNote: `Booked via Calendly (session ${result.pageId})`,
+          });
+          console.log(
+            `[calendly-webhook] linked Messaging Contact ${contact.id} as booked`,
+          );
+        } else if (phoneE164) {
+          // No existing contact but Calendly captured a phone — create one so
+          // future SMS touchpoints find them. Skip drip enrollment (they're
+          // already paid customers).
+          await upsertContactByPhone({
+            phone: phoneE164,
+            email,
+            status: "active",
+            dripStage: "completed",
+            source: "referral", // booked without inbound SMS — likely web/email
+            addTags: ["booked"],
+            complianceNote: `Created from Calendly booking (session ${result.pageId})`,
+          });
+          console.log(
+            `[calendly-webhook] created Messaging Contact for ${phoneE164}`,
+          );
+        }
+      } catch (err) {
+        // CRM sync failure must NEVER block the booking flow.
+        console.warn("[calendly-webhook] Messaging Contact sync failed:", err);
+      }
+    })();
 
     return NextResponse.json({
       received: true,

@@ -46,6 +46,16 @@ export interface CalendlyInviteeCreatedPayload {
     rescheduled?: boolean;
     cancel_url?: string;
     reschedule_url?: string;
+    /**
+     * Custom questions Megha can configure on the booking page (e.g., "Phone
+     * number for SMS updates?"). We scan this for phone-shaped answers so we
+     * can connect a booking back to its originating SMS subscriber.
+     */
+    questions_and_answers?: Array<{
+      question: string;
+      answer: string;
+      position?: number;
+    }>;
     scheduled_event: {
       uri: string;
       name: string;
@@ -57,6 +67,76 @@ export interface CalendlyInviteeCreatedPayload {
 }
 
 /**
+ * Shape of the Calendly invitee.canceled payload. Calendly fires this when
+ * an invitee cancels their booking — and ALSO when they reschedule (on the
+ * OLD booking; the NEW booking comes through as a separate invitee.created
+ * event with rescheduled=true on its payload).
+ *
+ * `cancellation.canceler_type` is "invitee" / "host" depending on who
+ * initiated the cancel.
+ */
+export interface CalendlyInviteeCanceledPayload {
+  event: "invitee.canceled";
+  created_at: string;
+  payload: {
+    uri: string;
+    email: string;
+    name?: string;
+    rescheduled?: boolean;
+    cancellation?: {
+      canceled_by?: string;
+      reason?: string;
+      canceler_type?: string;
+    };
+    scheduled_event: {
+      uri: string;
+      name: string;
+      start_time: string;
+      end_time: string;
+      status: string;
+    };
+  };
+}
+
+/** Union of all Calendly events we care about. Anything else gets ack-ignored. */
+export type CalendlyEvent =
+  | CalendlyInviteeCreatedPayload
+  | CalendlyInviteeCanceledPayload
+  | { event: string; created_at: string; payload?: unknown };
+
+/**
+ * Best-effort phone extraction from Calendly's custom questions. Megha may or
+ * may not have a phone-capture question on the event; if she does, the answer
+ * shows up here. We match on common phrasings ("phone", "mobile", "cell",
+ * "sms") and return the first answer that looks like a number.
+ *
+ * Returns the raw answer string (not E.164-normalized — caller should pass
+ * through normalizePhoneE164). Returns "" if nothing matched.
+ */
+export function extractPhoneFromQA(
+  payload: CalendlyInviteeCreatedPayload["payload"],
+): string {
+  const qa = payload.questions_and_answers;
+  if (!qa || qa.length === 0) return "";
+  for (const item of qa) {
+    if (!item?.question || !item?.answer) continue;
+    const q = item.question.toLowerCase();
+    if (
+      q.includes("phone") ||
+      q.includes("mobile") ||
+      q.includes("cell") ||
+      q.includes("sms") ||
+      q.includes("text")
+    ) {
+      // Cheap shape check — answer contains at least 7 digits.
+      const digits = item.answer.replace(/\D/g, "");
+      if (digits.length >= 7) return item.answer;
+    }
+  }
+  return "";
+}
+
+/**
  * Verify the Calendly-Webhook-Signature header against the raw body.
  * Throws on signature mismatch, malformed header, or stale timestamp.
  *
@@ -65,7 +145,7 @@ export interface CalendlyInviteeCreatedPayload {
 export function constructCalendlyEvent(
   rawBody: string,
   signatureHeader: string | null,
-): CalendlyInviteeCreatedPayload {
+): CalendlyEvent {
   if (!config.calendly.webhookSecret) {
     throw new Error("CALENDLY_WEBHOOK_SECRET is not configured");
   }
@@ -121,9 +201,11 @@ export function constructCalendlyEvent(
     throw new Error("Calendly webhook body is not valid JSON");
   }
 
-  // We only handle invitee.created in V2 Batch 4. Other event types are
-  // returned as-is so the route can ack-and-ignore them.
-  return parsed as CalendlyInviteeCreatedPayload;
+  // Return as the discriminated CalendlyEvent union. The route handler
+  // narrows on `event.event` to pick the right code path. Unknown event
+  // types pass through (matching the third arm of the union) so the route
+  // can ack-and-ignore them.
+  return parsed as CalendlyEvent;
 }
 
 /**
@@ -156,5 +238,10 @@ export function inviteeCreatedToSessionInput(
     paymentPageId,
     intakePageId,
     state: "Prep",
+    // Stable per-booking URI — used later by the invitee.canceled handler
+    // to look up THIS Session row and transition State→Canceled. Calendly's
+    // scheduled_event.uri is shared by the invitee.created and invitee.canceled
+    // payloads for the same booking.
+    calendlyEventUri: sched.uri,
   };
 }

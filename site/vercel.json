@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/frankie-followups",
       "schedule": "0 23 * * *"
+    },
+    {
+      "path": "/api/cron/sms-drips",
+      "schedule": "0 17 * * *"
     }
   ]
 }
