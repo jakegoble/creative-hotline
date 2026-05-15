@@ -53,9 +53,18 @@ export async function findPaymentByStripeSessionId(
 }
 
 /**
- * Find a Payments page by email. Returns the most recently-created match or
- * null. Used by the Calendly webhook to auto-link a fresh booking back to the
- * Payment row that triggered it.
+ * Find a Payments page by email. Returns the most recently-created FRESH match
+ * (default: created within the last 30 minutes) or null.
+ *
+ * Used by the Calendly webhook to auto-link a fresh booking back to the
+ * Payment row that triggered it. The timeWindowMinutes constraint prevents the
+ * race-condition bug where a returning client books a second session and the
+ * webhook would otherwise dedupe against their OLD Payment + Session pair.
+ *
+ * Calendly fires `invitee.created` ~1s after Stripe's `payment_intent.succeeded`,
+ * so the new Payment row is essentially always within the 30-min window. The
+ * 30-min ceiling gives generous slack for Notion index lag on Stripe's side
+ * while still excluding ALL prior bookings by the same email.
  *
  * Mirror of findIntakeIdByEmail in notion-intake-read.ts. Email is the only
  * stable cross-source key (Tally + Calendly + Stripe all collect it) — see
@@ -63,14 +72,23 @@ export async function findPaymentByStripeSessionId(
  */
 export async function findPaymentByEmail(
   email: string,
+  timeWindowMinutes: number = 30,
 ): Promise<string | null> {
   if (!email) return null;
   const client = getClient();
+  const cutoffIso = new Date(
+    Date.now() - timeWindowMinutes * 60 * 1000,
+  ).toISOString();
   const response = await client.dataSources.query({
     data_source_id: config.notion.paymentsDbId,
     filter: {
-      property: "Email",
-      email: { equals: email },
+      and: [
+        { property: "Email", email: { equals: email } },
+        {
+          timestamp: "created_time",
+          created_time: { on_or_after: cutoffIso },
+        },
+      ],
     },
     sorts: [{ timestamp: "created_time", direction: "descending" }],
     page_size: 1,

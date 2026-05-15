@@ -490,6 +490,45 @@
       }
     }
 
+    // Replace the static placeholder text in the Prep panel with real status pulled
+    // from the loaded session. Static demo strings ("Doing a lot but nothing's
+    // actually growing." / "Voice: trying elevated, reading functional...") are
+    // hardcoded fallback copy from Megha's spec template — swap them for real data
+    // when available, otherwise nudge the user to the morning-prep screen.
+    try {
+      const prepPanel = document.getElementById('state-prep');
+      if (prepPanel) {
+        const blocks = prepPanel.querySelectorAll('.input-block.auto .body');
+        // First block: From Tally Intake
+        if (blocks[0]) {
+          if (s.intake && s.intake.status === 'Submitted') {
+            blocks[0].textContent = `Intake submitted. Full intake in the Morning Prep dashboard →`;
+          } else if (s.intake) {
+            blocks[0].textContent = `Intake status: ${s.intake.status || 'Not Started'}`;
+          } else {
+            blocks[0].textContent = 'No intake submitted yet — client received the Tally link in Frankie #1.';
+          }
+        }
+        // Second block: Claude's Research Brief
+        if (blocks[1]) {
+          const bs = (s.intake && s.intake.briefStatus) || 'Not Generated';
+          if (bs === 'Ready') {
+            blocks[1].textContent = 'Research brief ready. Open Morning Prep to read →';
+          } else if (bs === 'Generating') {
+            blocks[1].textContent = 'Research brief generating… check back in 30s.';
+          } else if (bs === 'Failed') {
+            blocks[1].textContent = 'Research brief failed. Re-run from Morning Prep.';
+          } else {
+            blocks[1].textContent = 'Research brief not yet generated — kick it off from Morning Prep.';
+          }
+        }
+        // Third block: Client Library — leave the static link unless we have real files
+        // (no API support yet for client-uploaded files; future Tally → Drive integration).
+      }
+    } catch (e) {
+      console.warn('[hub] could not update prep panel status', e);
+    }
+
     // Pick which state column to show: prefer URL hash, then localStorage, then session.state
     const urlState = (new URL(window.location.href)).hash.replace('#', '');
     let target = STATES.includes(urlState) ? urlState : null;
