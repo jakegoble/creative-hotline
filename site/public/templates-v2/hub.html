@@ -127,7 +127,10 @@
 
 <header class="top">
   <div class="left"><span class="nav-logo tch-logo-3stack-white"></span><h1>Client <em>Hub</em></h1></div>
-  <div class="right"><span class="role-tag" id="userRole" onclick="toggleRole()">Logged in as: Megha</span></div>
+  <div class="right">
+    <a id="notionRawLink" href="#" target="_blank" rel="noopener" style="display:none;font-family:var(--tch-nord);font-weight:500;letter-spacing:0.14em;font-size:10px;color:var(--tch-cream);text-transform:uppercase;text-decoration:none;padding:5px 10px;border:1.5px solid rgba(245,242,235,0.35);" title="Open this session's raw record in Notion">↳ Notion ⤴</a>
+    <span class="role-tag" id="userRole" onclick="toggleRole()">Logged in as: Megha</span>
+  </div>
 </header>
 
 <div class="layout">
@@ -170,7 +173,11 @@
           <div class="panel-head"><span class="panel-tag">↳ Auto · From the System</span></div>
           <div class="input-block auto"><div class="who">From Tally Intake</div><div class="body">"Doing a lot but nothing's actually growing." Type: Solo founder · Maker · Bootstrap</div></div>
           <div class="input-block auto"><div class="who">Claude's Research Brief</div><div class="body">Voice: trying elevated, reading functional. Visual: warm, no system. Audience: 70% local, not the buyer.</div></div>
-          <div class="input-block auto"><div class="who">Client Library</div><a href="#" class="quick-link"><span class="icon">📄</span><span class="label">Brand Deck.pdf</span><span class="arrow">→</span></a></div>
+          <div class="input-block auto" id="prepClientLibrary"><div class="who">Client Library</div><div class="empty" style="font-family:var(--tch-mono);font-size:12px;color:rgba(28,28,30,0.55);">No files uploaded yet.</div></div>
+          <div class="input-block auto"><div class="who">Reference Docs</div>
+            <a href="/legal/service-agreement.html" target="_blank" rel="noopener" class="quick-link"><span class="icon">📜</span><span class="label">Service agreement</span><span class="arrow">↗</span></a>
+            <a href="facilitator-guide.html" target="_blank" rel="noopener" class="quick-link"><span class="icon">🎙</span><span class="label">Facilitator guide</span><span class="arrow">↗</span></a>
+          </div>
         </div>
         <div class="panel center">
           <div class="panel-head"><span class="panel-tag">↳ Your Read</span></div>
@@ -200,6 +207,9 @@
         <h2>Session <em>in progress</em>.</h2>
         <p>Workshop screen is open. Fireflies is recording. The Hub goes quiet so you can stay present.</p>
         <a href="workshop-session.html" class="open-cta">Open Workshop Screen ☎</a>
+        <div style="margin-top: 20px;">
+          <a href="facilitator-guide.html" target="_blank" rel="noopener" style="font-family:var(--tch-mono);font-size:13px;color:var(--tch-ink);text-decoration:underline;opacity:0.7;">Open facilitator guide ↗</a>
+        </div>
       </div>
     </div>
 
@@ -233,7 +243,15 @@
         <div class="panel left">
           <div class="panel-head"><span class="panel-tag">↳ Reference</span></div>
           <div class="input-block auto"><div class="who">Debrief Summary</div><div class="body">Score 9.0 · Conf 6.5 ⚠ · Tone: Direct + Sharp · Upsell: Strong</div></div>
-          <div class="input-block auto"><div class="who">Transcript · Ready ✓</div><a href="#" class="quick-link"><span class="icon">📄</span><span class="label">Full transcript</span><span class="arrow">→</span></a></div>
+          <div class="input-block auto" id="reviewTranscriptBlock">
+            <div class="who">Transcript · Ready ✓</div>
+            <a href="#" class="quick-link"><span class="icon">📄</span><span class="label">Full transcript</span><span class="arrow">→</span></a>
+            <form id="firefliesUrlForm" style="display:none;margin-top:8px;">
+              <input type="url" id="firefliesUrlInput" placeholder="https://app.fireflies.ai/view/..." style="width:100%;background:transparent;border:1.5px dashed var(--tch-ink-line);padding:8px;font-family:var(--tch-mono);font-size:12px;color:var(--tch-ink);margin-bottom:6px;">
+              <button type="submit" style="width:100%;background:var(--tch-ink);color:var(--tch-cream);border:none;padding:8px;font-family:var(--tch-nord);font-weight:700;letter-spacing:0.14em;font-size:10px;text-transform:uppercase;cursor:pointer;">Save Transcript URL</button>
+              <div id="firefliesUrlStatus" style="font-family:var(--tch-mono);font-size:11px;margin-top:6px;opacity:0.7;"></div>
+            </form>
+          </div>
         </div>
         <div class="panel center">
           <div class="panel-head"><span class="panel-tag">↳ Action Plan Draft</span></div>
@@ -258,6 +276,10 @@
         <div class="panel left">
           <div class="panel-head"><span class="panel-tag">↳ Delivered</span></div>
           <div class="input-block auto"><div class="who">Action Plan · Sent</div><div class="body">Mar 21 · 11:42 AM PST<br>Email: ✓ · SMS: ✓</div></div>
+          <div class="input-block auto" id="sentDeliverableBlock" style="display:none;"><div class="who">Client Deliverable</div>
+            <a id="sentActionPlanLink" href="#" target="_blank" rel="noopener" class="quick-link"><span class="icon">📨</span><span class="label">Open action plan</span><span class="arrow">↗</span></a>
+            <a id="sentEmailPreviewLink" href="#" target="_blank" rel="noopener" class="quick-link"><span class="icon">👁</span><span class="label">Preview Frankie email</span><span class="arrow">↗</span></a>
+          </div>
         </div>
         <div class="panel center">
           <div class="panel-head"><span class="panel-tag">↳ Follow-Up Engine</span></div>
@@ -524,6 +546,44 @@
           else if (bs === 'Failed') blocks[1].textContent = 'Research brief failed. Re-run from Morning Prep.';
           else blocks[1].textContent = 'Research brief not yet generated — kick it off from Morning Prep.';
         }
+        // Client Library — render real Tally file uploads from s.intake.files,
+        // or an empty-state line when none.
+        const libBlock = document.getElementById('prepClientLibrary');
+        if (libBlock) {
+          const empty = libBlock.querySelector('.empty');
+          // Clear any previously-rendered file links so we don't stack them
+          // across session switches.
+          libBlock.querySelectorAll('a.quick-link').forEach(el => el.remove());
+          const files = (s.intake && Array.isArray(s.intake.files)) ? s.intake.files : [];
+          if (files.length === 0) {
+            if (empty) {
+              empty.style.display = '';
+              empty.textContent = s.intake
+                ? 'No files uploaded yet.'
+                : 'No intake on file.';
+            }
+          } else {
+            if (empty) empty.style.display = 'none';
+            // Build links — guard against junk
+            for (const f of files) {
+              if (!f.url) continue;
+              const a = document.createElement('a');
+              a.className = 'quick-link';
+              a.href = f.url;
+              a.target = '_blank';
+              a.rel = 'noopener';
+              const name = f.name || 'file';
+              const isImage = /\.(png|jpe?g|gif|webp|svg)$/i.test(name);
+              const isPdf = /\.pdf$/i.test(name);
+              const icon = isImage ? '🖼' : isPdf ? '📄' : '📎';
+              a.innerHTML =
+                `<span class="icon">${icon}</span>` +
+                `<span class="label">${escapeHtml(name)}</span>` +
+                `<span class="arrow">↗</span>`;
+              libBlock.appendChild(a);
+            }
+          }
+        }
       }
 
       // ----- DEBRIEF PANEL · LEFT (Just-Captured) -----
@@ -682,6 +742,56 @@
         }
       }
 
+      // ----- SENT PANEL · CENTER (Follow-Up Engine timeline) -----
+      // The static template hardcoded "Day 0 fired · Day 1 fired · Day 2
+      // scheduled · …" with no link to reality. Until n8n has a queryable
+      // schedule API per session, infer status from s.sentAt + the current
+      // wall time. Day N is "fired" if now - sentAt >= N days, "pending" if
+      // due within the next 24h, "scheduled" otherwise. If never sent, all
+      // rows show "scheduled".
+      const sentTimeline = document.querySelector('#state-sent .timeline');
+      if (sentTimeline) {
+        const FOLLOW_UPS = [
+          { day: 0,  what: 'Action plan email + SMS' },
+          { day: 1,  what: '"I liked / wished / wondered" SMS' },
+          { day: 2,  what: 'Check-in email' },
+          { day: 7,  what: 'Value-add' },
+          { day: 14, what: 'Progress check' },
+          { day: 21, what: 'NPS' },
+          { day: 30, what: 'Milestone' },
+          { day: 60, what: 'Long-term' },
+          { day: 90, what: 'Re-engagement' },
+        ];
+        const sentAt = s.sentAt ? new Date(s.sentAt) : null;
+        const now = new Date();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+        const elapsedDays = sentAt ? (now - sentAt) / oneDayMs : -1;
+        const rows = FOLLOW_UPS.map(({ day, what }) => {
+          let status, label;
+          if (!sentAt) {
+            status = 'scheduled'; label = 'Scheduled';
+          } else if (elapsedDays >= day) {
+            status = 'fired';
+            // Day 0 = "Delivered" (we know it actually sent), others = "Sent"
+            // since we're inferring from elapsed time, not delivery confirmation.
+            label = day === 0
+              ? ((s.emailSent || s.smsSent) ? 'Delivered' : 'Sent')
+              : 'Sent (est.)';
+          } else if (elapsedDays >= day - 1) {
+            status = 'pending'; label = 'Due soon';
+          } else {
+            status = 'scheduled'; label = 'Scheduled';
+          }
+          return `
+            <div class="tl-item ${status}">
+              <span class="day">Day ${day}</span>
+              <span class="what">${escapeHtml(what)}</span>
+              <span class="status">${label}</span>
+            </div>`;
+        }).join('');
+        sentTimeline.innerHTML = rows;
+      }
+
       // ----- SENT PANEL · LEFT (Delivered) -----
       const sentPanel = document.getElementById('state-sent');
       if (sentPanel) {
@@ -709,7 +819,69 @@
         if (refBlock && s.referralCode) {
           refBlock.textContent = s.referralCode;
         }
+        // Wire the action-plan deliverable + email-preview links if we have a URL
+        const deliverableBlock = document.getElementById('sentDeliverableBlock');
+        const actionPlanLink = document.getElementById('sentActionPlanLink');
+        const emailPreviewLink = document.getElementById('sentEmailPreviewLink');
+        if (deliverableBlock && actionPlanLink && emailPreviewLink) {
+          if (s.actionPlanUrl) {
+            actionPlanLink.setAttribute('href', s.actionPlanUrl);
+            emailPreviewLink.setAttribute(
+              'href',
+              `email-preview.html?sessionId=${encodeURIComponent(sessionId)}&template=action-plan`,
+            );
+            deliverableBlock.style.display = '';
+          } else {
+            deliverableBlock.style.display = 'none';
+          }
+        }
       }
+
+      // ----- HEADER · Notion raw-record link -----
+      // s.id is the Notion page UUID. Build a notion:// deep link that opens
+      // the desktop app if installed, falls back to https://notion.so otherwise.
+      const notionLink = document.getElementById('notionRawLink');
+      if (notionLink && s.id) {
+        const idNoDashes = s.id.replace(/-/g, '');
+        notionLink.setAttribute('href', `https://www.notion.so/${idNoDashes}`);
+        notionLink.style.display = '';
+      }
+
+      // ----- REVIEW PANEL · Fireflies URL input -----
+      // If transcript URL is set, show the quick-link to the transcript.
+      // If missing, hide the link and show an input so Megha can paste a URL
+      // without leaving the Hub. POSTs to PATCH /api/sessions/[id].
+      const transcriptBlock = document.getElementById('reviewTranscriptBlock');
+      if (transcriptBlock) {
+        const head = transcriptBlock.querySelector('.who');
+        const link = transcriptBlock.querySelector('a.quick-link');
+        const form = transcriptBlock.querySelector('#firefliesUrlForm');
+        const input = transcriptBlock.querySelector('#firefliesUrlInput');
+        const status = transcriptBlock.querySelector('#firefliesUrlStatus');
+        if (head && link && form && input && status) {
+          if (s.firefliesUrl) {
+            head.textContent = 'Transcript · Ready ✓';
+            link.setAttribute('href', s.firefliesUrl);
+            link.setAttribute('target', '_blank');
+            link.setAttribute('rel', 'noopener');
+            link.style.display = '';
+            form.style.display = 'none';
+            input.value = '';
+            status.textContent = '';
+          } else {
+            head.textContent = 'Transcript · Paste Fireflies URL';
+            link.style.display = 'none';
+            form.style.display = '';
+            input.value = '';
+            status.textContent = '';
+          }
+        }
+      }
+
+      // ----- SESSION view · Workshop link with sessionId -----
+      // The internal-link rewriter above already handles workshop-session.html,
+      // but the facilitator guide opens in a new tab and stays static. Nothing
+      // dynamic needed here — the static href in the markup is the canonical URL.
     } catch (e) {
       console.warn('[hub] could not update dynamic panel content', e);
     }
@@ -730,9 +902,54 @@
   window.loadClient = loadClient;
 
   // -------------------------------------------------------------------------
+  // Fireflies URL save — PATCH /api/sessions/[id]
+  // Wired once on boot. Reads currentSessionId at submit time.
+  // -------------------------------------------------------------------------
+  function wireFirefliesForm() {
+    const form = document.getElementById('firefliesUrlForm');
+    if (!form) return;
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentSessionId) return;
+      const input = document.getElementById('firefliesUrlInput');
+      const status = document.getElementById('firefliesUrlStatus');
+      if (!input || !status) return;
+      const url = input.value.trim();
+      if (!/^https?:\/\//i.test(url)) {
+        status.textContent = 'Needs to start with http:// or https://';
+        status.style.color = 'var(--tch-red)';
+        return;
+      }
+      status.textContent = 'Saving…';
+      status.style.color = '';
+      try {
+        const r = await fetch(`/api/sessions/${encodeURIComponent(currentSessionId)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ firefliesUrl: url }),
+        });
+        const body = await r.json();
+        if (!r.ok) throw new Error(body.message || body.error || 'save_failed');
+        status.textContent = 'Saved ✓ — reload to view link';
+        status.style.color = 'var(--tch-green)';
+        // Reload the client view so the link surface re-renders with the new URL.
+        setTimeout(() => loadClient(currentSessionId), 600);
+      } catch (err) {
+        console.warn('[hub] firefliesUrl save failed', err);
+        status.textContent = 'Save failed — try again.';
+        status.style.color = 'var(--tch-red)';
+      }
+    });
+  }
+
+  // -------------------------------------------------------------------------
   // Bootstrap
   // -------------------------------------------------------------------------
   async function boot() {
+    // Wire form handlers up-front (form lives in static markup; safe even if
+    // the today-fetch below fails).
+    wireFirefliesForm();
+
     // Try to load today's sessions
     const today = new Date();
     const dateISO = today.toISOString().slice(0, 10);
