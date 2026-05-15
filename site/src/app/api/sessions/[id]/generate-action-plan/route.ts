@@ -35,7 +35,10 @@ import { fetchTranscriptText } from "@/lib/services/fireflies";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-export const maxDuration = 60;
+// 11-section plan + transcript-grounded specifics can push Claude past 60s.
+// Bumped to 90 (Vercel Pro allows up to 300) to keep the function from 504'ing
+// on dense-input sessions. Action plan service caps tokens to keep total bounded.
+export const maxDuration = 90;
 
 function publicActionPlanUrl(sessionId: string, request: Request): string {
   // Prefer the request's own origin so behavior is correct in preview deploys,
