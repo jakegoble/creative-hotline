@@ -273,36 +273,80 @@
   <div id="errorScreen" style="display:none" class="error-screen"></div>
 
   <div id="planRoot" style="display:none">
-    <h1 class="headline" id="headline"></h1>
-    <p class="summary" id="summary"></p>
-
-    <section id="immediateSection">
-      <h2>Start this week</h2>
-      <p class="sub">The first moves. Begin with these.</p>
-      <ol class="steps" id="immediateList"></ol>
+    <!-- 1. North Star (hero) -->
+    <section id="northStarSection" style="display:none">
+      <p class="sub" style="text-transform:uppercase;letter-spacing:0.12em;font-size:12px;margin-bottom:8px;">Your North Star</p>
+      <h1 class="headline" id="northStarText"></h1>
     </section>
 
-    <section id="thirtyDaySection">
-      <h2>Next 30 days</h2>
-      <p class="sub">Bigger moves to set up after the first wins land.</p>
-      <ol class="steps" id="thirtyDayList"></ol>
+    <!-- 2. What We Learned (diagnosis) -->
+    <section id="whatWeLearnedSection" style="display:none">
+      <h2>What We Learned</h2>
+      <p class="sub">The thing beneath the thing.</p>
+      <p class="summary" id="whatWeLearnedText"></p>
     </section>
 
-    <section id="questionsSection">
-      <h2>Open Questions</h2>
-      <p class="sub">A few things to think on — feel free to reply with answers.</p>
-      <ul class="questions" id="questionsList"></ul>
+    <!-- 3. Creative Authority Read (4-pillar audit) -->
+    <section id="authorityReadSection" style="display:none">
+      <h2>Creative Authority Read</h2>
+      <p class="sub">Where your brand stands today across the four pillars.</p>
+      <div id="authorityPillars"></div>
+      <p class="summary" id="authoritySummary" style="margin-top:12px"></p>
     </section>
 
-    <section id="resourcesSection" style="display:none">
-      <h2>Resources</h2>
-      <p class="sub">Worth a look.</p>
-      <ul class="resources" id="resourcesList"></ul>
+    <!-- 4. What We Love -->
+    <section id="whatWeLoveSection" style="display:none">
+      <h2>What We Love</h2>
+      <p class="sub">Strengths to lean into.</p>
+      <ul class="questions" id="whatWeLoveList"></ul>
     </section>
 
-    <div class="closing" id="closingBlock" style="display:none">
-      <div id="closingText"></div>
-      <span class="closing-from">— Megha, The Creative Hotline</span>
+    <!-- 5. Things You Said That Matter -->
+    <section id="thingsYouSaidSection" style="display:none">
+      <h2>Things You Said That Matter</h2>
+      <p class="sub">In your own words.</p>
+      <div id="thingsYouSaidList"></div>
+    </section>
+
+    <!-- 6. What We're Not Doing -->
+    <section id="notDoingSection" style="display:none">
+      <h2>What We're Not Doing</h2>
+      <p class="sub">Deliberate exclusions. Permission to let go.</p>
+      <ul class="questions" id="notDoingList"></ul>
+    </section>
+
+    <!-- 7. Action Plan (72hr / 1wk / 1mo) -->
+    <section id="actionPlanSection" style="display:none">
+      <h2>The Plan · 72hr · 1wk · 1mo</h2>
+      <p class="sub">Each move has a DIY path (Path A) and a Level Up path (Path B). You pick.</p>
+      <ol class="steps" id="actionPlanList"></ol>
+    </section>
+
+    <!-- 8. Effort/Impact Matrix -->
+    <section id="effortImpactSection" style="display:none">
+      <h2>The Map · Effort / Impact</h2>
+      <p class="sub">Every move placed on the grid. Path locks shown.</p>
+      <div id="effortImpactGrid"></div>
+    </section>
+
+    <!-- 9. Tools -->
+    <section id="toolsSection" style="display:none">
+      <h2>Tools We Recommend</h2>
+      <p class="sub">Specific, opinionated. Not exhaustive.</p>
+      <ul class="resources" id="toolsList"></ul>
+    </section>
+
+    <!-- 10. What Success Looks Like -->
+    <section id="successSection" style="display:none">
+      <h2>What Success Looks Like</h2>
+      <p class="sub">30 · 60 · 90.</p>
+      <p class="summary" id="successText"></p>
+    </section>
+
+    <!-- 11. Continue the Conversation -->
+    <div class="closing" id="continueSection" style="display:none">
+      <div id="continueText"></div>
+      <span class="closing-from">— Megha + Jake, The Creative Hotline</span>
     </div>
 
     <footer>
@@ -325,17 +369,30 @@
   const debriefLinkBtn = document.getElementById('debriefLinkBtn');
   const docMeta = document.getElementById('docMeta');
 
-  const headline = document.getElementById('headline');
-  const summary = document.getElementById('summary');
-  const immediateList = document.getElementById('immediateList');
-  const thirtyDayList = document.getElementById('thirtyDayList');
-  const thirtyDaySection = document.getElementById('thirtyDaySection');
-  const questionsList = document.getElementById('questionsList');
-  const questionsSection = document.getElementById('questionsSection');
-  const resourcesList = document.getElementById('resourcesList');
-  const resourcesSection = document.getElementById('resourcesSection');
-  const closingBlock = document.getElementById('closingBlock');
-  const closingText = document.getElementById('closingText');
+  // 11-section element references (v2 schema)
+  const northStarSection = document.getElementById('northStarSection');
+  const northStarText = document.getElementById('northStarText');
+  const whatWeLearnedSection = document.getElementById('whatWeLearnedSection');
+  const whatWeLearnedText = document.getElementById('whatWeLearnedText');
+  const authorityReadSection = document.getElementById('authorityReadSection');
+  const authorityPillars = document.getElementById('authorityPillars');
+  const authoritySummary = document.getElementById('authoritySummary');
+  const whatWeLoveSection = document.getElementById('whatWeLoveSection');
+  const whatWeLoveList = document.getElementById('whatWeLoveList');
+  const thingsYouSaidSection = document.getElementById('thingsYouSaidSection');
+  const thingsYouSaidList = document.getElementById('thingsYouSaidList');
+  const notDoingSection = document.getElementById('notDoingSection');
+  const notDoingList = document.getElementById('notDoingList');
+  const actionPlanSection = document.getElementById('actionPlanSection');
+  const actionPlanList = document.getElementById('actionPlanList');
+  const effortImpactSection = document.getElementById('effortImpactSection');
+  const effortImpactGrid = document.getElementById('effortImpactGrid');
+  const toolsSection = document.getElementById('toolsSection');
+  const toolsList = document.getElementById('toolsList');
+  const successSection = document.getElementById('successSection');
+  const successText = document.getElementById('successText');
+  const continueSection = document.getElementById('continueSection');
+  const continueText = document.getElementById('continueText');
 
   function showError(msg) {
     errorScreen.style.display = 'block';
@@ -366,43 +423,168 @@
 
   function renderPlan(plan, clientName) {
     document.title = `${clientName || 'Action Plan'} · The Creative Hotline`;
-    headline.textContent = plan.headline || 'Your Action Plan';
-    summary.textContent = plan.summary || '';
 
-    immediateList.innerHTML = (plan.immediateNextSteps || [])
-      .map(renderStep).join('') || '<li><em>(No immediate steps yet.)</em></li>';
-
-    if ((plan.thirtyDayMoves || []).length === 0) {
-      thirtyDaySection.style.display = 'none';
+    // 1. North Star
+    if (plan.northStar) {
+      northStarSection.style.display = '';
+      northStarText.textContent = plan.northStar;
     } else {
-      thirtyDaySection.style.display = '';
-      thirtyDayList.innerHTML = plan.thirtyDayMoves.map(renderStep).join('');
+      northStarSection.style.display = 'none';
     }
 
-    if ((plan.openQuestions || []).length === 0) {
-      questionsSection.style.display = 'none';
+    // 2. What We Learned
+    if (plan.whatWeLearned) {
+      whatWeLearnedSection.style.display = '';
+      whatWeLearnedText.textContent = plan.whatWeLearned;
     } else {
-      questionsSection.style.display = '';
-      questionsList.innerHTML = plan.openQuestions
-        .map((q) => `<li>${escapeHtml(q)}</li>`).join('');
+      whatWeLearnedSection.style.display = 'none';
     }
 
-    if ((plan.resources || []).length === 0) {
-      resourcesSection.style.display = 'none';
+    // 3. Creative Authority Read
+    const ar = plan.authorityRead || {};
+    const pillars = Array.isArray(ar.pillars) ? ar.pillars : [];
+    if (pillars.length || ar.summary) {
+      authorityReadSection.style.display = '';
+      authorityPillars.innerHTML = pillars.map(p => `
+        <div style="border-left:3px solid var(--hotline-red,#EC3107);padding:10px 14px;margin:10px 0;background:rgba(0,0,0,0.02)">
+          <div style="font-weight:700;text-transform:uppercase;letter-spacing:0.08em;font-size:13px">
+            ${escapeHtml(p.pillar || '')} · <span style="color:var(--hotline-red,#EC3107)">${escapeHtml(String(p.score || ''))}/5</span>
+          </div>
+          <div style="margin-top:4px;font-size:14px;line-height:1.55">${escapeHtml(p.read || '')}</div>
+        </div>
+      `).join('');
+      authoritySummary.textContent = ar.summary || '';
     } else {
-      resourcesSection.style.display = '';
-      resourcesList.innerHTML = plan.resources
-        .map((r) => `<li>${linkify(r)}</li>`).join('');
+      authorityReadSection.style.display = 'none';
     }
 
-    if (plan.closingNote) {
-      closingText.innerHTML = escapeHtml(plan.closingNote).replace(/\n/g, '<br>');
-      closingBlock.style.display = '';
+    // 4. What We Love
+    if ((plan.whatWeLove || []).length) {
+      whatWeLoveSection.style.display = '';
+      whatWeLoveList.innerHTML = plan.whatWeLove.map(s => `<li>${escapeHtml(s)}</li>`).join('');
     } else {
-      closingBlock.style.display = 'none';
+      whatWeLoveSection.style.display = 'none';
+    }
+
+    // 5. Things You Said That Matter
+    if ((plan.thingsYouSaid || []).length) {
+      thingsYouSaidSection.style.display = '';
+      thingsYouSaidList.innerHTML = plan.thingsYouSaid.map(q => `
+        <blockquote style="border-left:3px solid var(--electric-blue,#2D77E0);margin:14px 0;padding:6px 14px;font-style:italic;color:var(--ink);line-height:1.55">
+          "${escapeHtml(q)}"
+        </blockquote>
+      `).join('');
+    } else {
+      thingsYouSaidSection.style.display = 'none';
+    }
+
+    // 6. What We're Not Doing
+    if ((plan.notDoing || []).length) {
+      notDoingSection.style.display = '';
+      notDoingList.innerHTML = plan.notDoing.map(s => `<li>${escapeHtml(s)}</li>`).join('');
+    } else {
+      notDoingSection.style.display = 'none';
+    }
+
+    // 7. Action Plan (72hr / 1wk / 1mo)
+    const ap = plan.actionPlan || {};
+    const moves = [
+      { label: '72-HOUR WIN', move: ap.win72hr },
+      { label: '1-WEEK MOVE', move: ap.move1week },
+      { label: '1-MONTH BUILD', move: ap.build1month },
+    ].filter(x => x.move && (x.move.title || x.move.detail));
+    if (moves.length) {
+      actionPlanSection.style.display = '';
+      actionPlanList.innerHTML = moves.map(({ label, move }) => renderMove(label, move)).join('');
+    } else {
+      actionPlanSection.style.display = 'none';
+    }
+
+    // 8. Effort/Impact Matrix
+    if (Array.isArray(plan.effortImpact) && plan.effortImpact.length) {
+      effortImpactSection.style.display = '';
+      effortImpactGrid.innerHTML = renderEffortImpactGrid(plan.effortImpact);
+    } else {
+      effortImpactSection.style.display = 'none';
+    }
+
+    // 9. Tools
+    if ((plan.tools || []).length) {
+      toolsSection.style.display = '';
+      toolsList.innerHTML = plan.tools.map(t => `<li>${linkify(t)}</li>`).join('');
+    } else {
+      toolsSection.style.display = 'none';
+    }
+
+    // 10. What Success Looks Like
+    if (plan.success) {
+      successSection.style.display = '';
+      successText.textContent = plan.success;
+    } else {
+      successSection.style.display = 'none';
+    }
+
+    // 11. Continue the Conversation
+    if (plan.continueConversation) {
+      continueSection.style.display = '';
+      continueText.innerHTML = escapeHtml(plan.continueConversation).replace(/\n/g, '<br>');
+    } else {
+      continueSection.style.display = 'none';
     }
   }
 
+  function renderMove(label, item) {
+    const ownerTag = item.owner === 'tch'
+      ? '<span class="owner-tag tch">TCH</span>'
+      : '<span class="owner-tag client">You</span>';
+    const paths = [];
+    if (item.pathA) paths.push(`<div style="margin-top:8px"><strong>Path A · DIY:</strong> ${escapeHtml(item.pathA)}</div>`);
+    if (item.pathB) paths.push(`<div style="margin-top:4px"><strong>Path B · Level Up:</strong> ${escapeHtml(item.pathB)}</div>`);
+    return `
+      <li>
+        <div style="font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--hotline-red,#EC3107);margin-bottom:4px">${label}</div>
+        <div style="display:flex;gap:8px;align-items:baseline"><strong>${escapeHtml(item.title || '')}</strong> ${ownerTag}</div>
+        <div style="margin-top:4px">${escapeHtml(item.detail || '')}</div>
+        ${paths.join('')}
+      </li>`;
+  }
+
+  function renderEffortImpactGrid(items) {
+    const labels = {
+      high_impact_high_effort: 'Big Bet · Level Up Territory',
+      high_impact_low_effort: 'Do Now · DIY Territory',
+      low_impact_high_effort: 'Time-Sink · Avoid',
+      low_impact_low_effort: 'Fill-in',
+    };
+    // Render as 2x2 visual grid
+    const cell = (key) => {
+      const cellItems = items.filter(i => (i.quadrant || '') === key);
+      const list = cellItems.map(i => {
+        const pathTag = i.path === 'A' ? ' <span style="color:var(--muted,#6B6B6B);font-size:11px">(Path A locked)</span>'
+                      : i.path === 'B' ? ' <span style="color:var(--muted,#6B6B6B);font-size:11px">(Path B locked)</span>'
+                      : '';
+        return `<li>${escapeHtml(i.title || '')}${pathTag}</li>`;
+      }).join('') || '<li style="opacity:0.4">—</li>';
+      return `
+        <div style="border:1px solid var(--line,#E8E4DE);padding:14px;border-radius:8px;background:var(--paper,#FFFFFF)">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-weight:700;margin-bottom:8px">${labels[key]}</div>
+          <ul style="margin:0;padding-left:18px;font-size:13px;line-height:1.6">${list}</ul>
+        </div>`;
+    };
+    return `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${cell('high_impact_low_effort')}
+        ${cell('high_impact_high_effort')}
+        ${cell('low_impact_low_effort')}
+        ${cell('low_impact_high_effort')}
+      </div>
+      <div style="margin-top:6px;font-size:11px;color:var(--muted,#6B6B6B);text-align:center">
+        ← Low effort · Effort · High effort →   ·   ↓ Low impact · Impact · High impact ↑
+      </div>`;
+  }
+
+  // Legacy renderStep — kept around in case any caller still wants the
+  // pre-V2 row format. The new V2 renderer uses renderMove + 11 sections.
   function renderStep(item) {
     const ownerTag = item.owner === 'tch'
       ? '<span class="owner-tag tch">TCH</span>'

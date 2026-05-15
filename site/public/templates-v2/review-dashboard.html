@@ -602,52 +602,139 @@
 
   // Canonical section list builder. Single source of truth for both renderSections
   // (visual cards) and getSectionsArray (gate counting). Mirrors the ActionPlanV2
-  // schema emitted by src/lib/services/action-plan.ts. All sections require BOTH
-  // M+J approval — the flow cannot continue without sign-off from both parties.
+  // schema (v2, 11-section) emitted by src/lib/services/action-plan.ts per
+  // TCH-Workshop-V2-SPEC.md Doc 05. All sections require BOTH M+J approval —
+  // the flow cannot continue without sign-off from both parties.
   function buildActionPlanSections(ap) {
     if (!ap) return [];
     // Honor explicit ap.sections override if a future generator emits one.
     if (Array.isArray(ap.sections)) {
       return ap.sections.map(s => ({ owner: 'shared', ...s }));
     }
-    const fmtItems = (items) => items
-      .map(it => {
-        const title = (it && typeof it.title === 'string') ? it.title.trim() : '';
-        const detail = (it && typeof it.detail === 'string') ? it.detail.trim() : '';
-        return title ? (detail ? `${title}\n  ${detail}` : title) : detail;
-      })
-      .filter(Boolean)
-      .join('\n\n');
-    const fmtList = (arr) => arr
+
+    const fmtList = (arr) => (arr || [])
       .filter(s => typeof s === 'string' && s.trim())
       .map(s => `• ${s.trim()}`)
       .join('\n');
+
+    const fmtMove = (m) => {
+      if (!m || typeof m !== 'object') return '';
+      const parts = [];
+      if (m.title) parts.push(m.title.trim());
+      if (m.detail) parts.push(m.detail.trim());
+      if (m.pathA) parts.push(`Path A (DIY): ${m.pathA.trim()}`);
+      if (m.pathB) parts.push(`Path B (Level Up): ${m.pathB.trim()}`);
+      return parts.join('\n');
+    };
+
+    const fmtAuthorityRead = (ar) => {
+      if (!ar || typeof ar !== 'object') return '';
+      const pillars = Array.isArray(ar.pillars) ? ar.pillars : [];
+      const lines = pillars
+        .filter(p => p && p.pillar)
+        .map(p => `${p.pillar} — ${p.score || '?'}/5\n  ${(p.read || '').trim()}`);
+      if (ar.summary) lines.push('', ar.summary.trim());
+      return lines.join('\n');
+    };
+
+    const fmtEffortImpact = (items) => {
+      if (!Array.isArray(items) || !items.length) return '';
+      const labelByQuadrant = {
+        high_impact_low_effort: 'Do Now · DIY territory',
+        high_impact_high_effort: 'Big Bet · Level Up territory',
+        low_impact_low_effort: 'Fill-in',
+        low_impact_high_effort: 'Time-sink · avoid',
+      };
+      const groups = {};
+      items.forEach(it => {
+        if (!it || !it.title) return;
+        const q = it.quadrant || 'high_impact_low_effort';
+        (groups[q] = groups[q] || []).push(it);
+      });
+      const out = [];
+      ['high_impact_low_effort','high_impact_high_effort','low_impact_low_effort','low_impact_high_effort'].forEach(q => {
+        const grp = groups[q];
+        if (!grp || !grp.length) return;
+        out.push(`[${labelByQuadrant[q]}]`);
+        grp.forEach(it => {
+          const pathTag = it.path === 'A' ? ' (Path A locked)' : it.path === 'B' ? ' (Path B locked)' : '';
+          out.push(`  • ${it.title}${pathTag}`);
+        });
+      });
+      return out.join('\n');
+    };
+
     const out = [];
-    if (typeof ap.headline === 'string' && ap.headline.trim()) {
-      out.push({ key: 'headline', title: 'Headline', body: ap.headline.trim(), owner: 'shared' });
+
+    // 1. North Star
+    if (typeof ap.northStar === 'string' && ap.northStar.trim()) {
+      out.push({ key: 'northStar', title: 'North Star', body: ap.northStar.trim(), owner: 'shared' });
     }
-    if (typeof ap.summary === 'string' && ap.summary.trim()) {
-      out.push({ key: 'summary', title: 'Summary', body: ap.summary.trim(), owner: 'shared' });
+
+    // 2. What We Learned (Diagnosis)
+    if (typeof ap.whatWeLearned === 'string' && ap.whatWeLearned.trim()) {
+      out.push({ key: 'whatWeLearned', title: 'What We Learned · Diagnosis', body: ap.whatWeLearned.trim(), owner: 'shared' });
     }
-    if (Array.isArray(ap.immediateNextSteps) && ap.immediateNextSteps.length) {
-      const body = fmtItems(ap.immediateNextSteps);
-      if (body) out.push({ key: 'immediateNextSteps', title: 'Immediate Next Steps (72hr)', body, owner: 'shared' });
+
+    // 3. Creative Authority Read
+    if (ap.authorityRead && (Array.isArray(ap.authorityRead.pillars) && ap.authorityRead.pillars.length || (typeof ap.authorityRead.summary === 'string' && ap.authorityRead.summary.trim()))) {
+      const body = fmtAuthorityRead(ap.authorityRead);
+      if (body) out.push({ key: 'authorityRead', title: 'Creative Authority Read', body, owner: 'shared' });
     }
-    if (Array.isArray(ap.thirtyDayMoves) && ap.thirtyDayMoves.length) {
-      const body = fmtItems(ap.thirtyDayMoves);
-      if (body) out.push({ key: 'thirtyDayMoves', title: '30-Day Moves', body, owner: 'shared' });
+
+    // 4. What We Love
+    if (Array.isArray(ap.whatWeLove) && ap.whatWeLove.length) {
+      const body = fmtList(ap.whatWeLove);
+      if (body) out.push({ key: 'whatWeLove', title: 'What We Love', body, owner: 'shared' });
     }
-    if (Array.isArray(ap.openQuestions) && ap.openQuestions.length) {
-      const body = fmtList(ap.openQuestions);
-      if (body) out.push({ key: 'openQuestions', title: 'Open Questions', body, owner: 'shared' });
+
+    // 5. Things You Said That Matter
+    if (Array.isArray(ap.thingsYouSaid) && ap.thingsYouSaid.length) {
+      const body = ap.thingsYouSaid.filter(s => typeof s === 'string' && s.trim()).map(s => `"${s.trim()}"`).join('\n\n');
+      if (body) out.push({ key: 'thingsYouSaid', title: 'Things You Said That Matter', body, owner: 'shared' });
     }
-    if (Array.isArray(ap.resources) && ap.resources.length) {
-      const body = fmtList(ap.resources);
-      if (body) out.push({ key: 'resources', title: 'Resources', body, owner: 'shared' });
+
+    // 6. What We're Not Doing
+    if (Array.isArray(ap.notDoing) && ap.notDoing.length) {
+      const body = fmtList(ap.notDoing);
+      if (body) out.push({ key: 'notDoing', title: "What We're Not Doing", body, owner: 'shared' });
     }
-    if (typeof ap.closingNote === 'string' && ap.closingNote.trim()) {
-      out.push({ key: 'closingNote', title: 'Closing Note', body: ap.closingNote.trim(), owner: 'shared' });
+
+    // 7. Action Plan (72hr / 1wk / 1mo)
+    if (ap.actionPlan && typeof ap.actionPlan === 'object') {
+      const w = fmtMove(ap.actionPlan.win72hr);
+      const m = fmtMove(ap.actionPlan.move1week);
+      const b = fmtMove(ap.actionPlan.build1month);
+      const blocks = [];
+      if (w) blocks.push(`[72-HOUR WIN]\n${w}`);
+      if (m) blocks.push(`[1-WEEK MOVE]\n${m}`);
+      if (b) blocks.push(`[1-MONTH BUILD]\n${b}`);
+      const body = blocks.join('\n\n');
+      if (body) out.push({ key: 'actionPlan', title: 'Action Plan · 72hr / 1wk / 1mo', body, owner: 'shared' });
     }
+
+    // 8. Effort/Impact Matrix
+    if (Array.isArray(ap.effortImpact) && ap.effortImpact.length) {
+      const body = fmtEffortImpact(ap.effortImpact);
+      if (body) out.push({ key: 'effortImpact', title: 'Effort / Impact Matrix', body, owner: 'shared' });
+    }
+
+    // 9. Tools
+    if (Array.isArray(ap.tools) && ap.tools.length) {
+      const body = fmtList(ap.tools);
+      if (body) out.push({ key: 'tools', title: 'Tools We Recommend', body, owner: 'shared' });
+    }
+
+    // 10. What Success Looks Like
+    if (typeof ap.success === 'string' && ap.success.trim()) {
+      out.push({ key: 'success', title: 'What Success Looks Like', body: ap.success.trim(), owner: 'shared' });
+    }
+
+    // 11. Continue the Conversation
+    if (typeof ap.continueConversation === 'string' && ap.continueConversation.trim()) {
+      out.push({ key: 'continueConversation', title: 'Continue the Conversation', body: ap.continueConversation.trim(), owner: 'shared' });
+    }
+
     return out;
   }
 

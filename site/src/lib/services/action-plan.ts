@@ -1,50 +1,128 @@
 /**
- * V2 Action Plan generator.
+ * V2 Action Plan generator — Megha's 11-section schema.
  *
  * Takes the Workshop JSON (from the live session), the Debrief JSON (Megha's
  * structured post-call form), and an optional Fireflies transcript, and asks
- * Claude to produce a structured client-facing action plan.
+ * Claude to produce the canonical $499 deliverable structured per Megha's spec.
+ *
+ * Per TCH-Workshop-V2-SPEC.md Doc 05 + TCH-V2-JAKE-IMPLEMENTATION-GUIDE.md:
+ * the action plan has 11 distinct sections. Each renders as an approve-able
+ * card in the Review Dashboard and appears in the client-facing deliverable.
  *
  * Output JSON is the source of truth — stored on the Session row's
  * "Action Plan JSON" rich_text field. The public action-plan.html template
- * renders directly from that JSON, so any future re-renders, edits, or
+ * renders directly from this JSON, so any future re-renders, edits, or
  * exports key off this schema.
  *
- * V2 Batch 6.
+ * V2 Batch 6 → V2.1 (Megha 11-section schema, 2026-05-14).
  */
 
 import { config } from "@/lib/config";
 
 const BASE = "https://api.anthropic.com/v1";
 
-export interface ActionPlanItem {
-  /** Short imperative title — fits on one line. */
+/** The 4 pillars of the Creative Authority Read audit. */
+export type AuthorityPillar =
+  | "Positioning"
+  | "Messaging"
+  | "Execution"
+  | "Distribution";
+
+export interface AuthorityPillarScore {
+  pillar: AuthorityPillar;
+  /** 1-5. 1 = needs major work, 5 = strong. */
+  score: number;
+  /** 1-2 sentences capturing the read on this pillar. */
+  read: string;
+}
+
+/** A single action move (used inside actionPlan + can appear standalone). */
+export interface ActionMove {
+  /** Short imperative title, fits on one line. */
   title: string;
   /** 1-3 sentence rationale + concrete first step. */
   detail: string;
-  /** Who's responsible. "client" = the customer; "tch" = Megha/Jake. */
+  /** DIY version — what the client does alone. */
+  pathA?: string;
+  /** Level Up version — what's possible with TCH/external help. */
+  pathB?: string;
+  /** "client" = customer; "tch" = Megha/Jake. Most should be client. */
   owner: "client" | "tch";
 }
 
+/** A move placed on the Effort/Impact matrix. */
+export interface EffortImpactItem {
+  title: string;
+  quadrant:
+    | "high_impact_low_effort" // Do Now (DIY territory)
+    | "high_impact_high_effort" // Big Bet (Level Up territory)
+    | "low_impact_low_effort" // Fill-in
+    | "low_impact_high_effort"; // Time-sink (avoid)
+  /** Which path did the client lock on this move? */
+  path?: "A" | "B" | null;
+}
+
+/**
+ * Megha's 11-section action plan schema.
+ * Renders both in the Review Dashboard (approve-able cards) and the
+ * client-facing action-plan.html deliverable.
+ */
 export interface ActionPlanV2 {
-  version: 1;
+  version: 2;
   generatedAt: string;
   model: string;
   clientName: string;
-  /** 1-line punchy summary. The first thing the client reads. */
-  headline: string;
-  /** 2-3 sentence overview tying the workshop and debrief together. */
-  summary: string;
-  /** The "do this now" list — 3-5 items the client should start this week. */
-  immediateNextSteps: ActionPlanItem[];
-  /** The "next 30 days" list — 3-5 bigger moves to set up. */
-  thirtyDayMoves: ActionPlanItem[];
-  /** 2-4 open questions for the client to think about / answer back. */
-  openQuestions: string[];
-  /** Optional links / resource recommendations. May be empty. */
-  resources: string[];
-  /** Optional closing note from Megha — pulled from her recommendation field. */
-  closingNote: string;
+
+  // ---------- Section 1: North Star ----------
+  /** Single sentence — the client's compass. Captured verbatim during workshop. */
+  northStar: string;
+
+  // ---------- Section 2: Diagnosis / What We Learned ----------
+  /** 3-5 sentence read on the real problem beneath the symptom. */
+  whatWeLearned: string;
+
+  // ---------- Section 3: Creative Authority Read (the audit) ----------
+  authorityRead: {
+    /** 4-pillar scores: Positioning / Messaging / Execution / Distribution. */
+    pillars: AuthorityPillarScore[];
+    /** 2-3 sentence synthesis tying the 4 scores into a narrative. */
+    summary: string;
+  };
+
+  // ---------- Section 4: What We Love ----------
+  /** 2-4 things that are working — strengths to lean into. */
+  whatWeLove: string[];
+
+  // ---------- Section 5: Things You Said That Matter (Key Quotes) ----------
+  /** 2-5 verbatim quotes from the transcript, attributed to client. */
+  thingsYouSaid: string[];
+
+  // ---------- Section 6: What We're Not Doing ----------
+  /** 2-5 deliberate exclusions — what to STOP or leave alone. */
+  notDoing: string[];
+
+  // ---------- Section 7: Action Plan (72hr / 1wk / 1mo) ----------
+  actionPlan: {
+    win72hr: ActionMove;
+    move1week: ActionMove;
+    build1month: ActionMove;
+  };
+
+  // ---------- Section 8: Effort/Impact Matrix ----------
+  /** 4-8 items placed on the 2×2. */
+  effortImpact: EffortImpactItem[];
+
+  // ---------- Section 9: Tools ----------
+  /** 2-6 tool recommendations. Specific products + why. */
+  tools: string[];
+
+  // ---------- Section 10: What Success Looks Like ----------
+  /** 2-3 sentence definition of success at 30/60/90. */
+  success: string;
+
+  // ---------- Section 11: Continue the Conversation ----------
+  /** 1-2 sentence pitch on next step — usually an upsell hook. */
+  continueConversation: string;
 }
 
 interface GenerateInput {
@@ -77,20 +155,31 @@ function buildPrompt(input: GenerateInput): { system: string; user: string } {
 
 Voice: warm, direct, witty, zero buzzwords. You write like a senior creative friend, not a McKinsey consultant. No "synergies", no "leverage", no "drive value". Use plain English. Short sentences. Specific verbs.
 
-You are producing a client-facing action plan. The client just spent $499 on a Creative Hotline Call. They want clarity and concrete next moves — not a strategy deck.
+You are producing a client-facing action plan — the $499 deliverable. The client just spent that money on a Creative Hotline Call. They want clarity and concrete next moves — not a strategy deck.
+
+The plan has ELEVEN sections, all of which must be filled:
+
+1. **North Star** — single sentence the client said in the workshop. Capture verbatim.
+2. **What We Learned (Diagnosis)** — 3-5 sentences naming the REAL problem beneath the symptom.
+3. **Creative Authority Read** — score 4 pillars (Positioning / Messaging / Execution / Distribution) on a 1-5 scale + 1-2 sentence read per pillar + 2-3 sentence synthesis.
+4. **What We Love** — 2-4 strengths to lean into.
+5. **Things You Said That Matter** — 2-5 verbatim quotes from the client (from transcript), attributed to them.
+6. **What We're Not Doing** — 2-5 deliberate exclusions (what to STOP, what to leave alone).
+7. **Action Plan** — three moves (72-hour win, 1-week move, 1-month build), each with DIY (Path A) AND Level Up (Path B) options.
+8. **Effort/Impact Matrix** — 4-8 items placed on the 2×2 (high/low impact × high/low effort).
+9. **Tools** — 2-6 specific product recommendations with reasoning.
+10. **What Success Looks Like** — 2-3 sentence definition of success at 30/60/90.
+11. **Continue the Conversation** — 1-2 sentence pitch on the next step or upsell hook.
 
 Rules:
-- ALWAYS reference specifics from the workshop or transcript by name (e.g., the client's actual brand, product, channel) — never generic placeholders.
-- "owner: tch" only when the action genuinely depends on Megha/Jake doing something on TCH's side (most actions should be owner: client).
-- 3-5 items in each of immediateNextSteps and thirtyDayMoves. Not more, not fewer.
-- 2-4 open questions, phrased so the client can answer in a quick email.
-- 0-4 resources. Skip the section entirely if nothing is genuinely useful — empty array, not filler.
-- Headline: max 12 words. Should land like a verdict.
-- Summary: 2-3 sentences. Connects the dots between what came up in the workshop and what to do about it.
-- Closing note: use Megha's recommendation verbatim if it's good. If empty or weak, write a 1-2 sentence sign-off in her voice.
+- ALWAYS reference specifics from the workshop or transcript by name (client's actual brand, product, channel) — never generic placeholders.
+- "owner: tch" only when the action genuinely depends on Megha/Jake doing something on TCH's side. Default to "owner: client".
+- Quotes in section 5 must be REAL quotes from the transcript. If transcript is empty, pull from workshop JSON ideas/notes. Never fabricate.
+- Effort/Impact quadrants: high-impact + low-effort → "high_impact_low_effort" (Do Now / DIY); high-impact + high-effort → "high_impact_high_effort" (Big Bet / Level Up); low-impact + low-effort → "low_impact_low_effort" (Fill-in); low-impact + high-effort → "low_impact_high_effort" (avoid).
+- Authority Read pillars use score 1-5. Be honest. A 5 means "strong, no work needed"; a 2 means "needs major work."
 - Output ONLY valid JSON. No markdown, no commentary, no code fences.`;
 
-  const user = `Generate a Creative Hotline Action Plan for ${input.clientName}.
+  const user = `Generate the Creative Hotline Action Plan (11 sections) for ${input.clientName}.
 
 ${workshopBlock}
 
@@ -100,17 +189,31 @@ ${transcriptBlock}
 
 Return JSON matching exactly this shape:
 {
-  "headline": "string (<= 12 words, lands like a verdict)",
-  "summary": "string (2-3 sentences)",
-  "immediateNextSteps": [
-    { "title": "string", "detail": "string (1-3 sentences with a concrete first step)", "owner": "client" | "tch" }
+  "northStar": "string (single sentence — client's compass, verbatim)",
+  "whatWeLearned": "string (3-5 sentences naming the real problem)",
+  "authorityRead": {
+    "pillars": [
+      { "pillar": "Positioning", "score": 1-5, "read": "string (1-2 sentences)" },
+      { "pillar": "Messaging", "score": 1-5, "read": "string" },
+      { "pillar": "Execution", "score": 1-5, "read": "string" },
+      { "pillar": "Distribution", "score": 1-5, "read": "string" }
+    ],
+    "summary": "string (2-3 sentence synthesis)"
+  },
+  "whatWeLove": ["string", "string", ...],
+  "thingsYouSaid": ["string (quote)", ...],
+  "notDoing": ["string", ...],
+  "actionPlan": {
+    "win72hr":   { "title": "string", "detail": "string", "pathA": "string (DIY)", "pathB": "string (Level Up)", "owner": "client"|"tch" },
+    "move1week": { "title": "string", "detail": "string", "pathA": "string", "pathB": "string", "owner": "client"|"tch" },
+    "build1month": { "title": "string", "detail": "string", "pathA": "string", "pathB": "string", "owner": "client"|"tch" }
+  },
+  "effortImpact": [
+    { "title": "string", "quadrant": "high_impact_low_effort"|"high_impact_high_effort"|"low_impact_low_effort"|"low_impact_high_effort", "path": "A"|"B"|null }
   ],
-  "thirtyDayMoves": [
-    { "title": "string", "detail": "string", "owner": "client" | "tch" }
-  ],
-  "openQuestions": ["string", "string"],
-  "resources": ["string", ...] or [],
-  "closingNote": "string (1-2 sentences in Megha's voice)"
+  "tools": ["string (tool name — why)", ...],
+  "success": "string (2-3 sentences defining 30/60/90 success)",
+  "continueConversation": "string (1-2 sentence next-step pitch)"
 }
 
 JSON ONLY. No prose around it.`;
@@ -145,7 +248,8 @@ export async function generateActionPlanV2(
     },
     body: JSON.stringify({
       model: config.anthropic.model,
-      max_tokens: 4096,
+      // 11-section plan is bigger output — bump from 4096 to give Claude room.
+      max_tokens: 6144,
       system,
       messages: [{ role: "user", content: user }],
     }),
@@ -160,7 +264,7 @@ export async function generateActionPlanV2(
   const raw = data.content[0]?.text ?? "";
   if (!raw) throw new Error("Claude returned empty content");
 
-  let parsed: Partial<ActionPlanV2>;
+  let parsed: Partial<ActionPlanV2> & Record<string, unknown>;
   try {
     parsed = JSON.parse(extractJson(raw));
   } catch (err) {
@@ -168,46 +272,130 @@ export async function generateActionPlanV2(
     throw new Error(`Action plan JSON parse failed: ${message}. Raw head: ${raw.slice(0, 300)}`);
   }
 
-  // Normalize + defend against missing fields.
   const now = new Date().toISOString();
   const plan: ActionPlanV2 = {
-    version: 1,
+    version: 2,
     generatedAt: now,
     model: data.model || config.anthropic.model,
     clientName: input.clientName,
-    headline: typeof parsed.headline === "string" ? parsed.headline.trim() : "Your action plan",
-    summary: typeof parsed.summary === "string" ? parsed.summary.trim() : "",
-    immediateNextSteps: Array.isArray(parsed.immediateNextSteps)
-      ? parsed.immediateNextSteps.map(normalizeItem).filter((i): i is ActionPlanItem => i !== null)
-      : [],
-    thirtyDayMoves: Array.isArray(parsed.thirtyDayMoves)
-      ? parsed.thirtyDayMoves.map(normalizeItem).filter((i): i is ActionPlanItem => i !== null)
-      : [],
-    openQuestions: Array.isArray(parsed.openQuestions)
-      ? parsed.openQuestions
-          .filter((q): q is string => typeof q === "string")
-          .map((q) => q.trim())
-          .filter(Boolean)
-      : [],
-    resources: Array.isArray(parsed.resources)
-      ? parsed.resources
-          .filter((r): r is string => typeof r === "string")
-          .map((r) => r.trim())
-          .filter(Boolean)
-      : [],
-    closingNote: typeof parsed.closingNote === "string" ? parsed.closingNote.trim() : "",
+    northStar:
+      typeof parsed.northStar === "string" ? parsed.northStar.trim() : "",
+    whatWeLearned:
+      typeof parsed.whatWeLearned === "string"
+        ? parsed.whatWeLearned.trim()
+        : "",
+    authorityRead: normalizeAuthorityRead(parsed.authorityRead),
+    whatWeLove: normalizeStringArray(parsed.whatWeLove),
+    thingsYouSaid: normalizeStringArray(parsed.thingsYouSaid),
+    notDoing: normalizeStringArray(parsed.notDoing),
+    actionPlan: normalizeActionPlan(parsed.actionPlan),
+    effortImpact: normalizeEffortImpact(parsed.effortImpact),
+    tools: normalizeStringArray(parsed.tools),
+    success: typeof parsed.success === "string" ? parsed.success.trim() : "",
+    continueConversation:
+      typeof parsed.continueConversation === "string"
+        ? parsed.continueConversation.trim()
+        : "",
   };
 
   return plan;
 }
 
-function normalizeItem(raw: unknown): ActionPlanItem | null {
-  if (!raw || typeof raw !== "object") return null;
+// ---------- Normalizers ----------
+
+function normalizeStringArray(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter((s): s is string => typeof s === "string")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function normalizeMove(raw: unknown): ActionMove {
+  if (!raw || typeof raw !== "object") {
+    return { title: "", detail: "", owner: "client" };
+  }
   const r = raw as Record<string, unknown>;
   const title = typeof r.title === "string" ? r.title.trim() : "";
   const detail = typeof r.detail === "string" ? r.detail.trim() : "";
-  if (!title && !detail) return null;
-  const ownerRaw = typeof r.owner === "string" ? r.owner.trim().toLowerCase() : "client";
+  const pathA = typeof r.pathA === "string" ? r.pathA.trim() : undefined;
+  const pathB = typeof r.pathB === "string" ? r.pathB.trim() : undefined;
+  const ownerRaw =
+    typeof r.owner === "string" ? r.owner.trim().toLowerCase() : "client";
   const owner: "client" | "tch" = ownerRaw === "tch" ? "tch" : "client";
-  return { title, detail, owner };
+  return {
+    title,
+    detail,
+    ...(pathA ? { pathA } : {}),
+    ...(pathB ? { pathB } : {}),
+    owner,
+  };
+}
+
+function normalizeActionPlan(raw: unknown): ActionPlanV2["actionPlan"] {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  return {
+    win72hr: normalizeMove(r.win72hr),
+    move1week: normalizeMove(r.move1week),
+    build1month: normalizeMove(r.build1month),
+  };
+}
+
+function normalizeAuthorityRead(
+  raw: unknown,
+): ActionPlanV2["authorityRead"] {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const pillars = Array.isArray(r.pillars)
+    ? r.pillars
+        .map((p): AuthorityPillarScore | null => {
+          if (!p || typeof p !== "object") return null;
+          const o = p as Record<string, unknown>;
+          const pillarRaw =
+            typeof o.pillar === "string" ? o.pillar.trim() : "";
+          const validPillars: AuthorityPillar[] = [
+            "Positioning",
+            "Messaging",
+            "Execution",
+            "Distribution",
+          ];
+          const pillar = validPillars.find(
+            (vp) => vp.toLowerCase() === pillarRaw.toLowerCase(),
+          );
+          if (!pillar) return null;
+          const scoreNum = typeof o.score === "number" ? o.score : Number(o.score);
+          const score = Number.isFinite(scoreNum)
+            ? Math.max(1, Math.min(5, Math.round(scoreNum)))
+            : 3;
+          const read = typeof o.read === "string" ? o.read.trim() : "";
+          return { pillar, score, read };
+        })
+        .filter((x): x is AuthorityPillarScore => x !== null)
+    : [];
+  const summary = typeof r.summary === "string" ? r.summary.trim() : "";
+  return { pillars, summary };
+}
+
+function normalizeEffortImpact(raw: unknown): EffortImpactItem[] {
+  if (!Array.isArray(raw)) return [];
+  const validQuadrants: EffortImpactItem["quadrant"][] = [
+    "high_impact_low_effort",
+    "high_impact_high_effort",
+    "low_impact_low_effort",
+    "low_impact_high_effort",
+  ];
+  return raw
+    .map((item): EffortImpactItem | null => {
+      if (!item || typeof item !== "object") return null;
+      const o = item as Record<string, unknown>;
+      const title = typeof o.title === "string" ? o.title.trim() : "";
+      if (!title) return null;
+      const qRaw =
+        typeof o.quadrant === "string" ? o.quadrant.trim() : "";
+      const quadrant = validQuadrants.find((q) => q === qRaw) ||
+        "high_impact_low_effort";
+      const pRaw = typeof o.path === "string" ? o.path.trim().toUpperCase() : null;
+      const path: "A" | "B" | null = pRaw === "A" ? "A" : pRaw === "B" ? "B" : null;
+      return { title, quadrant, path };
+    })
+    .filter((x): x is EffortImpactItem => x !== null);
 }

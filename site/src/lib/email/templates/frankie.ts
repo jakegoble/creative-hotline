@@ -64,7 +64,10 @@ One thing to know: your action plan lands in your inbox **24 hours after the cal
 Questions? Hit reply or text the hotline at +1 (413) 767-4332.
 
 Talk soon,
-— F`,
+— F
+
+☎️ The Creative Hotline · thecreativehotline.com
+*Stop spiraling. Start creating.*`,
   };
 }
 
@@ -123,7 +126,10 @@ One thing to know: your action plan lands in your inbox **24 hours after the cal
 Questions? Hit reply or text the hotline at +1 (413) 767-4332.
 
 Talk soon,
-— F`,
+— F
+
+☎️ The Creative Hotline · thecreativehotline.com
+*Stop spiraling. Start creating.*`,
   };
 }
 
@@ -155,7 +161,9 @@ Takes about 8 minutes. Honestly is the move — the messy answers help us find t
 
 If something came up and you need to reschedule, hit reply or use the Calendly link.
 
-— F`,
+— F
+
+☎️ thecreativehotline.com`,
   };
 }
 
@@ -198,12 +206,40 @@ The ones who get the most out of this show up with one real question — not ten
 · 15–25 min · The diagnosis · we name the real problem together
 · 25–35 min · The play · 72-hour, 1-week, 1-month moves
 · 35–40 min · The map · DIY (Path A) vs Level Up (Path B) — you pick
-· 40–42 min · Make the call · you do one tiny thing on the spot
-· 42–45 min · Wrap
+· 40–42 min · Make the call · you do one tiny thing on the line
+· 42–45 min · Land it · we summarize in one sentence
 
-${input.callerPrepUrl ? `Full one-pager: [${input.callerPrepUrl}](${input.callerPrepUrl})\n\n` : ""}Show up rested. Show up real. We'll see you on the line.
+---
 
-— F`,
+**What to have ready:**
+✓ Quiet space + good wifi
+✓ Your IG / website open on your screen
+✓ Something to drink. This goes fast.
+✓ One real question — not ten
+
+---
+
+**Some words you'll hear:**
+· **The B-Side** — a panel where ideas that aren't today's focus get parked. Nothing gets lost.
+· **Dialing In** — when we read what we picked up about your brand from research.
+· **North Star** — the one thing you'd do if you could only do one.
+· **Authority Read** — our 4-pillar honest read on where your brand stands today.
+· **The Map** — the 2×2 grid where every move gets placed.
+· **Creative File** — your folder where everything from today saves. You keep it forever.
+· **Path A (DIY) / Path B (Level Up)** — every move comes with two paths.
+
+---
+
+**Heads up:** the call is recorded for the transcript that lands in your Creative File. No one watches but us.
+
+Your action plan lands in your inbox **24 hours after the call**. Wall, matrix, B-Side — all folded in.
+
+${input.callerPrepUrl ? `Full one-pager: [${input.callerPrepUrl}](${input.callerPrepUrl})\n\n` : ""}Talk soon.
+
+— F
+
+☎️ thecreativehotline.com
+*Stop spiraling. Start creating.*`,
   };
 }
 
