@@ -42,7 +42,25 @@ function richText(value: string | undefined) {
   return { rich_text: chunks };
 }
 
-export type SessionState = "Prep" | "Session" | "Debrief" | "Review" | "Sent";
+/**
+ * Session states.
+ *
+ * Active workflow: Prep → Session → Debrief → Review → Sent
+ * Terminal-canceled: Canceled (set by Calendly invitee.canceled webhook
+ *   when the client cancels without rebooking, so the session stops showing
+ *   up in today's queue + frankie-followups doesn't fire for it)
+ * Stale-rescheduled: Rescheduled (set on the OLD session when the client
+ *   reschedules; the NEW booking creates a fresh Prep session via the normal
+ *   invitee.created flow)
+ */
+export type SessionState =
+  | "Prep"
+  | "Session"
+  | "Debrief"
+  | "Review"
+  | "Sent"
+  | "Canceled"
+  | "Rescheduled";
 
 export interface SessionCreateInput {
   /** Title displayed in Notion — usually "Client Name — Product". */
@@ -57,6 +75,10 @@ export interface SessionCreateInput {
   snapshotJson?: string;
   /** Initial state. Defaults to "Prep". */
   state?: SessionState;
+  /** Calendly event URI (stable per booking). Used to look up the Session
+   *  later when a cancellation webhook arrives. Empty for manually-promoted
+   *  sessions. */
+  calendlyEventUri?: string;
 }
 
 /**
@@ -106,6 +128,9 @@ export async function createSession(
   }
   if (input.snapshotJson) {
     properties["Snapshot JSON"] = richText(input.snapshotJson);
+  }
+  if (input.calendlyEventUri) {
+    properties["Calendly Event URI"] = { url: input.calendlyEventUri };
   }
 
   const page = await client.pages.create({

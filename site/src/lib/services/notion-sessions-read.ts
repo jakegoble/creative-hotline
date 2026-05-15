@@ -90,6 +90,9 @@ export interface SessionRecord {
   approvalsJson: string;
   actionPlanUrl?: string;
   firefliesUrl?: string;
+  /** Calendly event URI for this booking. Stable per booking; used to find
+   *  this Session when a cancellation/reschedule webhook arrives. */
+  calendlyEventUri?: string;
   referralCode: string;
   emailSent: boolean;
   smsSent: boolean;
@@ -111,7 +114,9 @@ function parseSession(page: PageObjectResponse): SessionRecord {
     stateRaw === "Session" ||
     stateRaw === "Debrief" ||
     stateRaw === "Review" ||
-    stateRaw === "Sent"
+    stateRaw === "Sent" ||
+    stateRaw === "Canceled" ||
+    stateRaw === "Rescheduled"
       ? stateRaw
       : "Unknown";
 
@@ -130,6 +135,7 @@ function parseSession(page: PageObjectResponse): SessionRecord {
     approvalsJson: getText(p, "Approvals JSON"),
     actionPlanUrl: getUrl(p, "Action Plan URL"),
     firefliesUrl: getUrl(p, "Fireflies Transcript URL"),
+    calendlyEventUri: getUrl(p, "Calendly Event URI"),
     referralCode: getText(p, "Referral Code Issued"),
     emailSent: getCheckbox(p, "Email Sent"),
     smsSent: getCheckbox(p, "SMS Sent"),
@@ -217,6 +223,31 @@ export async function getSessionById(
   } catch {
     return null;
   }
+}
+
+/**
+ * Find a Session by its stored Calendly event URI. Used by the Calendly
+ * cancellation/reschedule webhook to look up the existing Session row when
+ * a cancel/reschedule event arrives. Returns null if no Session has this URI
+ * (likely because it was manually promoted before the Calendly auto-link
+ * flow shipped, or the URI was never written).
+ */
+export async function findSessionByCalendlyEventUri(
+  uri: string,
+): Promise<SessionRecord | null> {
+  if (!uri) return null;
+  const client = getClient();
+  const response = await client.dataSources.query({
+    data_source_id: config.notion.sessionsDbId,
+    filter: {
+      property: "Calendly Event URI",
+      url: { equals: uri },
+    },
+    page_size: 1,
+  });
+  const first = response.results[0];
+  if (!first || !("properties" in first)) return null;
+  return parseSession(first as PageObjectResponse);
 }
 
 /**
