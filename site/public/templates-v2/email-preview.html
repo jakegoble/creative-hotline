@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Preview · The Creative Hotline</title>
+<style>
+  :root {
+    --bg: #F5F2EB;
+    --paper: #FFFFFF;
+    --ink: #1C1C1E;
+    --muted: #6B6B6B;
+    --line: #E8E4DE;
+    --hotline-red: #EC3107;
+    --electric-blue: #2D77E0;
+    --acid-yellow: #F4B400;
+    --urgent: #4ADE80;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .topbar {
+    background: var(--ink);
+    color: var(--bg);
+    padding: 14px 24px;
+    border-bottom: 3px solid var(--hotline-red);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar h1 {
+    font-family: 'Times New Roman', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    margin: 0;
+  }
+  .topbar h1 em { font-weight: 700; color: var(--acid-yellow); }
+  .topbar .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tab {
+    background: transparent;
+    color: var(--bg);
+    border: 1.5px solid rgba(245,242,235,0.3);
+    padding: 6px 12px;
+    font-family: inherit;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .tab.active {
+    background: var(--hotline-red);
+    border-color: var(--hotline-red);
+  }
+  .tab:hover { border-color: var(--bg); }
+  .layout {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 22px 80px;
+  }
+  .meta {
+    background: rgba(28,28,30,0.04);
+    border-left: 4px solid var(--ink);
+    padding: 14px 18px;
+    margin-bottom: 18px;
+    font-size: 12px;
+  }
+  .meta .row { padding: 3px 0; }
+  .meta .k {
+    display: inline-block;
+    width: 100px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .meta .v { color: var(--ink); }
+  .envelope {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+  }
+  .envelope .from { color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+  .envelope .subject {
+    font-family: 'Times New Roman', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.2;
+    margin: 0 0 6px;
+  }
+  .envelope .preview {
+    color: var(--muted);
+    font-size: 13px;
+    margin-bottom: 22px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .body {
+    font-size: 15px;
+    line-height: 1.7;
+  }
+  .body p { margin: 0 0 14px; }
+  .body strong { color: var(--ink); font-weight: 700; }
+  .body a { color: var(--hotline-red); }
+  .body code {
+    background: rgba(244,180,0,0.25);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: inherit;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+  }
+  .body hr {
+    border: 0;
+    border-top: 1px solid var(--line);
+    margin: 22px 0;
+  }
+  .body ul { padding-left: 22px; margin: 0 0 14px; }
+  .body ul li { margin-bottom: 4px; }
+  .footer-note {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .error {
+    background: rgba(236,49,7,0.08);
+    border-left: 4px solid var(--hotline-red);
+    padding: 14px 18px;
+    color: var(--hotline-red);
+    margin-bottom: 18px;
+  }
+  @media (max-width: 540px) {
+    .topbar { padding: 12px 18px; }
+    .layout { padding: 22px 14px 56px; }
+    .envelope { padding: 22px 18px; }
+    .envelope .subject { font-size: 20px; }
+    .body { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Frankie · <em>Email Preview</em></h1>
+  <div class="tools" id="templateTabs">
+    <a class="tab" data-template="confirmation" href="#">Confirmation</a>
+    <a class="tab" data-template="calendly" href="#">Calendly Path</a>
+    <a class="tab" data-template="intake-nudge" href="#">Intake Nudge</a>
+    <a class="tab" data-template="caller-prep" href="#">Caller Prep</a>
+    <a class="tab" data-template="action-plan" href="#">Action Plan</a>
+  </div>
+</header>
+
+<main class="layout">
+  <div id="errorBox" class="error" style="display:none;"></div>
+  <div class="meta" id="meta" style="display:none;">
+    <div class="row"><span class="k">Session</span><span class="v" id="metaSession">—</span></div>
+    <div class="row"><span class="k">Client</span><span class="v" id="metaClient">—</span></div>
+    <div class="row"><span class="k">Template</span><span class="v" id="metaTemplate">—</span></div>
+    <div class="row"><span class="k">Would send to</span><span class="v" id="metaTo">—</span></div>
+    <div class="row"><span class="k">Categories</span><span class="v" id="metaCategories">—</span></div>
+  </div>
+
+  <div class="envelope" id="envelope" style="display:none;">
+    <div class="from">From: Frankie &lt;hello@thecreativehotline.com&gt;</div>
+    <h2 class="subject" id="emailSubject"></h2>
+    <div class="preview" id="emailPreview"></div>
+    <div class="body" id="emailBody"></div>
+  </div>
+
+  <div class="footer-note">
+    Note: this preview renders the template with the session's real data.
+    Links go to live URLs — be careful clicking through if you're testing.
+  </div>
+</main>
+
+<script>
+(function () {
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // -------------------------------------------------------------------------
+  // Tiny markdown→HTML converter.
+  // Frankie templates use a constrained subset: **bold**, [text](url),
+  // `code`, horizontal rules (---), bullet lists (· lines), paragraphs,
+  // line breaks. We avoid pulling in a real markdown lib to keep this page
+  // dependency-free.
+  // -------------------------------------------------------------------------
+  function mdToHtml(md) {
+    if (!md) return '';
+    // Normalize CRLF and trim trailing whitespace on lines.
+    let text = String(md).replace(/\r\n/g, '\n').replace(/\n[ \t]+/g, '\n');
+
+    // Split into blocks separated by blank lines.
+    const blocks = text.split(/\n{2,}/);
+    const out = [];
+
+    for (const raw of blocks) {
+      const block = raw.trim();
+      if (!block) continue;
+
+      // Horizontal rule
+      if (/^-{3,}$/.test(block)) {
+        out.push('<hr>');
+        continue;
+      }
+
+      // Bullet list (lines starting with `· ` or `- ` or `· `)
+      // Common Frankie pattern is `· some bullet`.
+      if (/^[·\-✓](\s|$)/.test(block)) {
+        const items = block.split(/\n/).map(l =>
+          l.replace(/^[·\-✓]\s*/, '').trim(),
+        ).filter(Boolean);
+        const lis = items.map(i => `<li>${renderInline(i)}</li>`).join('');
+        out.push(`<ul>${lis}</ul>`);
+        continue;
+      }
+
+      // Paragraph — preserve internal line breaks as <br>
+      const lines = block.split(/\n/).map(renderInline);
+      out.push(`<p>${lines.join('<br>')}</p>`);
+    }
+    return out.join('\n');
+  }
+  function renderInline(s) {
+    // Order matters: escape first, then re-inject markup.
+    let out = escapeHtml(s);
+    // [text](url)
+    out = out.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
+      (_, label, href) => `<a href="${href}" target="_blank" rel="noopener">${label}</a>`);
+    // **bold**
+    out = out.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // `code`
+    out = out.replace(/`([^`]+)`/g, '<code>$1</code>');
+    return out;
+  }
+
+  async function loadAndRender(sessionId, template) {
+    const errorBox = document.getElementById('errorBox');
+    const envelope = document.getElementById('envelope');
+    const meta = document.getElementById('meta');
+    errorBox.style.display = 'none';
+    envelope.style.display = 'none';
+    meta.style.display = 'none';
+
+    if (!sessionId) {
+      errorBox.textContent = 'Missing ?sessionId= in URL. Add one to render a preview against real session data.';
+      errorBox.style.display = '';
+      return;
+    }
+
+    try {
+      const r = await fetch(
+        `/api/sessions/${encodeURIComponent(sessionId)}/email-preview?template=${encodeURIComponent(template)}`,
+      );
+      const body = await r.json();
+      if (!r.ok) throw new Error(body.message || body.error || 'fetch_failed');
+
+      // Also pull the lightweight session info for the meta block
+      let clientName = '';
+      try {
+        const r2 = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+        const s = await r2.json();
+        clientName = s.clientName || (s.payment && s.payment.clientName) || '';
+      } catch {}
+
+      document.getElementById('metaSession').textContent = sessionId;
+      document.getElementById('metaClient').textContent = clientName || '—';
+      document.getElementById('metaTemplate').textContent = body.template;
+      document.getElementById('metaTo').textContent = body.to || '— no recipient on file';
+      document.getElementById('metaCategories').textContent =
+        (body.categories || []).join(', ') || '—';
+      document.getElementById('emailSubject').textContent = body.subject;
+      document.getElementById('emailPreview').textContent = body.previewText;
+      document.getElementById('emailBody').innerHTML = mdToHtml(body.bodyMarkdown);
+
+      meta.style.display = '';
+      envelope.style.display = '';
+    } catch (err) {
+      console.warn('[email-preview] load failed', err);
+      errorBox.textContent = `Could not load preview: ${err.message || err}`;
+      errorBox.style.display = '';
+    }
+  }
+
+  function wireTabs(sessionId, current) {
+    const tabs = document.querySelectorAll('#templateTabs .tab');
+    tabs.forEach(t => {
+      const tpl = t.getAttribute('data-template');
+      if (tpl === current) t.classList.add('active');
+      else t.classList.remove('active');
+      t.setAttribute('href',
+        `?sessionId=${encodeURIComponent(sessionId || '')}&template=${encodeURIComponent(tpl)}`);
+      t.addEventListener('click', (e) => {
+        if (!sessionId) return; // let browser navigate to show the warning
+        e.preventDefault();
+        tabs.forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        const u = new URL(window.location.href);
+        u.searchParams.set('template', tpl);
+        u.searchParams.set('sessionId', sessionId);
+        window.history.replaceState({}, '', u.toString());
+        loadAndRender(sessionId, tpl);
+      });
+    });
+  }
+
+  function boot() {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('sessionId') || '';
+    const template = url.searchParams.get('template') || 'action-plan';
+    wireTabs(sessionId, template);
+    loadAndRender(sessionId, template);
+  }
+  boot();
+})();
+</script>
+</body>
+</html>
