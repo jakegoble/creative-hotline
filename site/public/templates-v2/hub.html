@@ -604,6 +604,84 @@
         }
       }
 
+      // ----- REVIEW PANEL · CENTER (Action Plan Draft section list) -----
+      // The static template hardcoded 5 of the 11 sections with the old
+      // M-owns / J-owns / Both-approve labels. Replace with a real list driven
+      // by the 11-section action plan schema. Per current policy, every
+      // section requires BOTH M+J approval (owner='shared').
+      if (reviewPanel) {
+        const centerPanel = reviewPanel.querySelector('.panel.center');
+        if (centerPanel && actionPlan) {
+          const SECTIONS_11 = [
+            { key: 'northStar', label: 'North Star' },
+            { key: 'whatWeLearned', label: 'What We Learned' },
+            { key: 'authorityRead', label: 'Creative Authority Read' },
+            { key: 'whatWeLove', label: 'What We Love' },
+            { key: 'thingsYouSaid', label: 'Things You Said' },
+            { key: 'notDoing', label: "What We're Not Doing" },
+            { key: 'actionPlan', label: 'Action Plan · 72/1wk/1mo' },
+            { key: 'effortImpact', label: 'Effort / Impact Map' },
+            { key: 'tools', label: 'Tools' },
+            { key: 'success', label: 'What Success Looks Like' },
+            { key: 'continueConversation', label: 'Continue the Conversation' },
+          ];
+          const isFilled = (key) => {
+            const v = actionPlan[key];
+            if (Array.isArray(v)) return v.length > 0;
+            if (v && typeof v === 'object') return Object.keys(v).length > 0;
+            return typeof v === 'string' && v.trim().length > 0;
+          };
+          const filled = SECTIONS_11.filter(s => isFilled(s.key));
+          const rows = filled.slice(0, 6).map((s, i) => {
+            const num = String(i + 1).padStart(2, '0');
+            return `<div class="input-block shared"><div class="who">${num} · ${escapeHtml(s.label)} · Both approve</div></div>`;
+          }).join('');
+          // Preserve the existing tag + quick-link wrapper
+          const tag = centerPanel.querySelector('.panel-head');
+          const link = centerPanel.querySelector('a.quick-link');
+          if (tag && link) {
+            // Clear existing input-blocks but keep the tag and quick-link
+            centerPanel.querySelectorAll('.input-block').forEach(el => el.remove());
+            const summary = `<div class="input-block auto"><div class="who">${filled.length} of 11 sections drafted</div></div>`;
+            tag.insertAdjacentHTML('afterend', summary + rows);
+          }
+        }
+      }
+
+      // ----- REVIEW PANEL · RIGHT (Send Gates) -----
+      // Replace static checklist with real M/J approval counts pulled from
+      // the same localStorage keys the review-dashboard.html uses, so the
+      // Hub preview matches what's happening in the actual dashboard.
+      if (reviewPanel) {
+        const rightPanel = reviewPanel.querySelector('.panel.right');
+        if (rightPanel && actionPlan) {
+          const approvalsRaw = localStorage.getItem('tch_review_approvals_' + sessionId);
+          const signoffRaw = localStorage.getItem('tch_review_signoff_' + sessionId);
+          let approvals = {};
+          let signoff = { m: false, j: false };
+          try { if (approvalsRaw) approvals = JSON.parse(approvalsRaw); } catch {}
+          try { if (signoffRaw) signoff = JSON.parse(signoffRaw); } catch {}
+          // Count how many sections have BOTH M and J approval
+          const totalSections = 11;
+          let mApproved = 0, jApproved = 0, bothApproved = 0;
+          for (let i = 0; i < totalSections; i++) {
+            const a = approvals[i] || {};
+            if (a.m === true) mApproved++;
+            if (a.j === true) jApproved++;
+            if (a.m === true && a.j === true) bothApproved++;
+          }
+          const checklist = rightPanel.querySelector('.checklist');
+          if (checklist) {
+            checklist.innerHTML = `
+              <li class="${mApproved === totalSections ? 'done' : ''}">M approved (${mApproved} of ${totalSections})</li>
+              <li class="${jApproved === totalSections ? 'done' : ''}">J approved (${jApproved} of ${totalSections})</li>
+              <li class="${signoff.m ? 'done' : ''}">Megha sign-off ${signoff.m ? '✓' : 'awaiting'}</li>
+              <li class="${signoff.j ? 'done' : ''}">Jake sign-off ${signoff.j ? '✓' : 'awaiting'}</li>
+            `;
+          }
+        }
+      }
+
       // ----- SENT PANEL · LEFT (Delivered) -----
       const sentPanel = document.getElementById('state-sent');
       if (sentPanel) {

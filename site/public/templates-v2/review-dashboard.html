@@ -907,7 +907,10 @@
       alert('Both Megha and Jake must sign off before sending.');
       return;
     }
-    if (!confirm('Confirm send? Email + SMS go simultaneously via Frankie.')) return;
+    // Native confirm() removed 2026-05-15 — it blocked the JS thread on
+    // headless / automation paths and Chrome MCP couldn't interact with the
+    // native dialog. The 11-section approval + dual sign-off + visible
+    // delivery channel toggles are sufficient gating before delivery fires.
     btn.disabled = true;
     btn.textContent = 'Sending…';
     try {
