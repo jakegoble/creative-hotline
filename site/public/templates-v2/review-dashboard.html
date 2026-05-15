@@ -600,6 +600,57 @@
     document.getElementById('debriefInsight').textContent = debrief.meghaTake || debrief.insight || debrief.summary || '';
   }
 
+  // Canonical section list builder. Single source of truth for both renderSections
+  // (visual cards) and getSectionsArray (gate counting). Mirrors the ActionPlanV2
+  // schema emitted by src/lib/services/action-plan.ts. All sections require BOTH
+  // M+J approval — the flow cannot continue without sign-off from both parties.
+  function buildActionPlanSections(ap) {
+    if (!ap) return [];
+    // Honor explicit ap.sections override if a future generator emits one.
+    if (Array.isArray(ap.sections)) {
+      return ap.sections.map(s => ({ owner: 'shared', ...s }));
+    }
+    const fmtItems = (items) => items
+      .map(it => {
+        const title = (it && typeof it.title === 'string') ? it.title.trim() : '';
+        const detail = (it && typeof it.detail === 'string') ? it.detail.trim() : '';
+        return title ? (detail ? `${title}\n  ${detail}` : title) : detail;
+      })
+      .filter(Boolean)
+      .join('\n\n');
+    const fmtList = (arr) => arr
+      .filter(s => typeof s === 'string' && s.trim())
+      .map(s => `• ${s.trim()}`)
+      .join('\n');
+    const out = [];
+    if (typeof ap.headline === 'string' && ap.headline.trim()) {
+      out.push({ key: 'headline', title: 'Headline', body: ap.headline.trim(), owner: 'shared' });
+    }
+    if (typeof ap.summary === 'string' && ap.summary.trim()) {
+      out.push({ key: 'summary', title: 'Summary', body: ap.summary.trim(), owner: 'shared' });
+    }
+    if (Array.isArray(ap.immediateNextSteps) && ap.immediateNextSteps.length) {
+      const body = fmtItems(ap.immediateNextSteps);
+      if (body) out.push({ key: 'immediateNextSteps', title: 'Immediate Next Steps (72hr)', body, owner: 'shared' });
+    }
+    if (Array.isArray(ap.thirtyDayMoves) && ap.thirtyDayMoves.length) {
+      const body = fmtItems(ap.thirtyDayMoves);
+      if (body) out.push({ key: 'thirtyDayMoves', title: '30-Day Moves', body, owner: 'shared' });
+    }
+    if (Array.isArray(ap.openQuestions) && ap.openQuestions.length) {
+      const body = fmtList(ap.openQuestions);
+      if (body) out.push({ key: 'openQuestions', title: 'Open Questions', body, owner: 'shared' });
+    }
+    if (Array.isArray(ap.resources) && ap.resources.length) {
+      const body = fmtList(ap.resources);
+      if (body) out.push({ key: 'resources', title: 'Resources', body, owner: 'shared' });
+    }
+    if (typeof ap.closingNote === 'string' && ap.closingNote.trim()) {
+      out.push({ key: 'closingNote', title: 'Closing Note', body: ap.closingNote.trim(), owner: 'shared' });
+    }
+    return out;
+  }
+
   function renderSections() {
     const container = document.getElementById('sectionsContainer');
     const ap = STATE.actionPlan;
@@ -611,27 +662,13 @@
       </div>`;
       return;
     }
-    // Action plan shape may vary. Prefer ap.sections array; fall back to known keys.
-    let sections = Array.isArray(ap.sections) ? ap.sections.slice() : [];
+    const sections = buildActionPlanSections(ap);
     if (!sections.length) {
-      const known = [
-        ['North Star', ap.northStar, 'm'],
-        ['What We Learned', ap.whatWeLearned, 'm'],
-        ['Creative Authority Read', ap.authorityRead, 'shared'],
-        ['What We Love', ap.whatWeLove, 'm'],
-        ['Things You Said That Matter', ap.thingsYouSaid, 'm'],
-        ['What We\'re Not Doing', ap.notDoing, 'm'],
-        ['Action Plan (72hr / 1wk / 1mo)', ap.actionPlan, 'j'],
-        ['Effort / Impact Map', ap.effortImpact, 'shared'],
-        ['Tools We Recommend', ap.tools, 'j'],
-        ['What Success Looks Like', ap.success, 'j'],
-        ['Continue the Conversation', ap.continueConversation, 'shared'],
-      ];
-      known.forEach(([title, body, owner]) => {
-        if (body !== undefined && body !== null) {
-          sections.push({ title, body: typeof body === 'string' ? body : JSON.stringify(body, null, 2), owner });
-        }
-      });
+      container.innerHTML = `<div class="section-card" style="border-left-color: var(--tch-yellow);">
+        <div class="section-name" style="margin-bottom:10px;">Action plan generated but no reviewable sections</div>
+        <p style="font-family: var(--tch-mono); font-size: 13px;">The action plan JSON exists but contains no fields the dashboard knows how to render. Re-generate from the Debrief screen, or contact engineering.</p>
+      </div>`;
+      return;
     }
     const approvals = getApprovals(sid);
     container.innerHTML = sections.map((sec, idx) => {
@@ -683,7 +720,9 @@
   }
 
   function isSectionFullyApproved(sec, approvals, idx) {
-    const owner = sec.owner || (idx < 6 ? 'm' : 'j');
+    // Default owner is 'shared' (both M+J must approve). This matches Jake's policy:
+    // the flow cannot continue without sign-off from both parties on every section.
+    const owner = sec.owner || 'shared';
     const a = approvals[idx] || {};
     if (owner === 'shared') return a.m === true && a.j === true;
     if (owner === 'j') return a.j === true;
@@ -691,17 +730,8 @@
   }
 
   function getSectionsArray() {
-    const ap = STATE.actionPlan;
-    if (!ap) return [];
-    if (Array.isArray(ap.sections)) return ap.sections;
-    const known = ['northStar','whatWeLearned','authorityRead','whatWeLove','thingsYouSaid','notDoing','actionPlan','effortImpact','tools','success','continueConversation'];
-    const list = [];
-    known.forEach((k, idx) => {
-      if (ap[k] !== undefined && ap[k] !== null) {
-        list.push({ key: k, owner: (idx===2||idx===7||idx===10) ? 'shared' : (idx>=6 ? 'j' : 'm') });
-      }
-    });
-    return list;
+    // Delegates to the canonical builder so renderSections + gate count agree.
+    return buildActionPlanSections(STATE.actionPlan);
   }
 
   function updateGates() {
