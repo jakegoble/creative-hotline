@@ -180,13 +180,16 @@
           </div>
         </div>
         <div class="panel center">
-          <div class="panel-head"><span class="panel-tag">↳ Your Read</span></div>
-          <div class="twocol">
-            <div class="input-block m"><div class="who">Megha · Brand & Positioning</div><textarea placeholder="Your read..."></textarea></div>
-            <div class="input-block j"><div class="who">Jake · Design & Systems</div><textarea placeholder="Your read..."></textarea></div>
+          <div class="panel-head"><span class="panel-tag">↳ Your Read · Preview</span></div>
+          <div class="input-block auto" style="font-style: italic; opacity: 0.85;">
+            <div class="who">M+J reads + Gap Hypothesis live in Morning Prep</div>
+            <div class="body" style="font-family: var(--tch-mono); font-size: 12px; line-height: 1.5;">
+              The full prep dashboard is where you capture your read, write the
+              Gap Hypothesis, and lock M+J inputs before generating the workshop.
+              Edit there — the values appear here automatically once saved.
+            </div>
           </div>
-          <div class="input-block shared"><div class="who">↳ Gap Hypothesis</div><textarea placeholder="One sentence."></textarea></div>
-          <a href="morning-prep.html" class="quick-link"><span class="icon">🛠</span><span class="label">Full prep dashboard</span><span class="arrow">→</span></a>
+          <a href="morning-prep.html" class="panel-cta" style="background: var(--tch-ink); color: var(--tch-cream); border-color: var(--tch-cream); text-decoration: none;">Open Morning Prep →</a>
         </div>
         <div class="panel right">
           <div class="panel-head"><span class="panel-tag">↳ Handoff</span></div>
@@ -221,14 +224,18 @@
           <div class="input-block auto"><div class="who">North Star · Their Words</div><div class="body">"Build Solano Studio around one hero collection."</div></div>
           <div class="input-block auto"><div class="who">First Move Result</div><div class="body">✓ Did it: Updated IG bio live on call.</div></div>
         </div>
-        <div class="panel center">
-          <div class="panel-head"><span class="panel-tag">↳ The 10 Questions</span></div>
+        <div class="panel center" id="debriefCenterPanel">
+          <div class="panel-head"><span class="panel-tag">↳ The 10 Questions · Snapshot</span></div>
           <div class="twocol">
-            <div class="input-block m"><div class="who">Megha · Score</div><input type="number" min="1" max="10" placeholder="—"></div>
-            <div class="input-block j"><div class="who">Jake · Score</div><input type="number" min="1" max="10" placeholder="—"></div>
+            <div class="input-block m"><div class="who">Megha · Score</div><div class="body" id="debriefScoreM" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
+            <div class="input-block j"><div class="who">Jake · Score</div><div class="body" id="debriefScoreJ" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
           </div>
-          <div class="input-block shared"><div class="who">Non-Obvious Insight</div><textarea placeholder="What surprised you?"></textarea></div>
-          <a href="debrief.html" class="quick-link"><span class="icon">📋</span><span class="label">Full debrief flow</span><span class="arrow">→</span></a>
+          <div class="twocol">
+            <div class="input-block m"><div class="who">Megha · Conf.</div><div class="body" id="debriefConfM" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
+            <div class="input-block j"><div class="who">Jake · Conf.</div><div class="body" id="debriefConfJ" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
+          </div>
+          <div class="input-block shared"><div class="who">Non-Obvious Insight</div><div class="body" id="debriefInsight" style="font-family: var(--tch-mono); font-size: 13px; font-style: italic;">—</div></div>
+          <a href="debrief.html" class="quick-link"><span class="icon">📋</span><span class="label">Edit in full debrief flow</span><span class="arrow">→</span></a>
         </div>
         <div class="panel right">
           <div class="panel-head"><span class="panel-tag">↳ Handoff</span></div>
@@ -586,6 +593,28 @@
         }
       }
 
+      // ----- DEBRIEF PANEL · CENTER (Snapshot of the 10 Questions) -----
+      // These used to be empty input controls that didn't save anywhere.
+      // Now they display read-only values from the persisted debriefJson —
+      // the real editing happens in debrief.html.
+      const setText = (id, v) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = v == null || v === '' ? '—' : String(v);
+      };
+      if (debrief) {
+        setText('debriefScoreM', debrief.sessionScoreM ?? '');
+        setText('debriefScoreJ', debrief.sessionScoreJ ?? '');
+        setText('debriefConfM',  debrief.confidenceM   ?? '');
+        setText('debriefConfJ',  debrief.confidenceJ   ?? '');
+        setText('debriefInsight', debrief.nonObviousInsight ?? '');
+      } else {
+        setText('debriefScoreM', '');
+        setText('debriefScoreJ', '');
+        setText('debriefConfM',  '');
+        setText('debriefConfJ',  '');
+        setText('debriefInsight', '');
+      }
+
       // ----- DEBRIEF PANEL · LEFT (Just-Captured) -----
       const debriefPanel = document.getElementById('state-debrief');
       if (debriefPanel) {
@@ -709,18 +738,29 @@
       }
 
       // ----- REVIEW PANEL · RIGHT (Send Gates) -----
-      // Replace static checklist with real M/J approval counts pulled from
-      // the same localStorage keys the review-dashboard.html uses, so the
-      // Hub preview matches what's happening in the actual dashboard.
+      // Replace static checklist with real M/J approval counts. Source of
+      // truth is `s.approvalsJson` (Notion, synced across browsers by the
+      // Review Dashboard). Fall back to localStorage only when Notion has
+      // nothing yet — keeps the Hub correct for the very first session
+      // before any approvals have been written upstream.
       if (reviewPanel) {
         const rightPanel = reviewPanel.querySelector('.panel.right');
         if (rightPanel && actionPlan) {
-          const approvalsRaw = localStorage.getItem('tch_review_approvals_' + sessionId);
-          const signoffRaw = localStorage.getItem('tch_review_signoff_' + sessionId);
           let approvals = {};
           let signoff = { m: false, j: false };
-          try { if (approvalsRaw) approvals = JSON.parse(approvalsRaw); } catch {}
-          try { if (signoffRaw) signoff = JSON.parse(signoffRaw); } catch {}
+          let blob = null;
+          try { if (s.approvalsJson) blob = JSON.parse(s.approvalsJson); } catch {}
+          if (blob && typeof blob === 'object') {
+            if (blob.approvals && typeof blob.approvals === 'object') approvals = blob.approvals;
+            if (blob.signoff && typeof blob.signoff === 'object') signoff = { m: !!blob.signoff.m, j: !!blob.signoff.j };
+          } else {
+            // No Notion approval data yet — fall back to localStorage for the
+            // current browser's pending state so the Hub still feels live.
+            const approvalsRaw = localStorage.getItem('tch_review_approvals_' + sessionId);
+            const signoffRaw = localStorage.getItem('tch_review_signoff_' + sessionId);
+            try { if (approvalsRaw) approvals = JSON.parse(approvalsRaw) || {}; } catch {}
+            try { if (signoffRaw) signoff = JSON.parse(signoffRaw) || { m: false, j: false }; } catch {}
+          }
           // Count how many sections have BOTH M and J approval
           const totalSections = 11;
           let mApproved = 0, jApproved = 0, bothApproved = 0;
