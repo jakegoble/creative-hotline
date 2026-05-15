@@ -398,26 +398,84 @@
   };
 
   // -------- helpers -----------------------------------------------------
+  // V2 — approvals + signoff now sync to Notion via /api/sessions/[id]/approvals
+  // so M and J see each other's progress across browsers. localStorage is kept
+  // as a write-through cache for instant UI feedback (Notion roundtrip is ~300ms)
+  // and as an offline fallback if the server is unreachable mid-edit.
   function approvalsKey(sid) { return `tch_review_approvals_${sid}`; }
   function signoffKey(sid) { return `tch_review_signoff_${sid}`; }
   function getApprovals(sid) {
     try { return JSON.parse(localStorage.getItem(approvalsKey(sid)) || '{}'); }
     catch { return {}; }
   }
+  function getSignoff(sid) {
+    try { return JSON.parse(localStorage.getItem(signoffKey(sid)) || '{}'); }
+    catch { return {}; }
+  }
+
+  // Debounced Notion sync — writes the FULL blob (both approvals + signoff)
+  // every time something changes. Tiny payload (<2KB even at 50 sections).
+  let _saveTimer = null;
+  let _saveInFlight = null;
+  const SAVE_DEBOUNCE_MS = 400;
+  function scheduleNotionSave(sid) {
+    if (_saveTimer) clearTimeout(_saveTimer);
+    _saveTimer = setTimeout(() => persistApprovalsToNotion(sid), SAVE_DEBOUNCE_MS);
+  }
+  async function persistApprovalsToNotion(sid) {
+    if (!sid) return;
+    const blob = {
+      approvals: getApprovals(sid),
+      signoff: getSignoff(sid),
+      updatedAt: new Date().toISOString(),
+    };
+    try {
+      if (_saveInFlight) await _saveInFlight;
+      _saveInFlight = fetch(`/api/sessions/${encodeURIComponent(sid)}/approvals`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ approvalsJson: JSON.stringify(blob) }),
+      });
+      await _saveInFlight;
+      _saveInFlight = null;
+    } catch (err) {
+      _saveInFlight = null;
+      console.warn('[review-dashboard] approvals sync failed (localStorage still has it)', err);
+    }
+  }
+  // Hydrate localStorage from Notion when loading a session. If the Notion
+  // record is newer than localStorage (or localStorage is empty), use it.
+  function hydrateFromNotion(sid, approvalsJsonStr) {
+    if (!sid || !approvalsJsonStr) return;
+    try {
+      const blob = JSON.parse(approvalsJsonStr);
+      if (!blob || typeof blob !== 'object') return;
+      const remoteUpdated = blob.updatedAt ? new Date(blob.updatedAt).getTime() : 0;
+      // Last-write-wins: prefer Notion unless localStorage was written more recently.
+      // localStorage doesn't track timestamps, so we always trust Notion on initial load.
+      if (blob.approvals && typeof blob.approvals === 'object') {
+        localStorage.setItem(approvalsKey(sid), JSON.stringify(blob.approvals));
+      }
+      if (blob.signoff && typeof blob.signoff === 'object') {
+        localStorage.setItem(signoffKey(sid), JSON.stringify(blob.signoff));
+      }
+    } catch (err) {
+      console.warn('[review-dashboard] could not parse approvalsJson from Notion', err);
+    }
+  }
+
   function setApproval(sid, idx, who, value) {
     const a = getApprovals(sid);
     a[idx] = Object.assign({}, a[idx] || {});
     a[idx][who] = value;
     localStorage.setItem(approvalsKey(sid), JSON.stringify(a));
-  }
-  function getSignoff(sid) {
-    try { return JSON.parse(localStorage.getItem(signoffKey(sid)) || '{}'); }
-    catch { return {}; }
+    scheduleNotionSave(sid);
   }
   function setSignoff(sid, who, value) {
     const s = getSignoff(sid);
     s[who] = value;
     localStorage.setItem(signoffKey(sid), JSON.stringify(s));
+    scheduleNotionSave(sid);
   }
   function fmtTime(iso) {
     if (!iso) return '—';
@@ -538,6 +596,12 @@
       if (session.actionPlanJson) {
         try { STATE.actionPlan = JSON.parse(session.actionPlanJson); }
         catch { STATE.actionPlan = null; }
+      }
+      // Pull synced M+J approvals + sign-offs from Notion into localStorage.
+      // Cross-browser collab unblock — without this, Megha and Jake reviewing
+      // on separate machines never see each other's progress.
+      if (session.approvalsJson) {
+        hydrateFromNotion(sid, session.approvalsJson);
       }
     } catch (err) {
       document.getElementById('reviewClientName').textContent = `Failed to load: ${err.message}`;

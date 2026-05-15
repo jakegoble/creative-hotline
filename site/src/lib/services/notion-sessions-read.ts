@@ -84,6 +84,10 @@ export interface SessionRecord {
   workshopJson: string;
   debriefJson: string;
   actionPlanJson: string;
+  /** Synced M+J approvals + sign-off state for the Review Dashboard.
+   * Schema: { approvals: { [sectionIdx]: { m?: boolean; j?: boolean } }, signoff: { m?: boolean; j?: boolean } }
+   * Empty string when no review activity yet. V2 — added 2026-05-15. */
+  approvalsJson: string;
   actionPlanUrl?: string;
   firefliesUrl?: string;
   referralCode: string;
@@ -123,6 +127,7 @@ function parseSession(page: PageObjectResponse): SessionRecord {
     workshopJson: getText(p, "Workshop Session JSON"),
     debriefJson: getText(p, "Debrief JSON"),
     actionPlanJson: getText(p, "Action Plan JSON"),
+    approvalsJson: getText(p, "Approvals JSON"),
     actionPlanUrl: getUrl(p, "Action Plan URL"),
     firefliesUrl: getUrl(p, "Fireflies Transcript URL"),
     referralCode: getText(p, "Referral Code Issued"),

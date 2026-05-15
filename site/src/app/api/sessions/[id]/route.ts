@@ -101,6 +101,9 @@ export async function GET(
     workshopJson: session.workshopJson,
     debriefJson: session.debriefJson,
     actionPlanJson: session.actionPlanJson,
+    /** M+J review approval + sign-off state, synced across browsers via Notion.
+     *  Empty string when no review activity yet. */
+    approvalsJson: session.approvalsJson || "",
     actionPlanUrl: session.actionPlanUrl ?? null,
     firefliesUrl: session.firefliesUrl ?? null,
     // Send-pipeline state — surfaced for the Hub's Sent panel + downstream UI.

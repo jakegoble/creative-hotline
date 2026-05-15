@@ -146,6 +146,9 @@ export async function updateSessionFields(
     workshopJson?: string;
     debriefJson?: string;
     actionPlanJson?: string;
+    /** Synced M+J review approvals + sign-off state. Schema:
+     *  { approvals: { [idx]: { m?, j? } }, signoff: { m?, j? } } */
+    approvalsJson?: string;
     actionPlanUrl?: string;
     firefliesUrl?: string;
     referralCode?: string;
@@ -169,6 +172,9 @@ export async function updateSessionFields(
   }
   if (typeof updates.actionPlanJson === "string") {
     properties["Action Plan JSON"] = richText(updates.actionPlanJson);
+  }
+  if (typeof updates.approvalsJson === "string") {
+    properties["Approvals JSON"] = richText(updates.approvalsJson);
   }
   if (updates.actionPlanUrl) {
     properties["Action Plan URL"] = { url: updates.actionPlanUrl };
