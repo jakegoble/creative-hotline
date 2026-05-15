@@ -317,44 +317,45 @@ export async function POST(
   //    halt their drip. Same dedupe rules as Calendly webhook — look up by
   //    phone first, fall back to email. If no contact exists and we have a
   //    phone (almost always true for paid clients), create one so future
-  //    Day-N follow-up touchpoints find them. Fire-and-forget — the action
-  //    plan has already been delivered; CRM sync is bookkeeping.
-  void (async () => {
-    try {
-      const phoneE164 = normalizePhoneE164(payment.phone);
-      let contact = phoneE164 ? await findContactByPhone(phoneE164) : null;
-      if (!contact) {
-        contact = await findContactByEmail(payment.email);
-      }
-      if (contact) {
-        await upsertContactByPhone({
-          phone: contact.phone,
-          email: payment.email,
-          addTags: ["paid-client"],
-          dripStage: "completed",
-          complianceNote: `Action plan sent (session ${id}, code ${referralCode})`,
-        });
-        console.log(
-          `[sessions/${id}/send] linked Messaging Contact ${contact.id} as paid-client`,
-        );
-      } else if (phoneE164) {
-        await upsertContactByPhone({
-          phone: phoneE164,
-          email: payment.email,
-          status: "active",
-          dripStage: "completed",
-          source: "referral",
-          addTags: ["paid-client"],
-          complianceNote: `Created from V2 Send (session ${id}, code ${referralCode})`,
-        });
-        console.log(
-          `[sessions/${id}/send] created Messaging Contact for ${phoneE164}`,
-        );
-      }
-    } catch (err) {
-      console.warn(`[sessions/${id}/send] Messaging Contact sync failed:`, err);
+  //    Day-N follow-up touchpoints find them.
+  //
+  //    AWAITED, not fire-and-forget — Vercel serverless terminates the
+  //    invocation when the response returns, killing pending promises.
+  //    CRM failure still doesn't fail the send: we catch and log.
+  try {
+    const phoneE164 = normalizePhoneE164(payment.phone);
+    let contact = phoneE164 ? await findContactByPhone(phoneE164) : null;
+    if (!contact) {
+      contact = await findContactByEmail(payment.email);
     }
-  })();
+    if (contact) {
+      await upsertContactByPhone({
+        phone: contact.phone,
+        email: payment.email,
+        addTags: ["paid-client"],
+        dripStage: "completed",
+        complianceNote: `Action plan sent (session ${id}, code ${referralCode})`,
+      });
+      console.log(
+        `[sessions/${id}/send] linked Messaging Contact ${contact.id} as paid-client`,
+      );
+    } else if (phoneE164) {
+      await upsertContactByPhone({
+        phone: phoneE164,
+        email: payment.email,
+        status: "active",
+        dripStage: "completed",
+        source: "referral",
+        addTags: ["paid-client"],
+        complianceNote: `Created from V2 Send (session ${id}, code ${referralCode})`,
+      });
+      console.log(
+        `[sessions/${id}/send] created Messaging Contact for ${phoneE164}`,
+      );
+    }
+  } catch (err) {
+    console.warn(`[sessions/${id}/send] Messaging Contact sync failed:`, err);
+  }
 
   return NextResponse.json({
     ok: delivery.email.ok,

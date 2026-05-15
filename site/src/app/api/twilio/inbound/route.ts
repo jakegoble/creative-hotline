@@ -159,62 +159,66 @@ export async function POST(request: Request): Promise<Response> {
   // Fire the CRM write in the background — we don't block the reply on it. If
   // Notion is slow or down, the user still gets their Frankie reply on time.
   // Errors are caught and logged; we never throw out of this route.
+  // CRM write is AWAITED, not fire-and-forget. In Vercel serverless, returning
+  // the response terminates the invocation and kills any pending promises —
+  // background writes silently drop. We pay ~1-2s of latency to guarantee the
+  // Notion row lands, still well inside Twilio's 15s webhook timeout.
   if (phone) {
     const update = buildContactUpdate(match.intent, match.keyword, phone, channel);
-    void (async () => {
-      try {
-        const { isNew, contact } = await upsertContactByPhone(update);
-        // First-time opt-in → kick off drip step_1 so the cron picks them up
-        // on Day 1. We do this in a SECOND update because we need `isNew` to
-        // decide; baking it into the first update would race ahead of new
-        // contacts who don't text HOTLINE (e.g., they text BOOK first).
-        if (match.intent === "opt_in" && isNew) {
-          await upsertContactByPhone({
-            phone,
-            dripStage: "step_1",
-          });
-        }
-        // Re-opt-in path: an EXISTING contact who previously sent STOP
-        // (status was opted_out, Drip Stage was none) texts HOTLINE/START again.
-        // We need to fully reset their drip — otherwise they re-activate but
-        // never re-enter the sequence. The base update already flipped Status
-        // back to "active" + set Opt-In Date = now; this completes the cycle.
-        else if (
-          match.intent === "opt_in" &&
-          !isNew &&
-          contact.dripStage === "none"
-        ) {
-          await upsertContactByPhone({
-            phone,
-            dripStage: "step_1",
-            complianceNote: `Re-opt-in via ${channel} ${match.keyword}; resetting drip from none → step_1`,
-          });
-        }
-        // Auto-opt-in any first-time texter (even if they sent BOOK or INFO).
-        // Inbound to a marketing number IS an opt-in signal per the A2P
-        // campaign and Meta WhatsApp policy. Not capturing it would leak leads.
-        else if (isNew && match.intent !== "opt_out") {
-          await upsertContactByPhone({
-            phone,
-            status: "active",
-            dripStage: "step_1",
-            optInDate: new Date(),
-            complianceNote: `Auto opt-in via first-touch ${channel} keyword ${match.keyword}`,
-          });
-        }
-        console.log("[twilio/inbound] CRM:", {
-          contactId: contact.id,
-          isNew,
-          channel,
-          status: contact.status,
-          dripStage: contact.dripStage,
-          channels: contact.channels,
-          tags: contact.tags,
+    try {
+      const { isNew, contact } = await upsertContactByPhone(update);
+      // First-time opt-in → kick off drip step_1 so the cron picks them up
+      // on Day 1. We do this in a SECOND update because we need `isNew` to
+      // decide; baking it into the first update would race ahead of new
+      // contacts who don't text HOTLINE (e.g., they text BOOK first).
+      if (match.intent === "opt_in" && isNew) {
+        await upsertContactByPhone({
+          phone,
+          dripStage: "step_1",
         });
-      } catch (err) {
-        console.error("[twilio/inbound] CRM write failed:", err);
       }
-    })();
+      // Re-opt-in path: an EXISTING contact who previously sent STOP
+      // (status was opted_out, Drip Stage was none) texts HOTLINE/START again.
+      // We need to fully reset their drip — otherwise they re-activate but
+      // never re-enter the sequence. The base update already flipped Status
+      // back to "active" + set Opt-In Date = now; this completes the cycle.
+      else if (
+        match.intent === "opt_in" &&
+        !isNew &&
+        contact.dripStage === "none"
+      ) {
+        await upsertContactByPhone({
+          phone,
+          dripStage: "step_1",
+          complianceNote: `Re-opt-in via ${channel} ${match.keyword}; resetting drip from none → step_1`,
+        });
+      }
+      // Auto-opt-in any first-time texter (even if they sent BOOK or INFO).
+      // Inbound to a marketing number IS an opt-in signal per the A2P
+      // campaign and Meta WhatsApp policy. Not capturing it would leak leads.
+      else if (isNew && match.intent !== "opt_out") {
+        await upsertContactByPhone({
+          phone,
+          status: "active",
+          dripStage: "step_1",
+          optInDate: new Date(),
+          complianceNote: `Auto opt-in via first-touch ${channel} keyword ${match.keyword}`,
+        });
+      }
+      console.log("[twilio/inbound] CRM:", {
+        contactId: contact.id,
+        isNew,
+        channel,
+        status: contact.status,
+        dripStage: contact.dripStage,
+        channels: contact.channels,
+        tags: contact.tags,
+      });
+    } catch (err) {
+      // Never propagate — the user still gets their Frankie reply even if
+      // the CRM is down. We log loudly so ops sees it.
+      console.error("[twilio/inbound] CRM write failed:", err);
+    }
   } else {
     console.warn("[twilio/inbound] could not normalize From:", rawFrom);
   }

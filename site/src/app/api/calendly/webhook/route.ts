@@ -211,52 +211,52 @@ export async function POST(request: Request) {
     // Cross-flow connection: mark the Messaging Contact (if any) as booked.
     // This closes the loop between SMS marketing → actual booking. The contact
     // gets "booked" tag + Drip Stage = "completed", so the drip cron stops
-    // nudging them. Fire-and-forget — the booking is the load-bearing path
-    // here, CRM sync is best-effort.
-    void (async () => {
-      try {
-        const rawPhone = extractPhoneFromQA(inv);
-        const phoneE164 = normalizePhoneE164(rawPhone);
-        // Try phone first (most reliable connector if Calendly captured it),
-        // then fall back to email.
-        let contact =
-          phoneE164 ? await findContactByPhone(phoneE164) : null;
-        if (!contact) {
-          contact = await findContactByEmail(email);
-        }
-        if (contact) {
-          await upsertContactByPhone({
-            phone: contact.phone,
-            email,
-            addTags: ["booked"],
-            dripStage: "completed",
-            complianceNote: `Booked via Calendly (session ${result.pageId})`,
-          });
-          console.log(
-            `[calendly-webhook] linked Messaging Contact ${contact.id} as booked`,
-          );
-        } else if (phoneE164) {
-          // No existing contact but Calendly captured a phone — create one so
-          // future SMS touchpoints find them. Skip drip enrollment (they're
-          // already paid customers).
-          await upsertContactByPhone({
-            phone: phoneE164,
-            email,
-            status: "active",
-            dripStage: "completed",
-            source: "referral", // booked without inbound SMS — likely web/email
-            addTags: ["booked"],
-            complianceNote: `Created from Calendly booking (session ${result.pageId})`,
-          });
-          console.log(
-            `[calendly-webhook] created Messaging Contact for ${phoneE164}`,
-          );
-        }
-      } catch (err) {
-        // CRM sync failure must NEVER block the booking flow.
-        console.warn("[calendly-webhook] Messaging Contact sync failed:", err);
+    // nudging them.
+    //
+    // AWAITED, not fire-and-forget — Vercel serverless terminates the
+    // invocation when the response returns, killing any pending promises.
+    // CRM failure still doesn't block the response: we catch and log.
+    try {
+      const rawPhone = extractPhoneFromQA(inv);
+      const phoneE164 = normalizePhoneE164(rawPhone);
+      // Try phone first (most reliable connector if Calendly captured it),
+      // then fall back to email.
+      let contact = phoneE164 ? await findContactByPhone(phoneE164) : null;
+      if (!contact) {
+        contact = await findContactByEmail(email);
       }
-    })();
+      if (contact) {
+        await upsertContactByPhone({
+          phone: contact.phone,
+          email,
+          addTags: ["booked"],
+          dripStage: "completed",
+          complianceNote: `Booked via Calendly (session ${result.pageId})`,
+        });
+        console.log(
+          `[calendly-webhook] linked Messaging Contact ${contact.id} as booked`,
+        );
+      } else if (phoneE164) {
+        // No existing contact but Calendly captured a phone — create one so
+        // future SMS touchpoints find them. Skip drip enrollment (they're
+        // already paid customers).
+        await upsertContactByPhone({
+          phone: phoneE164,
+          email,
+          status: "active",
+          dripStage: "completed",
+          source: "referral", // booked without inbound SMS — likely web/email
+          addTags: ["booked"],
+          complianceNote: `Created from Calendly booking (session ${result.pageId})`,
+        });
+        console.log(
+          `[calendly-webhook] created Messaging Contact for ${phoneE164}`,
+        );
+      }
+    } catch (err) {
+      // CRM sync failure must NEVER block the booking flow.
+      console.warn("[calendly-webhook] Messaging Contact sync failed:", err);
+    }
 
     return NextResponse.json({
       received: true,
