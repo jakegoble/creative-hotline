@@ -15,6 +15,9 @@ export const config = {
       process.env.NOTION_INTAKE_DB ?? "2f60e73f-fadc-80fb-beb5-000bdddbc915",
     sessionsDbId:
       process.env.NOTION_SESSIONS_DB ?? "0003001f-6446-4f0e-ae9b-fed8887cc0a3",
+    /** Messaging Contacts data source — backs the SMS keyword + drip pipeline. */
+    messagingDbId:
+      process.env.NOTION_MESSAGING_DB ?? "650da872-cd7b-4889-ba31-09b06cdacdf5",
   },
 
   stripe: {
@@ -81,6 +84,12 @@ export const config = {
      *  (or a different hosted URL) once final legal copy is published. */
     serviceAgreementUrl:
       process.env.SERVICE_AGREEMENT_URL ?? "https://api.thecreativehotline.com/legal/service-agreement.html",
+    /** Base URL for the hosted caller-prep one-pager. Frankie #3 (the
+     *  night-before email) appends `?sessionId=<id>` so the page renders
+     *  personalized for the client. Override with CALLER_PREP_BASE_URL to
+     *  point at a different host if needed. */
+    callerPrepBaseUrl:
+      process.env.CALLER_PREP_BASE_URL ?? "https://api.thecreativehotline.com/templates-v2/caller-prep.html",
   },
 } as const;
 

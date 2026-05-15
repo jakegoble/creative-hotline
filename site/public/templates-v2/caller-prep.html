@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Caller Prep · The Creative Hotline</title>
+<style>
+  :root {
+    --bg: #FFF8F0;
+    --paper: #FFFFFF;
+    --ink: #1B1B1B;
+    --muted: #6B6B6B;
+    --line: #E8E4DE;
+    --hotline-red: #EC3107;
+    --electric-blue: #2D77E0;
+    --acid-yellow: #F4B400;
+    --urgent: #2BAE66;
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 40px 24px 96px;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+  }
+  .brand .dot {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 999px;
+    background: var(--hotline-red);
+    transform: translateY(1px);
+  }
+  .brand .label { font-weight: 600; letter-spacing: 0.16em; }
+  h1 {
+    font-family: 'Times New Roman', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 42px;
+    line-height: 1.05;
+    margin: 4px 0 8px;
+  }
+  h1 em { font-style: italic; font-weight: 700; color: var(--hotline-red); }
+  .lede {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 18px;
+  }
+  h2 {
+    font-family: 'Times New Roman', Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+    font-size: 22px;
+    margin: 36px 0 14px;
+    color: var(--ink);
+  }
+  h2::before {
+    content: '↳ ';
+    color: var(--hotline-red);
+    font-style: normal;
+    font-weight: 400;
+  }
+  p { margin: 0 0 14px; }
+  p.signoff { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  ul.clean { list-style: none; padding: 0; margin: 0 0 14px; }
+  ul.clean li { padding: 6px 0 6px 24px; position: relative; }
+  ul.clean li::before {
+    content: '·';
+    position: absolute;
+    left: 8px;
+    color: var(--hotline-red);
+    font-weight: 700;
+  }
+  ul.check { list-style: none; padding: 0; margin: 0 0 14px; }
+  ul.check li { padding: 6px 0 6px 28px; position: relative; }
+  ul.check li::before {
+    content: '✓';
+    position: absolute;
+    left: 4px;
+    color: var(--urgent);
+    font-weight: 700;
+  }
+  .timeline { background: var(--paper); border: 1px solid var(--line); border-left: 4px solid var(--hotline-red); padding: 18px 22px; margin: 14px 0; box-shadow: var(--shadow-md); }
+  .timeline-row { display: flex; gap: 14px; padding: 6px 0; align-items: baseline; font-size: 14px; }
+  .timeline-row .t { font-weight: 700; letter-spacing: 0.06em; color: var(--electric-blue); min-width: 92px; flex-shrink: 0; }
+  .timeline-row .w { color: var(--ink); }
+  .lexicon { background: var(--paper); border: 1px solid var(--line); padding: 18px 22px; margin: 14px 0; }
+  .lex-item { padding: 6px 0; border-bottom: 1px dashed var(--line); }
+  .lex-item:last-child { border-bottom: 0; }
+  .lex-item .term { font-weight: 700; color: var(--hotline-red); }
+  .lex-item .def { color: var(--muted); margin-left: 6px; }
+  .quote {
+    background: rgba(244,180,0,0.18);
+    border-left: 4px solid var(--acid-yellow);
+    padding: 16px 22px;
+    margin: 22px 0;
+    font-style: italic;
+  }
+  .quote .who { display: block; font-style: normal; font-size: 13px; color: var(--muted); margin-top: 8px; letter-spacing: 0.1em; }
+  .heads-up {
+    background: rgba(43,174,102,0.10);
+    border-left: 4px solid var(--urgent);
+    padding: 14px 20px;
+    margin: 22px 0;
+    font-size: 14px;
+  }
+  footer.foot {
+    margin-top: 56px;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.05em;
+  }
+  footer.foot em { color: var(--ink); font-style: italic; font-weight: 700; }
+  .error { color: var(--hotline-red); padding: 20px 0; }
+  @media (max-width: 540px) {
+    h1 { font-size: 32px; }
+    h2 { font-size: 20px; }
+    .container { padding: 28px 18px 64px; }
+    .timeline-row { flex-direction: column; gap: 2px; padding: 8px 0; }
+    .timeline-row .t { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container" id="root">
+  <div class="brand"><span class="dot"></span><span class="label">The Creative Hotline</span><span>· Caller Prep</span></div>
+  <h1 id="hed">Tomorrow you're <em>on the line</em>.</h1>
+  <p class="lede" id="lede">Loading your prep…</p>
+
+  <div id="content" style="display:none;">
+    <p id="intro"></p>
+
+    <p>Read this once. Then forget about it. The point isn't to prepare — it's to show up open.</p>
+
+    <div class="quote">
+      Quick reminders. Cool down on the over-prep.<br><br>
+      The ones who get the most out of this show up with one real question — not ten. Pick the thing that's keeping you up. We'll handle the rest.
+      <span class="who">— F</span>
+    </div>
+
+    <h2>What to expect (the 45)</h2>
+    <div class="timeline">
+      <div class="timeline-row"><span class="t">0–2 min</span><span class="w">Quick intros</span></div>
+      <div class="timeline-row"><span class="t">2–7 min</span><span class="w">Your story — we read your intake back, you tell us what's actually going on</span></div>
+      <div class="timeline-row"><span class="t">7–12 min</span><span class="w">Dialing in — here's what we picked up before the call</span></div>
+      <div class="timeline-row"><span class="t">12–15 min</span><span class="w">North Star — one question, one answer</span></div>
+      <div class="timeline-row"><span class="t">15–25 min</span><span class="w">The diagnosis — we name the real problem together</span></div>
+      <div class="timeline-row"><span class="t">25–35 min</span><span class="w">The play — 72-hour, 1-week, 1-month moves</span></div>
+      <div class="timeline-row"><span class="t">35–40 min</span><span class="w">The map — DIY (Path A) vs Level Up (Path B), you pick</span></div>
+      <div class="timeline-row"><span class="t">40–42 min</span><span class="w">Make the call — you do one tiny thing on the line</span></div>
+      <div class="timeline-row"><span class="t">42–45 min</span><span class="w">Land it — we summarize in one sentence</span></div>
+    </div>
+
+    <h2>What to have ready</h2>
+    <ul class="check">
+      <li>Quiet space + good wifi</li>
+      <li>Your IG / website open on your screen</li>
+      <li>Something to drink. This goes fast.</li>
+      <li>One real question — not ten</li>
+    </ul>
+
+    <h2>Some words you'll hear</h2>
+    <div class="lexicon">
+      <div class="lex-item"><span class="term">The B-Side</span><span class="def">— a panel where ideas that aren't today's focus get parked. Nothing gets lost.</span></div>
+      <div class="lex-item"><span class="term">Dialing In</span><span class="def">— when we read what we picked up about your brand from research.</span></div>
+      <div class="lex-item"><span class="term">North Star</span><span class="def">— the one thing you'd do if you could only do one.</span></div>
+      <div class="lex-item"><span class="term">Authority Read</span><span class="def">— our 4-pillar honest read on where your brand stands today.</span></div>
+      <div class="lex-item"><span class="term">The Map</span><span class="def">— the 2×2 grid where every move gets placed.</span></div>
+      <div class="lex-item"><span class="term">Creative File</span><span class="def">— your folder where everything from today saves. You keep it forever.</span></div>
+      <div class="lex-item"><span class="term">Path A / Path B</span><span class="def">— DIY vs Level Up. Every move comes with two paths.</span></div>
+    </div>
+
+    <div class="heads-up">
+      <strong>Heads up:</strong> the call is recorded for the transcript that lands in your Creative File. No one watches but us.
+    </div>
+
+    <p>Your action plan lands in your inbox <strong>24 hours after the call</strong>. Wall, matrix, B-Side — all folded in.</p>
+
+    <p>Talk soon.</p>
+    <p class="signoff">— F</p>
+  </div>
+
+  <div id="errorBox" class="error" style="display:none;">
+    Couldn't load your session details. The page still works — just bring one real question, and we'll handle the rest.
+  </div>
+
+  <footer class="foot">
+    ☎️ The Creative Hotline · thecreativehotline.com<br>
+    <em>Stop spiraling. Start creating.</em>
+  </footer>
+</div>
+
+<script>
+(function () {
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+  function firstNameFrom(s) {
+    const full = (s.payment && s.payment.clientName) || s.clientName || '';
+    return (full.split(/\s+/)[0] || 'there').replace(/[^A-Za-z'’-]/g, '');
+  }
+  function sessionTimeFrom(iso) {
+    if (!iso) return 'your call';
+    try {
+      const d = new Date(iso);
+      const day = d.toLocaleDateString(undefined, { weekday: 'long' });
+      const time = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZoneName: 'short' });
+      return `${day} at ${time}`;
+    } catch { return 'your call'; }
+  }
+
+  async function boot() {
+    const url = new URL(window.location.href);
+    const sessionId = url.searchParams.get('sessionId');
+    const root = document.getElementById('root');
+    const content = document.getElementById('content');
+    const errorBox = document.getElementById('errorBox');
+    const lede = document.getElementById('lede');
+    const hed = document.getElementById('hed');
+    const intro = document.getElementById('intro');
+
+    // Generic fallback content (no sessionId — still useful as a static read).
+    if (!sessionId) {
+      hed.innerHTML = 'You\'re <em>on the line</em>.';
+      lede.textContent = "Read this once. Then forget about it. Show up open.";
+      intro.textContent = '24 hours from now you\'re on the line with Megha + Jake.';
+      content.style.display = '';
+      return;
+    }
+
+    try {
+      const r = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+      if (!r.ok) throw new Error('fetch_failed');
+      const s = await r.json();
+      const name = firstNameFrom(s);
+      const when = sessionTimeFrom(s.scheduledAt);
+      hed.innerHTML = `${escapeHtml(name)}, you're <em>on the line</em>.`;
+      lede.textContent = `Your call is ${when}. Here's how we make it count.`;
+      intro.textContent = `Hey ${name} — 24 hours from now you're on the line with Megha + Jake.`;
+      content.style.display = '';
+    } catch (err) {
+      console.warn('[caller-prep] could not load session', err);
+      // Render generic content anyway — page is still useful as a read.
+      hed.innerHTML = 'You\'re <em>on the line</em>.';
+      lede.textContent = "Read this once. Then forget about it. Show up open.";
+      intro.textContent = '24 hours from now you\'re on the line with Megha + Jake.';
+      content.style.display = '';
+      // Show a soft error footer too in case the user wants to know.
+      errorBox.style.display = '';
+    }
+  }
+  boot();
+})();
+</script>
+</body>
+</html>

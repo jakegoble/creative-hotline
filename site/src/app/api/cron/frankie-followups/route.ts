@@ -220,10 +220,13 @@ async function processSession(
 
   // -------- Caller Prep --------
   if (!session.callerPrepSent) {
+    // Hosted one-pager URL — personalized per session via the ?sessionId param.
+    const callerPrepUrl = `${config.frankieEmails.callerPrepBaseUrl}?sessionId=${encodeURIComponent(session.id)}`;
     const sent = await sendCallerPrep({
       email: payment.email,
       firstName,
       sessionTime,
+      callerPrepUrl,
     });
     result.callerPrep = sent;
     if (sent.ok) {
