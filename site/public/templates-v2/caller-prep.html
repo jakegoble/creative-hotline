@@ -4,19 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Your Caller Prep · The Creative Hotline</title>
+<link rel="stylesheet" href="tch-brand.css" />
 <style>
+  /* Aliased to Megha's tch-brand.css tokens — single source of truth. */
   :root {
-    --bg: #FFF8F0;
-    --paper: #FFFFFF;
-    --ink: #1B1B1B;
+    --bg: var(--tch-cream, #F5F2EB);
+    --paper: var(--tch-cream, #F5F2EB);
+    --ink: var(--tch-ink, #1C1C1E);
     --muted: #6B6B6B;
-    --line: #E8E4DE;
-    --hotline-red: #EC3107;
-    --electric-blue: #2D77E0;
-    --acid-yellow: #F4B400;
-    --urgent: #2BAE66;
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
-    --shadow-lg: 0 8px 30px rgba(0,0,0,0.08);
+    --line: var(--tch-ink-line, rgba(28,28,30,0.18));
+    --hotline-red: var(--tch-red, #EC3107);
+    --electric-blue: var(--tch-blue, #2E63E7);
+    --acid-yellow: var(--tch-yellow, #F6ED52);
+    --urgent: var(--tch-green, #4ADE80);
+    --shadow-md: var(--tch-shadow-hard-sm, 0 4px 12px rgba(0,0,0,0.06));
+    --shadow-lg: var(--tch-shadow-hard, 0 8px 30px rgba(0,0,0,0.08));
   }
   * { box-sizing: border-box; }
   html, body {
@@ -24,9 +26,19 @@
     padding: 0;
     background: var(--bg);
     color: var(--ink);
-    font-family: 'JetBrains Mono', 'SF Mono', 'Courier New', monospace;
+    font-family: var(--tch-mono, 'JetBrains Mono', 'SF Mono', 'Courier New', monospace);
     font-size: 15px;
     line-height: 1.65;
+  }
+  h1 {
+    font-family: var(--tch-display, 'Georgia', serif);
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+  h2, h3 {
+    font-family: var(--tch-nord, 'Bebas Neue', sans-serif);
+    letter-spacing: 0.06em;
   }
   .container {
     max-width: 720px;
