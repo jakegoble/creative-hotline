@@ -132,6 +132,30 @@ async function postMessage(params: URLSearchParams): Promise<SmsResult> {
 }
 
 /**
+ * Health check — verify Twilio credentials are reachable + valid.
+ * Hits GET /Accounts/{AccountSid}.json which is the canonical "is auth
+ * working" endpoint (free, no side effects). Used by /api/health.
+ */
+export async function ping(): Promise<{ ok: boolean; latency: number }> {
+  const start = Date.now();
+  if (!config.twilio?.accountSid || !config.twilio?.authToken) {
+    return { ok: false, latency: 0 };
+  }
+  const url = `${TWILIO_API}/Accounts/${config.twilio.accountSid}.json`;
+  const basic = Buffer.from(
+    `${config.twilio.accountSid}:${config.twilio.authToken}`,
+  ).toString("base64");
+  try {
+    const res = await fetch(url, {
+      headers: { Authorization: `Basic ${basic}`, Accept: "application/json" },
+    });
+    return { ok: res.ok, latency: Date.now() - start };
+  } catch {
+    return { ok: false, latency: Date.now() - start };
+  }
+}
+
+/**
  * Resolve the WhatsApp From number. Falls back to TWILIO_FROM_NUMBER so a
  * single Twilio Sender (the same +14137674332 enabled for both SMS + WA)
  * doesn't require duplicate env vars.
