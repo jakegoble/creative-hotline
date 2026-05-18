@@ -1,608 +1,825 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Morning Prep · The Creative Hotline</title>
 <link rel="stylesheet" href="tch-brand.css" />
 <style>
-  /* V2 brand: red=Megha, blue=Jake, yellow=client, black=automated, green=urgent
-     Now aliased to Megha's tch-brand.css tokens — single source of truth for colors + type. */
-  :root {
-    --bg: var(--tch-cream, #F5F2EB);
-    --card: var(--tch-cream, #F5F2EB);
-    --ink: var(--tch-ink, #1C1C1E);
-    --muted: #666666;
-    --line: var(--tch-ink-line, rgba(28,28,30,0.18));
-    --megha: var(--tch-red, #EC3107);
-    --jake: var(--tch-blue, #2E63E7);
-    --client: var(--tch-yellow, #F6ED52);
-    --auto: var(--tch-ink, #1C1C1E);
-    --urgent: var(--tch-green, #4ADE80);
-    --warn: #B95F00;
+  body { background: var(--tch-cream); margin: 0; }
+
+  .top {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 4px solid var(--tch-red);
+    position: sticky; top: 0; z-index: 100;
   }
-  * { box-sizing: border-box; }
-  html, body {
+  .top::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px);
+    pointer-events: none;
+  }
+  .top .left, .top .right { display: flex; gap: 14px; align-items: center; position: relative; z-index: 2; }
+  .top h1 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1);
     margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--tch-mono, 'JetBrains Mono', 'SF Mono', 'Courier New', monospace);
-    font-size: 15px;
-    line-height: 1.5;
   }
-  /* Editorial headings — restore Megha's V2 typographic voice */
-  header h1 {
-    font-family: var(--tch-display, 'Georgia', serif);
-    font-style: italic;
-    font-weight: 700;
-    letter-spacing: -0.01em;
+  .role-tag {
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 5px 12px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase;
+    border: 2px solid var(--tch-cream); cursor: pointer;
   }
-  section h2 {
-    font-family: var(--tch-nord, 'Bebas Neue', sans-serif);
-    letter-spacing: 0.08em;
+  .role-tag.jake { background: var(--tch-blue); }
+  .hub-link {
+    background: transparent; color: var(--tch-cream);
+    text-decoration: none;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase;
+    border: 1px solid rgba(245,242,235,0.4);
+    padding: 5px 12px;
   }
-  /* Accent rule under the header — matches Megha's "border-bottom: 4px solid red" pattern */
-  header {
-    border-bottom: 3px solid var(--megha) !important;
+  .hub-link:hover { border-color: var(--tch-cream); }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 32px; }
+
+  /* No-session picker fallback (shown when ?sessionId is missing) */
+  .picker-card {
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink);
+    box-shadow: var(--tch-shadow-hard);
+    padding: 32px;
+    max-width: 720px; margin: 60px auto;
   }
-  .container {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 24px 20px 64px;
+  .picker-card h2 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); line-height: 1; margin: 0 0 8px;
   }
-  header {
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 16px;
-    margin-bottom: 24px;
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
+  .picker-card p { font-family: var(--tch-mono); font-size: 14px; color: rgba(28,28,30,0.7); margin: 6px 0 20px; }
+  .picker-list { display: flex; flex-direction: column; gap: 12px; margin: 0 0 22px; padding: 0; list-style: none; }
+  .picker-list li {
+    background: var(--tch-cream);
+    border: 1.5px solid var(--tch-ink-line);
+    padding: 14px 18px;
+    display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
   }
-  header h1 {
+  .picker-list .name { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-1); }
+  .picker-list .meta { font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.6); }
+  .picker-list a.open {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 8px 14px; text-decoration: none;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase;
+  }
+
+  /* SNAPSHOT (hero) */
+  .snapshot {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 36px;
+    border: 3px solid var(--tch-ink);
+    box-shadow: 10px 10px 0 var(--tch-ink);
+    margin-bottom: 50px;
+    transform: rotate(-0.4deg);
+    position: relative;
+  }
+  .snapshot .stamp {
+    position: absolute; top: 20px; right: 24px;
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 6px 14px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase;
+    transform: rotate(4deg);
+    border: 2px solid var(--tch-ink);
+  }
+  .snapshot .label {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.22em; font-size: 12px;
+    margin-bottom: 14px; text-transform: uppercase;
+  }
+  .snapshot h2 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-4); line-height: 0.95;
+    margin: 0 0 8px;
+  }
+  .snapshot .biz {
+    font-family: var(--tch-mono); font-size: var(--tch-step-1); margin-bottom: 24px;
+  }
+  .snapshot-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    border-top: 2px solid var(--tch-ink); padding-top: 24px;
+  }
+  .snap-block .k {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 10px;
+    color: rgba(28,28,30,0.55); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .snap-block .v {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-2); line-height: 1.1;
+  }
+  .snap-block .small { font-family: var(--tch-mono); font-size: 13px; }
+  .checklist { display: flex; flex-direction: column; gap: 4px; font-family: var(--tch-mono); font-size: 12px; }
+  .checklist .it { display: flex; gap: 6px; align-items: center; }
+  .checklist .it.done { opacity: 0.5; text-decoration: line-through; }
+
+  /* SECTION (color-coded by ownership) */
+  .prep-section {
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink);
+    padding: 32px;
+    margin-bottom: 22px;
+    box-shadow: var(--tch-shadow-hard-sm);
+    position: relative;
+  }
+  .prep-section.m { border-left: 8px solid var(--tch-red); }
+  .prep-section.j { border-left: 8px solid var(--tch-blue); }
+  .prep-section.shared { border-left: 8px solid var(--tch-yellow); }
+
+  .sec-head {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .sec-num {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); color: rgba(28,28,30,0.25); line-height: 1;
+  }
+  .sec-title {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); flex: 1; line-height: 1;
     margin: 0;
-    font-size: 22px;
-    letter-spacing: -0.01em;
   }
-  header .meta {
-    color: var(--muted);
-    font-size: 13px;
+  .tch-owner {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 10px; text-transform: uppercase;
+    padding: 4px 10px;
   }
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
+  .tch-owner.m { background: var(--tch-red); color: var(--tch-cream); }
+  .tch-owner.j { background: var(--tch-blue); color: var(--tch-cream); }
+  .tch-owner.shared { background: var(--tch-yellow); color: var(--tch-ink); border: 1px solid var(--tch-ink); }
+
+  /* Auto-pop content (Claude's data layer) */
+  .autopop {
+    background: rgba(28,28,30,0.04);
+    padding: 18px;
+    margin-bottom: 18px;
+    border-left: 3px solid var(--tch-blue);
   }
-  .controls input[type="date"] {
-    font: inherit;
-    padding: 6px 8px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--card);
+  .autopop .head {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    color: var(--tch-blue); margin-bottom: 12px; text-transform: uppercase;
   }
-  button {
-    font: inherit;
-    padding: 8px 14px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--card);
-    color: var(--ink);
-    cursor: pointer;
-    transition: background 0.1s ease;
+  .autopop ul { list-style: none; margin: 0; padding: 0; }
+  .autopop li { padding: 6px 0; font-size: var(--tch-step-0); border-bottom: 1px dashed var(--tch-ink-line); }
+  .autopop li:last-child { border-bottom: none; }
+  .autopop .pending {
+    font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.55); font-style: italic;
   }
-  button:hover:not(:disabled) { background: var(--bg); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.primary {
-    background: var(--jake);
-    color: #fff;
-    border-color: var(--jake);
+  .source-link {
+    background: var(--tch-blue); color: var(--tch-cream);
+    padding: 2px 8px; font-size: 10px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    text-decoration: none;
+    margin-left: 6px;
   }
-  button.primary:hover:not(:disabled) { background: #245fb0; }
-  button.urgent {
-    background: var(--urgent);
-    color: #fff;
-    border-color: var(--urgent);
+
+  /* Human input layer (M+J) */
+  .input-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .input-block {
+    background: var(--tch-cream); padding: 16px;
+    border: 2px solid var(--tch-ink-line);
   }
-  button.megha {
-    background: var(--megha);
-    color: #fff;
-    border-color: var(--megha);
+  .input-block.m { border-color: var(--tch-red); border-left-width: 5px; }
+  .input-block.j { border-color: var(--tch-blue); border-left-width: 5px; }
+  .input-block .who {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px;
+    margin-bottom: 8px; text-transform: uppercase;
   }
-  section {
-    background: var(--card);
-    border: 1px solid var(--ink);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
+  .input-block.m .who { color: var(--tch-red); }
+  .input-block.j .who { color: var(--tch-blue); }
+  .input-block .prompt {
+    font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.65);
+    margin-bottom: 8px; font-style: italic;
   }
-  section h2 {
-    margin: 0 0 12px;
-    font-size: 16px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .input-block textarea {
+    width: 100%; min-height: 70px;
+    background: var(--tch-cream);
+    border: 1.5px dashed var(--tch-ink-line);
+    padding: 10px;
+    font-family: var(--tch-mono); font-size: 13px; color: var(--tch-ink);
+    resize: vertical;
   }
-  .empty {
-    color: var(--muted);
-    font-style: italic;
+  .input-block textarea:focus { outline: none; border-color: var(--tch-red); background: rgba(246,237,82,0.08); }
+
+  /* Authority audit grid */
+  .audit-pillars {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-top: 18px;
+  }
+  .audit-pillar {
+    background: var(--tch-cream);
+    padding: 18px;
+    border: 2px solid var(--tch-ink);
+  }
+  .audit-pillar h5 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 12px;
+    color: var(--tch-ink); margin: 0 0 6px; text-transform: uppercase;
+  }
+  .audit-pillar .claude-baseline {
+    background: rgba(46,99,231,0.1); padding: 6px 10px;
+    font-family: var(--tch-mono); font-size: 11px;
+    margin-bottom: 14px;
+  }
+  .audit-pillar .claude-baseline .lab { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 10px; color: var(--tch-blue); text-transform: uppercase; }
+  .pillar-score-row { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+  .pillar-score-row .who-mini { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 10px; min-width: 16px; }
+  .pillar-score-row .who-mini.m { color: var(--tch-red); }
+  .pillar-score-row .who-mini.j { color: var(--tch-blue); }
+  .pillar-score-row input {
+    width: 50px; padding: 4px;
+    border: 1.5px solid var(--tch-ink-line);
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1); text-align: center;
+    background: var(--tch-cream);
+  }
+  .pillar-score-row .out { font-family: var(--tch-mono); font-size: 10px; color: rgba(28,28,30,0.5); }
+  .pillar-combined {
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px dashed var(--tch-ink-line);
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-2); color: var(--tch-red); text-align: center;
+  }
+
+  /* Library */
+  .library { display: grid; gap: 12px; }
+  .file-card {
+    background: var(--tch-cream); padding: 18px;
+    border: 1.5px solid var(--tch-ink-line);
+    display: grid; grid-template-columns: 50px 1fr auto; gap: 16px; align-items: flex-start;
+  }
+  .file-card .icon { font-size: 28px; }
+  .file-card .name {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.04em; font-size: 14px; margin-bottom: 4px;
+  }
+  .file-card .summary {
+    font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.7);
+  }
+  .file-card .summary::before { content: '↳ '; color: var(--tch-blue); font-weight: 700; }
+  .file-card .open {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 8px 14px; text-decoration: none;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase;
+    align-self: center;
+  }
+  .library-empty {
+    font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.55); font-style: italic;
     padding: 12px 0;
   }
-  .session-card {
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 14px 16px;
-    margin-top: 12px;
-    background: var(--bg);
+
+  /* Workshop inputs */
+  .draft-input {
+    background: var(--tch-cream);
+    border: 1.5px solid var(--tch-ink);
+    padding: 16px;
+    margin-bottom: 14px;
   }
-  .session-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 8px;
+  .draft-input.gap { background: rgba(246,237,82,0.18); border-left: 5px solid var(--tch-yellow); }
+  .draft-input .lab {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    margin-bottom: 8px; text-transform: uppercase;
   }
-  .session-head strong { font-size: 16px; }
-  .badge {
+  .draft-input.gap .lab { color: var(--tch-ink); }
+  .draft-input textarea {
+    width: 100%; min-height: 60px;
+    background: transparent;
+    border: 1.5px dashed var(--tch-ink-line); padding: 10px;
+    font-family: var(--tch-mono); font-size: 13px; resize: vertical;
+  }
+  .draft-input textarea:focus { outline: none; border-color: var(--tch-red); background: var(--tch-cream); }
+  .draft-list { list-style: none; margin: 8px 0; padding: 0; }
+  .draft-list li {
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--tch-ink-line);
+    font-family: var(--tch-mono); font-size: 13px;
+  }
+  .draft-list li[contenteditable]:focus { outline: none; background: rgba(246,237,82,0.15); }
+
+  .ownership-toggle {
+    background: rgba(28,28,30,0.05);
+    padding: 14px;
+    margin-top: 14px;
+    border: 1.5px dashed var(--tch-ink-line);
+    font-family: var(--tch-mono); font-size: 12px;
+  }
+  .ownership-toggle strong { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; }
+
+  /* Submit bar */
+  .submit-bar {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 24px 32px;
+    border-top: 4px solid var(--tch-red);
+    display: flex; gap: 16px; justify-content: space-between; align-items: center;
+    position: sticky; bottom: 0; flex-wrap: wrap;
+    z-index: 50;
+  }
+  .submit-bar .summary { font-family: var(--tch-mono); font-size: 13px; }
+  .submit-bar .summary strong { color: var(--tch-yellow); }
+  .submit-btn {
+    background: var(--tch-red); color: var(--tch-cream);
+    border: 2px solid var(--tch-cream);
+    padding: 16px 28px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 12px;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 4px 4px 0 var(--tch-cream);
+    transition: all 0.1s;
+    text-decoration: none;
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #fff;
   }
-  .badge.prep    { background: #888; }
-  .badge.session { background: var(--jake); }
-  .badge.debrief { background: #9333ea; }
-  .badge.review  { background: var(--warn); }
-  .badge.sent    { background: var(--urgent); }
-  .badge.unknown { background: #444; }
-  .badge.brief-ready { background: var(--urgent); }
-  .badge.brief-pending, .badge.brief-not_generated { background: #aaa; }
-  .badge.brief-generating { background: var(--client); color: var(--ink); }
-  .badge.brief-failed { background: var(--megha); }
-  .session-meta {
-    color: var(--muted);
-    font-size: 13px;
-    margin: 4px 0 12px;
+  .submit-btn:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--tch-cream); }
+
+  @media (max-width: 900px) {
+    .snapshot-row, .input-pair, .audit-pillars { grid-template-columns: 1fr; }
+    .audit-pillars { grid-template-columns: 1fr 1fr; }
   }
-  .session-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-  }
-  .brief-detail {
-    margin-top: 12px;
-    padding: 12px 14px;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    font-size: 13px;
-    line-height: 1.55;
-    white-space: pre-wrap;
-    overflow-x: auto;
-    max-height: 400px;
-    overflow-y: auto;
-  }
-  .promote-form {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 8px;
-    margin-top: 12px;
-  }
-  .promote-form select,
-  .promote-form input {
-    font: inherit;
-    padding: 8px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--card);
-    color: var(--ink);
-    /* Grid items default to min-width:auto, which makes a <select> grow to
-       fit its widest <option>. Force it to honor its 1fr allocation and
-       truncate visually instead of overflowing the row. */
-    min-width: 0;
-    max-width: 100%;
-  }
-  .promote-form select { text-overflow: ellipsis; }
-  @media (max-width: 640px) {
-    .promote-form { grid-template-columns: 1fr; }
-  }
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--ink);
-    color: var(--bg);
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-  .toast.show { opacity: 1; }
-  .toast.error { background: var(--megha); }
-  footer {
-    margin-top: 32px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 12px;
-    text-align: center;
-  }
-  a { color: var(--jake); }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <header>
-    <div>
-      <h1>☎️ Morning Prep</h1>
-      <div class="meta" id="dateLabel">Loading…</div>
+<header class="top">
+  <div class="left">
+    <h1>Morning Prep</h1>
+  </div>
+  <div class="right">
+    <a class="hub-link" href="/templates-v2/hub.html">← Hub</a>
+    <span class="role-tag" id="userRole" onclick="toggleRole()">Reviewing as: Megha</span>
+  </div>
+</header>
+
+<!-- Session picker (shown when no ?sessionId in URL) -->
+<div id="pickerView" style="display:none">
+  <main>
+    <div class="picker-card">
+      <h2>Pick a session</h2>
+      <p>Morning Prep is per-session. Open one from the list below, or head back to the Hub to start a new session.</p>
+      <ul class="picker-list" id="sessionPicker">
+        <li class="library-empty" style="border:none;">Loading sessions…</li>
+      </ul>
+      <p style="margin-top:24px"><a class="submit-btn" href="/templates-v2/hub.html" style="background:var(--tch-ink); color:var(--tch-cream); box-shadow: 4px 4px 0 var(--tch-red);">← Back to Hub</a></p>
     </div>
-    <div class="controls">
-      <input type="date" id="dateInput">
-      <button id="reloadBtn">Reload</button>
-    </div>
-  </header>
-
-  <section id="sessionsSection">
-    <h2>Today's Sessions</h2>
-    <div id="sessionsBody"><div class="empty">Loading…</div></div>
-  </section>
-
-  <section id="promoteSection">
-    <h2>Promote a Payment to a Session</h2>
-    <p style="margin:0 0 8px;color:var(--muted);font-size:13px">
-      Manual fallback for org-internal bookings or when the Calendly auto-link skips (e.g., email mismatch between Stripe and Calendly). Pick a paid client + their booked time.
-    </p>
-    <div class="promote-form">
-      <select id="paymentSelect">
-        <option value="">Loading payments…</option>
-      </select>
-      <input type="datetime-local" id="scheduledAtInput">
-      <button class="primary" id="promoteBtn">Promote</button>
-    </div>
-  </section>
-
-  <footer>
-    The Creative Hotline · V2 Morning Prep · Batch 3b
-  </footer>
+  </main>
 </div>
 
-<div class="toast" id="toast"></div>
+<!-- Per-session prep view -->
+<div id="prepView" style="display:none">
+<main>
+
+  <!-- ============== SNAPSHOT (hero) ============== -->
+  <div class="snapshot">
+    <span class="stamp">☎ Pre-Session</span>
+    <div class="label">↳ Snapshot</div>
+    <h2 id="clientName">Loading…</h2>
+    <div class="biz" id="businessName">…</div>
+    <div class="snapshot-row">
+      <div class="snap-block">
+        <div class="k">Creative Emergency</div>
+        <div class="small" id="emergency">—</div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Authority Score (Claude baseline)</div>
+        <div class="v" id="authBaseline">— / 20</div>
+      </div>
+      <div class="snap-block">
+        <div class="k">The Unlock (Claude's hypothesis)</div>
+        <div class="small" id="unlock">Generate a research brief to see Claude's hypothesis.</div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Session Time</div>
+        <div class="small" id="sessionTime">—</div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Prep Status</div>
+        <div class="checklist" id="prepStatus">
+          <div class="it" id="ck-intake">⬜ Tally intake parsed</div>
+          <div class="it" id="ck-research">⬜ Research brief generated</div>
+          <div class="it" id="ck-inputs">⬜ M + J inputs locked</div>
+          <div class="it" id="ck-workshop">⬜ Workshop session generated</div>
+        </div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Library</div>
+        <div class="small" id="libraryCount">— files uploaded · <a href="#library" style="color: var(--tch-red); font-weight:700;">↓ jump</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== SECTION 1 (M LEAD) — BRAND & POSITIONING ============== -->
+  <section class="prep-section m">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">Brand &amp; Positioning</span>
+      <span class="tch-owner m">M · Lead</span>
+    </div>
+
+    <div class="autopop">
+      <div class="head">↳ Claude's read · auto-populated from research brief</div>
+      <ul id="autopopBrand">
+        <li class="pending">Research brief not yet generated. Generate the brief from Hub to populate this section with Claude's reads on voice, visual ID, and brand-promise gaps.</li>
+      </ul>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block m">
+        <div class="who">Megha · Your read</div>
+        <div class="prompt">"What's actually going on here?" + "What do you want to push hardest in the session?"</div>
+        <textarea id="inMReadBrand" placeholder="Your sharpest take..."></textarea>
+      </div>
+      <div class="input-block j">
+        <div class="who">Jake · Anything to add?</div>
+        <div class="prompt">Optional — flag anything Megha should know.</div>
+        <textarea id="inJAddBrand" placeholder="Optional..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 2 (J LEAD) — DISTRIBUTION & SYSTEMS ============== -->
+  <section class="prep-section j">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">Distribution &amp; Systems</span>
+      <span class="tch-owner j">J · Lead</span>
+    </div>
+
+    <div class="autopop">
+      <div class="head">↳ Claude's read · auto-populated from research brief</div>
+      <ul id="autopopDistribution">
+        <li class="pending">Research brief not yet generated. SEO baseline, conversion-path, owned-audience reads will appear here once Claude runs the brief.</li>
+      </ul>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block j">
+        <div class="who">Jake · Systems gap</div>
+        <div class="prompt">"What's the systems gap here?" + "What's the unlock you'd recommend?"</div>
+        <textarea id="inJReadSystems" placeholder="Your read..."></textarea>
+      </div>
+      <div class="input-block m">
+        <div class="who">Megha · Anything to add?</div>
+        <div class="prompt">Optional — flag anything Jake should know.</div>
+        <textarea id="inMAddSystems" placeholder="Optional..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 3 (SHARED) — AUDIENCE ============== -->
+  <section class="prep-section shared">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Audience</span>
+      <span class="tch-owner shared">Shared</span>
+    </div>
+
+    <div class="autopop">
+      <div class="head">↳ Claude's read · auto-populated from research brief</div>
+      <ul id="autopopAudience">
+        <li class="pending">Research brief not yet generated. Current vs. ideal audience reads + reference brands surface here.</li>
+      </ul>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block m">
+        <div class="who">Megha · Hot take</div>
+        <textarea id="inMHotAudience" placeholder="The elephant in the room is..."></textarea>
+      </div>
+      <div class="input-block j">
+        <div class="who">Jake · Hot take</div>
+        <textarea id="inJHotAudience" placeholder="The elephant in the room is..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 4 (SHARED) — AUTHORITY AUDIT ============== -->
+  <section class="prep-section shared">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <span class="sec-title">Creative Authority Audit</span>
+      <span class="tch-owner shared">Shared</span>
+    </div>
+
+    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 14px;">Each pillar has Claude's baseline read. M and J each set their own score (1–5). Combined average becomes the session's Authority Score.</p>
+
+    <div class="audit-pillars">
+      <div class="audit-pillar" data-pillar="positioning">
+        <h5>Positioning</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div><span id="baselinePositioning">— / 5 — baseline pending research brief</span></div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" id="mPositioning" data-pillar="positioning" data-who="m" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" id="jPositioning" data-pillar="positioning" data-who="j" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined" id="avgPositioning">avg —</div>
+      </div>
+      <div class="audit-pillar" data-pillar="messaging">
+        <h5>Messaging</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div><span id="baselineMessaging">— / 5 — baseline pending research brief</span></div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" id="mMessaging" data-pillar="messaging" data-who="m" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" id="jMessaging" data-pillar="messaging" data-who="j" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined" id="avgMessaging">avg —</div>
+      </div>
+      <div class="audit-pillar" data-pillar="execution">
+        <h5>Execution</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div><span id="baselineExecution">— / 5 — baseline pending research brief</span></div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" id="mExecution" data-pillar="execution" data-who="m" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" id="jExecution" data-pillar="execution" data-who="j" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined" id="avgExecution">avg —</div>
+      </div>
+      <div class="audit-pillar" data-pillar="distribution">
+        <h5>Distribution</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div><span id="baselineDistribution">— / 5 — baseline pending research brief</span></div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" id="mDistribution" data-pillar="distribution" data-who="m" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" id="jDistribution" data-pillar="distribution" data-who="j" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined" id="avgDistribution">avg —</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 5 — LIBRARY ============== -->
+  <section class="prep-section" id="library">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <span class="sec-title">Library</span>
+      <span class="tch-owner shared">Client-uploaded · Tally</span>
+    </div>
+
+    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 14px;">Files uploaded through Tally. Click to open the full file.</p>
+
+    <div class="library" id="libraryGrid">
+      <div class="library-empty">No files uploaded yet.</div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 6 — PRE-DRAFT WORKSHOP INPUTS ============== -->
+  <section class="prep-section">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <span class="sec-title">Pre-Draft Workshop Inputs</span>
+    </div>
+
+    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 18px;">These flow directly into the workshop session screen. Get them tight here — refining live during the call eats the 45 minutes.</p>
+
+    <div class="draft-input gap">
+      <div class="lab">↳ Gap Hypothesis (auto-merged from M + J)</div>
+      <textarea id="gapHypothesis" placeholder="One sentence. The thing beneath the thing. M and J each draft, system merges into one for the session screen."></textarea>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block m">
+        <div class="who">Megha · "What we like" (brand &amp; positioning angle)</div>
+        <textarea id="mLike" placeholder="Specific. What's already working we'd protect..."></textarea>
+      </div>
+      <div class="input-block j">
+        <div class="who">Jake · "What we like" (design &amp; systems angle)</div>
+        <textarea id="jLike" placeholder="Specific. What's already working we'd protect..."></textarea>
+      </div>
+    </div>
+
+    <div class="draft-input" style="margin-top: 16px;">
+      <div class="lab">↳ 72-Hour Win · draft</div>
+      <textarea id="win72h" placeholder="The specific action — punchy, verb-led..."></textarea>
+    </div>
+    <div class="draft-input">
+      <div class="lab">↳ 1-Week Move · draft</div>
+      <textarea id="win1w" placeholder="The specific action..."></textarea>
+    </div>
+    <div class="draft-input">
+      <div class="lab">↳ 1-Month Build · draft</div>
+      <textarea id="win1m" placeholder="The specific action..."></textarea>
+    </div>
+
+    <div class="input-pair" style="margin-top: 16px;">
+      <div class="input-block">
+        <div class="who" style="color: var(--tch-ink);">⛔ What we're not doing · draft list</div>
+        <ul class="draft-list" id="stopDraft">
+          <li contenteditable="true">[Specific thing to stop — both contribute]</li>
+          <li contenteditable="true">[Second item]</li>
+        </ul>
+      </div>
+      <div class="input-block">
+        <div class="who" style="color: var(--tch-ink);">⏸ What to leave alone · draft list</div>
+        <ul class="draft-list" id="leaveDraft">
+          <li contenteditable="true">[Strength worth protecting]</li>
+          <li contenteditable="true">[Second item]</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ownership-toggle">
+      <strong>Per-session ownership reassignment</strong> — defaults: M owns creative/voice, J owns action/systems, Effort/Impact + Audit + upsell are shared. <em>Override here if this client's expertise fits differently.</em> [reassignment UI: Phase 2]
+    </div>
+  </section>
+
+</main>
+</div>
+
+<div class="submit-bar" id="submitBar" style="display:none">
+  <div class="summary"><strong>Auto-save:</strong> <span id="status">on · saved locally</span> · <strong>Generate the workshop session screen when prep is locked.</strong></div>
+  <a class="submit-btn" id="workshopBtn" href="#">Generate Workshop Session ☎</a>
+</div>
 
 <script>
-(function () {
-  const dateInput = document.getElementById('dateInput');
-  const dateLabel = document.getElementById('dateLabel');
-  const sessionsBody = document.getElementById('sessionsBody');
-  const reloadBtn = document.getElementById('reloadBtn');
-  const paymentSelect = document.getElementById('paymentSelect');
-  const scheduledAtInput = document.getElementById('scheduledAtInput');
-  const promoteBtn = document.getElementById('promoteBtn');
-  const toast = document.getElementById('toast');
+  // ---------- URL + state ----------
+  const params = new URLSearchParams(window.location.search);
+  const sessionId = params.get('sessionId');
+  const STORAGE_KEY = sessionId ? `tch_prep_v2:${sessionId}` : 'tch_prep_v2';
 
-  function todayISO() {
-    const d = new Date();
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${y}-${m}-${day}`;
+  // ---------- Role toggle ----------
+  function toggleRole() {
+    const t = document.getElementById('userRole');
+    if (t.classList.contains('jake')) {
+      t.classList.remove('jake');
+      t.textContent = 'Reviewing as: Megha';
+    } else {
+      t.classList.add('jake');
+      t.textContent = 'Reviewing as: Jake';
+    }
   }
 
-  function showToast(msg, isError) {
-    toast.textContent = msg;
-    toast.classList.toggle('error', !!isError);
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+  // ---------- Local autosave (Megha's V2 pattern, scoped per session) ----------
+  function persist() {
+    const data = {};
+    document.querySelectorAll('#prepView input, #prepView textarea, #prepView [contenteditable="true"]').forEach(el => {
+      if (el.id) {
+        data[el.id] = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el.value : el.innerText;
+      }
+    });
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
+    const s = document.getElementById('status');
+    if (s) s.textContent = 'on · saved ' + new Date().toLocaleTimeString();
+  }
+  function restore() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const data = JSON.parse(raw);
+      Object.keys(data).forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = data[id];
+        else el.innerText = data[id];
+      });
+    } catch(e) {}
   }
 
+  // ---------- Authority pillar averaging ----------
+  function updatePillarAvg(pillar) {
+    const m = parseFloat(document.getElementById('m' + cap(pillar))?.value);
+    const j = parseFloat(document.getElementById('j' + cap(pillar))?.value);
+    const target = document.getElementById('avg' + cap(pillar));
+    if (!target) return;
+    const valid = [m, j].filter(v => !isNaN(v) && v >= 1 && v <= 5);
+    if (valid.length === 0) { target.textContent = 'avg —'; return; }
+    const avg = valid.reduce((s, v) => s + v, 0) / valid.length;
+    target.textContent = 'avg ' + avg.toFixed(1);
+  }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  // ---------- Helpers ----------
   function fmtTime(iso) {
     if (!iso) return '—';
-    if (iso.length === 10) return iso;
     try {
-      return new Date(iso).toLocaleString(undefined, {
-        weekday: 'short', month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit',
-      });
-    } catch { return iso; }
+      const d = new Date(iso);
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz });
+      const tzShort = new Intl.DateTimeFormat('en-US', { timeZoneName: 'short', timeZone: tz }).formatToParts(d).find(p => p.type === 'timeZoneName')?.value || '';
+      const mins = Math.round((d - new Date()) / 60000);
+      const rel = mins > 0 ? ` · in <strong>${mins} min</strong>` : mins > -60 ? ` · started <strong>${-mins} min ago</strong>` : '';
+      return `${time} ${tzShort}${rel}`;
+    } catch(e) { return iso; }
   }
-
-  function fmtMoney(n) {
-    // Notion's "Payment Amount" stores dollars (cents→dollars conversion happens
-    // in the Stripe webhook before write). Do not divide again here.
-    if (typeof n !== 'number' || n === 0) return '—';
-    return '$' + Math.round(n).toLocaleString('en-US');
-  }
-
-  function badgeClass(prefix, value) {
-    return `badge ${prefix}-${(value || 'unknown').toLowerCase().replace(/\s+/g, '_')}`;
-  }
-
-  function renderSessions(data) {
-    dateLabel.textContent = `${data.date} · ${data.count} session${data.count === 1 ? '' : 's'}`;
-    if (!data.sessions || data.sessions.length === 0) {
-      sessionsBody.innerHTML = '<div class="empty">No sessions scheduled. Use the Promote form below to create one from a Payment.</div>';
-      return;
-    }
-    sessionsBody.innerHTML = data.sessions.map(renderSessionCard).join('');
-    // Wire generate-brief buttons
-    document.querySelectorAll('.gen-brief-btn').forEach(btn => {
-      btn.addEventListener('click', () => generateBrief(btn.dataset.intakeId, btn));
-    });
-    document.querySelectorAll('.view-brief-btn').forEach(btn => {
-      btn.addEventListener('click', () => toggleBrief(btn.dataset.intakeId, btn));
-    });
-    document.querySelectorAll('.link-and-gen-btn').forEach(btn => {
-      btn.addEventListener('click', () => linkAndGenerate(btn.dataset.sessionId, btn.dataset.intakeId, btn));
-    });
-  }
-
-  function renderSessionCard(s) {
-    const stateBadge = `<span class="${badgeClass('badge', s.state)}">${s.state}</span>`;
-    const briefBadge = `<span class="${badgeClass('badge brief', s.briefStatus)}">Brief: ${s.briefStatus}</span>`;
-    const intakeId = s.intake ? s.intake.id : '';
-    const paymentInfo = s.payment
-      ? `${s.payment.product || '—'} · ${fmtMoney(s.payment.amount)} · ${s.payment.email}`
-      : '<em>no payment linked</em>';
-    const intakeInfo = s.intake
-      ? `intake ${s.intake.status || 'unknown'}`
-      : '<em>no intake linked</em>';
-
-    let briefBtn;
-    if (intakeId) {
-      briefBtn = (s.briefStatus === 'Ready'
-        ? `<button class="view-brief-btn" data-intake-id="${intakeId}">View Brief</button>`
-        : `<button class="primary gen-brief-btn" data-intake-id="${intakeId}">Generate Brief</button>`);
-    } else if (s.suggestedIntakeId) {
-      briefBtn = `<button class="urgent link-and-gen-btn" data-session-id="${s.id}" data-intake-id="${s.suggestedIntakeId}">Link Intake + Generate Brief</button>
-        <span style="color:var(--muted);font-size:12px;margin-left:6px">auto-detected by email</span>`;
-    } else {
-      briefBtn = '<span style="color:var(--muted);font-size:12px">no intake found for this email yet</span>';
-    }
-
-    // State-aware nav buttons. The workshop link is always shown (mid-call
-    // edits are normal). Debrief link appears once the call is in motion or
-    // beyond. Action Plan link appears once one's been generated.
-    const sid = encodeURIComponent(s.id);
-    const workshopBtn = `<a class="workshop-link" href="/templates-v2/workshop-session.html?sessionId=${sid}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 14px;border:1px solid var(--jake);border-radius:4px;background:var(--card);color:var(--jake);text-decoration:none;font:inherit">Open Workshop →</a>`;
-    const showDebrief = ['Session', 'Debrief', 'Review', 'Sent'].includes(s.state);
-    const debriefBtn = showDebrief
-      ? `<a href="/templates-v2/debrief.html?sessionId=${sid}" target="_blank" rel="noopener" style="display:inline-block;padding:8px 14px;border:1px solid #9333ea;border-radius:4px;background:#9333ea;color:#fff;text-decoration:none;font:inherit">Open Debrief →</a>`
-      : '';
-    const showActionPlan = ['Review', 'Sent'].includes(s.state) || !!s.actionPlanUrl;
-    const actionPlanBtn = showActionPlan
-      ? `<a href="/templates-v2/action-plan.html?sessionId=${sid}&edit=1" target="_blank" rel="noopener" style="display:inline-block;padding:8px 14px;border:1px solid var(--urgent);border-radius:4px;background:var(--urgent);color:#fff;text-decoration:none;font:inherit">Action Plan →</a>`
-      : '';
-
-    return `
-      <div class="session-card" data-session-id="${s.id}">
-        <div class="session-head">
-          <div>
-            <strong>${escapeHtml(s.clientName || 'Untitled')}</strong>
-            ${s.sessionId ? `<span style="color:var(--muted);font-size:12px">#${s.sessionId}</span>` : ''}
-          </div>
-          <div>${stateBadge} ${briefBadge}</div>
-        </div>
-        <div class="session-meta">
-          ${fmtTime(s.scheduledAt)} · ${paymentInfo} · ${intakeInfo}
-        </div>
-        <div class="session-actions">
-          ${briefBtn}
-          ${workshopBtn}
-          ${debriefBtn}
-          ${actionPlanBtn}
-        </div>
-        <div class="brief-detail" id="brief-${intakeId}" style="display:none"></div>
-      </div>
-    `;
-  }
-
   function escapeHtml(s) {
-    return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return String(s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+  }
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  }
+  function setCheckDone(id) {
+    const el = document.getElementById(id);
+    if (el) { el.classList.add('done'); el.firstChild && (el.textContent = '✓ ' + el.textContent.replace(/^[⬜✓]\s*/, '')); }
   }
 
-  async function generateBrief(intakeId, btn) {
-    btn.disabled = true;
-    btn.textContent = 'Generating…';
+  // ---------- Picker view (when no sessionId) ----------
+  async function showPicker() {
+    document.getElementById('pickerView').style.display = '';
+    const list = document.getElementById('sessionPicker');
     try {
-      const res = await fetch('/api/research-brief/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ intakeId }),
-      });
-      const body = await res.json();
-      if (!res.ok) {
-        showToast(`Generate failed: ${body.message || body.error}`, true);
-        btn.disabled = false;
-        btn.textContent = 'Generate Brief';
+      const today = new Date().toISOString().slice(0, 10);
+      const res = await fetch(`/api/sessions/today?date=${today}&tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`);
+      if (!res.ok) throw new Error('sessions fetch failed');
+      const data = await res.json();
+      const sessions = data?.sessions || [];
+      if (sessions.length === 0) {
+        list.innerHTML = '<li class="library-empty" style="border:none;">No sessions scheduled today. Head to the Hub to promote a payment into a session.</li>';
         return;
       }
-      showToast('Brief ready — reloading…');
-      setTimeout(loadSessions, 600);
-    } catch (err) {
-      showToast(`Generate failed: ${err.message}`, true);
-      btn.disabled = false;
-      btn.textContent = 'Generate Brief';
+      list.innerHTML = sessions.map(s => `
+        <li>
+          <div>
+            <div class="name">${escapeHtml(s.intake?.clientName || s.payment?.customerName || 'Unknown client')}</div>
+            <div class="meta">${escapeHtml(s.intake?.businessName || '')} · ${fmtTime(s.scheduledAt).replace(/<[^>]+>/g, '')}</div>
+          </div>
+          <a class="open" href="?sessionId=${encodeURIComponent(s.id)}">Open Prep →</a>
+        </li>
+      `).join('');
+    } catch(err) {
+      console.error('[morning-prep picker] failed', err);
+      list.innerHTML = '<li class="library-empty" style="border:none;">Could not load sessions. Try the Hub.</li>';
     }
   }
 
-  async function linkAndGenerate(sessionId, intakeId, btn) {
-    btn.disabled = true;
-    btn.textContent = 'Linking…';
+  // ---------- Per-session prep load ----------
+  async function loadSession() {
+    document.getElementById('prepView').style.display = '';
+    document.getElementById('submitBar').style.display = '';
     try {
-      // 1. Link intake to session
-      const linkRes = await fetch('/api/sessions/link-intake', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId, intakeId }),
-      });
-      if (!linkRes.ok) {
-        const body = await linkRes.json();
-        showToast(`Link failed: ${body.message || body.error}`, true);
-        btn.disabled = false;
-        btn.textContent = 'Link Intake + Generate Brief';
-        return;
+      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+      if (!res.ok) throw new Error('session fetch ' + res.status);
+      const s = await res.json();
+
+      const intake = s.intake || {};
+      const payment = s.payment || {};
+      const product = (payment.product || s.product || '').toString();
+
+      setText('clientName', intake.clientName || payment.customerName || 'Unnamed client');
+      const businessBits = [
+        intake.businessName || intake.brand,
+        intake.role,
+        product ? product.replace(/_/g, ' ') : null,
+      ].filter(Boolean).join(' · ');
+      setText('businessName', businessBits || '—');
+      setText('emergency', intake.creativeEmergency ? `"${intake.creativeEmergency}"` : 'No intake emergency on file yet.');
+      setText('sessionTime', fmtTime(s.scheduledAt).replace(/<[^>]+>/g, m => m === '<strong>' || m === '</strong>' ? '' : ''));
+      // sessionTime HTML version (rel time inside <strong>)
+      const tEl = document.getElementById('sessionTime');
+      if (tEl) tEl.innerHTML = fmtTime(s.scheduledAt);
+
+      // Library: file count from intake brand files (count placeholder for now — full grid needs file shape from API)
+      const fileCount = Array.isArray(intake.brandFiles) ? intake.brandFiles.length : 0;
+      setText('libraryCount', fileCount === 0
+        ? 'No files uploaded · '
+        : `${fileCount} client-uploaded file${fileCount === 1 ? '' : 's'} · `);
+      // append the jump link back
+      const libEl = document.getElementById('libraryCount');
+      if (libEl) libEl.innerHTML += '<a href="#library" style="color: var(--tch-red); font-weight:700;">↓ jump</a>';
+
+      // Library grid
+      const grid = document.getElementById('libraryGrid');
+      if (fileCount > 0 && grid) {
+        grid.innerHTML = intake.brandFiles.map(f => `
+          <div class="file-card">
+            <div class="icon">📄</div>
+            <div>
+              <div class="name">${escapeHtml(f.name || 'File')}</div>
+              <div class="summary">Click "Open" to view. Claude file summaries arrive once the research brief generates.</div>
+            </div>
+            <a class="open" href="${escapeHtml(f.url || '#')}" target="_blank" rel="noopener">Open</a>
+          </div>
+        `).join('');
       }
-      // 2. Generate brief on the now-linked intake
-      btn.textContent = 'Generating…';
-      const genRes = await fetch('/api/research-brief/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ intakeId }),
-      });
-      const genBody = await genRes.json();
-      if (!genRes.ok) {
-        showToast(`Generate failed (linked OK though): ${genBody.message || genBody.error}`, true);
-        setTimeout(loadSessions, 600);
-        return;
-      }
-      showToast('Linked + brief ready — reloading…');
-      setTimeout(loadSessions, 600);
-    } catch (err) {
-      showToast(`Link/generate failed: ${err.message}`, true);
-      btn.disabled = false;
-      btn.textContent = 'Link Intake + Generate Brief';
+
+      // Prep status checks
+      if (intake.clientName) setCheckDone('ck-intake');
+      // Research brief check: would inspect a "Research Brief Status" intake field if surfaced; skip for now.
+
+      // Workshop submit destination
+      const btn = document.getElementById('workshopBtn');
+      if (btn) btn.href = `/templates-v2/workshop-session.html?sessionId=${encodeURIComponent(sessionId)}`;
+
+      // TODO Phase 2: fetch /api/research-brief/get?intakeId=... and populate autopop sections + baseline pillar scores.
+    } catch(err) {
+      console.error('[morning-prep] load failed', err);
+      setText('clientName', 'Could not load session');
+      setText('businessName', err.message || String(err));
     }
   }
 
-  async function toggleBrief(intakeId, btn) {
-    const target = document.getElementById(`brief-${intakeId}`);
-    if (!target) return;
-    if (target.style.display === 'block') {
-      target.style.display = 'none';
-      btn.textContent = 'View Brief';
-      return;
-    }
-    btn.disabled = true;
-    target.style.display = 'block';
-    target.textContent = 'Loading brief…';
-    try {
-      // Fetch intake page directly via Notion API would need a server route;
-      // for now, regenerate-and-show isn't appropriate. Use a dedicated GET if/when needed.
-      // Quick approach: re-call /api/research-brief/generate is wasteful. Instead,
-      // we'll fetch a tiny GET endpoint. Until that exists, just hint at pulling from Notion.
-      const res = await fetch(`/api/research-brief/get?intakeId=${encodeURIComponent(intakeId)}`);
-      if (!res.ok) {
-        // Fallback message — endpoint may not exist yet.
-        target.textContent = `Brief is ready in Notion (intake ${intakeId.slice(0,8)}…). A dedicated GET endpoint will be added in Batch 3c.`;
-      } else {
-        const body = await res.json();
-        target.textContent = body.json
-          ? JSON.stringify(JSON.parse(body.json), null, 2)
-          : 'Brief field empty.';
-      }
-    } catch (err) {
-      target.textContent = `Error loading brief: ${err.message}`;
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Hide Brief';
-    }
+  // ---------- Boot ----------
+  if (sessionId) {
+    loadSession().then(restore);
+    document.addEventListener('input', persist);
+    document.addEventListener('blur', persist, true);
+    document.addEventListener('change', (e) => {
+      if (e.target.dataset?.pillar) updatePillarAvg(e.target.dataset.pillar);
+    });
+  } else {
+    showPicker();
   }
-
-  async function loadSessions() {
-    const date = dateInput.value || todayISO();
-    // Send local TZ offset so the API can translate the local calendar day
-    // into a UTC datetime range (Notion filters in UTC).
-    const tz = new Date().getTimezoneOffset();
-    sessionsBody.innerHTML = '<div class="empty">Loading…</div>';
-    try {
-      const res = await fetch(`/api/sessions/today?date=${encodeURIComponent(date)}&tz=${tz}`);
-      const body = await res.json();
-      if (!res.ok) {
-        sessionsBody.innerHTML = `<div class="empty" style="color:var(--megha)">Error: ${body.message || body.error}</div>`;
-        return;
-      }
-      renderSessions(body);
-    } catch (err) {
-      sessionsBody.innerHTML = `<div class="empty" style="color:var(--megha)">Network error: ${err.message}</div>`;
-    }
-  }
-
-  async function loadUnpromotedPayments() {
-    try {
-      const res = await fetch('/api/payments/unpromoted');
-      const body = await res.json();
-      if (!res.ok) {
-        paymentSelect.innerHTML = `<option value="">Error loading</option>`;
-        return;
-      }
-      if (!body.payments || body.payments.length === 0) {
-        paymentSelect.innerHTML = `<option value="">No unpromoted payments</option>`;
-        return;
-      }
-      paymentSelect.innerHTML = '<option value="">— pick a payment —</option>' +
-        body.payments.map(p => {
-          const label = `${p.clientName || p.email} · ${p.product || '—'} · ${p.paymentDate || ''}`;
-          return `<option value="${p.id}">${escapeHtml(label)}</option>`;
-        }).join('');
-    } catch (err) {
-      paymentSelect.innerHTML = `<option value="">Network error</option>`;
-    }
-  }
-
-  async function promote() {
-    const paymentId = paymentSelect.value;
-    const scheduledAt = scheduledAtInput.value;
-    if (!paymentId) {
-      showToast('Pick a payment first.', true);
-      return;
-    }
-    if (!scheduledAt) {
-      showToast('Set a scheduled time.', true);
-      return;
-    }
-    promoteBtn.disabled = true;
-    promoteBtn.textContent = 'Promoting…';
-    try {
-      // Convert datetime-local (no TZ) to ISO with local offset.
-      const localDate = new Date(scheduledAt);
-      const iso = localDate.toISOString();
-      const res = await fetch('/api/sessions/from-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId, scheduledAt: iso }),
-      });
-      const body = await res.json();
-      if (!res.ok) {
-        showToast(`Promote failed: ${body.message || body.error}`, true);
-        return;
-      }
-      showToast(body.created ? 'Session created.' : 'Already existed (deduped).');
-      paymentSelect.value = '';
-      scheduledAtInput.value = '';
-      // Set date filter to the promoted date so the new session appears.
-      dateInput.value = scheduledAt.slice(0, 10);
-      await Promise.all([loadSessions(), loadUnpromotedPayments()]);
-    } catch (err) {
-      showToast(`Network error: ${err.message}`, true);
-    } finally {
-      promoteBtn.disabled = false;
-      promoteBtn.textContent = 'Promote';
-    }
-  }
-
-  // Init.
-  dateInput.value = todayISO();
-  reloadBtn.addEventListener('click', loadSessions);
-  dateInput.addEventListener('change', loadSessions);
-  promoteBtn.addEventListener('click', promote);
-  loadSessions();
-  loadUnpromotedPayments();
-})();
 </script>
 </body>
 </html>
