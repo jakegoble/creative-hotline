@@ -92,51 +92,75 @@ export interface TallyWebhookPayload {
 /**
  * The parsed, typed shape of a Creative Hotline Intake submission.
  *
- * Maps Tally field indices (0–20) onto domain-level fields. The index
- * positions are baked into the form `b5W1JE` and must stay in sync if
- * the form is reordered. See parser.ts for the actual index lookups.
+ * The parser matches fields by Tally's `label` (with a positional-index
+ * fallback for backwards compatibility), so this shape is stable even
+ * when Megha reorders the form. See parser.ts FIELD_MAP for the canonical
+ * label → output-key bindings.
+ *
+ * Fields added after the initial 21 (LinkedIn, X/Twitter, TikTok, YouTube,
+ * Website 2, T&C, AI Overview) are optional — they may not be present on
+ * older submissions before the form was extended.
  */
 export interface ParsedIntake {
-  /** Index 0 — INPUT_TEXT */
+  // ---------- Core 21 fields (original Tally form b5W1JE) ----------
+
+  /** "Full Name" — INPUT_TEXT */
   fullName: string;
-  /** Index 1 — INPUT_TEXT */
+  /** "Role" — INPUT_TEXT */
   role: string;
-  /** Index 2 — INPUT_TEXT */
+  /** "Brand / Company" — INPUT_TEXT */
   brand: string;
-  /** Index 3 — INPUT_PHONE_NUMBER (no Notion field; goes into AI Intake Summary) */
+  /** "Phone Number" — INPUT_PHONE_NUMBER (no Notion field; goes into AI Intake Summary) */
   phone: string;
-  /** Index 4 — INPUT_EMAIL */
+  /** "E-mail Address" — INPUT_EMAIL */
   email: string;
-  /** Index 5 — INPUT_LINK (Instagram URL) */
+  /** "Instagram" — INPUT_LINK */
   instagram: string;
-  /** Index 6 — INPUT_LINK (Website URL) */
+  /** "Website" — INPUT_LINK */
   website: string;
-  /** Index 7 — TEXTAREA */
+  /** "What's the creative emergency?" — TEXTAREA */
   creativeEmergency: string;
-  /** Index 8 — MULTIPLE_CHOICE → Desired Outcome multi_select */
+  /** "What do you actually want out of this call?" — MULTIPLE_CHOICE → Notion multi_select */
   desiredOutcomes: string[];
-  /** Index 9 — TEXTAREA */
+  /** "What have you already tried?" — TEXTAREA */
   whatTried: string;
-  /** Index 10 — TEXTAREA */
+  /** "Any deadlines or fires we should know about?" — TEXTAREA */
   deadline: string;
-  /** Index 11 — TEXTAREA */
+  /** "Anything we should avoid?" — TEXTAREA */
   constraintsAvoid: string;
-  /** Index 12 — DROPDOWN */
+  /** "What's your price range of offering?" — DROPDOWN */
   priceRange: string;
-  /** Index 13 — DROPDOWN */
+  /** "What's your approximate monthly revenue?" — DROPDOWN */
   monthlyRevenue: string;
-  /** Index 14 — DROPDOWN */
+  /** "Who's on your team?" — DROPDOWN */
   teamSize: string;
-  /** Index 15 — DROPDOWN */
+  /** "How many hours/week do you spend on your business?" — DROPDOWN */
   hoursPerWeek: string;
-  /** Index 16 — DROPDOWN */
+  /** "Monthly budget for tools and outside help?" — DROPDOWN */
   monthlyBudget: string;
-  /** Index 17 — INPUT_TEXT */
+  /** "If you could wave a magic wand..." — INPUT_TEXT */
   magicWand: string;
-  /** Index 18 — DROPDOWN — Primary Platform */
+  /** "Where do you spend most of your creative energy right now?" — DROPDOWN */
   primaryPlatform: string;
-  /** Index 19 — TEXTAREA — Inspiration */
+  /** "Who or what inspires you / your brand right now?" — TEXTAREA */
   inspiration: string;
-  /** Index 20 — FILE_UPLOAD — Brand Files */
+  /** Brand-files upload — FILE_UPLOAD */
   brandFiles: TallyFileUpload[];
+
+  // ---------- New fields (added 2026-05-18 per Megha's edits) ----------
+
+  /** "LinkedIn" — INPUT_LINK (optional) */
+  linkedin?: string;
+  /** "X / Twitter" — INPUT_LINK (optional) */
+  twitter?: string;
+  /** "TikTok" — INPUT_LINK (optional) */
+  tiktok?: string;
+  /** "YouTube" — INPUT_LINK (optional) */
+  youtube?: string;
+  /** "Website 2" or "Additional website" — INPUT_LINK (optional) */
+  website2?: string;
+  /** Terms & Conditions agreement checkbox — required. CHECKBOX → boolean */
+  tcsAgreed?: boolean;
+  /** Optional AI overview the client pasted from their LLM — TEXTAREA */
+  aiOverview?: string;
 }
