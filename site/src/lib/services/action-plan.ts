@@ -231,6 +231,84 @@ function extractJson(raw: string): string {
   return raw.trim();
 }
 
+/**
+ * Transient errors worth retrying once: HTTP 408 (timeout), 425 (too early),
+ * 429 (rate limit), 500-599 (server error). Anthropic occasionally returns
+ * 529 (overloaded) and 503 (service unavailable) under load — both retry-safe.
+ */
+function isTransientStatus(status: number): boolean {
+  return status === 408 || status === 425 || status === 429 || status >= 500;
+}
+
+interface ClaudeFetchResult {
+  res: Response;
+  attempt: number;
+}
+
+/**
+ * Single-retry wrapper around the Claude Messages API call.
+ *
+ * Retries ONCE on transient HTTP status or network throw. Backoff: 1.5s
+ * (Anthropic's overloaded responses typically clear within a couple seconds).
+ * Total worst case: ~original + 1.5s + retry latency. Well inside the
+ * action-plan generation budget (~30-60s expected).
+ *
+ * Non-transient errors (400/401/403/404 etc.) fail-fast on first attempt.
+ */
+async function fetchClaudeWithRetry(body: object): Promise<ClaudeFetchResult> {
+  const init: RequestInit = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": config.anthropic.apiKey,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify(body),
+  };
+
+  // Attempt 1
+  let lastErr: unknown = null;
+  try {
+    const res = await fetch(`${BASE}/messages`, init);
+    if (res.ok || !isTransientStatus(res.status)) {
+      return { res, attempt: 1 };
+    }
+    // Transient HTTP — drain body so it doesn't leak, then fall through to retry.
+    await res.text().catch(() => "");
+    console.warn(
+      `[action-plan] Claude ${res.status} on attempt 1 — retrying once after 1.5s`,
+    );
+  } catch (err) {
+    // Network-level failure (DNS, connect, abort, etc.) — also retry-safe.
+    lastErr = err;
+    const message = err instanceof Error ? err.message : "unknown_fetch_error";
+    console.warn(
+      `[action-plan] Claude fetch threw on attempt 1 (${message}) — retrying once after 1.5s`,
+    );
+  }
+
+  await new Promise((r) => setTimeout(r, 1500));
+
+  // Attempt 2 — let any thrown error propagate (no more retries).
+  try {
+    const res = await fetch(`${BASE}/messages`, init);
+    return { res, attempt: 2 };
+  } catch (err) {
+    const wrapped =
+      err instanceof Error
+        ? err
+        : new Error(
+            typeof err === "string" ? err : "Claude fetch failed after retry",
+          );
+    // Preserve the first-attempt error context if useful.
+    if (lastErr && lastErr !== wrapped) {
+      const orig = lastErr instanceof Error ? lastErr.message : String(lastErr);
+      wrapped.message = `${wrapped.message} (initial: ${orig})`;
+    }
+    throw wrapped;
+  }
+}
+
 export async function generateActionPlanV2(
   input: GenerateInput,
 ): Promise<ActionPlanV2> {
@@ -239,30 +317,27 @@ export async function generateActionPlanV2(
   }
   const { system, user } = buildPrompt(input);
 
-  const res = await fetch(`${BASE}/messages`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": config.anthropic.apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: config.anthropic.model,
-      // 11-section plan is bigger output — bump from 4096 to give Claude room.
-      max_tokens: 6144,
-      system,
-      messages: [{ role: "user", content: user }],
-    }),
+  const { res, attempt } = await fetchClaudeWithRetry({
+    model: config.anthropic.model,
+    // 11-section plan is bigger output — bump from 4096 to give Claude room.
+    max_tokens: 6144,
+    system,
+    messages: [{ role: "user", content: user }],
   });
 
   if (!res.ok) {
     const errText = await res.text().catch(() => "");
-    throw new Error(`Claude API ${res.status}: ${errText.slice(0, 500)}`);
+    throw new Error(
+      `Claude API ${res.status} (attempt ${attempt}): ${errText.slice(0, 500)}`,
+    );
   }
 
   const data = (await res.json()) as MessagesResponse;
   const raw = data.content[0]?.text ?? "";
   if (!raw) throw new Error("Claude returned empty content");
+  if (attempt > 1) {
+    console.info(`[action-plan] succeeded on attempt ${attempt}`);
+  }
 
   let parsed: Partial<ActionPlanV2> & Record<string, unknown>;
   try {
