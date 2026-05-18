@@ -195,7 +195,7 @@ export const demoData = {
       { service: "Notion", status: "healthy", latency_ms: 245, message: "Connected" },
       { service: "Stripe", status: "healthy", latency_ms: 180, message: "Connected" },
       { service: "Calendly", status: "healthy", latency_ms: 310, message: "Connected" },
-      { service: "Claude AI", status: "healthy", latency_ms: 520, message: "claude-sonnet-4-5-20250929" },
+      { service: "Claude AI", status: "healthy", latency_ms: 520, message: "claude-sonnet-4-6" },
       { service: "n8n", status: "healthy", latency_ms: 150, message: "5 workflows active" },
       { service: "ManyChat", status: "healthy", latency_ms: 95, message: "Connected" },
       { service: "Fireflies", status: "healthy", latency_ms: 110, message: "Connected" },

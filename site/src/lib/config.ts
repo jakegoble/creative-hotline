@@ -39,7 +39,7 @@ export const config = {
 
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY ?? "",
-    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-5-20250929",
+    model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
   },
 
   n8n: {
@@ -65,6 +65,17 @@ export const config = {
     authToken: process.env.TWILIO_AUTH_TOKEN ?? "",
     /** E.164 format, e.g. +14137674332 (the TCH hotline number). */
     fromNumber: process.env.TWILIO_FROM_NUMBER ?? "",
+  },
+
+  tally: {
+    /** HMAC secret used to verify inbound Tally webhook signatures.
+     *  Configured per-form in the Tally Integrations panel; the same value
+     *  must be set as TALLY_WEBHOOK_SECRET in Vercel. */
+    webhookSecret: process.env.TALLY_WEBHOOK_SECRET ?? "",
+    /** If true, skip HMAC verification on inbound Tally webhooks. Only set in
+     *  local dev when there's no secret configured. Production must have
+     *  the secret set; otherwise verification fails closed. */
+    allowUnsigned: process.env.TALLY_ALLOW_UNSIGNED === "true",
   },
 
   /** V2 Frankie onboarding emails — off by default until SendGrid is verified. */
