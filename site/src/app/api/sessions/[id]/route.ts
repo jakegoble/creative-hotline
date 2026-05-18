@@ -171,6 +171,23 @@ export async function GET(
     intakeId ? fetchIntakeSummary(intakeId) : Promise.resolve(null),
   ]);
 
+  // Tier-aware booking URLs for the Hub's Sent panel CTAs ("Book Follow-Up
+  // Session", "Pitch Clarity Bundle"). Prefer the per-tier env-driven values
+  // when configured; fall back to the universal "creative-hotline-call"
+  // event so the buttons never go to a dead URL. The fallback matches the
+  // SMS keyword router's BOOKING_URL (src/lib/sms/keywords.ts) so messaging
+  // stays consistent across channels.
+  const UNIVERSAL_BOOKING_URL =
+    "https://calendly.com/soscreativehotline/creative-hotline-call";
+  const bookingUrls = {
+    firstCall:
+      config.frankieEmails.calendlyUrls.firstCall || UNIVERSAL_BOOKING_URL,
+    singleCall:
+      config.frankieEmails.calendlyUrls.singleCall || UNIVERSAL_BOOKING_URL,
+    clarityBundle:
+      config.frankieEmails.calendlyUrls.clarityBundle || UNIVERSAL_BOOKING_URL,
+  };
+
   return NextResponse.json({
     id: session.id,
     sessionId: session.sessionId,
@@ -196,6 +213,9 @@ export async function GET(
     // Brand Files (Tally Q8 uploads) once the Tally→n8n→Notion mapping
     // is in place; empty array until then. Null when no intake linked.
     intake,
+    // Tier-aware booking URLs — Sent panel CTAs read these and degrade
+    // gracefully to the universal booking URL when env vars aren't set.
+    bookingUrls,
   });
 }
 

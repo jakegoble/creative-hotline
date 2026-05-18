@@ -306,8 +306,8 @@
           <div class="panel-head"><span class="panel-tag">↳ Re-Engagement</span></div>
           <div class="input-block m"><div class="who">Upsell Signal</div><div class="body" style="color: var(--tch-red);"><strong>STRONG</strong></div></div>
           <div class="input-block auto"><div class="who">Referral Code</div><div class="body" style="font-family: var(--tch-mono); letter-spacing: 0.16em; font-weight: 700;">RAE-DIAL-100</div></div>
-          <button class="panel-cta">Book Follow-Up Session →</button>
-          <button class="panel-cta green" style="margin-top: 8px;">Pitch Clarity Bundle ($1,500)</button>
+          <button class="panel-cta" id="sentBookFollowupBtn" type="button">Book Follow-Up Session →</button>
+          <button class="panel-cta green" id="sentClarityBundleBtn" type="button" style="margin-top: 8px;">Pitch Clarity Bundle ($1,500)</button>
         </div>
       </div>
     </div>
@@ -517,6 +517,68 @@
       if (codeBlock && codeBlock.textContent.includes('RAE-DIAL-100')) {
         codeBlock.textContent = code;
       }
+    }
+
+    // Wire the Sent-panel CTAs to the right Calendly URLs. The API returns
+    // bookingUrls keyed by tier (firstCall / singleCall / clarityBundle); we
+    // map "Book Follow-Up Session" → singleCall and "Pitch Clarity Bundle" →
+    // clarityBundle. The API falls back to the universal hotline URL when
+    // tier-specific URLs aren't configured, so these buttons always go
+    // somewhere live.
+    //
+    // We append ?utm_source=hub&utm_campaign=sent_panel&utm_content=<tier>
+    // so we can attribute any follow-ups generated from this surface. Also
+    // pre-fills email if we have it for the client (Calendly accepts the
+    // ?email= and ?name= query params on its event pages).
+    try {
+      const urls = s.bookingUrls || {};
+      const followupUrl = urls.singleCall || urls.firstCall || '';
+      const clarityUrl = urls.clarityBundle || '';
+      const clientEmail = s.payment && s.payment.email ? s.payment.email : '';
+      const clientName = s.clientName || '';
+
+      function buildBookingHref(base, tier) {
+        if (!base) return '';
+        try {
+          const u = new URL(base);
+          u.searchParams.set('utm_source', 'hub');
+          u.searchParams.set('utm_campaign', 'sent_panel');
+          u.searchParams.set('utm_content', tier);
+          if (clientEmail) u.searchParams.set('email', clientEmail);
+          if (clientName) u.searchParams.set('name', clientName);
+          return u.toString();
+        } catch {
+          // Base wasn't a parseable URL (e.g., "calendly.com/..." without
+          // scheme). Coerce by prepending https:// and retry once.
+          if (/^calendly\.com/i.test(base)) {
+            return buildBookingHref('https://' + base, tier);
+          }
+          return base;
+        }
+      }
+
+      const followupBtn = document.getElementById('sentBookFollowupBtn');
+      if (followupBtn) {
+        const href = buildBookingHref(followupUrl, 'follow_up');
+        followupBtn.onclick = href ? function () { window.open(href, '_blank', 'noopener'); } : null;
+        followupBtn.classList.toggle('disabled', !href);
+        followupBtn.title = href
+          ? 'Opens Calendly with the client’s email + name prefilled'
+          : 'No follow-up booking URL configured';
+      }
+
+      const clarityBtn = document.getElementById('sentClarityBundleBtn');
+      if (clarityBtn) {
+        const href = buildBookingHref(clarityUrl, 'clarity_bundle');
+        clarityBtn.onclick = href ? function () { window.open(href, '_blank', 'noopener'); } : null;
+        clarityBtn.classList.toggle('disabled', !href);
+        clarityBtn.title = href
+          ? 'Opens the Clarity Bundle Calendly with the client’s details prefilled'
+          : 'No Clarity Bundle booking URL configured';
+      }
+    } catch (e) {
+      // Defensive: never let a CTA wiring failure break the Hub render.
+      console.warn('[hub] Sent-panel CTA wiring failed:', e);
     }
 
     // Replace static placeholder copy across all state panels with real data
