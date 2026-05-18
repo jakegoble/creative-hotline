@@ -1,1037 +1,566 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Debrief · The Creative Hotline</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCH · Debrief</title>
 <link rel="stylesheet" href="tch-brand.css" />
 <style>
-  /* V2 brand: red=Megha, blue=Jake, yellow=client, black=automated, green=urgent
-     Aliased to Megha's tch-brand.css tokens — single source of truth. */
-  :root {
-    --bg: var(--tch-cream, #F5F2EB);
-    --card: var(--tch-cream, #F5F2EB);
-    --ink: var(--tch-ink, #1C1C1E);
-    --muted: #666666;
-    --line: var(--tch-ink-line, rgba(28,28,30,0.18));
-    --megha: var(--tch-red, #EC3107);
-    --jake: var(--tch-blue, #2E63E7);
-    --client: var(--tch-yellow, #F6ED52);
-    --auto: var(--tch-ink, #1C1C1E);
-    --urgent: var(--tch-green, #4ADE80);
-    --warn: #B95F00;
+  body { background: var(--tch-ink); color: var(--tch-cream); }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.03) 2px 3px);
+    pointer-events: none; z-index: 1000;
   }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--tch-mono, 'JetBrains Mono', 'SF Mono', 'Courier New', monospace);
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  h1 {
-    font-family: var(--tch-display, 'Georgia', serif);
-    font-style: italic;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-  h2 {
-    font-family: var(--tch-nord, 'Bebas Neue', sans-serif);
-    letter-spacing: 0.08em;
-  }
-  .container {
-    max-width: 980px;
-    margin: 0 auto;
-    padding: 24px 20px 80px;
-  }
-  header {
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 16px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  header h1 {
-    margin: 0;
-    font-size: 22px;
-    letter-spacing: -0.01em;
-  }
-  header .meta {
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 4px;
-  }
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  button, a.btn {
-    font: inherit;
-    padding: 8px 14px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--card);
-    color: var(--ink);
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    transition: background 0.1s ease;
-  }
-  button:hover:not(:disabled), a.btn:hover { background: var(--bg); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.primary {
-    background: var(--jake);
-    color: #fff;
-    border-color: var(--jake);
-  }
-  button.megha {
-    background: var(--megha);
-    color: #fff;
-    border-color: var(--megha);
-  }
-  button.urgent {
-    background: var(--urgent);
-    color: #fff;
-    border-color: var(--urgent);
-  }
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #fff;
-    vertical-align: middle;
-  }
-  .badge.prep    { background: #888; }
-  .badge.session { background: var(--jake); }
-  .badge.debrief { background: #9333ea; }
-  .badge.review  { background: var(--warn); }
-  .badge.sent    { background: var(--urgent); }
-  .badge.unknown { background: #444; }
 
-  section {
-    background: var(--card);
-    border: 1px solid var(--ink);
-    border-radius: 8px;
-    padding: 18px 20px;
+  .top {
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 4px solid var(--tch-ink);
+    position: relative; z-index: 10;
+  }
+  .top .left { display: flex; gap: 14px; align-items: center; }
+  .top .label-tag { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; opacity: 0.85; text-transform: uppercase; }
+  .countdown {
+    background: var(--tch-ink); color: var(--tch-yellow);
+    padding: 6px 14px;
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1);
+    border: 2px solid var(--tch-yellow);
+  }
+  .countdown.warning { color: var(--tch-red); border-color: var(--tch-red); }
+
+  .meta-bar {
+    background: rgba(245,242,235,0.04);
+    padding: 18px 32px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    border-bottom: 1px solid rgba(245,242,235,0.1);
+    position: relative; z-index: 5;
+  }
+  .meta-bar .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.16em; font-size: 10px; color: rgba(245,242,235,0.5); margin-bottom: 4px; text-transform: uppercase; }
+  .meta-bar .v { font-family: var(--tch-mono); font-size: var(--tch-step-0); }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 36px 32px 80px; position: relative; z-index: 2; }
+
+  .heading {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-4); line-height: 0.95;
+    margin-bottom: 8px;
+  }
+  .heading em { color: var(--tch-yellow); font-style: italic; }
+  .subheading {
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
+    color: rgba(245,242,235,0.6); margin-bottom: 32px;
+  }
+  .subheading em { color: var(--tch-yellow); font-style: normal; font-weight: 700; }
+
+  .panel {
+    background: rgba(245,242,235,0.04);
+    border: 2px solid rgba(245,242,235,0.12);
+    padding: 26px;
     margin-bottom: 18px;
   }
-  section h2 {
-    margin: 0 0 6px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .panel-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
   }
-  section .help {
-    color: var(--muted);
-    font-size: 12px;
-    font-style: italic;
-    margin: 0 0 12px;
+  .panel h3 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 13px;
+    color: var(--tch-yellow); text-transform: uppercase;
   }
+  .panel .time-tag {
+    font-family: var(--tch-nord); font-weight: 500;
+    letter-spacing: 0.16em; font-size: 10px;
+    color: rgba(245,242,235,0.4); text-transform: uppercase;
+  }
+  .panel.leap {
+    border-color: var(--tch-red);
+    background: rgba(236,49,7,0.06);
+  }
+  .panel.leap h3 { color: var(--tch-red); }
 
-  .field-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
+  .autopop {
+    background: rgba(46,99,231,0.08);
+    border-left: 4px solid var(--tch-blue);
+    padding: 22px;
+    margin-bottom: 28px;
   }
-  @media (max-width: 720px) {
-    .field-grid { grid-template-columns: 1fr; }
+  .autopop h4 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    color: var(--tch-blue); margin-bottom: 14px; text-transform: uppercase;
   }
+  .autopop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .autopop-item .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.12em; font-size: 10px; color: rgba(245,242,235,0.5); margin-bottom: 4px; text-transform: uppercase; }
+  .autopop-item .v { font-family: var(--tch-mono); font-size: var(--tch-step-0); }
 
-  textarea {
-    font: inherit;
-    width: 100%;
-    min-height: 110px;
-    padding: 10px 12px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--bg);
-    color: var(--ink);
+  .pair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .who-input {
+    background: rgba(28,28,30,0.4);
+    padding: 18px;
+    border-left: 4px solid var(--tch-red);
+  }
+  .who-input.jake { border-left-color: var(--tch-blue); }
+  .who-input .who { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; margin-bottom: 10px; text-transform: uppercase; }
+  .who-input.megha .who { color: var(--tch-red); }
+  .who-input.jake .who { color: var(--tch-blue); }
+  .score-input {
+    width: 100%; background: transparent; color: var(--tch-cream);
+    border: none; border-bottom: 2px solid rgba(245,242,235,0.3);
+    padding: 8px 0;
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); text-align: center;
+  }
+  .score-input:focus { outline: none; border-color: var(--tch-yellow); }
+
+  textarea.input {
+    width: 100%; min-height: 70px;
+    background: transparent; color: var(--tch-cream);
+    border: 2px solid rgba(245,242,235,0.2);
+    padding: 12px;
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
     resize: vertical;
-    line-height: 1.55;
   }
-  textarea:focus { outline: 1px solid var(--jake); border-color: var(--jake); }
-  textarea::placeholder { color: var(--muted); font-style: italic; }
+  textarea.input:focus { outline: none; border-color: var(--tch-yellow); background: rgba(246,237,82,0.05); }
+  textarea.input::placeholder { color: rgba(245,242,235,0.3); font-style: italic; }
 
-  input[type="url"] {
-    font: inherit;
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--bg);
-    color: var(--ink);
-  }
-  input[type="url"]:focus { outline: 1px solid var(--jake); border-color: var(--jake); }
-  input[type="url"]::placeholder { color: var(--muted); font-style: italic; }
-
-  .save-status {
-    color: var(--muted);
-    font-size: 12px;
-    font-style: italic;
-  }
-  .save-status.saving { color: var(--warn); }
-  .save-status.saved  { color: var(--urgent); }
-  .save-status.error  { color: var(--megha); font-style: normal; }
-
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--ink);
-    color: var(--bg);
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.2s ease;
-  }
-  .toast.show { opacity: 1; }
-  .toast.error { background: var(--megha); }
-
-  .actions-row {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 4px;
-  }
-
-  footer {
-    margin-top: 32px;
-    padding-top: 16px;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 12px;
-    text-align: center;
-  }
-  a { color: var(--jake); }
-  .error-screen {
-    text-align: center;
-    padding: 60px 20px;
-    color: var(--megha);
-  }
-
-  .pill-link {
-    display: inline-block;
-    margin-left: 8px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    background: #EEF4FF;
-    color: var(--jake);
-    text-decoration: none;
-    font-size: 12px;
-  }
-
-  /* Quick-pulse pill button row */
-  .pill-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+  .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .pulse-q { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; color: var(--tch-yellow); margin-bottom: 10px; text-transform: uppercase; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
   .pill {
-    appearance: none;
-    border: 1px solid var(--ink);
-    background: var(--bg);
-    color: var(--ink);
+    background: transparent; color: var(--tch-cream);
+    border: 1.5px solid rgba(245,242,235,0.3);
     padding: 8px 14px;
-    border-radius: 999px;
-    font: inherit;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.12s ease;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.1em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase; transition: all 0.15s;
   }
-  .pill:hover { background: rgba(0,0,0,0.04); }
-  .pill.active {
-    background: var(--ink);
-    color: var(--bg);
-    border-color: var(--ink);
-  }
-  .pill.active.megha { background: var(--megha); border-color: var(--megha); }
-  .pill.active.jake  { background: var(--jake);  border-color: var(--jake); }
+  .pill:hover { background: rgba(245,242,235,0.08); }
+  .pill.active { background: var(--tch-yellow); color: var(--tch-ink); border-color: var(--tch-yellow); }
+  .pill.green.active { background: #4ade80; color: var(--tch-ink); border-color: #4ade80; }
+  .pill.red.active { background: var(--tch-red); color: var(--tch-cream); border-color: var(--tch-red); }
 
-  /* Numeric 1-10 score sliders */
-  .score-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    align-items: start;
-  }
-  @media (max-width: 720px) {
-    .score-row { grid-template-columns: 1fr; }
-  }
-  .score-block label {
-    display: block;
-    font-size: 12px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 4px;
-  }
-  .score-block input[type="range"] {
-    width: 100%;
-  }
-  .score-block .score-display {
-    font-size: 22px;
-    font-weight: 700;
-    margin-left: 6px;
-  }
-  .score-display.megha { color: var(--megha); }
-  .score-display.jake  { color: var(--jake); }
-  .score-avg {
-    margin-top: 6px;
-    font-size: 12px;
-    color: var(--muted);
-  }
-  .score-avg .flag {
-    color: var(--megha);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-left: 6px;
-  }
+  .avg-row { display: flex; gap: 16px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+  .avg-tag { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.16em; font-size: 10px; color: rgba(245,242,235,0.5); text-transform: uppercase; }
+  .avg-val { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2); color: var(--tch-yellow); }
+  .avg-flag { font-family: var(--tch-mono); font-size: 11px; color: var(--tch-red); font-weight: 700; }
 
-  /* Flag-for-review checkboxes */
-  .checkbox-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
+  .save-bar {
+    background: var(--tch-ink);
+    padding: 24px 32px;
+    border-top: 4px solid var(--tch-red);
+    display: flex; gap: 16px; align-items: center; justify-content: space-between;
+    position: sticky; bottom: 0; flex-wrap: wrap;
+    z-index: 50;
   }
-  .checkbox-row label {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1px solid var(--ink);
-    border-radius: 999px;
-    font-size: 13px;
-    cursor: pointer;
-    user-select: none;
+  .save-bar .summary { font-family: var(--tch-mono); font-size: 13px; color: rgba(245,242,235,0.7); }
+  .save-bar .summary strong { color: var(--tch-yellow); }
+  .save-btn {
+    background: var(--tch-red); color: var(--tch-cream);
+    border: 2px solid var(--tch-cream);
+    padding: 16px 28px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 12px;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 4px 4px 0 var(--tch-cream);
+    transition: all 0.1s;
   }
-  .checkbox-row label.checked {
-    background: var(--ink);
-    color: var(--bg);
-  }
-  .checkbox-row input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    width: 0;
-    height: 0;
-    margin: 0;
-  }
+  .save-btn:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--tch-cream); }
 
-  /* Leap-prompt accent — left border in red to mark high-leverage questions */
-  section.leap {
-    border-left: 3px solid var(--megha);
-    padding-left: 14px;
-    margin-left: -17px;
+  .check-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .check-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: rgba(245,242,235,0.04);
+    padding: 12px 16px; cursor: pointer;
+    border: 1.5px solid rgba(245,242,235,0.1);
+    transition: all 0.15s;
   }
-  section.leap h2::after {
-    content: ' · LEAP';
-    color: var(--megha);
-    font-size: 10px;
-    letter-spacing: 0.14em;
-    vertical-align: 2px;
+  .check-item:hover { background: rgba(245,242,235,0.08); border-color: var(--tch-yellow); }
+  .check-item input { margin-top: 2px; cursor: pointer; }
+  .check-item label { font-family: var(--tch-mono); font-size: 13px; cursor: pointer; }
+
+  @media (max-width: 768px) {
+    .meta-bar, .autopop-grid, .pair-grid, .pulse-grid, .check-row { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <header>
-    <div>
-      <h1>📝 Debrief</h1>
-      <div class="meta" id="metaLine">Loading session…</div>
-    </div>
-    <div class="controls">
-      <span class="save-status" id="saveStatus">—</span>
-      <a class="btn" id="workshopLink" href="#">← Workshop</a>
-    </div>
-  </header>
-
-  <div id="errorScreen" style="display:none" class="error-screen"></div>
-
-  <div id="debriefRoot" style="display:none">
-
-    <section>
-      <h2>★ Workshop Recap</h2>
-      <p class="help" id="recapHint">Pulled from the live workshop blob. Read-only — go back to the workshop to edit.</p>
-      <div id="recap" style="font-size:13px;color:var(--muted)"></div>
-    </section>
-
-    <section>
-      <h2>📂 Fireflies Transcript</h2>
-      <p class="help">Paste the meeting URL or recording link. Optional — but the action plan is much sharper if it can read what you and the client actually said.</p>
-      <input type="url" id="firefliesUrl" placeholder="https://app.fireflies.ai/view/...">
-    </section>
-
-    <!-- ====== QUICK-PULSE PILLS (4 one-click selectors, ~2 min total) ====== -->
-
-    <section>
-      <h2>🎚️ Diagnosis Tone</h2>
-      <p class="help">How did Megha frame the read? One click.</p>
-      <div class="pill-row" data-pill-group="diagnosisTone">
-        <button type="button" class="pill" data-value="direct_sharp">Direct + sharp</button>
-        <button type="button" class="pill" data-value="warm_direct">Warm-direct</button>
-        <button type="button" class="pill" data-value="gentle">Gentle</button>
-      </div>
-    </section>
-
-    <section>
-      <h2>🎯 What Landed Hardest</h2>
-      <p class="help">Which thread did the client feel most? One click.</p>
-      <div class="pill-row" data-pill-group="landedHardest">
-        <button type="button" class="pill" data-value="positioning">Positioning</button>
-        <button type="button" class="pill" data-value="systems">Systems</button>
-        <button type="button" class="pill" data-value="revenue">Revenue</button>
-        <button type="button" class="pill" data-value="other">Other</button>
-      </div>
-    </section>
-
-    <section>
-      <h2>📈 Upsell Signal</h2>
-      <p class="help">Did this client signal they want more?</p>
-      <div class="pill-row" data-pill-group="upsellSignal">
-        <button type="button" class="pill" data-value="strong">Strong</button>
-        <button type="button" class="pill" data-value="medium">Medium</button>
-        <button type="button" class="pill" data-value="weak">Weak</button>
-        <button type="button" class="pill" data-value="none">None</button>
-      </div>
-    </section>
-
-    <section>
-      <h2>⚡ First Move · Did They Do It?</h2>
-      <p class="help">The 60-second on-call activation — did they actually do the thing?</p>
-      <div class="pill-row" data-pill-group="firstMoveDone">
-        <button type="button" class="pill" data-value="yes">Yes</button>
-        <button type="button" class="pill" data-value="partial">Partial</button>
-        <button type="button" class="pill" data-value="no">No</button>
-      </div>
-    </section>
-
-    <!-- ====== INDEPENDENT SCORES (M and J each, ~3 min) ====== -->
-
-    <section>
-      <h2>⭐ Session Score · 1-10</h2>
-      <p class="help">Independent. M and J each give their own. Average shows below.</p>
-      <div class="score-row">
-        <div class="score-block">
-          <label>Megha</label>
-          <input type="range" id="sessionScoreM" min="1" max="10" step="1" value="7" />
-          <span class="score-display megha" id="sessionScoreMDisplay">7</span>
-        </div>
-        <div class="score-block">
-          <label>Jake</label>
-          <input type="range" id="sessionScoreJ" min="1" max="10" step="1" value="7" />
-          <span class="score-display jake" id="sessionScoreJDisplay">7</span>
-        </div>
-      </div>
-      <div class="score-avg" id="sessionScoreAvg">Average: —</div>
-    </section>
-
-    <section class="leap">
-      <h2>🎯 Diagnosis Confidence · 1-10</h2>
-      <p class="help">Independent. If the average is below 7, the action plan gets flagged for extra Claude polish.</p>
-      <div class="score-row">
-        <div class="score-block">
-          <label>Megha</label>
-          <input type="range" id="confidenceM" min="1" max="10" step="1" value="7" />
-          <span class="score-display megha" id="confidenceMDisplay">7</span>
-        </div>
-        <div class="score-block">
-          <label>Jake</label>
-          <input type="range" id="confidenceJ" min="1" max="10" step="1" value="7" />
-          <span class="score-display jake" id="confidenceJDisplay">7</span>
-        </div>
-      </div>
-      <div class="score-avg" id="confidenceAvg">Average: —</div>
-    </section>
-
-    <!-- ====== PAIRED CONVERSATION PROMPTS (~5 min, prompt the talk) ====== -->
-
-    <section>
-      <h2>💡 Non-Obvious Insight</h2>
-      <p class="help">What surprised you about this client? The thing you couldn't have predicted from the intake.</p>
-      <textarea id="nonObviousInsight" placeholder="What surprised us..."></textarea>
-    </section>
-
-    <section class="leap">
-      <h2>⚖️ Where Did M + J See This Differently?</h2>
-      <p class="help">Disagreement = signal. Senior teams calibrate by naming it. Don't paper over it.</p>
-      <textarea id="sawDifferently" placeholder="M leaned ___ · J leaned ___ · we landed on ___"></textarea>
-    </section>
-
-    <section class="leap">
-      <h2>🪡 What Got Left Unresolved?</h2>
-      <p class="help">The tension we didn't fully land. Source of churn + missed upsells. Flag it for follow-up.</p>
-      <textarea id="leftUnresolved" placeholder="The thread we didn't close..."></textarea>
-    </section>
-
-    <section>
-      <h2>🔁 Anything You'd Do Differently?</h2>
-      <p class="help">Optional. Process notes for the next session — pacing, prep, energy.</p>
-      <textarea id="doDifferently" placeholder="Next time..."></textarea>
-    </section>
-
-    <!-- ====== DOWNSTREAM CAPTURE ====== -->
-
-    <section>
-      <h2>🎧 B-Side · Items to Route</h2>
-      <p class="help">Ideas from the call that aren't in today's plan but worth holding onto — for follow-ups, future sessions, or the Creative File.</p>
-      <textarea id="bSideItems" placeholder="• ...&#10;• ..."></textarea>
-    </section>
-
-    <div class="field-grid">
-      <section>
-        <h2>📒 Follow-Up Notes · Megha</h2>
-        <p class="help">What should M remember about this client for the Day 7/14/30/60/90 emails?</p>
-        <textarea id="followUpNotesM" placeholder="Remember: ___"></textarea>
-      </section>
-      <section>
-        <h2>📒 Follow-Up Notes · Jake</h2>
-        <p class="help">What should J remember? Systems/tools angle for follow-ups.</p>
-        <textarea id="followUpNotesJ" placeholder="Remember: ___"></textarea>
-      </section>
-    </div>
-
-    <section>
-      <h2>🚩 Flag for Review</h2>
-      <p class="help">How should the action plan be handled? Multi-select OK.</p>
-      <div class="checkbox-row" data-checkbox-group="reviewFlags">
-        <label data-value="standard"><input type="checkbox" /> Standard</label>
-        <label data-value="extra_polish"><input type="checkbox" /> Extra polish</label>
-        <label data-value="claude_refine"><input type="checkbox" /> Claude refine</label>
-        <label data-value="recovery"><input type="checkbox" /> Recovery</label>
-      </div>
-    </section>
-
-    <section>
-      <h2>⚡ Action Plan</h2>
-      <p class="help">When the debrief is good enough, generate the action plan. Claude will use the workshop, this debrief, and the Fireflies transcript (if linked) to produce a structured plan for the client. Saves to Notion and gives you a public URL to share.</p>
-      <div class="actions-row">
-        <button class="primary" id="generateBtn">⚡ Generate Action Plan</button>
-        <a id="viewPlanLink" class="btn urgent" style="display:none">View Action Plan →</a>
-        <span id="generateStatus" class="save-status"></span>
-      </div>
-    </section>
-
-    <footer>
-      The Creative Hotline · V2 Debrief · Batch 5 · Autosave on
-    </footer>
-
+<header class="top">
+  <div class="left">
+    <span class="tch-logo-3stack-white" style="height: 32px; width: 72px;"></span>
+    <span class="label-tag">Debrief · Internal · M + J Only</span>
   </div>
+  <div style="display:flex; gap:16px; align-items:center;">
+    <span id="saveStatus" style="font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.75);">—</span>
+    <a href="/templates-v2/hub.html" style="font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase; color: var(--tch-cream); text-decoration: none; padding: 5px 12px; border: 1px solid rgba(245,242,235,0.4);">← Hub</a>
+    <span class="label-tag">10-Min Budget</span>
+    <div class="countdown" id="countdown">10:00</div>
+  </div>
+</header>
 
+<div class="meta-bar">
+  <div><div class="k">Client</div><div class="v" id="clientName">[Client Name]</div></div>
+  <div><div class="k">Brand</div><div class="v" id="businessName">[Business Name]</div></div>
+  <div><div class="k">Session</div><div class="v" id="sessionDate">[Date · 9:30 AM]</div></div>
+  <div><div class="k">Started</div><div class="v" id="startTime">[Auto on disconnect]</div></div>
 </div>
 
-<div class="toast" id="toast"></div>
+<main>
+  <h1 class="heading">The <em>Debrief</em>.</h1>
+  <p class="subheading">10 minutes. Together. Now — while it's still hot. <em>This pushes straight into the action plan.</em></p>
+
+  <div class="autopop">
+    <h4>↳ Pulled forward from the session — no input needed</h4>
+    <div class="autopop-grid">
+      <div class="autopop-item"><div class="k">Authority Score</div><div class="v" id="authScore">— / 20</div></div>
+      <div class="autopop-item"><div class="k">Recalibration</div><div class="v" id="recalRes">— · captured live</div></div>
+      <div class="autopop-item"><div class="k">Somatic Pulse</div><div class="v" id="somaticRes">— · captured live</div></div>
+      <div class="autopop-item"><div class="k">North Star</div><div class="v" id="northStarPreview">[Verbatim from client]</div></div>
+      <div class="autopop-item"><div class="k">First Move</div><div class="v" id="firstMovePreview">[The micro-move + did they do it]</div></div>
+      <div class="autopop-item"><div class="k">B-Side Items</div><div class="v" id="bSideCount">— captured</div></div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>1 · Score the session — independently</h3>
+      <span class="time-tag">~30 sec</span>
+    </div>
+    <div class="pair-grid">
+      <div class="who-input megha">
+        <div class="who">Megha · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="meghaScore" placeholder="—" oninput="updateAvg()" />
+      </div>
+      <div class="who-input jake">
+        <div class="who">Jake · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="jakeScore" placeholder="—" oninput="updateAvg()" />
+      </div>
+    </div>
+    <div class="avg-row">
+      <span class="avg-tag">Average:</span>
+      <span class="avg-val" id="scoreAvg">—</span>
+      <span class="avg-flag" id="scoreFlag"></span>
+    </div>
+  </section>
+
+  <section class="panel leap">
+    <div class="panel-head">
+      <h3>2 · Diagnosis confidence — independently</h3>
+      <span class="time-tag">~30 sec</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 16px;">How sure are we we got the diagnosis right? Avg under 7 auto-routes the action plan for extra Claude refinement before send.</p>
+    <div class="pair-grid">
+      <div class="who-input megha">
+        <div class="who">Megha · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="meghaConf" placeholder="—" oninput="updateConf()" />
+      </div>
+      <div class="who-input jake">
+        <div class="who">Jake · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="jakeConf" placeholder="—" oninput="updateConf()" />
+      </div>
+    </div>
+    <div class="avg-row">
+      <span class="avg-tag">Average:</span>
+      <span class="avg-val" id="confAvg">—</span>
+      <span class="avg-flag" id="confFlag"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>3 · Quick pulse — one click each</h3>
+      <span class="time-tag">~1 min</span>
+    </div>
+    <div class="pulse-grid">
+      <div>
+        <div class="pulse-q">Diagnosis tone</div>
+        <div class="pill-row">
+          <button class="pill" onclick="setActive(this)">Direct + Sharp</button>
+          <button class="pill" onclick="setActive(this)">Warm-Direct</button>
+          <button class="pill" onclick="setActive(this)">Gentle Discovery</button>
+        </div>
+      </div>
+      <div>
+        <div class="pulse-q">What landed hardest</div>
+        <div class="pill-row">
+          <button class="pill" onclick="setActive(this)">Positioning Shift</button>
+          <button class="pill" onclick="setActive(this)">Systems Gap</button>
+          <button class="pill" onclick="setActive(this)">Revenue Math</button>
+          <button class="pill" onclick="setActive(this)">Other</button>
+        </div>
+      </div>
+      <div>
+        <div class="pulse-q">Upsell signal</div>
+        <div class="pill-row">
+          <button class="pill green" onclick="setActive(this)">Strong</button>
+          <button class="pill" onclick="setActive(this)">Medium</button>
+          <button class="pill" onclick="setActive(this)">Weak</button>
+          <button class="pill red" onclick="setActive(this)">None</button>
+        </div>
+      </div>
+      <div>
+        <div class="pulse-q">Primary action path</div>
+        <div class="pill-row">
+          <button class="pill" onclick="setActive(this)">DIY · Path A</button>
+          <button class="pill" onclick="setActive(this)">Level Up · Path B</button>
+          <button class="pill" onclick="setActive(this)">Mixed</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>4 · Non-obvious insight</h3>
+      <span class="time-tag">~1.5 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">What surprised you? What pattern did you name that the client didn't see coming? <em style="color:var(--tch-yellow); font-style:normal; font-weight:700;">This is the gold.</em></p>
+    <textarea class="input" id="insight" placeholder="They said X, but the real issue is Y..."></textarea>
+  </section>
+
+  <section class="panel leap">
+    <div class="panel-head">
+      <h3>5 · Where did Megha + Jake see this differently?</h3>
+      <span class="time-tag">~1.5 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">Disagreement is signal. Name it explicitly — sharpens the action plan, surfaces blind spots.</p>
+    <textarea class="input" id="disagreement" placeholder="Megha thought ___; Jake thought ___. The real read might be ___."></textarea>
+  </section>
+
+  <section class="panel leap">
+    <div class="panel-head">
+      <h3>6 · What got left unresolved?</h3>
+      <span class="time-tag">~1 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">The tension we didn't fully land. Most teams skip this. Source of churn AND missed upsells. <em style="color:var(--tch-yellow); font-style:normal; font-weight:700;">Becomes a follow-up email hook.</em></p>
+    <textarea class="input" id="unresolved" placeholder="The thing we didn't quite land was..."></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>7 · Anything you'd do differently?</h3>
+      <span class="time-tag">~1 min</span>
+    </div>
+    <textarea class="input" id="differently" placeholder="What would you change for the next session like this?"></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>8 · B-Side items to route</h3>
+      <span class="time-tag">~30 sec</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">What came up that doesn't fit the action plan but should be captured somewhere?</p>
+    <textarea class="input" id="bsideRouting" placeholder="One per line. We file these into Notion automatically."></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>9 · Follow-up customization notes</h3>
+      <span class="time-tag">~1.5 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 14px;">What should be remembered about this client? <em style="color:var(--tch-yellow); font-style:normal; font-weight:700;">Feeds personalized follow-up emails (Day 7 / 14 / 21 / 30 / 60 / 90).</em></p>
+    <div class="pair-grid">
+      <div class="who-input megha">
+        <div class="who">Megha's notes</div>
+        <textarea class="input" id="followMegha" placeholder="Things to weave into Frankie's follow-ups..."></textarea>
+      </div>
+      <div class="who-input jake">
+        <div class="who">Jake's notes</div>
+        <textarea class="input" id="followJake" placeholder="Things to weave into Frankie's follow-ups..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>10 · Flag for review</h3>
+      <span class="time-tag">~15 sec</span>
+    </div>
+    <div class="check-row">
+      <label class="check-item"><input type="checkbox" name="flag"> <span>✅ Strong session — standard flow</span></label>
+      <label class="check-item"><input type="checkbox" name="flag"> <span>🪞 Needs extra polish before send</span></label>
+      <label class="check-item"><input type="checkbox" name="flag"> <span>🤖 Flag for Claude refinement (low confidence)</span></label>
+      <label class="check-item"><input type="checkbox" name="flag"> <span>🚨 Recovery protocol (low score)</span></label>
+    </div>
+  </section>
+</main>
+
+<div class="save-bar">
+  <div class="summary"><strong>Status:</strong> <span id="status">In progress · auto-saves as you type</span></div>
+  <button class="save-btn" onclick="saveAndOpenReview()">Save → Open Review Dashboard</button>
+</div>
 
 <script>
-(function () {
-  // ---- URL ---------------------------------------------------------------
-  const params = new URLSearchParams(window.location.search);
-  const sessionId = params.get('sessionId');
+  let secondsLeft = 600;
+  const cdEl = document.getElementById('countdown');
+  setInterval(() => {
+    if (secondsLeft <= 0) return;
+    secondsLeft--;
+    const m = String(Math.floor(secondsLeft/60)).padStart(2,'0');
+    const s = String(secondsLeft%60).padStart(2,'0');
+    cdEl.textContent = `${m}:${s}`;
+    if (secondsLeft < 120) cdEl.classList.add('warning');
+  }, 1000);
 
-  // ---- DOM refs ----------------------------------------------------------
-  const errorScreen = document.getElementById('errorScreen');
-  const debriefRoot = document.getElementById('debriefRoot');
-  const metaLine = document.getElementById('metaLine');
-  const saveStatus = document.getElementById('saveStatus');
-  const recap = document.getElementById('recap');
-  const firefliesInput = document.getElementById('firefliesUrl');
-  // Quick-pulse pill groups (4)
-  const pillGroups = Array.from(document.querySelectorAll('[data-pill-group]'));
-  // Score sliders (2 questions × M+J = 4 inputs)
-  const sessionScoreM = document.getElementById('sessionScoreM');
-  const sessionScoreJ = document.getElementById('sessionScoreJ');
-  const sessionScoreMDisplay = document.getElementById('sessionScoreMDisplay');
-  const sessionScoreJDisplay = document.getElementById('sessionScoreJDisplay');
-  const sessionScoreAvg = document.getElementById('sessionScoreAvg');
-  const confidenceM = document.getElementById('confidenceM');
-  const confidenceJ = document.getElementById('confidenceJ');
-  const confidenceMDisplay = document.getElementById('confidenceMDisplay');
-  const confidenceJDisplay = document.getElementById('confidenceJDisplay');
-  const confidenceAvg = document.getElementById('confidenceAvg');
-  // Conversation prompts (4)
-  const nonObviousInsightEl = document.getElementById('nonObviousInsight');
-  const sawDifferentlyEl = document.getElementById('sawDifferently');
-  const leftUnresolvedEl = document.getElementById('leftUnresolved');
-  const doDifferentlyEl = document.getElementById('doDifferently');
-  // Downstream capture
-  const bSideItemsEl = document.getElementById('bSideItems');
-  const followUpNotesMEl = document.getElementById('followUpNotesM');
-  const followUpNotesJEl = document.getElementById('followUpNotesJ');
-  const reviewFlagsGroup = document.querySelector('[data-checkbox-group="reviewFlags"]');
-  // Action plan
-  const generateBtn = document.getElementById('generateBtn');
-  const generateStatus = document.getElementById('generateStatus');
-  const viewPlanLink = document.getElementById('viewPlanLink');
-  const workshopLink = document.getElementById('workshopLink');
-  const toast = document.getElementById('toast');
-
-  // ---- State -------------------------------------------------------------
-  // Schema v2 — matches TCH-Workshop-V2-SPEC.md Doc 06.
-  // 4 quick-pulse pills · 2 score pairs (M+J) · 4 prompts · downstream capture.
-  let state = {
-    version: 2,
-    firefliesUrl: '',
-    // Quick-pulse (one-click selectors)
-    diagnosisTone: null,    // direct_sharp | warm_direct | gentle
-    landedHardest: null,    // positioning | systems | revenue | other
-    upsellSignal: null,     // strong | medium | weak | none
-    firstMoveDone: null,    // yes | partial | no
-    // Independent scores
-    sessionScoreM: 7,
-    sessionScoreJ: 7,
-    confidenceM: 7,
-    confidenceJ: 7,
-    // Paired conversation prompts
-    nonObviousInsight: '',
-    sawDifferently: '',     // LEAP #1
-    leftUnresolved: '',     // LEAP #2
-    doDifferently: '',
-    // Downstream capture
-    bSideItems: '',
-    followUpNotesM: '',
-    followUpNotesJ: '',
-    reviewFlags: [],        // multi-select: standard / extra_polish / claude_refine / recovery
-    updatedAt: null,
-  };
-  let currentSessionState = 'Unknown';
-
-  // ---- Pill group helper ------------------------------------------------
-  function bindPillGroup(group, key) {
-    const buttons = Array.from(group.querySelectorAll('.pill'));
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const value = btn.getAttribute('data-value');
-        const newValue = state[key] === value ? null : value; // click again to clear
-        state[key] = newValue;
-        buttons.forEach(b => b.classList.toggle('active', b.getAttribute('data-value') === newValue));
-        scheduleSave();
-      });
+  function updateAvg() {
+    const m = parseFloat(document.getElementById('meghaScore').value);
+    const j = parseFloat(document.getElementById('jakeScore').value);
+    const out = document.getElementById('scoreAvg');
+    const flag = document.getElementById('scoreFlag');
+    if (!isNaN(m) && !isNaN(j)) {
+      const avg = ((m + j) / 2).toFixed(1);
+      out.textContent = avg;
+      flag.textContent = avg >= 7 ? '· strong' : avg >= 5 ? '· rough edges' : avg >= 3 ? '· struggled' : '· refund territory';
+    }
+  }
+  function updateConf() {
+    const m = parseFloat(document.getElementById('meghaConf').value);
+    const j = parseFloat(document.getElementById('jakeConf').value);
+    const out = document.getElementById('confAvg');
+    const flag = document.getElementById('confFlag');
+    if (!isNaN(m) && !isNaN(j)) {
+      const avg = ((m + j) / 2).toFixed(1);
+      out.textContent = avg;
+      flag.textContent = avg < 7 ? '· auto-route to extra Claude refinement' : '';
+    }
+  }
+  function setActive(b) {
+    const sib = b.parentElement.querySelectorAll('button');
+    sib.forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  }
+  function persist() {
+    const data = {};
+    document.querySelectorAll('input, textarea').forEach(el => {
+      if (el.id) data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
     });
-  }
-
-  // ---- Score slider helper ----------------------------------------------
-  function bindScore(input, displayEl, key, avgUpdate) {
-    input.addEventListener('input', () => {
-      const val = Number(input.value) || 0;
-      state[key] = val;
-      displayEl.textContent = val;
-      if (avgUpdate) avgUpdate();
-      scheduleSave();
+    // Capture active pill selections by question (each .pill-row groups answers)
+    data._pills = {};
+    document.querySelectorAll('.pill-row').forEach((row, i) => {
+      const active = row.querySelector('.pill.active');
+      const q = row.previousElementSibling?.textContent?.trim() || `q${i}`;
+      data._pills[q] = active ? active.textContent.trim() : null;
     });
-  }
-
-  function updateSessionScoreAvg() {
-    const m = Number(state.sessionScoreM) || 0;
-    const j = Number(state.sessionScoreJ) || 0;
-    const avg = ((m + j) / 2).toFixed(1);
-    sessionScoreAvg.textContent = `Average: ${avg}`;
-  }
-  function updateConfidenceAvg() {
-    const m = Number(state.confidenceM) || 0;
-    const j = Number(state.confidenceJ) || 0;
-    const avg = (m + j) / 2;
-    const flag = avg < 7
-      ? ' <span class="flag">⚠ low confidence — extra Claude refine</span>'
-      : '';
-    confidenceAvg.innerHTML = `Average: ${avg.toFixed(1)}${flag}`;
-  }
-
-  // ---- Checkbox group helper --------------------------------------------
-  function bindCheckboxGroup(group, key) {
-    const labels = Array.from(group.querySelectorAll('label[data-value]'));
-    labels.forEach(label => {
-      const checkbox = label.querySelector('input[type="checkbox"]');
-      label.addEventListener('click', (e) => {
-        // Prevent the implicit click on the hidden input firing twice.
-        if (e.target.tagName !== 'INPUT') {
-          e.preventDefault();
-          checkbox.checked = !checkbox.checked;
-        }
-        const value = label.getAttribute('data-value');
-        const current = Array.isArray(state[key]) ? [...state[key]] : [];
-        if (checkbox.checked) {
-          if (!current.includes(value)) current.push(value);
-        } else {
-          const i = current.indexOf(value);
-          if (i >= 0) current.splice(i, 1);
-        }
-        state[key] = current;
-        label.classList.toggle('checked', checkbox.checked);
-        scheduleSave();
-      });
+    // Flag checkboxes
+    data._flags = [];
+    document.querySelectorAll('input[type="checkbox"][name="flag"]').forEach(c => {
+      if (c.checked) data._flags.push(c.nextElementSibling?.textContent?.trim());
     });
-  }
-
-  // ---- Utilities ---------------------------------------------------------
-  function showError(msg) {
-    errorScreen.style.display = 'block';
-    errorScreen.textContent = msg;
-    debriefRoot.style.display = 'none';
-  }
-  function showToast(msg, isError) {
-    toast.textContent = msg;
-    toast.classList.toggle('error', !!isError);
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
-  }
-  function fmtTime(iso) {
-    if (!iso) return '—';
-    if (iso.length === 10) return iso;
     try {
-      return new Date(iso).toLocaleString(undefined, {
-        weekday: 'short', month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit',
-      });
-    } catch { return iso; }
+      const key = window.__sessionId ? `tch_debrief_v2:${window.__sessionId}` : 'tch_debrief_v2';
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch(e) {}
+    const statusEl = document.getElementById('status');
+    if (statusEl) statusEl.textContent = 'Saved locally · ' + new Date().toLocaleTimeString();
+    if (window.__sessionId) scheduleServerSave(data);
   }
-  function fmtNow() {
-    return new Date().toLocaleTimeString(undefined, {
-      hour: 'numeric', minute: '2-digit'
-    });
-  }
-  function escapeHtml(s) {
-    return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
-  }
-  function badgeClass(state) {
-    return 'badge ' + (state || 'unknown').toLowerCase();
+  document.addEventListener('input', persist);
+  document.addEventListener('click', e => { if (e.target.matches('.pill, input[type="checkbox"]')) persist(); });
+  function saveAndOpenReview() {
+    persist();
+    const target = window.__sessionId
+      ? `/templates-v2/review-dashboard.html?sessionId=${encodeURIComponent(window.__sessionId)}`
+      : `/templates-v2/review-dashboard.html`;
+    window.location.href = target;
   }
 
-  // ---- Save (debounced autosave) -----------------------------------------
-  let saveTimer = null;
-  let inflightSave = null;
-  const SAVE_DEBOUNCE_MS = 1500;
-
-  function scheduleSave() {
-    if (!sessionId) return;
-    saveStatus.textContent = 'unsaved…';
-    saveStatus.className = 'save-status saving';
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(doSave, SAVE_DEBOUNCE_MS);
-  }
-
-  async function doSave() {
-    saveTimer = null;
-    state.updatedAt = new Date().toISOString();
-    const payload = {
-      debriefJson: JSON.stringify(state),
-      firefliesUrl: state.firefliesUrl || null,
-    };
-
-    saveStatus.textContent = 'saving…';
-    saveStatus.className = 'save-status saving';
-
-    try {
-      if (inflightSave) await inflightSave;
-      inflightSave = fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-debrief`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const res = await inflightSave;
-      inflightSave = null;
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        saveStatus.textContent = `save failed: ${body.message || body.error || 'unknown'}`;
-        saveStatus.className = 'save-status error';
-        return;
-      }
-      saveStatus.textContent = `saved ${fmtNow()}`;
-      saveStatus.className = 'save-status saved';
-      if (body.advanced && body.state && body.state !== currentSessionState) {
-        currentSessionState = body.state;
-        updateMetaLine();
-        showToast('Session → Debrief');
-      } else if (body.state) {
-        currentSessionState = body.state;
-      }
-    } catch (err) {
-      inflightSave = null;
-      saveStatus.textContent = `save failed: ${err.message}`;
-      saveStatus.className = 'save-status error';
+  // ---------- sessionId / server-save layer ----------
+  (function wireSessionId() {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('sessionId');
+    const topStatus = document.getElementById('saveStatus');
+    function setTopStatus(text, kind) {
+      if (!topStatus) return;
+      topStatus.textContent = text;
+      topStatus.style.color = kind === 'error' ? 'rgba(255,180,180,0.95)'
+        : kind === 'saving' ? 'rgba(246,237,82,0.95)'
+        : kind === 'saved' ? 'rgba(74,222,128,0.95)'
+        : 'rgba(245,242,235,0.75)';
     }
-  }
-
-  // ---- Wiring ------------------------------------------------------------
-  function bindAutosave(el, key) {
-    el.addEventListener('input', () => {
-      state[key] = el.value;
-      scheduleSave();
-    });
-  }
-  // Conversation prompts (4 textareas)
-  bindAutosave(nonObviousInsightEl, 'nonObviousInsight');
-  bindAutosave(sawDifferentlyEl, 'sawDifferently');
-  bindAutosave(leftUnresolvedEl, 'leftUnresolved');
-  bindAutosave(doDifferentlyEl, 'doDifferently');
-  // Downstream capture
-  bindAutosave(bSideItemsEl, 'bSideItems');
-  bindAutosave(followUpNotesMEl, 'followUpNotesM');
-  bindAutosave(followUpNotesJEl, 'followUpNotesJ');
-  // Fireflies
-  bindAutosave(firefliesInput, 'firefliesUrl');
-  // Quick-pulse pills (4 groups, by data-pill-group attribute)
-  pillGroups.forEach(g => bindPillGroup(g, g.getAttribute('data-pill-group')));
-  // Score sliders (2 pairs)
-  bindScore(sessionScoreM, sessionScoreMDisplay, 'sessionScoreM', updateSessionScoreAvg);
-  bindScore(sessionScoreJ, sessionScoreJDisplay, 'sessionScoreJ', updateSessionScoreAvg);
-  bindScore(confidenceM, confidenceMDisplay, 'confidenceM', updateConfidenceAvg);
-  bindScore(confidenceJ, confidenceJDisplay, 'confidenceJ', updateConfidenceAvg);
-  // Review flag checkboxes
-  if (reviewFlagsGroup) bindCheckboxGroup(reviewFlagsGroup, 'reviewFlags');
-  // Initial average display
-  updateSessionScoreAvg();
-  updateConfidenceAvg();
-
-  // ---- Workshop recap render ---------------------------------------------
-  function renderRecap(workshopJson) {
-    if (!workshopJson) {
-      recap.innerHTML = '<em>No workshop data on file. (Are you sure the call happened?)</em>';
-      return;
-    }
-    let w;
-    try { w = JSON.parse(workshopJson); } catch { w = null; }
-    if (!w) {
-      recap.innerHTML = '<em>Could not parse workshop blob.</em>';
-      return;
-    }
-    const northStar = w.northStar || '—';
-    const counts = { quick_wins: 0, big_bets: 0, fill_ins: 0, time_sinks: 0, unsorted: 0 };
-    (w.ideas || []).forEach(i => {
-      if (i && i.quadrant && counts[i.quadrant] !== undefined) counts[i.quadrant]++;
-      else counts.unsorted++;
-    });
-    recap.innerHTML = `
-      <div><strong style="color:var(--ink)">North Star:</strong> ${escapeHtml(northStar)}</div>
-      <div style="margin-top:6px">
-        ${counts.quick_wins} Quick Wins · ${counts.big_bets} Big Bets ·
-        ${counts.fill_ins} Fill-ins · ${counts.time_sinks} Time Sinks
-        ${counts.unsorted ? ` · ${counts.unsorted} in inbox` : ''}
-      </div>
-    `;
-  }
-
-  // ---- Meta line ---------------------------------------------------------
-  function updateMetaLine(session) {
-    const stateName = currentSessionState || 'Unknown';
-    const badge = `<span class="${badgeClass(stateName)}">${stateName}</span>`;
-    if (session) {
-      const product = session.payment?.product || '—';
-      const when = fmtTime(session.scheduledAt);
-      const sid = session.sessionId ? `#${session.sessionId}` : '';
-      metaLine.innerHTML = `${escapeHtml(session.clientName)} ${sid} · ${escapeHtml(product)} · ${when} · ${badge}`;
-    } else {
-      const existing = metaLine.dataset.base || '';
-      metaLine.innerHTML = `${existing} · ${badge}`;
-    }
-  }
-
-  // ---- Generate Action Plan ----------------------------------------------
-  generateBtn.addEventListener('click', async () => {
-    if (!sessionId) return;
-    // Flush any pending save first.
-    if (saveTimer) { clearTimeout(saveTimer); await doSave(); }
-    if (inflightSave) await inflightSave;
-
-    generateBtn.disabled = true;
-    const orig = generateBtn.textContent;
-    generateBtn.textContent = '⏳ Generating (~10-20s)…';
-    generateStatus.textContent = 'Calling Claude…';
-    generateStatus.className = 'save-status saving';
-
-    try {
-      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/generate-action-plan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        generateStatus.textContent = `generate failed: ${body.message || body.error || 'unknown'}`;
-        generateStatus.className = 'save-status error';
-        showToast(`Action plan failed: ${body.message || body.error}`, true);
-        generateBtn.disabled = false;
-        generateBtn.textContent = orig;
-        return;
-      }
-      generateStatus.textContent = `generated ${fmtNow()}`;
-      generateStatus.className = 'save-status saved';
-      showToast('Action plan ready');
-      if (body.state) {
-        currentSessionState = body.state;
-        updateMetaLine();
-      }
-      if (body.actionPlanUrl) {
-        viewPlanLink.href = body.actionPlanUrl;
-        viewPlanLink.style.display = 'inline-block';
-        // Open it in a new tab so the user can preview without losing this screen.
-        window.open(body.actionPlanUrl, '_blank', 'noopener');
-      }
-      generateBtn.disabled = false;
-      generateBtn.textContent = '↻ Regenerate Action Plan';
-    } catch (err) {
-      generateStatus.textContent = `generate failed: ${err.message}`;
-      generateStatus.className = 'save-status error';
-      generateBtn.disabled = false;
-      generateBtn.textContent = orig;
-    }
-  });
-
-  // ---- Initial load ------------------------------------------------------
-  async function loadSession() {
     if (!sessionId) {
-      showError('Missing ?sessionId= in URL. Open this page from the Workshop or Morning Prep.');
+      setTopStatus('local-only · pass ?sessionId=X', 'idle');
       return;
     }
-    workshopLink.href = `/templates-v2/workshop-session.html?sessionId=${encodeURIComponent(sessionId)}`;
+    window.__sessionId = sessionId;
 
-    try {
-      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
-      const body = await res.json();
-      if (!res.ok) {
-        showError(`Failed to load session: ${body.message || body.error}`);
-        return;
-      }
+    let saveTimer = null;
+    let inflight = null;
+    window.scheduleServerSave = function scheduleServerSave(snapshot) {
+      if (saveTimer) clearTimeout(saveTimer);
+      setTopStatus('saving…', 'saving');
+      saveTimer = setTimeout(() => doSave(snapshot), 900);
+    };
+    async function doSave(snapshot) {
+      if (inflight) inflight.abort?.();
+      try {
+        inflight = new AbortController();
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-debrief`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ debrief: snapshot }),
+          signal: inflight.signal,
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        setTopStatus('saved · ' + new Date().toLocaleTimeString(), 'saved');
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.error('[debrief save]', err);
+        setTopStatus('save error', 'error');
+      } finally { inflight = null; }
+    }
 
-      currentSessionState = body.state || 'Unknown';
-      document.title = `${body.clientName || 'Debrief'} · Debrief · TCH`;
-      metaLine.dataset.base = `${body.clientName || 'Untitled'} · ${body.payment?.product || '—'} · ${fmtTime(body.scheduledAt)}`;
-      updateMetaLine(body);
-
-      renderRecap(body.workshopJson);
-
-      // Restore prior debrief blob if it exists. Handles both v1 (legacy) and v2 shapes —
-      // v1 fields like topWins / bigBetPick are dropped silently since the form no
-      // longer collects them. The action plan generator still gets the raw JSON, so
-      // legacy data still informs Claude even if the UI can't render it.
-      const pickStr = (v) => (typeof v === 'string' ? v : '');
-      const pickNum = (v, dflt) => {
-        const n = Number(v);
-        return Number.isFinite(n) ? n : dflt;
-      };
-      const pickArr = (v) => (Array.isArray(v) ? v.filter(x => typeof x === 'string') : []);
-      const pickEnum = (v, allowed) => (typeof v === 'string' && allowed.includes(v) ? v : null);
-
-      if (body.debriefJson) {
-        try {
-          const parsed = JSON.parse(body.debriefJson);
-          if (parsed && typeof parsed === 'object') {
-            state = {
-              version: 2,
-              firefliesUrl: pickStr(parsed.firefliesUrl) || pickStr(body.firefliesUrl) || '',
-              // Quick-pulse
-              diagnosisTone: pickEnum(parsed.diagnosisTone, ['direct_sharp','warm_direct','gentle']),
-              landedHardest: pickEnum(parsed.landedHardest, ['positioning','systems','revenue','other']),
-              upsellSignal: pickEnum(parsed.upsellSignal, ['strong','medium','weak','none']),
-              firstMoveDone: pickEnum(parsed.firstMoveDone, ['yes','partial','no']),
-              // Scores
-              sessionScoreM: pickNum(parsed.sessionScoreM, 7),
-              sessionScoreJ: pickNum(parsed.sessionScoreJ, 7),
-              confidenceM: pickNum(parsed.confidenceM, 7),
-              confidenceJ: pickNum(parsed.confidenceJ, 7),
-              // Prompts
-              nonObviousInsight: pickStr(parsed.nonObviousInsight),
-              sawDifferently: pickStr(parsed.sawDifferently),
-              leftUnresolved: pickStr(parsed.leftUnresolved),
-              doDifferently: pickStr(parsed.doDifferently),
-              // Capture
-              bSideItems: pickStr(parsed.bSideItems),
-              followUpNotesM: pickStr(parsed.followUpNotesM),
-              followUpNotesJ: pickStr(parsed.followUpNotesJ),
-              reviewFlags: pickArr(parsed.reviewFlags),
-              updatedAt: parsed.updatedAt || null,
-            };
-          }
-        } catch (err) {
-          console.warn('Could not parse existing debriefJson — starting fresh.', err);
+    async function loadContext() {
+      try {
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+        if (!res.ok) throw new Error('session ' + res.status);
+        const s = await res.json();
+        const intake = s.intake || {};
+        const payment = s.payment || {};
+        const clientEl = document.getElementById('clientName');
+        if (clientEl) clientEl.textContent = intake.clientName || payment.customerName || '—';
+        const bizEl = document.getElementById('businessName');
+        if (bizEl) bizEl.textContent = intake.businessName || intake.brand || '—';
+        const dateEl = document.getElementById('sessionDate');
+        if (dateEl && s.scheduledAt) {
+          try {
+            const d = new Date(s.scheduledAt);
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz });
+            dateEl.textContent = `${d.toLocaleDateString()} · ${time}`;
+          } catch(e) {}
         }
-      } else if (body.firefliesUrl) {
-        state.firefliesUrl = body.firefliesUrl;
+        const startEl = document.getElementById('startTime');
+        if (startEl) startEl.textContent = new Date().toLocaleTimeString();
+
+        // Pull workshop blob → autopop grid (Authority Score, B-side count, etc.)
+        const ws = s.workshop || s.workshopBlob || null;
+        if (ws) {
+          const fields = ws.fields || {};
+          if (fields.northStar) {
+            const el = document.getElementById('northStarPreview');
+            if (el) el.textContent = `"${fields.northStar}"`;
+          }
+          if (Array.isArray(ws.pillars)) {
+            const total = ws.pillars.reduce((s, p) => s + (Number(p.score) || 0), 0);
+            const el = document.getElementById('authScore');
+            if (el) el.textContent = `${total} / 20`;
+          }
+          if (ws.lists?.bsideRows) {
+            const el = document.getElementById('bSideCount');
+            if (el) el.textContent = `${ws.lists.bsideRows.length} captured`;
+          }
+        }
+        setTopStatus('loaded · ready', 'idle');
+      } catch (err) {
+        console.warn('[debrief load]', err);
+        setTopStatus('load failed · offline', 'error');
       }
-
-      // Populate UI from state.
-      firefliesInput.value = state.firefliesUrl;
-      nonObviousInsightEl.value = state.nonObviousInsight;
-      sawDifferentlyEl.value = state.sawDifferently;
-      leftUnresolvedEl.value = state.leftUnresolved;
-      doDifferentlyEl.value = state.doDifferently;
-      bSideItemsEl.value = state.bSideItems;
-      followUpNotesMEl.value = state.followUpNotesM;
-      followUpNotesJEl.value = state.followUpNotesJ;
-
-      // Set pill group active states
-      pillGroups.forEach(group => {
-        const key = group.getAttribute('data-pill-group');
-        const value = state[key];
-        group.querySelectorAll('.pill').forEach(b => {
-          b.classList.toggle('active', value !== null && b.getAttribute('data-value') === value);
-        });
-      });
-
-      // Set score sliders + displays
-      sessionScoreM.value = state.sessionScoreM;
-      sessionScoreJ.value = state.sessionScoreJ;
-      sessionScoreMDisplay.textContent = state.sessionScoreM;
-      sessionScoreJDisplay.textContent = state.sessionScoreJ;
-      confidenceM.value = state.confidenceM;
-      confidenceJ.value = state.confidenceJ;
-      confidenceMDisplay.textContent = state.confidenceM;
-      confidenceJDisplay.textContent = state.confidenceJ;
-      updateSessionScoreAvg();
-      updateConfidenceAvg();
-
-      // Set checkbox states
-      if (reviewFlagsGroup) {
-        reviewFlagsGroup.querySelectorAll('label[data-value]').forEach(label => {
-          const value = label.getAttribute('data-value');
-          const isChecked = state.reviewFlags.includes(value);
-          const cb = label.querySelector('input[type="checkbox"]');
-          if (cb) cb.checked = isChecked;
-          label.classList.toggle('checked', isChecked);
-        });
-      }
-
-      // If an action plan already exists, show the view link.
-      if (body.actionPlanUrl) {
-        viewPlanLink.href = body.actionPlanUrl;
-        viewPlanLink.style.display = 'inline-block';
-        generateBtn.textContent = '↻ Regenerate Action Plan';
-      }
-
-      debriefRoot.style.display = '';
-      saveStatus.textContent = state.updatedAt ? `loaded · last saved ${fmtTime(state.updatedAt)}` : 'ready';
-      saveStatus.className = 'save-status';
-    } catch (err) {
-      showError(`Network error loading session: ${err.message}`);
     }
-  }
-
-  // ---- Warn on unsaved exit ---------------------------------------------
-  window.addEventListener('beforeunload', (e) => {
-    if (saveTimer || inflightSave) {
-      e.preventDefault();
-      e.returnValue = '';
-    }
-  });
-
-  loadSession();
-})();
+    loadContext();
+  })();
 </script>
 </body>
 </html>
