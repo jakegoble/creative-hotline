@@ -56,13 +56,20 @@ import {
   createSession,
   updateSessionState,
 } from "@/lib/services/notion-sessions-write";
-import { findSessionByCalendlyEventUri } from "@/lib/services/notion-sessions-read";
+import {
+  findSessionByCalendlyEventUri,
+  getSessionById,
+} from "@/lib/services/notion-sessions-read";
 import {
   findContactByEmail,
   findContactByPhone,
   normalizePhoneE164,
   upsertContactByPhone,
 } from "@/lib/services/notion-messaging";
+import {
+  isLateBooking,
+  processSession,
+} from "@/lib/email/frankie-followups";
 
 // Calendly needs the raw, un-parsed body to verify the signature.
 export const runtime = "nodejs";
@@ -256,6 +263,42 @@ export async function POST(request: Request) {
     } catch (err) {
       // CRM sync failure must NEVER block the booking flow.
       console.warn("[calendly-webhook] Messaging Contact sync failed:", err);
+    }
+
+    // ---- Late-booking inline Frankie #2/#3 ----
+    // The nightly cron at 23:00 UTC won't help anyone whose call lands inside
+    // that window. Fire the intake-nudge + caller-prep here for late bookings
+    // so a same-day booking still gets the prep emails. Idempotent — if the
+    // cron then runs after the call, the checkbox guards short-circuit.
+    //
+    // AWAITED, not fire-and-forget — Vercel serverless terminates pending
+    // promises on response return. Tested cost: ~2-4s for two SendGrid calls
+    // + 2 Notion fetches + 2 checkbox writes. Still well inside Calendly's
+    // 30s webhook timeout. Errors are caught and logged so a failed nudge
+    // doesn't 500 the booking ack (Calendly would otherwise retry, creating
+    // duplicates / triple-firing emails).
+    if (result.created && isLateBooking(sessionInput.scheduledAt, new Date())) {
+      try {
+        const sessionRecord = await getSessionById(result.pageId);
+        if (sessionRecord) {
+          const { result: fr, skipped: sk } = await processSession(
+            sessionRecord,
+            new Date(),
+          );
+          console.log(
+            `[calendly-webhook] late-booking inline fire: session=${result.pageId} ${fr ? `intakeNudge=${fr.intakeNudge?.ok} callerPrep=${fr.callerPrep?.ok}` : `skipped=${sk?.reason}`}`,
+          );
+        } else {
+          console.warn(
+            `[calendly-webhook] late-booking inline fire: getSessionById returned null for ${result.pageId}`,
+          );
+        }
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "unknown";
+        console.error(
+          `[calendly-webhook] late-booking inline fire failed: ${message}`,
+        );
+      }
     }
 
     return NextResponse.json({

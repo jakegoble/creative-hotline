@@ -11,8 +11,14 @@
  *   • If scheduledAt is within (now, now + 30h] AND callerPrepSent === false
  *     → send Caller Prep one-pager.
  *
+ * Late-booking edge case: anyone who books <23h before their call would
+ * otherwise miss this cron entirely (next run is after the call). The
+ * Calendly webhook now fires the same processSession() inline for those
+ * cases — see /api/calendly/webhook. This cron remains the safety net.
+ *
  * Idempotency: writes Intake Nudge Sent / Caller Prep Sent checkboxes back to
- * Notion after a successful send. Re-runs are safe.
+ * Notion after a successful send. Re-runs are safe — already-sent guards
+ * short-circuit. The inline-fire and the nightly sweep cooperate cleanly.
  *
  * Auth: Vercel attaches `Authorization: Bearer <CRON_SECRET>` to cron requests.
  *       Manual hits must include the same header. 401 otherwise.
@@ -31,219 +37,19 @@
  */
 
 import { NextResponse } from "next/server";
-import { Client as NotionClient } from "@notionhq/client";
-import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
-import { config } from "@/lib/config";
 import {
   getSessionsByState,
   type SessionRecord,
 } from "@/lib/services/notion-sessions-read";
-import { updateSessionFields } from "@/lib/services/notion-sessions-write";
-import { findIntakeIdByEmail } from "@/lib/services/notion-intake-read";
 import {
-  sendIntakeNudge,
-  sendCallerPrep,
-} from "@/lib/email/send-frankie";
+  processSession,
+  type SessionResult,
+  type Skipped,
+} from "@/lib/email/frankie-followups";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-let _notion: NotionClient | null = null;
-function getNotion(): NotionClient {
-  if (!_notion) _notion = new NotionClient({ auth: config.notion.apiKey });
-  return _notion;
-}
-
-interface PaymentLite {
-  email: string;
-  clientName: string;
-}
-
-async function fetchPaymentLite(id: string): Promise<PaymentLite | null> {
-  try {
-    const page = (await getNotion().pages.retrieve({
-      page_id: id,
-    })) as PageObjectResponse;
-    const p = page.properties;
-    const email = p["Email"]?.type === "email" ? p["Email"].email ?? "" : "";
-    const clientName =
-      p["Client Name"]?.type === "title"
-        ? p["Client Name"].title.map((t) => t.plain_text).join("")
-        : "";
-    return { email, clientName };
-  } catch {
-    return null;
-  }
-}
-
-async function fetchIntakeStatus(id: string): Promise<string | null> {
-  try {
-    const page = (await getNotion().pages.retrieve({
-      page_id: id,
-    })) as PageObjectResponse;
-    const p = page.properties;
-    const status =
-      p["Intake Status"]?.type === "select" && p["Intake Status"].select
-        ? p["Intake Status"].select.name
-        : null;
-    return status;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * Whether the intake has been submitted. Returns true ONLY when we can prove
- * a submission exists. Missing intake / missing status / explicit "Pending"
- * all return false → nudge will fire.
- */
-async function isIntakeSubmitted(
-  session: SessionRecord,
-  paymentEmail: string,
-): Promise<boolean> {
-  let intakeId: string | null = session.linkedIntakeIds[0] ?? null;
-  if (!intakeId && paymentEmail) {
-    intakeId = await findIntakeIdByEmail(paymentEmail).catch(() => null);
-  }
-  if (!intakeId) return false;
-  const status = await fetchIntakeStatus(intakeId);
-  if (!status) return false;
-  // "Submitted" / "Complete" / "Reviewed" — anything past raw submission counts.
-  return /submitted|complete|reviewed|done/i.test(status);
-}
-
-function formatSessionTime(iso?: string): string {
-  if (!iso) return "soon";
-  try {
-    const d = new Date(iso);
-    // Pacific Time pretty-print: "Wednesday at 10:00 AM PT"
-    const day = d.toLocaleDateString("en-US", {
-      weekday: "long",
-      timeZone: "America/Los_Angeles",
-    });
-    const time = d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: "America/Los_Angeles",
-    });
-    return `${day} at ${time} PT`;
-  } catch {
-    return iso;
-  }
-}
-
-/**
- * Check whether a session falls within the followup window.
- *   Window: now < scheduledAt <= now + 30h
- * 30h is wide enough to catch sessions across the daily cron run + slop.
- */
-function inFollowupWindow(scheduledAt: string | undefined, now: Date): boolean {
-  if (!scheduledAt) return false;
-  const t = new Date(scheduledAt).getTime();
-  const nowMs = now.getTime();
-  const HOUR_MS = 60 * 60 * 1000;
-  return t > nowMs && t <= nowMs + 30 * HOUR_MS;
-}
-
-interface SessionResult {
-  sessionId: string;
-  clientName: string;
-  intakeNudge?: { ok: boolean; reason?: string };
-  callerPrep?: { ok: boolean; reason?: string };
-}
-
-interface Skipped {
-  sessionId: string;
-  reason: string;
-}
-
-async function processSession(
-  session: SessionRecord,
-  now: Date,
-): Promise<{ result?: SessionResult; skipped?: Skipped }> {
-  // Only Prep state — once the workshop has started we don't pre-nudge anymore.
-  if (session.state !== "Prep") {
-    return { skipped: { sessionId: session.id, reason: `state_${session.state}` } };
-  }
-  if (!inFollowupWindow(session.scheduledAt, now)) {
-    return {
-      skipped: { sessionId: session.id, reason: "outside_window" },
-    };
-  }
-  // Need a Payment row for email + name.
-  const paymentId = session.linkedPaymentIds[0];
-  if (!paymentId) {
-    return { skipped: { sessionId: session.id, reason: "no_payment" } };
-  }
-  const payment = await fetchPaymentLite(paymentId);
-  if (!payment || !payment.email) {
-    return { skipped: { sessionId: session.id, reason: "no_payment_email" } };
-  }
-
-  const firstName =
-    (payment.clientName.split(/\s+/)[0] || "").trim() ||
-    payment.email.split("@")[0];
-  const sessionTime = formatSessionTime(session.scheduledAt);
-
-  const result: SessionResult = {
-    sessionId: session.id,
-    clientName: payment.clientName || session.clientName,
-  };
-
-  // -------- Intake Nudge --------
-  if (!session.intakeNudgeSent) {
-    const submitted = await isIntakeSubmitted(session, payment.email);
-    if (!submitted) {
-      const sent = await sendIntakeNudge({
-        email: payment.email,
-        firstName,
-        sessionTime,
-        tallyUrl: config.frankieEmails.tallyUrl,
-      });
-      result.intakeNudge = sent;
-      if (sent.ok) {
-        try {
-          await updateSessionFields(session.id, { intakeNudgeSent: true });
-        } catch (err) {
-          console.error(
-            `[cron/frankie-followups] failed to mark intakeNudgeSent on ${session.id}: ${err instanceof Error ? err.message : "unknown"}`,
-          );
-        }
-      }
-    } else {
-      result.intakeNudge = { ok: false, reason: "intake_submitted" };
-    }
-  } else {
-    result.intakeNudge = { ok: false, reason: "already_sent" };
-  }
-
-  // -------- Caller Prep --------
-  if (!session.callerPrepSent) {
-    // Hosted one-pager URL — personalized per session via the ?sessionId param.
-    const callerPrepUrl = `${config.frankieEmails.callerPrepBaseUrl}?sessionId=${encodeURIComponent(session.id)}`;
-    const sent = await sendCallerPrep({
-      email: payment.email,
-      firstName,
-      sessionTime,
-      callerPrepUrl,
-    });
-    result.callerPrep = sent;
-    if (sent.ok) {
-      try {
-        await updateSessionFields(session.id, { callerPrepSent: true });
-      } catch (err) {
-        console.error(
-          `[cron/frankie-followups] failed to mark callerPrepSent on ${session.id}: ${err instanceof Error ? err.message : "unknown"}`,
-        );
-      }
-    }
-  } else {
-    result.callerPrep = { ok: false, reason: "already_sent" };
-  }
-
-  return { result };
-}
 
 /**
  * Bearer-token auth check. Trims both the env value and the header token
