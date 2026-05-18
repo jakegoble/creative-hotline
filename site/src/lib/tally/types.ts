@@ -157,10 +157,25 @@ export interface ParsedIntake {
   tiktok?: string;
   /** "YouTube" — INPUT_LINK (optional) */
   youtube?: string;
-  /** "Website 2" or "Additional website" — INPUT_LINK (optional) */
+  /** "Website 2" or "Additional website" — INPUT_LINK (optional). Maps to
+   *  Notion "Portfolio Website" property; the primary `website` field
+   *  maps to "Brand Website". */
   website2?: string;
   /** Terms & Conditions agreement checkbox — required. CHECKBOX → boolean */
   tcsAgreed?: boolean;
   /** Optional AI overview the client pasted from their LLM — TEXTAREA */
   aiOverview?: string;
+
+  // ---------- Megha V2 spec additions (TCH-V2-TALLY-FORM-SPEC.md) ----------
+
+  /** Q2 "What does 90-day success look like?" — TEXTAREA */
+  successDefinition?: string;
+  /** Q3 "How do you make money?" — MULTIPLE_CHOICE multi → string[] */
+  revenueModel?: string[];
+  /** Q4 "Who are you trying to reach?" — TEXTAREA */
+  targetAudience?: string;
+  /** Q5 "Where do you live online?" — MULTIPLE_CHOICE multi → string[] */
+  platforms?: string[];
+  /** Q7 "Drop your links." — Tally repeating URL field, joined as newline-separated string */
+  brandLinks?: string;
 }

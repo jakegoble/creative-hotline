@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCH · Review Dashboard</title>
+<link rel="stylesheet" href="tch-brand.css" />
+<style>
+  body { background: var(--tch-cream); }
+
+  .top {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 4px solid var(--tch-red);
+    position: relative;
+  }
+  .top::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px);
+    pointer-events: none;
+  }
+  .top .left, .top .right { display: flex; gap: 14px; align-items: center; position: relative; z-index: 2; }
+  .role-tag {
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 5px 12px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase;
+    border: 2px solid var(--tch-cream); cursor: pointer;
+  }
+  .role-tag.jake { background: var(--tch-blue); }
+  .due-tag { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.14em; font-size: 11px; color: rgba(245,242,235,0.7); text-transform: uppercase; }
+
+  .layout {
+    display: grid; grid-template-columns: 320px 1fr 360px;
+    min-height: calc(100vh - 56px);
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    background: var(--tch-ink); color: var(--tch-cream);
+    border-right: 3px solid var(--tch-red);
+    padding: 22px;
+    overflow-y: auto;
+    position: relative;
+  }
+  .sidebar::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.03) 2px 3px);
+    pointer-events: none;
+  }
+  .sidebar > * { position: relative; z-index: 2; }
+  .sidebar h3 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    color: var(--tch-yellow); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .day-title {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); margin-bottom: 4px; color: var(--tch-cream);
+  }
+  .day-meta {
+    font-family: var(--tch-mono); font-size: 12px;
+    color: rgba(245,242,235,0.6); margin-bottom: 22px;
+  }
+  .queue { display: flex; flex-direction: column; gap: 10px; }
+  .queue-item {
+    background: rgba(245,242,235,0.05);
+    padding: 16px; cursor: pointer;
+    border-left: 4px solid transparent;
+    transition: all 0.15s;
+  }
+  .queue-item:hover { background: rgba(245,242,235,0.1); }
+  .queue-item.active { border-left-color: var(--tch-red); background: rgba(236,49,7,0.12); }
+  .queue-item .name {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1); margin-bottom: 2px;
+  }
+  .queue-item .biz { font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.6); margin-bottom: 8px; }
+  .queue-item .row { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; font-size: 11px; }
+  .status-tag { padding: 3px 10px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.12em; font-size: 10px; text-transform: uppercase; }
+  .status-tag.drafting { background: rgba(245,242,235,0.15); color: rgba(245,242,235,0.7); }
+  .status-tag.in-review { background: var(--tch-yellow); color: var(--tch-ink); }
+  .status-tag.approved { background: #4ade80; color: var(--tch-ink); }
+  .status-tag.sent { background: var(--tch-cream); color: var(--tch-ink); }
+
+  .sidebar-summary {
+    margin-top: 24px; padding-top: 22px;
+    border-top: 1.5px solid rgba(245,242,235,0.15);
+  }
+  .summary-line {
+    display: flex; justify-content: space-between;
+    font-family: var(--tch-mono); font-size: 11px; padding: 5px 0;
+    color: rgba(245,242,235,0.7);
+  }
+  .summary-line strong { color: var(--tch-yellow); }
+
+  /* MAIN */
+  .main { padding: 30px 36px; overflow-y: auto; }
+  .session-head { margin-bottom: 28px; padding-bottom: 22px; border-bottom: 2px solid var(--tch-ink); }
+  .breadcrumb { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; color: var(--tch-red); text-transform: uppercase; margin-bottom: 10px; }
+  .session-head h1 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); line-height: 1.0; margin-bottom: 10px;
+  }
+  .session-head .meta { display: flex; gap: 18px; font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.65); flex-wrap: wrap; }
+  .session-head .meta strong { color: var(--tch-ink); font-weight: 700; }
+
+  .debrief-summary {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 22px;
+    margin-bottom: 28px;
+    border-left: 5px solid var(--tch-yellow);
+  }
+  .debrief-summary .head { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; color: var(--tch-yellow); margin-bottom: 14px; text-transform: uppercase; }
+  .debrief-summary .row { display: flex; gap: 22px; flex-wrap: wrap; }
+  .debrief-summary .item .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.12em; font-size: 10px; color: rgba(245,242,235,0.55); margin-bottom: 2px; text-transform: uppercase; }
+  .debrief-summary .item .v { font-family: var(--tch-mono); font-size: 13px; font-weight: 700; }
+  .debrief-summary .insight { margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(245,242,235,0.18); font-family: var(--tch-display); font-style: italic; font-size: var(--tch-step-1); }
+
+  /* SECTION CARDS */
+  .section-card {
+    background: var(--tch-cream);
+    margin-bottom: 16px;
+    border: 2px solid var(--tch-ink);
+    border-left: 6px solid var(--tch-red);
+    padding: 22px;
+    box-shadow: var(--tch-shadow-hard-sm);
+    position: relative;
+  }
+  .section-card.j { border-left-color: var(--tch-blue); }
+  .section-card.shared { border-left-color: var(--tch-yellow); }
+  .section-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
+  .section-head .left { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .section-num-tag-r { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2); color: rgba(28,28,30,0.3); }
+  .section-name { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.06em; font-size: 14px; text-transform: uppercase; }
+
+  .section-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    background: transparent; border: 1.5px solid var(--tch-ink-line);
+    padding: 6px 12px;
+    font-family: var(--tch-nord); font-weight: 500;
+    letter-spacing: 0.12em; font-size: 10px;
+    cursor: pointer; text-transform: uppercase;
+  }
+  .icon-btn:hover { background: var(--tch-cream); border-color: var(--tch-ink); }
+
+  .section-content {
+    background: var(--tch-cream);
+    padding: 16px;
+    font-family: var(--tch-mono); font-size: 13px; line-height: 1.5;
+    min-height: 60px;
+    border: 1.5px dashed var(--tch-ink-line);
+  }
+  .section-content[contenteditable="true"]:focus {
+    outline: none; border-color: var(--tch-red); background: rgba(246,237,82,0.08);
+  }
+  .section-content em { font-style: italic; color: var(--tch-red); }
+
+  .approval-row { display: flex; gap: 8px; margin-top: 14px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+  .approval-state { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.06em; font-size: 11px; color: rgba(28,28,30,0.65); }
+  .approval-state .checks { display: inline-flex; gap: 6px; margin-left: 8px; }
+  .check-pill { padding: 3px 8px; font-weight: 700; font-size: 10px; background: var(--tch-ink-soft); color: rgba(28,28,30,0.5); }
+  .check-pill.done { background: #4ade80; color: var(--tch-ink); }
+  .approve-btn {
+    background: #4ade80; color: var(--tch-ink);
+    border: 1.5px solid var(--tch-ink); padding: 8px 16px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.12em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 2px 2px 0 var(--tch-ink); transition: all 0.1s;
+  }
+  .approve-btn:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--tch-ink); }
+  .approve-btn.approved { background: var(--tch-ink); color: #4ade80; }
+
+  .comment-thread {
+    background: rgba(46,99,231,0.08);
+    border-left: 3px solid var(--tch-blue);
+    padding: 14px;
+    margin-top: 14px;
+  }
+  .comment .who { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 10px; text-transform: uppercase; margin-bottom: 4px; }
+  .comment .who.m { color: var(--tch-red); }
+  .comment .who.j { color: var(--tch-blue); }
+  .comment + .comment { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--tch-ink-line); }
+  .comment-thread .resolve { margin-top: 10px; }
+  .comment-thread .resolve button {
+    background: #4ade80; color: var(--tch-ink); border: 1.5px solid var(--tch-ink);
+    padding: 5px 12px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.12em; font-size: 10px;
+    cursor: pointer; text-transform: uppercase;
+  }
+
+  /* APPROVAL PANEL (right) */
+  .approval-panel {
+    background: var(--tch-ink); color: var(--tch-cream);
+    border-left: 3px solid var(--tch-red);
+    padding: 24px;
+    overflow-y: auto;
+    position: sticky; top: 0;
+  }
+  .approval-panel h3 { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; color: var(--tch-yellow); margin-bottom: 14px; text-transform: uppercase; }
+
+  .gate-card {
+    background: rgba(245,242,235,0.04);
+    padding: 14px;
+    margin-bottom: 10px;
+    border-left: 3px solid rgba(245,242,235,0.2);
+  }
+  .gate-card.done { border-left-color: #4ade80; }
+  .gate-card .label { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.1em; font-size: 11px; margin-bottom: 6px; text-transform: uppercase; color: rgba(245,242,235,0.85); }
+  .gate-card .state { font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.7); }
+  .gate-card .state.green { color: #4ade80; font-weight: 700; }
+  .gate-card .state.red { color: var(--tch-red); font-weight: 700; }
+  .gate-card .progress { margin-top: 6px; height: 4px; background: rgba(245,242,235,0.1); }
+  .gate-card .bar { height: 100%; background: var(--tch-red); transition: width 0.2s; }
+  .gate-card.done .bar { background: #4ade80; }
+
+  .send-section { margin-top: 28px; padding-top: 22px; border-top: 2px solid rgba(245,242,235,0.15); }
+  .channels { display: flex; gap: 10px; margin-bottom: 14px; }
+  .channel-chip {
+    background: rgba(245,242,235,0.06);
+    padding: 10px 14px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px;
+    text-transform: uppercase;
+    flex: 1; text-align: center;
+    border: 1.5px solid rgba(245,242,235,0.2);
+  }
+  .send-btn {
+    width: 100%; background: rgba(245,242,235,0.1); color: rgba(245,242,235,0.4);
+    border: 2px solid rgba(245,242,235,0.2);
+    padding: 18px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 12px;
+    cursor: not-allowed; text-transform: uppercase;
+  }
+  .send-btn.ready {
+    background: var(--tch-red); color: var(--tch-cream); border-color: var(--tch-red);
+    cursor: pointer; box-shadow: 4px 4px 0 var(--tch-yellow);
+  }
+  .send-btn.ready:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--tch-yellow); }
+  .send-btn.sent { background: #4ade80; color: var(--tch-ink); border-color: #4ade80; cursor: default; }
+
+  .tie-break-banner {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 16px;
+    margin: 18px 0;
+    border: 2px solid var(--tch-ink);
+    box-shadow: 4px 4px 0 var(--tch-red);
+  }
+  .tie-break-banner .head { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; margin-bottom: 6px; text-transform: uppercase; }
+
+  .edit-log { margin-top: 26px; padding-top: 20px; border-top: 1.5px solid rgba(245,242,235,0.15); }
+  .edit-log .entry { display: flex; gap: 10px; padding: 6px 0; font-family: var(--tch-mono); font-size: 11px; border-bottom: 1px dashed rgba(245,242,235,0.1); }
+  .edit-log .entry:last-child { border-bottom: none; }
+  .edit-log .time { font-weight: 700; color: rgba(245,242,235,0.45); min-width: 50px; }
+  .edit-log .who.m { color: var(--tch-red); font-weight: 700; }
+  .edit-log .who.j { color: var(--tch-blue); font-weight: 700; }
+
+  @media (max-width: 1200px) {
+    .layout { grid-template-columns: 280px 1fr 320px; }
+  }
+  @media (max-width: 900px) {
+    .layout { grid-template-columns: 1fr; }
+    .sidebar, .approval-panel { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="left">
+    <span class="tch-logo-3stack-white" style="height: 32px; width: 72px;"></span>
+    <span class="role-tag" id="userRole" onclick="toggleRole()">Reviewing as: Megha</span>
+  </div>
+  <div class="right">
+    <span class="due-tag">Delivery due: <span id="dueTag">5:00 PM PST</span></span>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <h3>Today's Sessions</h3>
+    <div class="day-title" id="dayTitle">Thursday, Mar 20</div>
+    <div class="day-meta">3 sessions · review by 5:00 PM</div>
+
+    <div class="queue">
+      <div class="queue-item active">
+        <div class="name">Rae Solano</div>
+        <div class="biz">Solano Studio · Ceramics</div>
+        <div class="row"><span class="status-tag in-review">In Review</span> <span>9.0</span></div>
+      </div>
+      <div class="queue-item">
+        <div class="name">Marcus Chen</div>
+        <div class="biz">Evergreen Co · DTC Skincare</div>
+        <div class="row"><span class="status-tag drafting">Drafting</span> <span>—</span></div>
+      </div>
+      <div class="queue-item">
+        <div class="name">Talia Brooks</div>
+        <div class="biz">TALIA · Fashion Consulting</div>
+        <div class="row"><span class="status-tag drafting">Drafting</span> <span>—</span></div>
+      </div>
+    </div>
+
+    <div class="sidebar-summary">
+      <h3>Today's Stats</h3>
+      <div class="summary-line"><span>Sessions completed</span><span><strong>3 / 3</strong></span></div>
+      <div class="summary-line"><span>Drafts ready</span><span><strong>1 / 3</strong></span></div>
+      <div class="summary-line"><span>Approved</span><span><strong>0 / 3</strong></span></div>
+      <div class="summary-line"><span>Sent</span><span><strong>0 / 3</strong></span></div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="session-head">
+      <div class="breadcrumb">Review · Action Plan Draft</div>
+      <h1 id="reviewClientName">Rae Solano — Solano Studio</h1>
+      <div class="meta">
+        <span>Session: <strong>9:30 AM</strong></span>
+        <span>Score: <strong>9.0</strong></span>
+        <span>Diagnosis confidence: <strong>8.5</strong></span>
+        <span>Drafted by Claude: <strong>2:14 PM</strong></span>
+      </div>
+    </div>
+
+    <div class="debrief-summary">
+      <div class="head">↳ From the debrief</div>
+      <div class="row">
+        <div class="item"><div class="k">Tone</div><div class="v">Direct + Sharp</div></div>
+        <div class="item"><div class="k">Landed Hardest</div><div class="v">Positioning Shift</div></div>
+        <div class="item"><div class="k">Path</div><div class="v">Mixed</div></div>
+        <div class="item"><div class="k">Upsell</div><div class="v">Strong</div></div>
+        <div class="item"><div class="k">First Move</div><div class="v">Did it ✓</div></div>
+        <div class="item"><div class="k">Authority</div><div class="v">12 / 20</div></div>
+      </div>
+      <div class="insight">"She came in scattered, but the real issue is she's afraid to commit — her mom built the family business on multi-line. The hero-product move IS the inheritance conversation."</div>
+    </div>
+
+    <!-- SECTION CARDS -->
+    <div class="section-card">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">01</span>
+          <span class="section-name">North Star</span>
+          <span class="tch-owner m">M · Lead Strategist</span>
+        </div>
+        <div class="section-actions">
+          <button class="icon-btn">✏ Edit</button>
+          <button class="icon-btn" onclick="addComment(this)">💬 Comment</button>
+        </div>
+      </div>
+      <div class="section-content" contenteditable="true">"For the next 90 days, I'm building Solano Studio around one hero collection — and saying no to everything else."</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill done">M ✓</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn approved" disabled>M Approved</button></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">02</span>
+          <span class="section-name">What We Learned</span>
+          <span class="tch-owner m">M · Lead Strategist</span>
+        </div>
+        <div class="section-actions">
+          <button class="icon-btn">✏ Edit</button>
+          <button class="icon-btn" onclick="addComment(this)">💬 Comment</button>
+        </div>
+      </div>
+      <div class="section-content" contenteditable="true">[Diagnosis paragraph 1 — the thing beneath the thing.]<br><br><em>"You're not scattered. You're inheriting."</em><br><br>[Diagnosis paragraph 2 — the implication for brand and business.]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve My Edit</button></div>
+      </div>
+      <div class="comment-thread">
+        <div class="comment">
+          <div class="who j">Jake · 2:08 PM</div>
+          <div>The pull-quote is sharp. But the second paragraph is hedging. Commit to the inheritance frame harder — "Your mother built on more. Yours grows on less."</div>
+        </div>
+        <div class="resolve"><button>Resolve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card shared">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">03</span>
+          <span class="section-name">Creative Authority Read</span>
+          <span class="tch-owner shared">Shared · Both Approve</span>
+        </div>
+        <div class="section-actions">
+          <button class="icon-btn">✏ Edit</button>
+          <button class="icon-btn" onclick="addComment(this)">💬 Comment</button>
+        </div>
+      </div>
+      <div class="section-content" contenteditable="true">Total: 12 / 20 · Positioning 2 · Messaging 3 · Execution 4 · Distribution 3 · [Per-pillar narrative reads from session...]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval (BOTH): <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">04</span>
+          <span class="section-name">What We Love</span>
+          <span class="tch-owner m">M · Lead Strategist</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">✦ [Specific thing 1] · ✦ [Specific thing 2]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">05</span>
+          <span class="section-name">Things You Said That Matter</span>
+          <span class="tch-owner m">M · Lead Strategist</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">[3 verbatim quotes auto-extracted from Fireflies + 1-line context per quote]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">06</span>
+          <span class="section-name">What We're Not Doing</span>
+          <span class="tch-owner m">M · Lead Strategist</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">⛔ Stop: [items from session] · ⏸ Not Yet: [items from session]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card j">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">07</span>
+          <span class="section-name">Action Plan (72hr / 1wk / 1mo)</span>
+          <span class="tch-owner j">J · Lead Operator</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">[3 moves with DIY (Path A) and Level Up (Path B) for each timeframe]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card shared">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">08</span>
+          <span class="section-name">Effort / Impact Map</span>
+          <span class="tch-owner shared">Shared · Both Approve</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">[Quadrant map populated from live workshop — assigned per-session, may default to J]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval (BOTH): <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card j">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">09</span>
+          <span class="section-name">Tools We Recommend</span>
+          <span class="tch-owner j">J · Lead Operator</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">[Tools matched to current capacity, with pricing]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card j">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">10</span>
+          <span class="section-name">What Success Looks Like</span>
+          <span class="tch-owner j">J · Lead Operator</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">[7-day / 30-day / 90-day benchmarks with how-to-know-you-hit-it]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval: <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <div class="section-card shared">
+      <div class="section-head">
+        <div class="left">
+          <span class="section-num-tag-r">11</span>
+          <span class="section-name">Continue the Conversation</span>
+          <span class="tch-owner shared">Shared · Both Approve</span>
+        </div>
+        <div class="section-actions"><button class="icon-btn">✏ Edit</button><button class="icon-btn" onclick="addComment(this)">💬 Comment</button></div>
+      </div>
+      <div class="section-content" contenteditable="true">[Creative File access · Follow-Up $699 · Clarity Bundle $1,500 · Referral plant]</div>
+      <div class="approval-row">
+        <div class="approval-state">Approval (BOTH): <span class="checks"><span class="check-pill">M</span><span class="check-pill">J</span></span></div>
+        <div><button class="approve-btn" onclick="approve(this)">Approve</button></div>
+      </div>
+    </div>
+
+    <button class="tch-btn ghost" style="margin-top:14px;">👁 Preview Full Deliverable</button>
+  </main>
+
+  <aside class="approval-panel">
+    <h3>Send Gates</h3>
+
+    <div class="gate-card">
+      <div class="label">M's sections approved</div>
+      <div class="state" id="gate1State">3 of 5</div>
+      <div class="progress"><div class="bar" style="width: 60%"></div></div>
+    </div>
+    <div class="gate-card">
+      <div class="label">J's sections approved</div>
+      <div class="state red" id="gate2State">0 of 3 — waiting for Jake</div>
+      <div class="progress"><div class="bar" style="width: 0%"></div></div>
+    </div>
+    <div class="gate-card">
+      <div class="label">Shared sections (both approve)</div>
+      <div class="state" id="gate3State">0 of 3</div>
+      <div class="progress"><div class="bar" style="width: 0%"></div></div>
+    </div>
+    <div class="gate-card">
+      <div class="label">Comments resolved</div>
+      <div class="state" id="gate4State">2 of 3 open</div>
+      <div class="progress"><div class="bar" style="width: 33%"></div></div>
+    </div>
+
+    <div class="tie-break-banner" style="display:none;" id="tieBreakBanner">
+      <div class="head">⚖ Tie-Breaker Required</div>
+      <p style="font-family: var(--tch-mono); font-size: 12px;">Megha — there's a disagreement on a shared section. As current tie-breaker, your call locks the section.</p>
+    </div>
+
+    <div class="send-section">
+      <h3>Delivery Channels</h3>
+      <div class="channels">
+        <div class="channel-chip">📧 Email</div>
+        <div class="channel-chip">📱 SMS</div>
+      </div>
+      <p style="font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.6); margin-bottom: 14px;">Frankie sends both simultaneously. Status flips to Sent. Slack notifies M+J.</p>
+      <button class="send-btn" id="sendBtn">Send via Frankie ☎</button>
+      <p style="font-family: var(--tch-mono); font-size: 10px; color: rgba(245,242,235,0.4); margin-top: 10px;">Disabled until all gates clear.</p>
+    </div>
+
+    <div class="edit-log">
+      <h3>Edit Log</h3>
+      <div class="entry"><span class="time">2:14P</span><span class="who m">M</span><span>02 — refined positioning language</span></div>
+      <div class="entry"><span class="time">2:08P</span><span class="who j">J</span><span>02 — left comment on diagnosis hedge</span></div>
+      <div class="entry"><span class="time">1:52P</span><span class="who m">M</span><span>04 — verified quote accuracy</span></div>
+      <div class="entry"><span class="time">1:45P</span><span class="who m">M</span><span>01 — approved North Star</span></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+  function approve(btn) {
+    btn.classList.add('approved');
+    btn.textContent = '✓ Approved';
+    btn.disabled = true;
+    checkSendReady();
+  }
+  function checkSendReady() {
+    const total = document.querySelectorAll('.approve-btn').length;
+    const approved = document.querySelectorAll('.approve-btn.approved').length;
+    const send = document.getElementById('sendBtn');
+    if (approved === total) { send.classList.add('ready'); send.disabled = false; }
+  }
+  function addComment(btn) {
+    const text = prompt('Add your comment:');
+    if (!text) return;
+    const card = btn.closest('.section-card');
+    let thread = card.querySelector('.comment-thread');
+    if (!thread) {
+      thread = document.createElement('div');
+      thread.className = 'comment-thread';
+      card.appendChild(thread);
+    }
+    const who = document.getElementById('userRole').classList.contains('jake') ? 'j' : 'm';
+    const c = document.createElement('div');
+    c.className = 'comment';
+    c.innerHTML = `<div class="who ${who}">${who === 'm' ? 'Megha' : 'Jake'} · ${new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</div><div>${text}</div>`;
+    thread.appendChild(c);
+  }
+  document.getElementById('sendBtn').addEventListener('click', () => {
+    if (!document.getElementById('sendBtn').classList.contains('ready')) return;
+    if (!confirm('Confirm send? Email + SMS go simultaneously via Frankie.')) return;
+    const b = document.getElementById('sendBtn');
+    b.classList.remove('ready'); b.classList.add('sent');
+    b.textContent = '✓ Sent'; b.disabled = true;
+    alert('Sent. Email + SMS dispatched. Status: Sent. Slack notified.');
+  });
+  function toggleRole() {
+    const t = document.getElementById('userRole');
+    if (t.classList.contains('jake')) {
+      t.classList.remove('jake');
+      t.textContent = 'Reviewing as: Megha';
+    } else {
+      t.classList.add('jake');
+      t.textContent = 'Reviewing as: Jake';
+    }
+  }
+</script>
+</body>
+</html>

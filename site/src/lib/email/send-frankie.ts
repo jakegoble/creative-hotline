@@ -23,9 +23,69 @@ import {
   intakeNudgeEmail,
   callerPrepEmail,
 } from "./templates/frankie";
-import { sendEmail } from "../services/email";
+import { sendEmail, type SendAttachment } from "../services/email";
 import { sendSms } from "../services/twilio";
 import type { PaymentCreateInput, ProductPurchased } from "../v2-types";
+
+/**
+ * Service-agreement PDF attachment loader.
+ *
+ * Per Megha's V2 spec, the confirmation email attaches the service agreement
+ * as a PDF. The PDF lives at /public/legal/service-agreement.pdf — served
+ * statically by Vercel's CDN — so we fetch it at runtime from the deploy URL
+ * rather than wrestling with serverless file-system tracing.
+ *
+ * Cached per function-instance (module-level) so subsequent sends don't refetch.
+ * Fail-soft: if the fetch errors, sends still go out without the attachment
+ * (logged + flagged via `attachmentError`) rather than dropping the email.
+ */
+let cachedAgreementPdf: Buffer | null = null;
+let agreementFetchError: string | null = null;
+
+async function loadServiceAgreementAttachment(): Promise<{
+  attachment?: SendAttachment;
+  error?: string;
+}> {
+  if (cachedAgreementPdf) {
+    return {
+      attachment: {
+        content: cachedAgreementPdf,
+        filename: "service-agreement.pdf",
+        type: "application/pdf",
+      },
+    };
+  }
+  if (agreementFetchError) {
+    // Already tried + failed this instance — don't retry on every send.
+    return { error: agreementFetchError };
+  }
+  try {
+    // Use the configured service-agreement URL — same source the email links to,
+    // ensuring attachment + link stay in lockstep. Swap to the .pdf variant.
+    const base = config.frankieEmails.serviceAgreementUrl.replace(
+      /\.html?$/i,
+      ".pdf",
+    );
+    const res = await fetch(base, { cache: "no-store" });
+    if (!res.ok) {
+      agreementFetchError = `agreement_fetch_status_${res.status}`;
+      return { error: agreementFetchError };
+    }
+    const buf = Buffer.from(await res.arrayBuffer());
+    cachedAgreementPdf = buf;
+    return {
+      attachment: {
+        content: buf,
+        filename: "service-agreement.pdf",
+        type: "application/pdf",
+      },
+    };
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "unknown";
+    agreementFetchError = `agreement_fetch_threw: ${msg}`;
+    return { error: agreementFetchError };
+  }
+}
 
 /**
  * Build the per-client confirmation email inputs from a Stripe checkout session
@@ -85,12 +145,19 @@ export async function sendConfirmationFromStripeSession(
 
   try {
     const tmpl = confirmationEmail(input);
+    const agreement = await loadServiceAgreementAttachment();
+    if (agreement.error) {
+      console.warn(
+        `[frankie] confirmation (checkout) sending without agreement attachment: ${agreement.error}`,
+      );
+    }
     const result = await sendEmail({
       to: email,
       subject: tmpl.subject,
       bodyMarkdown: tmpl.bodyMarkdown,
       previewText: tmpl.previewText,
       categories: tmpl.categories,
+      attachments: agreement.attachment ? [agreement.attachment] : undefined,
     });
     return result.ok
       ? { ok: true }
@@ -148,12 +215,19 @@ export async function sendConfirmationFromCalendlyPayment(
       serviceAgreementUrl: config.frankieEmails.serviceAgreementUrl,
       productLabel,
     });
+    const agreement = await loadServiceAgreementAttachment();
+    if (agreement.error) {
+      console.warn(
+        `[frankie] confirmation (calendly) sending without agreement attachment: ${agreement.error}`,
+      );
+    }
     const result = await sendEmail({
       to: input.email,
       subject: tmpl.subject,
       bodyMarkdown: tmpl.bodyMarkdown,
       previewText: tmpl.previewText,
       categories: tmpl.categories,
+      attachments: agreement.attachment ? [agreement.attachment] : undefined,
     });
     return result.ok
       ? { ok: true }

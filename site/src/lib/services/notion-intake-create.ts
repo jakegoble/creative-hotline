@@ -198,6 +198,57 @@ export async function createIntakeFromTally(
   const url = normalizeUrl(preferredWebsiteUrl(intake));
   if (url) properties["Website / IG"] = { url };
 
+  // ---------- Megha V2 spec additions (Tally Q2 / Q3 / Q4 / Q5 / Q7) ----------
+  if (intake.successDefinition)
+    properties["Success Definition"] = richText(intake.successDefinition);
+  if (intake.targetAudience)
+    properties["Target Audience"] = richText(intake.targetAudience);
+  if (intake.brandLinks) properties["Brand Links"] = richText(intake.brandLinks);
+  if (intake.aiOverview)
+    properties["AI Overview"] = richText(intake.aiOverview);
+
+  if (intake.revenueModel && intake.revenueModel.length > 0) {
+    properties["Revenue Model"] = {
+      multi_select: intake.revenueModel.map((name) => ({ name })),
+    };
+  }
+  if (intake.platforms && intake.platforms.length > 0) {
+    properties["Platforms"] = {
+      multi_select: intake.platforms.map((name) => ({ name })),
+    };
+  }
+
+  // ---------- Dedicated social URL columns (Megha morning batch) ----------
+  // These complement (don't replace) "Website / IG" which holds the single
+  // preferred URL. Each Tally social input becomes its own typed URL property
+  // so the morning-prep + research-brief pipelines can read them directly.
+  const linkedinUrl = intake.linkedin
+    ? normalizeUrl(intake.linkedin)
+    : undefined;
+  if (linkedinUrl) properties["LinkedIn"] = { url: linkedinUrl };
+
+  const twitterUrl = intake.twitter ? normalizeUrl(intake.twitter) : undefined;
+  if (twitterUrl) properties["X/Twitter"] = { url: twitterUrl };
+
+  const tiktokUrl = intake.tiktok ? normalizeUrl(intake.tiktok) : undefined;
+  if (tiktokUrl) properties["TikTok URL"] = { url: tiktokUrl };
+
+  const youtubeUrl = intake.youtube ? normalizeUrl(intake.youtube) : undefined;
+  if (youtubeUrl) properties["YouTube"] = { url: youtubeUrl };
+
+  // Brand Website = primary Tally "Website" field; Portfolio Website = the
+  // optional second "Website 2" / "Portfolio Website" field.
+  const brandWebsite = intake.website
+    ? normalizeUrl(intake.website)
+    : undefined;
+  if (brandWebsite) properties["Brand Website"] = { url: brandWebsite };
+
+  const portfolioWebsite = intake.website2
+    ? normalizeUrl(intake.website2)
+    : undefined;
+  if (portfolioWebsite)
+    properties["Portfolio Website"] = { url: portfolioWebsite };
+
   // Brand Files (file upload field) — array of external file refs.
   const filesProp = buildFilesProperty(intake.brandFiles);
   if (filesProp) properties["Brand Files"] = filesProp;

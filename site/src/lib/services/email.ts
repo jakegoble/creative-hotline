@@ -32,6 +32,17 @@ export interface SendResult {
   error?: unknown;
 }
 
+export interface SendAttachment {
+  /** Raw file bytes. Will be base64-encoded inside the SendGrid payload. */
+  content: Buffer;
+  /** Filename shown in the recipient's mail client (e.g. "service-agreement.pdf"). */
+  filename: string;
+  /** MIME type (e.g. "application/pdf"). */
+  type: string;
+  /** Disposition. Default "attachment". Use "inline" only for CID-referenced images. */
+  disposition?: "attachment" | "inline";
+}
+
 export interface SendInput {
   to: string;
   subject: string;
@@ -43,6 +54,8 @@ export interface SendInput {
   replyTo?: string;
   /** Optional categories for SendGrid analytics. */
   categories?: string[];
+  /** Optional file attachments (PDFs, etc.). Base64-encoded for SendGrid below. */
+  attachments?: SendAttachment[];
 }
 
 /**
@@ -133,6 +146,16 @@ export async function sendEmail(input: SendInput): Promise<SendResult> {
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, "$1 ($2)");
 
   try {
+    // SendGrid attachments are base64-encoded strings — never raw Buffers.
+    const attachmentsPayload = input.attachments?.length
+      ? input.attachments.map((att) => ({
+          content: att.content.toString("base64"),
+          filename: att.filename,
+          type: att.type,
+          disposition: att.disposition ?? "attachment",
+        }))
+      : undefined;
+
     const [response] = await sgMail.send({
       to: input.to,
       from: SENDER,
@@ -141,6 +164,7 @@ export async function sendEmail(input: SendInput): Promise<SendResult> {
       text,
       html,
       categories: input.categories,
+      ...(attachmentsPayload ? { attachments: attachmentsPayload } : {}),
       mailSettings: { sandboxMode: { enable: false } },
       ...(input.previewText
         ? { customArgs: { preview_text: input.previewText } }

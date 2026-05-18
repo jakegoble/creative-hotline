@@ -184,9 +184,16 @@ const FIELD_MAP: FieldDef[] = [
   { labels: ["X / Twitter", "X/Twitter", "Twitter", "X"], key: "twitter", extract: extractString },
   { labels: ["TikTok"], key: "tiktok", extract: extractString },
   { labels: ["YouTube"], key: "youtube", extract: extractString },
-  { labels: ["Website 2", "Additional website", "Other website", "Secondary website"], key: "website2", extract: extractString },
+  { labels: ["Website 2", "Additional website", "Other website", "Secondary website", "Portfolio Website", "Portfolio website"], key: "website2", extract: extractString },
   { labels: ["I agree to the Terms & Conditions", "Terms & Conditions", "Terms and Conditions", "T&C", "Agree to terms"], key: "tcsAgreed", extract: extractBool },
   { labels: ["AI Overview", "Project overview (AI-generated)", "AI-generated overview", "AI overview from your LLM"], key: "aiOverview", extract: extractString },
+
+  // ---------- Megha V2 spec additions (TCH-V2-TALLY-FORM-SPEC.md) ----------
+  { labels: ["What does 90-day success look like?", "90-day success", "Success definition"], key: "successDefinition", extract: extractString },
+  { labels: ["How do you make money? (Select all that apply.)", "How do you make money?", "Revenue model"], key: "revenueModel", extract: extractSelectMany },
+  { labels: ["Who are you trying to reach?", "Target audience"], key: "targetAudience", extract: extractString },
+  { labels: ["Where do you live online? (Select all that apply.)", "Where do you live online?", "Platforms", "Current platforms"], key: "platforms", extract: extractSelectMany },
+  { labels: ["Drop your links.", "Drop your links", "Brand links"], key: "brandLinks", extract: extractString },
 ];
 
 /**

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCH · Debrief</title>
+<link rel="stylesheet" href="tch-brand.css" />
+<style>
+  body { background: var(--tch-ink); color: var(--tch-cream); }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.03) 2px 3px);
+    pointer-events: none; z-index: 1000;
+  }
+
+  .top {
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 4px solid var(--tch-ink);
+    position: relative; z-index: 10;
+  }
+  .top .left { display: flex; gap: 14px; align-items: center; }
+  .top .label-tag { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; opacity: 0.85; text-transform: uppercase; }
+  .countdown {
+    background: var(--tch-ink); color: var(--tch-yellow);
+    padding: 6px 14px;
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1);
+    border: 2px solid var(--tch-yellow);
+  }
+  .countdown.warning { color: var(--tch-red); border-color: var(--tch-red); }
+
+  .meta-bar {
+    background: rgba(245,242,235,0.04);
+    padding: 18px 32px;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;
+    border-bottom: 1px solid rgba(245,242,235,0.1);
+    position: relative; z-index: 5;
+  }
+  .meta-bar .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.16em; font-size: 10px; color: rgba(245,242,235,0.5); margin-bottom: 4px; text-transform: uppercase; }
+  .meta-bar .v { font-family: var(--tch-mono); font-size: var(--tch-step-0); }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 36px 32px 80px; position: relative; z-index: 2; }
+
+  .heading {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-4); line-height: 0.95;
+    margin-bottom: 8px;
+  }
+  .heading em { color: var(--tch-yellow); font-style: italic; }
+  .subheading {
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
+    color: rgba(245,242,235,0.6); margin-bottom: 32px;
+  }
+  .subheading em { color: var(--tch-yellow); font-style: normal; font-weight: 700; }
+
+  .panel {
+    background: rgba(245,242,235,0.04);
+    border: 2px solid rgba(245,242,235,0.12);
+    padding: 26px;
+    margin-bottom: 18px;
+  }
+  .panel-head {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 16px; flex-wrap: wrap; gap: 8px;
+  }
+  .panel h3 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 13px;
+    color: var(--tch-yellow); text-transform: uppercase;
+  }
+  .panel .time-tag {
+    font-family: var(--tch-nord); font-weight: 500;
+    letter-spacing: 0.16em; font-size: 10px;
+    color: rgba(245,242,235,0.4); text-transform: uppercase;
+  }
+  .panel.leap {
+    border-color: var(--tch-red);
+    background: rgba(236,49,7,0.06);
+  }
+  .panel.leap h3 { color: var(--tch-red); }
+
+  .autopop {
+    background: rgba(46,99,231,0.08);
+    border-left: 4px solid var(--tch-blue);
+    padding: 22px;
+    margin-bottom: 28px;
+  }
+  .autopop h4 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    color: var(--tch-blue); margin-bottom: 14px; text-transform: uppercase;
+  }
+  .autopop-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .autopop-item .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.12em; font-size: 10px; color: rgba(245,242,235,0.5); margin-bottom: 4px; text-transform: uppercase; }
+  .autopop-item .v { font-family: var(--tch-mono); font-size: var(--tch-step-0); }
+
+  .pair-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .who-input {
+    background: rgba(28,28,30,0.4);
+    padding: 18px;
+    border-left: 4px solid var(--tch-red);
+  }
+  .who-input.jake { border-left-color: var(--tch-blue); }
+  .who-input .who { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; margin-bottom: 10px; text-transform: uppercase; }
+  .who-input.megha .who { color: var(--tch-red); }
+  .who-input.jake .who { color: var(--tch-blue); }
+  .score-input {
+    width: 100%; background: transparent; color: var(--tch-cream);
+    border: none; border-bottom: 2px solid rgba(245,242,235,0.3);
+    padding: 8px 0;
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); text-align: center;
+  }
+  .score-input:focus { outline: none; border-color: var(--tch-yellow); }
+
+  textarea.input {
+    width: 100%; min-height: 70px;
+    background: transparent; color: var(--tch-cream);
+    border: 2px solid rgba(245,242,235,0.2);
+    padding: 12px;
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
+    resize: vertical;
+  }
+  textarea.input:focus { outline: none; border-color: var(--tch-yellow); background: rgba(246,237,82,0.05); }
+  textarea.input::placeholder { color: rgba(245,242,235,0.3); font-style: italic; }
+
+  .pulse-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .pulse-q { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; color: var(--tch-yellow); margin-bottom: 10px; text-transform: uppercase; }
+  .pill-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pill {
+    background: transparent; color: var(--tch-cream);
+    border: 1.5px solid rgba(245,242,235,0.3);
+    padding: 8px 14px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.1em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase; transition: all 0.15s;
+  }
+  .pill:hover { background: rgba(245,242,235,0.08); }
+  .pill.active { background: var(--tch-yellow); color: var(--tch-ink); border-color: var(--tch-yellow); }
+  .pill.green.active { background: #4ade80; color: var(--tch-ink); border-color: #4ade80; }
+  .pill.red.active { background: var(--tch-red); color: var(--tch-cream); border-color: var(--tch-red); }
+
+  .avg-row { display: flex; gap: 16px; margin-top: 14px; align-items: center; flex-wrap: wrap; }
+  .avg-tag { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.16em; font-size: 10px; color: rgba(245,242,235,0.5); text-transform: uppercase; }
+  .avg-val { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2); color: var(--tch-yellow); }
+  .avg-flag { font-family: var(--tch-mono); font-size: 11px; color: var(--tch-red); font-weight: 700; }
+
+  .save-bar {
+    background: var(--tch-ink);
+    padding: 24px 32px;
+    border-top: 4px solid var(--tch-red);
+    display: flex; gap: 16px; align-items: center; justify-content: space-between;
+    position: sticky; bottom: 0; flex-wrap: wrap;
+    z-index: 50;
+  }
+  .save-bar .summary { font-family: var(--tch-mono); font-size: 13px; color: rgba(245,242,235,0.7); }
+  .save-bar .summary strong { color: var(--tch-yellow); }
+  .save-btn {
+    background: var(--tch-red); color: var(--tch-cream);
+    border: 2px solid var(--tch-cream);
+    padding: 16px 28px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 12px;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 4px 4px 0 var(--tch-cream);
+    transition: all 0.1s;
+  }
+  .save-btn:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--tch-cream); }
+
+  .check-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .check-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    background: rgba(245,242,235,0.04);
+    padding: 12px 16px; cursor: pointer;
+    border: 1.5px solid rgba(245,242,235,0.1);
+    transition: all 0.15s;
+  }
+  .check-item:hover { background: rgba(245,242,235,0.08); border-color: var(--tch-yellow); }
+  .check-item input { margin-top: 2px; cursor: pointer; }
+  .check-item label { font-family: var(--tch-mono); font-size: 13px; cursor: pointer; }
+
+  @media (max-width: 768px) {
+    .meta-bar, .autopop-grid, .pair-grid, .pulse-grid, .check-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="left">
+    <span class="tch-logo-3stack-white" style="height: 32px; width: 72px;"></span>
+    <span class="label-tag">Debrief · Internal · M + J Only</span>
+  </div>
+  <div style="display:flex; gap:16px; align-items:center;">
+    <span class="label-tag">10-Min Budget</span>
+    <div class="countdown" id="countdown">10:00</div>
+  </div>
+</header>
+
+<div class="meta-bar">
+  <div><div class="k">Client</div><div class="v" id="clientName">[Client Name]</div></div>
+  <div><div class="k">Brand</div><div class="v" id="businessName">[Business Name]</div></div>
+  <div><div class="k">Session</div><div class="v" id="sessionDate">[Date · 9:30 AM]</div></div>
+  <div><div class="k">Started</div><div class="v" id="startTime">[Auto on disconnect]</div></div>
+</div>
+
+<main>
+  <h1 class="heading">The <em>Debrief</em>.</h1>
+  <p class="subheading">10 minutes. Together. Now — while it's still hot. <em>This pushes straight into the action plan.</em></p>
+
+  <div class="autopop">
+    <h4>↳ Pulled forward from the session — no input needed</h4>
+    <div class="autopop-grid">
+      <div class="autopop-item"><div class="k">Authority Score</div><div class="v" id="authScore">— / 20</div></div>
+      <div class="autopop-item"><div class="k">Recalibration</div><div class="v" id="recalRes">— · captured live</div></div>
+      <div class="autopop-item"><div class="k">Somatic Pulse</div><div class="v" id="somaticRes">— · captured live</div></div>
+      <div class="autopop-item"><div class="k">North Star</div><div class="v" id="northStarPreview">[Verbatim from client]</div></div>
+      <div class="autopop-item"><div class="k">First Move</div><div class="v" id="firstMovePreview">[The micro-move + did they do it]</div></div>
+      <div class="autopop-item"><div class="k">B-Side Items</div><div class="v" id="bSideCount">— captured</div></div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>1 · Score the session — independently</h3>
+      <span class="time-tag">~30 sec</span>
+    </div>
+    <div class="pair-grid">
+      <div class="who-input megha">
+        <div class="who">Megha · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="meghaScore" placeholder="—" oninput="updateAvg()" />
+      </div>
+      <div class="who-input jake">
+        <div class="who">Jake · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="jakeScore" placeholder="—" oninput="updateAvg()" />
+      </div>
+    </div>
+    <div class="avg-row">
+      <span class="avg-tag">Average:</span>
+      <span class="avg-val" id="scoreAvg">—</span>
+      <span class="avg-flag" id="scoreFlag"></span>
+    </div>
+  </section>
+
+  <section class="panel leap">
+    <div class="panel-head">
+      <h3>2 · Diagnosis confidence — independently</h3>
+      <span class="time-tag">~30 sec</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 16px;">How sure are we we got the diagnosis right? Avg under 7 auto-routes the action plan for extra Claude refinement before send.</p>
+    <div class="pair-grid">
+      <div class="who-input megha">
+        <div class="who">Megha · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="meghaConf" placeholder="—" oninput="updateConf()" />
+      </div>
+      <div class="who-input jake">
+        <div class="who">Jake · out of 10</div>
+        <input type="number" min="1" max="10" class="score-input" id="jakeConf" placeholder="—" oninput="updateConf()" />
+      </div>
+    </div>
+    <div class="avg-row">
+      <span class="avg-tag">Average:</span>
+      <span class="avg-val" id="confAvg">—</span>
+      <span class="avg-flag" id="confFlag"></span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>3 · Quick pulse — one click each</h3>
+      <span class="time-tag">~1 min</span>
+    </div>
+    <div class="pulse-grid">
+      <div>
+        <div class="pulse-q">Diagnosis tone</div>
+        <div class="pill-row">
+          <button class="pill" onclick="setActive(this)">Direct + Sharp</button>
+          <button class="pill" onclick="setActive(this)">Warm-Direct</button>
+          <button class="pill" onclick="setActive(this)">Gentle Discovery</button>
+        </div>
+      </div>
+      <div>
+        <div class="pulse-q">What landed hardest</div>
+        <div class="pill-row">
+          <button class="pill" onclick="setActive(this)">Positioning Shift</button>
+          <button class="pill" onclick="setActive(this)">Systems Gap</button>
+          <button class="pill" onclick="setActive(this)">Revenue Math</button>
+          <button class="pill" onclick="setActive(this)">Other</button>
+        </div>
+      </div>
+      <div>
+        <div class="pulse-q">Upsell signal</div>
+        <div class="pill-row">
+          <button class="pill green" onclick="setActive(this)">Strong</button>
+          <button class="pill" onclick="setActive(this)">Medium</button>
+          <button class="pill" onclick="setActive(this)">Weak</button>
+          <button class="pill red" onclick="setActive(this)">None</button>
+        </div>
+      </div>
+      <div>
+        <div class="pulse-q">Primary action path</div>
+        <div class="pill-row">
+          <button class="pill" onclick="setActive(this)">DIY · Path A</button>
+          <button class="pill" onclick="setActive(this)">Level Up · Path B</button>
+          <button class="pill" onclick="setActive(this)">Mixed</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>4 · Non-obvious insight</h3>
+      <span class="time-tag">~1.5 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">What surprised you? What pattern did you name that the client didn't see coming? <em style="color:var(--tch-yellow); font-style:normal; font-weight:700;">This is the gold.</em></p>
+    <textarea class="input" id="insight" placeholder="They said X, but the real issue is Y..."></textarea>
+  </section>
+
+  <section class="panel leap">
+    <div class="panel-head">
+      <h3>5 · Where did Megha + Jake see this differently?</h3>
+      <span class="time-tag">~1.5 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">Disagreement is signal. Name it explicitly — sharpens the action plan, surfaces blind spots.</p>
+    <textarea class="input" id="disagreement" placeholder="Megha thought ___; Jake thought ___. The real read might be ___."></textarea>
+  </section>
+
+  <section class="panel leap">
+    <div class="panel-head">
+      <h3>6 · What got left unresolved?</h3>
+      <span class="time-tag">~1 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">The tension we didn't fully land. Most teams skip this. Source of churn AND missed upsells. <em style="color:var(--tch-yellow); font-style:normal; font-weight:700;">Becomes a follow-up email hook.</em></p>
+    <textarea class="input" id="unresolved" placeholder="The thing we didn't quite land was..."></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>7 · Anything you'd do differently?</h3>
+      <span class="time-tag">~1 min</span>
+    </div>
+    <textarea class="input" id="differently" placeholder="What would you change for the next session like this?"></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>8 · B-Side items to route</h3>
+      <span class="time-tag">~30 sec</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 12px;">What came up that doesn't fit the action plan but should be captured somewhere?</p>
+    <textarea class="input" id="bsideRouting" placeholder="One per line. We file these into Notion automatically."></textarea>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>9 · Follow-up customization notes</h3>
+      <span class="time-tag">~1.5 min</span>
+    </div>
+    <p style="font-family: var(--tch-mono); font-size: 12px; color: rgba(245,242,235,0.6); margin-bottom: 14px;">What should be remembered about this client? <em style="color:var(--tch-yellow); font-style:normal; font-weight:700;">Feeds personalized follow-up emails (Day 7 / 14 / 21 / 30 / 60 / 90).</em></p>
+    <div class="pair-grid">
+      <div class="who-input megha">
+        <div class="who">Megha's notes</div>
+        <textarea class="input" id="followMegha" placeholder="Things to weave into Frankie's follow-ups..."></textarea>
+      </div>
+      <div class="who-input jake">
+        <div class="who">Jake's notes</div>
+        <textarea class="input" id="followJake" placeholder="Things to weave into Frankie's follow-ups..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <h3>10 · Flag for review</h3>
+      <span class="time-tag">~15 sec</span>
+    </div>
+    <div class="check-row">
+      <label class="check-item"><input type="checkbox" name="flag"> <span>✅ Strong session — standard flow</span></label>
+      <label class="check-item"><input type="checkbox" name="flag"> <span>🪞 Needs extra polish before send</span></label>
+      <label class="check-item"><input type="checkbox" name="flag"> <span>🤖 Flag for Claude refinement (low confidence)</span></label>
+      <label class="check-item"><input type="checkbox" name="flag"> <span>🚨 Recovery protocol (low score)</span></label>
+    </div>
+  </section>
+</main>
+
+<div class="save-bar">
+  <div class="summary"><strong>Status:</strong> <span id="status">In progress · auto-saves as you type</span></div>
+  <button class="save-btn" onclick="saveAndOpenReview()">Save → Open Review Dashboard</button>
+</div>
+
+<script>
+  let secondsLeft = 600;
+  const cdEl = document.getElementById('countdown');
+  setInterval(() => {
+    if (secondsLeft <= 0) return;
+    secondsLeft--;
+    const m = String(Math.floor(secondsLeft/60)).padStart(2,'0');
+    const s = String(secondsLeft%60).padStart(2,'0');
+    cdEl.textContent = `${m}:${s}`;
+    if (secondsLeft < 120) cdEl.classList.add('warning');
+  }, 1000);
+
+  function updateAvg() {
+    const m = parseFloat(document.getElementById('meghaScore').value);
+    const j = parseFloat(document.getElementById('jakeScore').value);
+    const out = document.getElementById('scoreAvg');
+    const flag = document.getElementById('scoreFlag');
+    if (!isNaN(m) && !isNaN(j)) {
+      const avg = ((m + j) / 2).toFixed(1);
+      out.textContent = avg;
+      flag.textContent = avg >= 7 ? '· strong' : avg >= 5 ? '· rough edges' : avg >= 3 ? '· struggled' : '· refund territory';
+    }
+  }
+  function updateConf() {
+    const m = parseFloat(document.getElementById('meghaConf').value);
+    const j = parseFloat(document.getElementById('jakeConf').value);
+    const out = document.getElementById('confAvg');
+    const flag = document.getElementById('confFlag');
+    if (!isNaN(m) && !isNaN(j)) {
+      const avg = ((m + j) / 2).toFixed(1);
+      out.textContent = avg;
+      flag.textContent = avg < 7 ? '· auto-route to extra Claude refinement' : '';
+    }
+  }
+  function setActive(b) {
+    const sib = b.parentElement.querySelectorAll('button');
+    sib.forEach(x => x.classList.remove('active'));
+    b.classList.add('active');
+  }
+  function persist() {
+    const data = {};
+    document.querySelectorAll('input, textarea').forEach(el => {
+      if (el.id) data[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+    });
+    try { localStorage.setItem('tch_debrief_v2', JSON.stringify(data)); } catch(e) {}
+    document.getElementById('status').textContent = 'Saved · ' + new Date().toLocaleTimeString();
+  }
+  document.addEventListener('input', persist);
+  document.addEventListener('click', e => { if (e.target.matches('.pill, input[type="checkbox"]')) persist(); });
+  function saveAndOpenReview() {
+    persist();
+    alert('Debrief saved. Action plan auto-generation triggered. Opening Review Dashboard...');
+  }
+</script>
+</body>
+</html>

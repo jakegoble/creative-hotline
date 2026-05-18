@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCH · Client Hub</title>
+<link rel="stylesheet" href="tch-brand.css" />
+<style>
+  body { background: var(--tch-cream); }
+  .top { background: var(--tch-ink); color: var(--tch-cream); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--tch-red); position: relative; }
+  .top::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px); pointer-events: none; }
+  .top .left, .top .right { display: flex; gap: 14px; align-items: center; position: relative; z-index: 2; }
+  .top .nav-logo { width: 84px; height: 36px; }
+  .top h1 { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-1); }
+  .top h1 em { font-weight: 700; color: var(--tch-yellow); }
+  .role-tag { background: var(--tch-red); color: var(--tch-cream); padding: 5px 12px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase; border: 2px solid var(--tch-cream); cursor: pointer; }
+  .role-tag.jake { background: var(--tch-blue); }
+  .layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 56px); }
+  .client-rail { background: var(--tch-ink); color: var(--tch-cream); padding: 22px 18px; border-right: 3px solid var(--tch-red); overflow-y: auto; position: relative; }
+  .client-rail::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.03) 2px 3px); pointer-events: none; }
+  .client-rail > * { position: relative; }
+  .client-rail h3 { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; color: var(--tch-yellow); margin-bottom: 12px; text-transform: uppercase; }
+  .client-rail .day { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-2); margin-bottom: 6px; }
+  .client-rail .day em { font-weight: 700; color: var(--tch-yellow); }
+  .client-rail .day-meta { font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.6); margin-bottom: 22px; }
+  .client-card { background: rgba(245,242,235,0.05); padding: 14px; margin-bottom: 10px; cursor: pointer; border-left: 4px solid transparent; transition: all 0.15s; position: relative; }
+  .client-card:hover { background: rgba(245,242,235,0.1); }
+  .client-card.active { border-left-color: var(--tch-red); background: rgba(236,49,7,0.12); }
+  .client-card .name { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-1); margin-bottom: 3px; }
+  .client-card .name em { font-weight: 700; }
+  .client-card .biz { font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.6); margin-bottom: 8px; }
+  .client-card .stage-row { display: flex; justify-content: space-between; align-items: center; font-size: 10px; }
+  .stage-pill { padding: 3px 8px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-size: 9px; }
+  .stage-pill.prep { background: rgba(245,242,235,0.15); color: rgba(245,242,235,0.8); }
+  .stage-pill.session { background: var(--tch-yellow); color: var(--tch-ink); }
+  .stage-pill.debrief { background: var(--tch-blue); color: var(--tch-cream); }
+  .stage-pill.review { background: var(--tch-red); color: var(--tch-cream); }
+  .stage-pill.sent { background: var(--tch-green); color: var(--tch-ink); }
+  .urgent-flag { position: absolute; top: 8px; right: 10px; width: 10px; height: 10px; background: var(--tch-green); border: 1.5px solid var(--tch-cream); border-radius: 50%; animation: tch-urgent-pulse 2s ease-in-out infinite; }
+  .canvas { overflow-y: auto; padding: 0; background: var(--tch-cream); }
+  .snapshot { background: var(--tch-yellow); color: var(--tch-ink); margin: 24px 32px; padding: 26px 32px; border: 3px solid var(--tch-ink); box-shadow: 8px 8px 0 var(--tch-ink); transform: rotate(-0.25deg); position: relative; display: grid; grid-template-columns: 1fr auto; gap: 28px; align-items: center; }
+  .snapshot::after { content: ''; position: absolute; top: -14px; right: 22px; background: var(--tch-red); color: var(--tch-cream); padding: 4px 12px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase; transform: rotate(3deg); border: 2px solid var(--tch-ink); }
+  .snapshot.stage-prep::after { content: '01 · Prep'; background: rgba(28,28,30,0.85); color: var(--tch-yellow); }
+  .snapshot.stage-session::after { content: '02 · In Session'; background: var(--tch-yellow); color: var(--tch-ink); border-style: dashed; }
+  .snapshot.stage-debrief::after { content: '03 · Debrief'; background: var(--tch-blue); color: var(--tch-cream); }
+  .snapshot.stage-review::after { content: '04 · Review'; background: var(--tch-red); }
+  .snapshot.stage-sent::after { content: '05 · Sent'; background: var(--tch-green); color: var(--tch-ink); }
+  .snap-left .label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.2em; font-size: 11px; color: rgba(28,28,30,0.55); margin-bottom: 8px; text-transform: uppercase; }
+  .snap-left h2 { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-4); line-height: 0.95; }
+  .snap-left h2 em { font-weight: 700; color: var(--tch-red); }
+  .snap-left .biz { font-family: var(--tch-mono); font-size: 13px; margin-top: 6px; }
+  .snap-grid { display: grid; grid-template-columns: repeat(3, auto); gap: 24px; }
+  .snap-stat .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.14em; font-size: 10px; color: rgba(28,28,30,0.6); text-transform: uppercase; margin-bottom: 4px; }
+  .snap-stat .v { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2); }
+  .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin: 0 32px 24px; border: 2px solid var(--tch-ink); background: var(--tch-cream); }
+  .step { padding: 16px 18px; cursor: pointer; border-right: 1.5px solid var(--tch-ink); transition: all 0.15s; position: relative; }
+  .step:last-child { border-right: none; }
+  .step:hover { background: rgba(28,28,30,0.04); }
+  .step.active { background: var(--tch-ink); color: var(--tch-cream); }
+  .step.active.s-prep { background: rgba(28,28,30,0.95); }
+  .step.active.s-session { background: var(--tch-yellow); color: var(--tch-ink); }
+  .step.active.s-debrief { background: var(--tch-blue); color: var(--tch-cream); }
+  .step.active.s-review { background: var(--tch-red); color: var(--tch-cream); }
+  .step.active.s-sent { background: var(--tch-green); color: var(--tch-ink); }
+  .step.complete::before { content: '✓'; position: absolute; top: 10px; right: 12px; font-family: var(--tch-nord); font-weight: 700; font-size: 14px; color: var(--tch-green); }
+  .step .num { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-1); margin-bottom: 4px; }
+  .step .name { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase; }
+  .step .duration { font-family: var(--tch-mono); font-size: 10px; opacity: 0.6; margin-top: 4px; }
+  .three-panel { display: grid; grid-template-columns: 320px 1fr 320px; gap: 20px; margin: 0 32px 32px; }
+  .panel { background: var(--tch-cream); border: 2px solid var(--tch-ink); box-shadow: var(--tch-shadow-hard-sm); padding: 22px; overflow: auto; max-height: calc(100vh - 360px); }
+  .panel.left { background: rgba(28,28,30,0.04); border-left: 5px solid var(--tch-ink); }
+  .panel.right { background: rgba(245,242,235,0.6); border-right: 5px solid var(--tch-red); }
+  .panel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1.5px dashed var(--tch-ink-line); flex-wrap: wrap; }
+  .panel-tag { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase; }
+  .panel.left .panel-tag { color: rgba(28,28,30,0.6); }
+  .panel.center .panel-tag, .panel.right .panel-tag { color: var(--tch-red); }
+  .input-block { background: var(--tch-cream); border: 1.5px solid var(--tch-ink-line); padding: 14px; margin-bottom: 12px; border-left: 5px solid currentColor; }
+  .input-block.m { color: var(--tch-red); }
+  .input-block.j { color: var(--tch-blue); }
+  .input-block.shared { color: var(--tch-yellow); border-left-color: var(--tch-yellow); }
+  .input-block.auto { color: var(--tch-ink); border-left-color: var(--tch-ink); background: rgba(28,28,30,0.04); }
+  .input-block .who { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; }
+  .input-block .body { color: var(--tch-ink); font-family: var(--tch-mono); font-size: 13px; line-height: 1.5; }
+  .input-block textarea, .input-block input { width: 100%; background: transparent; border: 1.5px dashed var(--tch-ink-line); padding: 8px; font-family: var(--tch-mono); font-size: 13px; color: var(--tch-ink); resize: vertical; }
+  .panel-cta { display: block; width: 100%; background: var(--tch-red); color: var(--tch-cream); border: 2px solid var(--tch-cream); padding: 14px 16px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; cursor: pointer; text-transform: uppercase; box-shadow: 4px 4px 0 var(--tch-ink); text-align: center; text-decoration: none; }
+  .panel-cta.disabled { background: rgba(28,28,30,0.1); color: rgba(28,28,30,0.4); cursor: not-allowed; box-shadow: none; }
+  .panel-cta.green { background: var(--tch-green); color: var(--tch-ink); border-color: var(--tch-ink); }
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 8px 0; padding-left: 28px; font-family: var(--tch-mono); font-size: 13px; border-bottom: 1px dashed var(--tch-ink-line); position: relative; }
+  .checklist li::before { content: '⬜'; position: absolute; left: 0; color: var(--tch-red); }
+  .checklist li.done::before { content: '✓'; color: var(--tch-green); }
+  .checklist li.done { opacity: 0.55; text-decoration: line-through; }
+  .checklist li.flagged::before { content: '⚠'; color: var(--tch-green); }
+  .checklist li.flagged { background: rgba(74,222,128,0.12); border-left: 4px solid var(--tch-green); padding-left: 32px; margin-left: -4px; }
+  .state-content { display: none; }
+  .state-content.active { display: block; }
+  .session-view { text-align: center; padding: 80px 24px; }
+  .session-view h2 { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-4); margin-bottom: 14px; }
+  .session-view h2 em { font-weight: 700; color: var(--tch-red); }
+  .session-view p { font-family: var(--tch-mono); font-size: var(--tch-step-0); margin-bottom: 28px; max-width: 480px; margin-left: auto; margin-right: auto; }
+  .session-view .open-cta { background: var(--tch-yellow); color: var(--tch-ink); border: 3px solid var(--tch-ink); padding: 18px 32px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 13px; cursor: pointer; text-transform: uppercase; box-shadow: 6px 6px 0 var(--tch-ink); text-decoration: none; display: inline-block; }
+  .timeline { display: grid; gap: 8px; padding-left: 18px; border-left: 2px dashed var(--tch-ink-line); }
+  .tl-item { display: grid; grid-template-columns: 70px 1fr auto; gap: 12px; padding: 10px 0; align-items: center; position: relative; }
+  .tl-item::before { content: ''; position: absolute; left: -22px; top: 50%; transform: translateY(-50%); width: 10px; height: 10px; background: var(--tch-cream); border: 2px solid var(--tch-ink); border-radius: 50%; }
+  .tl-item.fired::before { background: var(--tch-green); }
+  .tl-item.pending::before { background: var(--tch-yellow); }
+  .tl-item.scheduled::before { background: rgba(28,28,30,0.3); }
+  .tl-item .day { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase; }
+  .tl-item .what { font-family: var(--tch-mono); font-size: 13px; }
+  .tl-item .status { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.12em; font-size: 10px; text-transform: uppercase; padding: 3px 8px; }
+  .tl-item.fired .status { background: var(--tch-green); color: var(--tch-ink); }
+  .tl-item.pending .status { background: var(--tch-yellow); color: var(--tch-ink); }
+  .tl-item.scheduled .status { background: rgba(28,28,30,0.1); color: rgba(28,28,30,0.6); }
+  .twocol { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .pill-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pill { background: transparent; color: var(--tch-ink); border: 1.5px solid var(--tch-ink-line); padding: 6px 12px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 11px; cursor: pointer; text-transform: uppercase; }
+  .pill.active { background: var(--tch-yellow); color: var(--tch-ink); border-color: var(--tch-ink); }
+  .quick-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--tch-cream); border: 1.5px solid var(--tch-ink-line); margin-bottom: 8px; text-decoration: none; color: var(--tch-ink); font-family: var(--tch-mono); font-size: 13px; }
+  .quick-link:hover { background: var(--tch-yellow); }
+  .quick-link .icon { font-size: 18px; }
+  .quick-link .label { flex: 1; }
+  .quick-link .arrow { font-family: var(--tch-nord); font-weight: 700; opacity: 0.5; }
+  @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .client-rail { display: none; } .three-panel { grid-template-columns: 1fr; } .stepper { grid-template-columns: repeat(2, 1fr); } .snapshot { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="left"><span class="nav-logo tch-logo-3stack-white"></span><h1>Client <em>Hub</em></h1></div>
+  <div class="right"><span class="role-tag" id="userRole" onclick="toggleRole()">Logged in as: Megha</span></div>
+</header>
+
+<div class="layout">
+  <aside class="client-rail">
+    <h3>Today's Sessions</h3>
+    <div class="day"><em>Thursday</em>, Mar 20</div>
+    <div class="day-meta">3 sessions · review by 5:00 PM</div>
+    <div class="client-card active" onclick="loadClient(this, 'rae')">
+      <div class="urgent-flag" title="Diagnosis confidence under 7"></div>
+      <div class="name">Rae <em>Solano</em></div>
+      <div class="biz">Solano Studio · Ceramics</div>
+      <div class="stage-row"><span class="stage-pill review">In Review</span><span>9:30 AM</span></div>
+    </div>
+    <div class="client-card" onclick="loadClient(this, 'marcus')">
+      <div class="name">Marcus <em>Chen</em></div>
+      <div class="biz">Evergreen Co · DTC Skincare</div>
+      <div class="stage-row"><span class="stage-pill debrief">Debrief</span><span>10:35 AM</span></div>
+    </div>
+    <div class="client-card" onclick="loadClient(this, 'talia')">
+      <div class="name">Talia <em>Brooks</em></div>
+      <div class="biz">TALIA · Fashion Consulting</div>
+      <div class="stage-row"><span class="stage-pill prep">Prep</span><span>11:40 AM</span></div>
+    </div>
+  </aside>
+
+  <main class="canvas">
+    <div class="snapshot stage-review" id="snapshot">
+      <div class="snap-left">
+        <div class="label">↳ Client Snapshot</div>
+        <h2>Rae <em>Solano</em></h2>
+        <div class="biz">Solano Studio · Handmade ceramics + home goods · Austin, TX · First Call $499</div>
+      </div>
+      <div class="snap-grid">
+        <div class="snap-stat"><div class="k">Authority Score</div><div class="v">12 / 20</div></div>
+        <div class="snap-stat"><div class="k">Session Score</div><div class="v">9.0</div></div>
+        <div class="snap-stat"><div class="k">Diagnosis Conf.</div><div class="v" style="color: var(--tch-red);">6.5 ⚠</div></div>
+      </div>
+    </div>
+
+    <div class="stepper">
+      <div class="step complete" onclick="setState('prep')"><div class="num">01</div><div class="name">Prep</div><div class="duration">~20 min</div></div>
+      <div class="step complete" onclick="setState('session')"><div class="num">02</div><div class="name">Session</div><div class="duration">45 min</div></div>
+      <div class="step complete" onclick="setState('debrief')"><div class="num">03</div><div class="name">Debrief</div><div class="duration">10 min</div></div>
+      <div class="step active s-review" onclick="setState('review')"><div class="num">04</div><div class="name">Review</div><div class="duration">~25 min</div></div>
+      <div class="step" onclick="setState('sent')"><div class="num">05</div><div class="name">Sent</div><div class="duration">Ongoing</div></div>
+    </div>
+
+    <div class="state-content" id="state-prep">
+      <div class="three-panel">
+        <div class="panel left">
+          <div class="panel-head"><span class="panel-tag">↳ Auto · From the System</span></div>
+          <div class="input-block auto"><div class="who">From Tally Intake</div><div class="body">"Doing a lot but nothing's actually growing." Type: Solo founder · Maker · Bootstrap</div></div>
+          <div class="input-block auto"><div class="who">Claude's Research Brief</div><div class="body">Voice: trying elevated, reading functional. Visual: warm, no system. Audience: 70% local, not the buyer.</div></div>
+          <div class="input-block auto"><div class="who">Client Library</div><a href="#" class="quick-link"><span class="icon">📄</span><span class="label">Brand Deck.pdf</span><span class="arrow">→</span></a></div>
+        </div>
+        <div class="panel center">
+          <div class="panel-head"><span class="panel-tag">↳ Your Read</span></div>
+          <div class="twocol">
+            <div class="input-block m"><div class="who">Megha · Brand & Positioning</div><textarea placeholder="Your read..."></textarea></div>
+            <div class="input-block j"><div class="who">Jake · Design & Systems</div><textarea placeholder="Your read..."></textarea></div>
+          </div>
+          <div class="input-block shared"><div class="who">↳ Gap Hypothesis</div><textarea placeholder="One sentence."></textarea></div>
+          <a href="tch-tmpl-morning-prep-V2.html" class="quick-link"><span class="icon">🛠</span><span class="label">Full prep dashboard</span><span class="arrow">→</span></a>
+        </div>
+        <div class="panel right">
+          <div class="panel-head"><span class="panel-tag">↳ Handoff</span></div>
+          <ul class="checklist">
+            <li class="done">Tally intake parsed</li>
+            <li class="done">IG / website scraped</li>
+            <li class="done">Authority baseline scored</li>
+            <li>M + J inputs locked</li>
+            <li>Workshop session generated</li>
+          </ul>
+          <a href="tch-tmpl-workshop-session-V2.html" class="panel-cta">Generate Workshop Session ☎</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-content" id="state-session">
+      <div class="session-view">
+        <h2>Session <em>in progress</em>.</h2>
+        <p>Workshop screen is open. Fireflies is recording. The Hub goes quiet so you can stay present.</p>
+        <a href="tch-tmpl-workshop-session-V2.html" class="open-cta">Open Workshop Screen ☎</a>
+      </div>
+    </div>
+
+    <div class="state-content" id="state-debrief">
+      <div class="three-panel">
+        <div class="panel left">
+          <div class="panel-head"><span class="panel-tag">↳ Just-Captured</span></div>
+          <div class="input-block auto"><div class="who">Audit Score</div><div class="body">Total: 12 / 20</div></div>
+          <div class="input-block auto"><div class="who">North Star · Their Words</div><div class="body">"Build Solano Studio around one hero collection."</div></div>
+          <div class="input-block auto"><div class="who">First Move Result</div><div class="body">✓ Did it: Updated IG bio live on call.</div></div>
+        </div>
+        <div class="panel center">
+          <div class="panel-head"><span class="panel-tag">↳ The 10 Questions</span></div>
+          <div class="twocol">
+            <div class="input-block m"><div class="who">Megha · Score</div><input type="number" min="1" max="10" placeholder="—"></div>
+            <div class="input-block j"><div class="who">Jake · Score</div><input type="number" min="1" max="10" placeholder="—"></div>
+          </div>
+          <div class="input-block shared"><div class="who">Non-Obvious Insight</div><textarea placeholder="What surprised you?"></textarea></div>
+          <a href="tch-tmpl-debrief-V2.html" class="quick-link"><span class="icon">📋</span><span class="label">Full debrief flow</span><span class="arrow">→</span></a>
+        </div>
+        <div class="panel right">
+          <div class="panel-head"><span class="panel-tag">↳ Handoff</span></div>
+          <ul class="checklist"><li class="done">Scores in</li><li class="done">Confidence captured</li><li class="flagged">⚠ Auto-flag for Claude refine</li></ul>
+          <button class="panel-cta">Send to Action Plan →</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-content active" id="state-review">
+      <div class="three-panel">
+        <div class="panel left">
+          <div class="panel-head"><span class="panel-tag">↳ Reference</span></div>
+          <div class="input-block auto"><div class="who">Debrief Summary</div><div class="body">Score 9.0 · Conf 6.5 ⚠ · Tone: Direct + Sharp · Upsell: Strong</div></div>
+          <div class="input-block auto"><div class="who">Transcript · Ready ✓</div><a href="#" class="quick-link"><span class="icon">📄</span><span class="label">Full transcript</span><span class="arrow">→</span></a></div>
+        </div>
+        <div class="panel center">
+          <div class="panel-head"><span class="panel-tag">↳ Action Plan Draft</span></div>
+          <div class="input-block m"><div class="who">01 · North Star · M owns</div></div>
+          <div class="input-block m"><div class="who">02 · What We Learned · M owns</div></div>
+          <div class="input-block shared"><div class="who">03 · Authority Read · Both approve</div></div>
+          <div class="input-block j"><div class="who">07 · Action Plan · J owns</div></div>
+          <div class="input-block shared"><div class="who">08 · Effort/Impact Map · Both approve</div></div>
+          <a href="tch-tmpl-review-dashboard-V2.html" class="quick-link"><span class="icon">🛠</span><span class="label">Open full review dashboard</span><span class="arrow">→</span></a>
+        </div>
+        <div class="panel right">
+          <div class="panel-head"><span class="panel-tag">↳ Send Gates</span></div>
+          <ul class="checklist"><li class="done">M approved (3 of 5)</li><li>J approved (0 of 3)</li><li>Shared (0 of 3)</li><li class="flagged">⚠ 2 comments unresolved</li></ul>
+          <div style="display: flex; gap: 6px; margin: 14px 0;"><span class="pill active">📧 Email</span><span class="pill active">📱 SMS</span></div>
+          <button class="panel-cta disabled">Send via Frankie ☎</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="state-content" id="state-sent">
+      <div class="three-panel">
+        <div class="panel left">
+          <div class="panel-head"><span class="panel-tag">↳ Delivered</span></div>
+          <div class="input-block auto"><div class="who">Action Plan · Sent</div><div class="body">Mar 21 · 11:42 AM PST<br>Email: ✓ · SMS: ✓</div></div>
+        </div>
+        <div class="panel center">
+          <div class="panel-head"><span class="panel-tag">↳ Follow-Up Engine</span></div>
+          <div class="timeline">
+            <div class="tl-item fired"><span class="day">Day 0</span><span class="what">Action plan email + SMS</span><span class="status">Delivered</span></div>
+            <div class="tl-item fired"><span class="day">Day 1</span><span class="what">"I liked / wished / wondered" SMS</span><span class="status">Delivered</span></div>
+            <div class="tl-item pending"><span class="day">Day 2</span><span class="what">Check-in email</span><span class="status">Scheduled</span></div>
+            <div class="tl-item scheduled"><span class="day">Day 7</span><span class="what">Value-add</span><span class="status">Scheduled</span></div>
+            <div class="tl-item scheduled"><span class="day">Day 14</span><span class="what">Progress check</span><span class="status">Scheduled</span></div>
+            <div class="tl-item scheduled"><span class="day">Day 21</span><span class="what">NPS</span><span class="status">Scheduled</span></div>
+            <div class="tl-item scheduled"><span class="day">Day 30</span><span class="what">Milestone</span><span class="status">Scheduled</span></div>
+            <div class="tl-item scheduled"><span class="day">Day 60</span><span class="what">Long-term</span><span class="status">Scheduled</span></div>
+            <div class="tl-item scheduled"><span class="day">Day 90</span><span class="what">Re-engagement</span><span class="status">Scheduled</span></div>
+          </div>
+        </div>
+        <div class="panel right">
+          <div class="panel-head"><span class="panel-tag">↳ Re-Engagement</span></div>
+          <div class="input-block m"><div class="who">Upsell Signal</div><div class="body" style="color: var(--tch-red);"><strong>STRONG</strong></div></div>
+          <div class="input-block auto"><div class="who">Referral Code</div><div class="body" style="font-family: var(--tch-mono); letter-spacing: 0.16em; font-weight: 700;">RAE-DIAL-100</div></div>
+          <button class="panel-cta">Book Follow-Up Session →</button>
+          <button class="panel-cta green" style="margin-top: 8px;">Pitch Clarity Bundle ($1,500)</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+  function setState(state) {
+    document.querySelectorAll('.state-content').forEach(s => s.classList.remove('active'));
+    document.getElementById('state-' + state).classList.add('active');
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active', 's-prep', 's-session', 's-debrief', 's-review', 's-sent'));
+    const idx = ['prep','session','debrief','review','sent'].indexOf(state);
+    document.querySelectorAll('.step')[idx].classList.add('active', 's-' + state);
+    document.getElementById('snapshot').className = 'snapshot stage-' + state;
+    try { localStorage.setItem('tch_hub_state', state); } catch(e) {}
+  }
+  function loadClient(el, id) {
+    document.querySelectorAll('.client-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+  }
+  function toggleRole() {
+    const t = document.getElementById('userRole');
+    if (t.classList.contains('jake')) { t.classList.remove('jake'); t.textContent = 'Logged in as: Megha'; }
+    else { t.classList.add('jake'); t.textContent = 'Logged in as: Jake'; }
+  }
+  try { const saved = localStorage.getItem('tch_hub_state'); if (saved) setState(saved); } catch(e) {}
+</script>
+</body>
+</html>

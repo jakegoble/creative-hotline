@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCH · Morning Prep Dashboard</title>
+<link rel="stylesheet" href="tch-brand.css" />
+<style>
+  body { background: var(--tch-cream); }
+
+  .top {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 12px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 4px solid var(--tch-red);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .top::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px);
+    pointer-events: none;
+  }
+  .top .left, .top .right { display: flex; gap: 14px; align-items: center; position: relative; z-index: 2; }
+  .top h1 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1);
+  }
+  .role-tag {
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 5px 12px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase;
+    border: 2px solid var(--tch-cream); cursor: pointer;
+  }
+  .role-tag.jake { background: var(--tch-blue); }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 32px; }
+
+  /* SNAPSHOT (hero) */
+  .snapshot {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 36px;
+    border: 3px solid var(--tch-ink);
+    box-shadow: 10px 10px 0 var(--tch-ink);
+    margin-bottom: 50px;
+    transform: rotate(-0.4deg);
+    position: relative;
+  }
+  .snapshot .stamp {
+    position: absolute; top: 20px; right: 24px;
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 6px 14px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px; text-transform: uppercase;
+    transform: rotate(4deg);
+    border: 2px solid var(--tch-ink);
+  }
+  .snapshot .label {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.22em; font-size: 12px;
+    margin-bottom: 14px; text-transform: uppercase;
+  }
+  .snapshot h2 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-4); line-height: 0.95;
+    margin-bottom: 8px;
+  }
+  .snapshot .biz {
+    font-family: var(--tch-mono); font-size: var(--tch-step-1); margin-bottom: 24px;
+  }
+  .snapshot-row {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+    border-top: 2px solid var(--tch-ink); padding-top: 24px;
+  }
+  .snap-block .k {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 10px;
+    color: rgba(28,28,30,0.55); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .snap-block .v {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-2); line-height: 1.1;
+  }
+  .snap-block .small { font-family: var(--tch-mono); font-size: 13px; }
+  .checklist { display: flex; flex-direction: column; gap: 4px; font-family: var(--tch-mono); font-size: 12px; }
+  .checklist .it { display: flex; gap: 6px; align-items: center; }
+  .checklist .it.done { opacity: 0.5; text-decoration: line-through; }
+
+  /* SECTION (color-coded by ownership) */
+  .prep-section {
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink);
+    padding: 32px;
+    margin-bottom: 22px;
+    box-shadow: var(--tch-shadow-hard-sm);
+    position: relative;
+  }
+  .prep-section.m { border-left: 8px solid var(--tch-red); }
+  .prep-section.j { border-left: 8px solid var(--tch-blue); }
+  .prep-section.shared { border-left: 8px solid var(--tch-yellow); }
+
+  .sec-head {
+    display: flex; gap: 12px; align-items: center;
+    margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .sec-num {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); color: rgba(28,28,30,0.25); line-height: 1;
+  }
+  .sec-title {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-3); flex: 1; line-height: 1;
+  }
+
+  /* Auto-pop content (Claude's data layer) */
+  .autopop {
+    background: rgba(28,28,30,0.04);
+    padding: 18px;
+    margin-bottom: 18px;
+    border-left: 3px solid var(--tch-blue);
+  }
+  .autopop .head {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    color: var(--tch-blue); margin-bottom: 12px; text-transform: uppercase;
+  }
+  .autopop ul { list-style: none; margin: 0; padding: 0; }
+  .autopop li { padding: 6px 0; font-size: var(--tch-step-0); border-bottom: 1px dashed var(--tch-ink-line); }
+  .autopop li:last-child { border-bottom: none; }
+  .source-link {
+    background: var(--tch-blue); color: var(--tch-cream);
+    padding: 2px 8px; font-size: 10px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    text-decoration: none;
+    margin-left: 6px;
+  }
+
+  /* Human input layer (M+J) */
+  .input-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .input-block {
+    background: var(--tch-cream); padding: 16px;
+    border: 2px solid var(--tch-ink-line);
+  }
+  .input-block.m { border-color: var(--tch-red); border-left-width: 5px; }
+  .input-block.j { border-color: var(--tch-blue); border-left-width: 5px; }
+  .input-block .who {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px;
+    margin-bottom: 8px; text-transform: uppercase;
+  }
+  .input-block.m .who { color: var(--tch-red); }
+  .input-block.j .who { color: var(--tch-blue); }
+  .input-block .prompt {
+    font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.65);
+    margin-bottom: 8px; font-style: italic;
+  }
+  .input-block textarea {
+    width: 100%; min-height: 70px;
+    background: var(--tch-cream);
+    border: 1.5px dashed var(--tch-ink-line);
+    padding: 10px;
+    font-family: var(--tch-mono); font-size: 13px; color: var(--tch-ink);
+    resize: vertical;
+  }
+  .input-block textarea:focus { outline: none; border-color: var(--tch-red); background: rgba(246,237,82,0.08); }
+
+  /* Authority audit grid (each scores per pillar) */
+  .audit-pillars {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-top: 18px;
+  }
+  .audit-pillar {
+    background: var(--tch-cream);
+    padding: 18px;
+    border: 2px solid var(--tch-ink);
+  }
+  .audit-pillar h5 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 12px;
+    color: var(--tch-ink); margin-bottom: 6px; text-transform: uppercase;
+  }
+  .audit-pillar .claude-baseline {
+    background: rgba(46,99,231,0.1); padding: 6px 10px;
+    font-family: var(--tch-mono); font-size: 11px;
+    margin-bottom: 14px;
+  }
+  .audit-pillar .claude-baseline .lab { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 10px; color: var(--tch-blue); text-transform: uppercase; }
+  .pillar-score-row { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
+  .pillar-score-row .who-mini { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 10px; min-width: 16px; }
+  .pillar-score-row .who-mini.m { color: var(--tch-red); }
+  .pillar-score-row .who-mini.j { color: var(--tch-blue); }
+  .pillar-score-row input {
+    width: 50px; padding: 4px;
+    border: 1.5px solid var(--tch-ink-line);
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-1); text-align: center;
+    background: var(--tch-cream);
+  }
+  .pillar-score-row .out { font-family: var(--tch-mono); font-size: 10px; color: rgba(28,28,30,0.5); }
+  .pillar-combined {
+    margin-top: 10px; padding-top: 8px;
+    border-top: 1px dashed var(--tch-ink-line);
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-2); color: var(--tch-red); text-align: center;
+  }
+
+  /* Library (client-uploaded files) */
+  .library {
+    display: grid; gap: 12px;
+  }
+  .file-card {
+    background: var(--tch-cream); padding: 18px;
+    border: 1.5px solid var(--tch-ink-line);
+    display: grid; grid-template-columns: 50px 1fr auto; gap: 16px; align-items: flex-start;
+  }
+  .file-card .icon { font-size: 28px; }
+  .file-card .name {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.04em; font-size: 14px; margin-bottom: 4px;
+  }
+  .file-card .summary {
+    font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.7);
+  }
+  .file-card .summary::before { content: '↳ '; color: var(--tch-blue); font-weight: 700; }
+  .file-card .open {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 8px 14px; text-decoration: none;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase;
+    align-self: center;
+  }
+
+  /* Workshop inputs (pre-draft) */
+  .draft-input {
+    background: var(--tch-cream);
+    border: 1.5px solid var(--tch-ink);
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .draft-input.gap { background: rgba(246,237,82,0.18); border-left: 5px solid var(--tch-yellow); }
+  .draft-input .lab {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    margin-bottom: 8px; text-transform: uppercase;
+  }
+  .draft-input.gap .lab { color: var(--tch-ink); }
+  .draft-input textarea {
+    width: 100%; min-height: 60px;
+    background: transparent;
+    border: 1.5px dashed var(--tch-ink-line); padding: 10px;
+    font-family: var(--tch-mono); font-size: 13px; resize: vertical;
+  }
+  .draft-input textarea:focus { outline: none; border-color: var(--tch-red); background: var(--tch-cream); }
+  .draft-list { list-style: none; margin: 8px 0; padding: 0; }
+  .draft-list li {
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--tch-ink-line);
+    font-family: var(--tch-mono); font-size: 13px;
+  }
+  .draft-list li[contenteditable]:focus { outline: none; background: rgba(246,237,82,0.15); }
+
+  .ownership-toggle {
+    background: rgba(28,28,30,0.05);
+    padding: 14px;
+    margin-top: 14px;
+    border: 1.5px dashed var(--tch-ink-line);
+    font-family: var(--tch-mono); font-size: 12px;
+  }
+  .ownership-toggle strong { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; font-size: 11px; }
+
+  /* Submit bar */
+  .submit-bar {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 24px 32px;
+    border-top: 4px solid var(--tch-red);
+    display: flex; gap: 16px; justify-content: space-between; align-items: center;
+    position: sticky; bottom: 0; flex-wrap: wrap;
+    z-index: 50;
+  }
+  .submit-bar .summary { font-family: var(--tch-mono); font-size: 13px; }
+  .submit-bar .summary strong { color: var(--tch-yellow); }
+  .submit-btn {
+    background: var(--tch-red); color: var(--tch-cream);
+    border: 2px solid var(--tch-cream);
+    padding: 16px 28px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 12px;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 4px 4px 0 var(--tch-cream);
+    transition: all 0.1s;
+  }
+  .submit-btn:hover { transform: translate(1px, 1px); box-shadow: 3px 3px 0 var(--tch-cream); }
+
+  @media (max-width: 900px) {
+    .snapshot-row, .input-pair, .audit-pillars { grid-template-columns: 1fr; }
+    .audit-pillars { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="left">
+    <span class="tch-logo-3stack-white" style="height: 32px; width: 72px;"></span>
+    <h1>Morning Prep</h1>
+  </div>
+  <div class="right">
+    <span class="role-tag" id="userRole" onclick="toggleRole()">Reviewing as: Megha</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============== SNAPSHOT (hero) ============== -->
+  <div class="snapshot">
+    <span class="stamp">☎ Pre-Session</span>
+    <div class="label">↳ Snapshot</div>
+    <h2 id="clientName">Rae Solano</h2>
+    <div class="biz" id="businessName">Solano Studio · Handmade ceramics + home goods · Austin, TX · First Call $499</div>
+    <div class="snapshot-row">
+      <div class="snap-block">
+        <div class="k">Creative Emergency</div>
+        <div class="small" id="emergency">"Doing a lot but nothing's actually growing."</div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Authority Score (Claude baseline)</div>
+        <div class="v" id="authBaseline">11 / 20</div>
+      </div>
+      <div class="snap-block">
+        <div class="k">The Unlock (Claude's hypothesis)</div>
+        <div class="small" id="unlock">"She's spreading energy across product lines because she doesn't trust one to carry the brand."</div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Session Time</div>
+        <div class="small">9:30 AM PST · in <strong>43 min</strong></div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Prep Status</div>
+        <div class="checklist">
+          <div class="it done">✓ Tally intake parsed</div>
+          <div class="it done">✓ IG / website scraped</div>
+          <div class="it done">✓ Authority baseline scored</div>
+          <div class="it">⬜ M + J inputs locked</div>
+          <div class="it">⬜ Workshop session generated</div>
+        </div>
+      </div>
+      <div class="snap-block">
+        <div class="k">Library</div>
+        <div class="small">3 client-uploaded files <a href="#library" style="color: var(--tch-red); font-weight:700;">↓ jump</a></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============== SECTION 1 (M LEAD) — BRAND & POSITIONING ============== -->
+  <section class="prep-section m">
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <span class="sec-title">Brand & Positioning</span>
+      <span class="tch-owner m">M · Lead</span>
+    </div>
+
+    <div class="autopop">
+      <div class="head">↳ Claude's read · auto-populated</div>
+      <ul>
+        <li><strong>Voice:</strong> trying to sound elevated/luxury, but copy reads functional and product-led <a class="source-link" href="#">IG bio</a></li>
+        <li><strong>Visual ID:</strong> warm, lived-in photography is real and good. Type system has no system. <a class="source-link" href="#">grid</a></li>
+        <li><strong>Brand promise vs reality gap:</strong> ceramics presented as art objects but priced and merchandised like everyday goods — perception confusion. <a class="source-link" href="#">site</a></li>
+      </ul>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block m">
+        <div class="who">Megha · Your read</div>
+        <div class="prompt">"What's actually going on here?" + "What do you want to push hardest in the session?"</div>
+        <textarea placeholder="Your sharpest take..."></textarea>
+      </div>
+      <div class="input-block j">
+        <div class="who">Jake · Anything to add?</div>
+        <div class="prompt">Optional — flag anything Megha should know.</div>
+        <textarea placeholder="Optional..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 2 (J LEAD) — DISTRIBUTION & SYSTEMS ============== -->
+  <section class="prep-section j">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <span class="sec-title">Distribution & Systems</span>
+      <span class="tch-owner j">J · Lead</span>
+    </div>
+
+    <div class="autopop">
+      <div class="head">↳ Claude's read · auto-populated</div>
+      <ul>
+        <li><strong>SEO:</strong> Etsy is doing all the discovery work. Direct site traffic is &lt;5%. <a class="source-link" href="#">data</a></li>
+        <li><strong>Conversion path:</strong> IG → no email capture → no remarketing. Zero owned audience. <a class="source-link" href="#">funnel</a></li>
+        <li><strong>Production capacity:</strong> solo maker, current line is unsustainable at higher volume. <a class="source-link" href="#">intake</a></li>
+      </ul>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block j">
+        <div class="who">Jake · Systems gap</div>
+        <div class="prompt">"What's the systems gap here?" + "What's the unlock you'd recommend?"</div>
+        <textarea placeholder="Your read..."></textarea>
+      </div>
+      <div class="input-block m">
+        <div class="who">Megha · Anything to add?</div>
+        <div class="prompt">Optional — flag anything Jake should know.</div>
+        <textarea placeholder="Optional..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 3 (SHARED) — AUDIENCE ============== -->
+  <section class="prep-section shared">
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <span class="sec-title">Audience</span>
+      <span class="tch-owner shared">Shared</span>
+    </div>
+
+    <div class="autopop">
+      <div class="head">↳ Claude's read · auto-populated</div>
+      <ul>
+        <li><strong>Current audience:</strong> ~70% friends/family/Austin local. Demographic skews 35-50, not the buyer for premium ceramics. <a class="source-link" href="#">followers</a></li>
+        <li><strong>Ideal audience:</strong> design-forward 28-42 women, urban, $80K+, follow Apparatus, Hawkins New York. <a class="source-link" href="#">competitive</a></li>
+        <li><strong>Reference brands:</strong> East Fork, Year & Day, Notary Ceramics — all closed the perception gap.</li>
+      </ul>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block m">
+        <div class="who">Megha · Hot take</div>
+        <textarea placeholder="The elephant in the room is..."></textarea>
+      </div>
+      <div class="input-block j">
+        <div class="who">Jake · Hot take</div>
+        <textarea placeholder="The elephant in the room is..."></textarea>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 4 (SHARED) — AUTHORITY AUDIT ============== -->
+  <section class="prep-section shared">
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <span class="sec-title">Creative Authority Audit</span>
+      <span class="tch-owner shared">Shared</span>
+    </div>
+
+    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 14px;">Each pillar has Claude's baseline read. M and J each set their own score (1-5). Combined average becomes the session's Authority Score.</p>
+
+    <div class="audit-pillars">
+      <div class="audit-pillar">
+        <h5>Positioning</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div>2 / 5 — clearly handmade, unclear premium</div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined">avg —</div>
+      </div>
+      <div class="audit-pillar">
+        <h5>Messaging</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div>3 / 5 — voice has warmth, lacks distinctive pov</div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined">avg —</div>
+      </div>
+      <div class="audit-pillar">
+        <h5>Execution</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div>4 / 5 — photography is the strongest asset</div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined">avg —</div>
+      </div>
+      <div class="audit-pillar">
+        <h5>Distribution</h5>
+        <div class="claude-baseline"><div class="lab">↳ Claude</div>2 / 5 — Etsy-dependent, no owned channels</div>
+        <div class="pillar-score-row"><span class="who-mini m">M</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-score-row"><span class="who-mini j">J</span><input type="number" min="1" max="5" placeholder="—" /><span class="out">/ 5</span></div>
+        <div class="pillar-combined">avg —</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 5 — LIBRARY ============== -->
+  <section class="prep-section" id="library">
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <span class="sec-title">Library</span>
+      <span class="tch-tag cream">Client-uploaded · Drive</span>
+    </div>
+
+    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 14px;">Files Rae uploaded through Tally. Each gets a Claude-generated summary — click to open the full file.</p>
+
+    <div class="library">
+      <div class="file-card">
+        <div class="icon">📄</div>
+        <div>
+          <div class="name">Solano Studio Brand Deck.pdf</div>
+          <div class="summary">12-slide deck. Mood: warm, earthy, handmade. No defined positioning statement. Type system inconsistent across slides.</div>
+        </div>
+        <a class="open" href="#">Open</a>
+      </div>
+      <div class="file-card">
+        <div class="icon">🎨</div>
+        <div>
+          <div class="name">Inspiration Board.jpg</div>
+          <div class="summary">Pinterest-style board. References: Hawkins New York, Roman & Williams, Apparatus — all premium-tier. Confirms aspiration.</div>
+        </div>
+        <a class="open" href="#">Open</a>
+      </div>
+      <div class="file-card">
+        <div class="icon">📊</div>
+        <div>
+          <div class="name">Q1 Sales Spreadsheet.xlsx</div>
+          <div class="summary">~$8K MRR. 60% from one product line ('Linen' bowls). Other lines flat. Confirms the hero-product opportunity.</div>
+        </div>
+        <a class="open" href="#">Open</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============== SECTION 6 — PRE-DRAFT WORKSHOP INPUTS ============== -->
+  <section class="prep-section">
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <span class="sec-title">Pre-Draft Workshop Inputs</span>
+    </div>
+
+    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 18px;">These flow directly into the workshop session screen. Get them tight here — refining live during the call eats the 45 minutes.</p>
+
+    <div class="draft-input gap">
+      <div class="lab">↳ Gap Hypothesis (auto-merged from M + J)</div>
+      <textarea placeholder="One sentence. The thing beneath the thing. M and J each draft, system merges into one for the session screen.">She's not scattered. She's inheriting. The brand is built on her mother's pattern of multi-line — but her audience wants one collection done right.</textarea>
+    </div>
+
+    <div class="input-pair">
+      <div class="input-block m">
+        <div class="who">Megha · "What we like" (brand & positioning angle)</div>
+        <textarea placeholder="Specific. What's already working we'd protect..."></textarea>
+      </div>
+      <div class="input-block j">
+        <div class="who">Jake · "What we like" (design & systems angle)</div>
+        <textarea placeholder="Specific. What's already working we'd protect..."></textarea>
+      </div>
+    </div>
+
+    <div class="draft-input" style="margin-top: 16px;">
+      <div class="lab">↳ 72-Hour Win · draft</div>
+      <textarea placeholder="The specific action — punchy, verb-led..."></textarea>
+    </div>
+    <div class="draft-input">
+      <div class="lab">↳ 1-Week Move · draft</div>
+      <textarea placeholder="The specific action..."></textarea>
+    </div>
+    <div class="draft-input">
+      <div class="lab">↳ 1-Month Build · draft</div>
+      <textarea placeholder="The specific action..."></textarea>
+    </div>
+
+    <div class="input-pair" style="margin-top: 16px;">
+      <div class="input-block">
+        <div class="who" style="color: var(--tch-ink);">⛔ What we're not doing · draft list</div>
+        <ul class="draft-list" id="stopDraft">
+          <li contenteditable="true">[Specific thing to stop — both contribute]</li>
+          <li contenteditable="true">[Second item]</li>
+        </ul>
+      </div>
+      <div class="input-block">
+        <div class="who" style="color: var(--tch-ink);">⏸ What to leave alone · draft list</div>
+        <ul class="draft-list" id="leaveDraft">
+          <li contenteditable="true">[Strength worth protecting]</li>
+          <li contenteditable="true">[Second item]</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="ownership-toggle">
+      <strong>Per-session ownership reassignment</strong> — defaults: M owns creative/voice, J owns action/systems, Effort/Impact + Audit + upsell are shared. <em>Override here if this client's expertise fits differently.</em> [reassignment UI: Phase 2]
+    </div>
+  </section>
+
+</main>
+
+<div class="submit-bar">
+  <div class="summary"><strong>Auto-save:</strong> <span id="status">on · all inputs persisted</span> · <strong>Session generates when both submit</strong></div>
+  <button class="submit-btn" onclick="submitPrep()">Generate Workshop Session ☎</button>
+</div>
+
+<script>
+  function toggleRole() {
+    const t = document.getElementById('userRole');
+    if (t.classList.contains('jake')) {
+      t.classList.remove('jake');
+      t.textContent = 'Reviewing as: Megha';
+    } else {
+      t.classList.add('jake');
+      t.textContent = 'Reviewing as: Jake';
+    }
+  }
+  function persist() {
+    const data = {};
+    document.querySelectorAll('input, textarea').forEach(el => {
+      if (el.id) data[el.id] = el.value;
+    });
+    try { localStorage.setItem('tch_prep_v2', JSON.stringify(data)); } catch(e) {}
+    document.getElementById('status').textContent = 'on · saved ' + new Date().toLocaleTimeString();
+  }
+  document.addEventListener('input', persist);
+  function submitPrep() {
+    persist();
+    alert('Prep submitted. Workshop session screen generating...');
+  }
+</script>
+</body>
+</html>

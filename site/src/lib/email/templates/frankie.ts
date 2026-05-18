@@ -58,7 +58,7 @@ The night before your call, I'll send you a one-pager so you walk in dialed in. 
 
 One thing to know: your action plan lands in your inbox **24 hours after the call**. We don't sit on it. That's the promise.
 
-**Service agreement:** [Read it here](${input.serviceAgreementUrl})
+**Service agreement:** attached as a PDF — also viewable [here](${input.serviceAgreementUrl}).
 **Receipt:** Stripe will email you a copy.
 
 Questions? Hit reply or text the hotline at +1 (413) 767-4332.
@@ -120,7 +120,7 @@ The night before your call, I'll send you a one-pager so you walk in dialed in. 
 
 One thing to know: your action plan lands in your inbox **24 hours after the call**. We don't sit on it. That's the promise.
 
-**Service agreement:** [Read it here](${input.serviceAgreementUrl})
+**Service agreement:** attached as a PDF — also viewable [here](${input.serviceAgreementUrl}).
 **Receipt:** Stripe will email you a copy.
 
 Questions? Hit reply or text the hotline at +1 (413) 767-4332.
