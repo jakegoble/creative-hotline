@@ -1,814 +1,1707 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Live Workshop · The Creative Hotline</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>TCH · Workshop Session</title>
 <link rel="stylesheet" href="tch-brand.css" />
 <style>
-  /* V2 brand: red=Megha, blue=Jake, yellow=client, black=automated, green=urgent
-     Aliased to Megha's tch-brand.css tokens — single source of truth. */
-  :root {
-    --bg: var(--tch-cream, #F5F2EB);
-    --card: var(--tch-cream, #F5F2EB);
-    --ink: var(--tch-ink, #1C1C1E);
-    --muted: #666666;
-    --line: var(--tch-ink-line, rgba(28,28,30,0.18));
-    --megha: var(--tch-red, #EC3107);
-    --jake: var(--tch-blue, #2E63E7);
-    --client: var(--tch-yellow, #F6ED52);
-    --auto: var(--tch-ink, #1C1C1E);
-    --urgent: var(--tch-green, #4ADE80);
-    --warn: #B95F00;
+  /* WORKSHOP SESSION V2.2 — PASS 2 REVISION
+     · Selective bold italic: base 400, emphasis 900 (only on the word that matters)
+     · Trading cards: no card numbers, no stat/descriptor duplication, Megha = STORYTELLER, Jake = EMPATHY/CONNECTION
+     · Edgier brand voice in subcopy
+     · Deliberate line breaks
+     · "Frequency" replacing "compass" · "Make the call" replacing "One thing"
+     · Section 04 balanced (1 min per pillar)
+     · Somatic reset: new background (no diagonal stripes)
+     · Section 06 cleaner axis labels
+     · Close script: 3 lines · Referral coupon w/ tracking code
+  */
+
+  /* TOP BAR no longer fixed — appears once at top, scrolls away with content */
+
+  /* ============================================================
+     SELECTIVE BOLD ITALIC RULE
+     base = 400 regular italic, emphasis = 700 medium-bold (lighter than 900)
+     ============================================================ */
+  .sec-h1 {
+    font-family: var(--tch-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: clamp(48px, 7vw, 88px);
+    line-height: 1.0;
+    letter-spacing: -0.015em;
+    margin-bottom: 14px;
   }
-  * { box-sizing: border-box; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: var(--tch-mono, 'JetBrains Mono', 'SF Mono', 'Courier New', monospace);
-    font-size: 15px;
-    line-height: 1.5;
-  }
-  /* Editorial heading voice from Megha's V2 — applies to top-level title bar */
-  h1, .session-title, .stage-title {
-    font-family: var(--tch-display, 'Georgia', serif);
+  .sec-h1 em {
     font-style: italic;
     font-weight: 700;
-    letter-spacing: -0.01em;
+    color: var(--tch-red);
   }
-  h2, .section-label, .step-name {
-    font-family: var(--tch-nord, 'Bebas Neue', sans-serif);
-    letter-spacing: 0.08em;
+  .sec-h1.on-ink em { color: var(--tch-yellow); }
+
+  /* override the brand-css .tch-display same way for inline italic moments */
+  .editorial { font-family: var(--tch-display); font-style: italic; font-weight: 400; }
+  .editorial em { font-weight: 700; font-style: italic; color: var(--tch-red); }
+
+  /* Top bar — STATIC, not fixed. Appears once at top of page, scrolls away. */
+  .top {
+    position: relative;
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 14px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid var(--tch-red);
   }
-  .container {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 24px 20px 80px;
+  .top::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px);
+    pointer-events: none;
   }
-  header {
-    border-bottom: 1px solid var(--ink);
-    padding-bottom: 16px;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
+  .top .left, .top .right { display: flex; gap: 14px; align-items: center; position: relative; z-index: 2; }
+  .top .section-tag {
+    font-family: var(--tch-nord); font-weight: 500;
+    letter-spacing: 0.18em; font-size: var(--tch-step--2);
+    color: rgba(245,242,235,0.7); text-transform: uppercase;
   }
-  header h1 {
-    margin: 0;
-    font-size: 22px;
-    letter-spacing: -0.01em;
+  /* Real TCH 3-stack logo (white) — pulls from .tch-logo-3stack-white in brand.css */
+  .nav-logo {
+    width: 84px; height: 38px;
+    display: inline-block;
   }
-  header .meta {
-    color: var(--muted);
-    font-size: 13px;
-    margin-top: 4px;
+  .timer {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-2);
+    color: var(--tch-cream); cursor: pointer;
+    padding: 4px 14px;
+    border: 2px solid var(--tch-cream-line); user-select: none;
+    transition: all 0.2s;
   }
-  .controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  button, a.btn {
-    font: inherit;
+  .timer.warning { color: var(--tch-yellow); border-color: var(--tch-yellow); }
+  .timer.critical { color: var(--tch-red); border-color: var(--tch-red); animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: 0.55; } }
+
+  /* M+J private drawer */
+  .mj-drawer-toggle {
+    position: fixed; top: 76px; right: 24px; z-index: 95;
+    background: var(--tch-ink); color: var(--tch-yellow);
     padding: 8px 14px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--card);
-    color: var(--ink);
-    cursor: pointer;
-    text-decoration: none;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase;
+    border: 2px solid var(--tch-yellow);
+  }
+  .mj-drawer {
+    position: fixed; top: 56px; right: -360px;
+    width: 340px; height: calc(100vh - 56px);
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 24px; z-index: 94;
+    border-left: 3px solid var(--tch-red);
+    transition: right 0.3s;
+    overflow-y: auto;
+  }
+  .mj-drawer.open { right: 0; }
+  .mj-drawer .head {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    color: var(--tch-yellow); margin-bottom: 14px; text-transform: uppercase;
+  }
+  .mj-drawer h2 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: var(--tch-step-2); margin-bottom: 14px;
+  }
+  .mj-drawer .row {
+    padding: 10px 0; border-bottom: 1px dashed rgba(245,242,235,0.18);
+    font-family: var(--tch-mono); font-size: 13px;
+  }
+  .mj-drawer .row:last-of-type { border-bottom: none; }
+  .mj-drawer .k {
+    font-family: var(--tch-nord); font-weight: 500;
+    letter-spacing: 0.14em; font-size: 10px;
+    color: rgba(245,242,235,0.5); text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .mj-drawer .start {
+    width: 100%; background: var(--tch-red); color: var(--tch-cream);
+    border: 2px solid var(--tch-cream); padding: 14px 22px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 12px;
+    cursor: pointer; text-transform: uppercase;
+    margin-top: 24px; box-shadow: 4px 4px 0 var(--tch-cream);
+  }
+  .mj-drawer .pause-note {
+    margin-top: 24px; padding: 14px;
+    background: rgba(246,237,82,0.08);
+    font-family: var(--tch-mono); font-size: 11px;
+    color: rgba(245,242,235,0.7);
+    border-left: 3px solid var(--tch-yellow);
+  }
+
+  main { max-width: 1080px; margin: 0 auto; padding: 32px; }
+
+  /* Section shell */
+  .section { margin-bottom: 80px; padding-top: 20px; position: relative; }
+  .section-num {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-6); color: var(--tch-red);
+    line-height: 0.85; margin-bottom: 8px;
+  }
+  .section-num .slash { color: var(--tch-ink); opacity: 0.15; }
+  .section-name {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.24em; text-transform: uppercase;
+    font-size: var(--tch-step-1); margin-bottom: 8px;
+  }
+  .section-frame {
+    font-size: var(--tch-step-0);
+    color: rgba(28,28,30,0.7);
+    margin-bottom: 28px; max-width: 720px;
+  }
+
+  /* TIME PILL — bigger, more visible */
+  .time-pill {
+    display: inline-block; padding: 6px 14px;
+    background: var(--tch-ink); color: var(--tch-yellow);
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    text-transform: uppercase;
+    margin-right: 8px;
+  }
+  .time-pill.yellow { background: var(--tch-yellow); color: var(--tch-ink); }
+  .time-pill.red { background: var(--tch-red); color: var(--tch-cream); }
+
+  /* ============ TRADING CARDS ============ */
+  .intro-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .cd-card {
+    background: var(--tch-cream);
+    border: 3px solid var(--tch-ink);
+    padding: 22px 22px 26px;
+    position: relative;
+    box-shadow: 6px 6px 0 var(--tch-ink);
+    transform: rotate(-1deg);
+    overflow: hidden;
+  }
+  .cd-card::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, var(--tch-ink) 0.7px, transparent 0.7px);
+    background-size: 6px 6px; pointer-events: none; opacity: 0.12;
+  }
+  .cd-card > * { position: relative; z-index: 2; }
+  .cd-card.megha { border-color: var(--tch-red); }
+  .cd-card.jake { border-color: var(--tch-blue); transform: rotate(0.6deg); box-shadow: 6px 6px 0 var(--tch-blue); }
+  .cd-card.client { background: var(--tch-yellow); transform: rotate(-0.4deg); box-shadow: 6px 6px 0 var(--tch-red); }
+
+  .role-stamp {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 4px 9px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 9px; text-transform: uppercase;
+    margin-bottom: 14px;
     display: inline-block;
-    transition: background 0.1s ease;
   }
-  button:hover:not(:disabled), a.btn:hover { background: var(--bg); }
-  button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.primary {
-    background: var(--jake);
-    color: #fff;
-    border-color: var(--jake);
-  }
-  .badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 999px;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: #fff;
-    vertical-align: middle;
-  }
-  .badge.prep    { background: #888; }
-  .badge.session { background: var(--jake); }
-  .badge.debrief { background: #9333ea; }
-  .badge.review  { background: var(--warn); }
-  .badge.sent    { background: var(--urgent); }
-  .badge.unknown { background: #444; }
+  .cd-card.megha .role-stamp { background: var(--tch-red); }
+  .cd-card.jake .role-stamp { background: var(--tch-blue); }
+  .cd-card.client .role-stamp { background: var(--tch-ink); color: var(--tch-yellow); }
 
-  section {
-    background: var(--card);
-    border: 1px solid var(--ink);
-    border-radius: 8px;
-    padding: 18px 20px;
-    margin-bottom: 18px;
+  .cd-card .name {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-3); line-height: 1.0; margin-bottom: 10px;
   }
-  section h2 {
-    margin: 0 0 10px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  .cd-card .name em { font-weight: 700; color: var(--tch-red); }
+  .cd-card.jake .name em { color: var(--tch-blue); }
+  .cd-card.client .name em { color: var(--tch-ink); }
+
+  .cd-card .descriptor {
+    font-family: var(--tch-mono); font-size: 12px; line-height: 1.45;
+    color: rgba(28,28,30,0.78); margin-bottom: 18px;
+    border-bottom: 2px solid var(--tch-ink);
+    padding-bottom: 14px;
   }
 
-  /* North Star */
-  .north-star input {
-    font: inherit;
-    font-size: 18px;
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--bg);
+  .cd-stats { display: grid; gap: 7px; }
+  .cd-stat { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+  .stat-name {
+    font-family: var(--tch-nord); font-weight: 500;
+    letter-spacing: 0.12em; font-size: 10px;
+    text-transform: uppercase; color: rgba(28,28,30,0.7);
   }
-  .north-star input::placeholder { color: var(--muted); font-style: italic; }
+  .stat-dots {
+    font-family: var(--tch-mono); font-weight: 700;
+    font-size: 16px; letter-spacing: 1.5px;
+    color: var(--tch-red);
+  }
+  .cd-card.jake .stat-dots { color: var(--tch-blue); }
+  .cd-card.client .stat-dots { color: var(--tch-ink); }
 
-  /* Workshop layout: inbox + 2x2 grid */
-  .workshop {
-    display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 18px;
-  }
-  @media (max-width: 900px) {
-    .workshop { grid-template-columns: 1fr; }
-  }
-
-  .inbox {
-    background: var(--card);
-    border: 1px solid var(--ink);
-    border-radius: 8px;
-    padding: 16px;
-    min-height: 200px;
-  }
-  .inbox h2 {
-    margin: 0 0 10px;
-    font-size: 14px;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .inbox .hint {
-    color: var(--muted);
-    font-size: 12px;
-    margin: 0 0 12px;
-    font-style: italic;
-  }
-  .inbox-list {
-    min-height: 60px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .add-idea {
-    display: flex;
-    gap: 6px;
-    margin-top: 12px;
-  }
-  .add-idea input {
-    flex: 1;
-    font: inherit;
-    padding: 8px;
-    border: 1px solid var(--ink);
-    border-radius: 4px;
-    background: var(--bg);
-  }
-  .add-idea button {
-    padding: 8px 12px;
-    background: var(--client);
-    border-color: var(--client);
+  .cd-card .micro-timer-btn {
+    display: inline-block; margin-top: 18px;
+    background: var(--tch-ink); color: var(--tch-yellow);
+    padding: 9px 14px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase; border: none;
   }
 
-  /* 2x2 grid */
-  .matrix {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 14px;
-    min-height: 600px;
+  /* Story / intake */
+  .intake {
+    background: var(--tch-cream); padding: 28px;
+    border-left: 4px solid var(--tch-red);
+    border-top: 2px solid var(--tch-ink);
+    border-right: 2px solid var(--tch-ink);
+    border-bottom: 2px solid var(--tch-ink);
+  }
+  .intake .from-tag {
+    display: inline-block; margin-bottom: 14px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    color: var(--tch-red); text-transform: uppercase;
+  }
+  .intake-row { padding: 14px 0; border-bottom: 1px dashed var(--tch-ink-line); }
+  .intake-row:last-child { border-bottom: none; }
+  .intake-row .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.14em; font-size: 11px; color: rgba(28,28,30,0.55); margin-bottom: 4px; text-transform: uppercase; }
+  .intake-row .v { font-size: var(--tch-step-0); }
+
+  .question-card {
+    margin-top: 30px;
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 36px;
     position: relative;
   }
-  /* On the narrowest screens, stack the quadrants */
-  @media (max-width: 540px) {
-    .matrix { grid-template-columns: 1fr; grid-template-rows: repeat(4, auto); }
+  .question-card::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle, rgba(245,242,235,0.05) 1px, transparent 1px);
+    background-size: 6px 6px; pointer-events: none;
   }
-  .quadrant {
-    border: 1px solid var(--ink);
-    border-radius: 8px;
-    padding: 14px;
-    background: var(--card);
-    display: flex;
-    flex-direction: column;
-    min-height: 220px;
+  .question-card .q {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-4); line-height: 1.05;
+    color: var(--tch-cream); position: relative;
   }
-  .quadrant-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-    border-bottom: 1px dashed var(--line);
-  }
-  .quadrant-head strong {
-    font-size: 13px;
+  .question-card .q em { font-weight: 700; color: var(--tch-yellow); }
+  .question-card .answer-window {
+    margin-top: 20px;
+    display: inline-block;
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 6px 14px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-  }
-  .quadrant-head .axes {
-    color: var(--muted);
-    font-size: 11px;
-  }
-  .quadrant.quick_wins  { background: #FFFCEC; border-color: var(--urgent); }
-  .quadrant.big_bets    { background: #EEF4FF; border-color: var(--jake); }
-  .quadrant.fill_ins    { background: #F8F8F8; border-color: var(--muted); }
-  .quadrant.time_sinks  { background: #FFF0F0; border-color: var(--megha); }
-  .quadrant-list {
-    flex: 1;
-    min-height: 80px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-  .quadrant-list:empty::after {
-    content: "Drag ideas here";
-    color: var(--muted);
-    font-style: italic;
-    font-size: 12px;
-    padding: 8px 0;
-    text-align: center;
+    transform: rotate(-1deg);
+    position: relative;
   }
 
-  /* Idea cards */
-  .idea-card {
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: 6px;
-    padding: 10px 12px;
-    cursor: grab;
-    transition: box-shadow 0.1s ease;
+  /* Findings */
+  .findings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .finding {
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink); padding: 24px;
+    box-shadow: var(--tch-shadow-hard-sm);
   }
-  .idea-card:active { cursor: grabbing; }
-  .quadrant .idea-card { background: rgba(255,255,255,0.85); }
-  .idea-card.sortable-ghost { opacity: 0.4; }
-  .idea-card.sortable-drag { box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+  .finding.megha { border-top: 8px solid var(--tch-red); }
+  .finding.jake { border-top: 8px solid var(--tch-blue); }
+  .finding .who {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    margin-bottom: 4px; text-transform: uppercase;
+  }
+  .finding.megha .who { color: var(--tch-red); }
+  .finding.jake .who { color: var(--tch-blue); }
+  .finding h4 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-2); margin-bottom: 10px;
+  }
+  .finding h4 em { font-weight: 700; }
+  .finding p { font-size: var(--tch-step-0); }
 
-  .idea-head {
-    display: flex;
-    gap: 8px;
-    align-items: flex-start;
+  .gap {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 30px;
+    border: 2px solid var(--tch-ink);
+    box-shadow: 6px 6px 0 var(--tch-ink);
+    margin-bottom: 18px;
   }
-  .idea-text {
-    flex: 1;
-    font: inherit;
-    border: none;
-    background: transparent;
-    padding: 2px 0;
-    resize: none;
-    overflow: hidden;
-    line-height: 1.4;
-    color: var(--ink);
-  }
-  .idea-text:focus { outline: 1px dashed var(--jake); outline-offset: 2px; }
-  .idea-delete {
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-    padding: 0 4px;
-  }
-  .idea-delete:hover { color: var(--megha); }
+  .gap .label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; margin-bottom: 10px; text-transform: uppercase; }
+  .gap p { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-3); line-height: 1.15; }
+  .gap p em { font-weight: 700; }
 
-  /* Path A / Path B — only visible when the card is inside a quadrant */
-  .idea-paths { display: none; }
-  .quadrant .idea-card .idea-paths {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--line);
+  .pushback {
+    text-align: center; padding: 24px 0;
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-2); color: var(--tch-ink);
   }
-  @media (max-width: 640px) {
-    .quadrant .idea-card .idea-paths { grid-template-columns: 1fr; }
+  .pushback em { font-weight: 700; }
+  .pushback::before, .pushback::after { content: '——'; opacity: 0.3; padding: 0 14px; }
+
+  /* North Star */
+  .north-star {
+    background: var(--tch-ink); color: var(--tch-cream);
+    margin: 80px -32px;
+    padding: 70px 40px;
+    position: relative; overflow: hidden;
   }
-  .path label {
-    display: block;
-    font-size: 10px;
+  .north-star::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle, rgba(245,242,235,0.04) 1.5px, transparent 1.5px);
+    background-size: 10px 10px; pointer-events: none;
+  }
+  .north-star::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 3px, rgba(255,255,255,0.03) 3px 4px);
+    pointer-events: none;
+  }
+  .north-star > * { position: relative; z-index: 2; }
+  .north-star .ribbon {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    display: inline-block;
+    padding: 6px 16px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.22em; font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-    margin-bottom: 4px;
+    transform: rotate(-1deg);
+    margin-bottom: 24px;
   }
-  .path textarea {
-    font: inherit;
-    font-size: 13px;
-    width: 100%;
-    min-height: 50px;
-    padding: 6px 8px;
-    border: 1px solid var(--line);
-    border-radius: 4px;
-    background: var(--bg);
-    resize: vertical;
-    color: var(--ink);
+  .north-star .q {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: clamp(40px, 6vw, 72px); line-height: 1.05;
+    color: var(--tch-cream);
+    margin-bottom: 28px;
   }
-  .path textarea:focus { outline: 1px solid var(--jake); border-color: var(--jake); }
+  .north-star .q em { font-weight: 700; color: var(--tch-yellow); }
+  .north-star textarea {
+    width: 100%; min-height: 100px;
+    background: transparent; color: var(--tch-cream);
+    border: none; border-bottom: 3px solid var(--tch-yellow);
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-3); line-height: 1.2;
+    padding: 16px 0; resize: none;
+  }
+  .north-star textarea:focus { outline: none; }
+  .north-star textarea::placeholder { color: rgba(245,242,235,0.3); font-style: italic; }
+  .north-star .nudge {
+    margin-top: 20px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    color: var(--tch-yellow); text-transform: uppercase;
+  }
 
-  /* Save indicator + toast */
-  .save-status {
-    color: var(--muted);
-    font-size: 12px;
-    font-style: italic;
+  /* Diagnosis */
+  .diagnosis {
+    background: var(--tch-ink); color: var(--tch-cream);
+    margin: 80px -32px;
+    padding: 70px 40px;
+    position: relative; overflow: hidden;
   }
-  .save-status.saving { color: var(--warn); }
-  .save-status.saved  { color: var(--urgent); }
-  .save-status.error  { color: var(--megha); font-style: normal; }
-  .toast {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--ink);
-    color: var(--bg);
-    padding: 10px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    z-index: 1000;
-    opacity: 0;
-    transition: opacity 0.2s ease;
+  .diagnosis::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(circle, rgba(245,242,235,0.04) 1.2px, transparent 1.2px);
+    background-size: 8px 8px; pointer-events: none;
   }
-  .toast.show { opacity: 1; }
-  .toast.error { background: var(--megha); }
+  .diagnosis > * { position: relative; z-index: 2; }
+  .diagnosis .section-num { color: var(--tch-yellow); }
+  .diagnosis .section-num .slash { color: rgba(245,242,235,0.1); }
+  .diagnosis .section-name { color: var(--tch-cream); }
+  .diagnosis .section-frame { color: rgba(245,242,235,0.7); }
 
-  footer {
+  .substep {
     margin-top: 32px;
     padding-top: 16px;
-    border-top: 1px solid var(--line);
-    color: var(--muted);
-    font-size: 12px;
-    text-align: center;
+    border-top: 1px dashed rgba(245,242,235,0.15);
   }
-  a { color: var(--jake); }
-  .error-screen {
+  .substep-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 16px; flex-wrap: wrap;
+  }
+  .substep-head .time-pill { background: var(--tch-yellow); color: var(--tch-ink); }
+  .substep-head .substep-title {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 13px;
+    color: var(--tch-cream); text-transform: uppercase;
+  }
+  .substep-head .duration {
+    font-family: var(--tch-mono); font-size: 11px;
+    color: rgba(245,242,235,0.55); margin-left: auto;
+  }
+
+  .audit-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 14px;
+  }
+  .pillar {
+    background: rgba(245,242,235,0.04);
+    border: 2px solid rgba(245,242,235,0.18);
+    padding: 22px; cursor: pointer; transition: all 0.15s;
+    position: relative;
+  }
+  .pillar::after {
+    content: '1 min'; position: absolute; top: 8px; right: 10px;
+    font-family: var(--tch-nord); font-weight: 500;
+    letter-spacing: 0.12em; font-size: 9px;
+    color: rgba(246,237,82,0.5); text-transform: uppercase;
+  }
+  .pillar:hover { background: rgba(245,242,235,0.08); border-color: var(--tch-yellow); }
+  .pillar h4 { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 12px; color: var(--tch-yellow); margin-bottom: 8px; text-transform: uppercase; }
+  .pillar .desc { font-size: 11px; opacity: 0.55; margin-bottom: 18px; }
+  .pillar .dots { font-size: 26px; color: var(--tch-yellow); letter-spacing: 4px; }
+  .pillar .score-label { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.14em; font-size: 10px; color: rgba(245,242,235,0.5); text-transform: uppercase; margin-top: 8px; }
+
+  .hunch {
+    background: rgba(236,49,7,0.15);
+    border-left: 4px solid var(--tch-red);
+    padding: 22px;
+  }
+  .hunch .label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; color: var(--tch-red); margin-bottom: 8px; text-transform: uppercase; }
+  .hunch p { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-3); line-height: 1.2; }
+  .hunch p em { font-weight: 700; }
+
+  .recal { text-align: center; padding: 16px 0; }
+  .recal .lightning { font-size: var(--tch-step-2); }
+  .recal .label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.22em; font-size: 11px; color: var(--tch-yellow); text-transform: uppercase; margin: 6px 0; }
+  .recal .question {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-2); margin-bottom: 18px;
+  }
+  .recal .question em { font-weight: 700; color: var(--tch-yellow); }
+  .recal-pills { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .recal-pill {
+    background: transparent; color: var(--tch-cream);
+    border: 2px solid rgba(245,242,235,0.3);
+    padding: 10px 22px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase;
+    transition: all 0.15s;
+  }
+  .recal-pill:hover { background: rgba(245,242,235,0.08); }
+  .recal-pill.yes:hover, .recal-pill.yes.active { background: #4ade80; color: var(--tch-ink); border-color: #4ade80; }
+  .recal-pill.adjust:hover, .recal-pill.adjust.active { background: var(--tch-yellow); color: var(--tch-ink); border-color: var(--tch-yellow); }
+  .recal-pill.pivot:hover, .recal-pill.pivot.active { background: var(--tch-red); color: var(--tch-cream); border-color: var(--tch-red); }
+
+  .direction-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .direction-card { background: rgba(245,242,235,0.05); padding: 22px; border-top: 4px solid var(--tch-red); }
+  .direction-card.jake { border-top-color: var(--tch-blue); }
+  .direction-card .who { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; }
+  .direction-card.megha .who { color: var(--tch-red); }
+  .direction-card.jake .who { color: var(--tch-blue); }
+  .direction-card p { font-size: 14px; }
+
+  /* SOMATIC RESET — new background (no diagonal stripes) */
+  .somatic {
+    background: var(--tch-cream); color: var(--tch-ink);
+    text-align: center; padding: 70px 20px;
+    margin: 0 -32px;
+    border-top: 4px solid var(--tch-red);
+    border-bottom: 4px solid var(--tch-red);
+    position: relative;
+    overflow: hidden;
+  }
+  .somatic::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, var(--tch-red) 0.8px, transparent 0.8px);
+    background-size: 14px 14px;
+    pointer-events: none; opacity: 0.18;
+  }
+  .somatic > * { position: relative; }
+  .somatic .marker {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.24em; font-size: 11px;
+    color: var(--tch-red); margin-bottom: 18px; text-transform: uppercase;
+  }
+  .somatic h3 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: clamp(32px, 5vw, 48px); line-height: 1.15;
+    margin-bottom: 28px; max-width: 720px; margin-left: auto; margin-right: auto;
+  }
+  .somatic h3 em { font-weight: 700; color: var(--tch-red); }
+  .pulse-row { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+  .pulse-pill {
+    background: transparent; border: 2.5px solid var(--tch-ink);
+    padding: 12px 22px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 12px;
+    cursor: pointer; text-transform: uppercase;
+    color: var(--tch-ink); transition: all 0.15s;
+    box-shadow: var(--tch-shadow-hard-sm);
+  }
+  .pulse-pill:hover { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--tch-ink); }
+  .pulse-pill.active { background: var(--tch-ink); color: var(--tch-cream); }
+
+  /* Moves */
+  .move {
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink);
+    padding: 28px; margin-bottom: 16px;
+    box-shadow: var(--tch-shadow-hard-sm);
+    border-left: 8px solid var(--tch-red);
+  }
+  .move.week { border-left-color: var(--tch-blue); }
+  .move.month { border-left-color: var(--tch-yellow); }
+  .move-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+  .move-icon { font-size: 28px; }
+  .move-tag {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 12px;
+    text-transform: uppercase; color: rgba(28,28,30,0.55);
+  }
+  .move-time { margin-left: auto; }
+  .move-title-input {
+    width: 100%;
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-2); line-height: 1.1;
+    border: none; background: transparent;
+    padding: 8px 0; color: var(--tch-ink);
+  }
+  .move-title-input:focus { outline: none; border-bottom: 2px solid var(--tch-red); background: rgba(246,237,82,0.15); }
+  .move-why-input {
+    width: 100%; min-height: 50px; resize: none;
+    border: 2px dashed var(--tch-ink-line);
+    background: rgba(28,28,30,0.02);
+    padding: 12px;
+    font-family: var(--tch-mono); font-size: var(--tch-step--1);
+    color: var(--tch-ink);
+    margin-top: 10px;
+  }
+  .move-why-input:focus { outline: none; border-color: var(--tch-red); background: var(--tch-cream); }
+
+  .stop-leave-missing { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 24px; }
+  .stop-card {
+    padding: 22px; box-shadow: var(--tch-shadow-hard-sm);
+    border: 2px solid var(--tch-ink);
+  }
+  .stop-card.stop { background: var(--tch-ink); color: var(--tch-cream); }
+  .stop-card.leave { background: var(--tch-yellow); color: var(--tch-ink); }
+  .stop-card.missing { background: var(--tch-cream); color: var(--tch-ink); }
+  .stop-card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+  }
+  .stop-card h4 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    text-transform: uppercase;
+  }
+  .stop-card.stop h4 { color: var(--tch-red); }
+  .stop-card.leave h4 { color: var(--tch-ink); }
+  .stop-card.missing h4 { color: var(--tch-blue); }
+  .stop-card .mini-time {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 9px;
+    background: rgba(0,0,0,0.15); padding: 2px 6px;
+    text-transform: uppercase;
+  }
+  .stop-card.leave .mini-time { background: rgba(28,28,30,0.15); color: var(--tch-ink); }
+  .stop-card ul { list-style: none; }
+  .stop-card li { font-size: 13px; padding: 6px 0; border-bottom: 1px dashed rgba(0,0,0,0.18); }
+  .stop-card.stop li { border-bottom-color: rgba(245,242,235,0.18); }
+  .stop-card .add-btn {
+    margin-top: 10px; background: transparent; color: inherit;
+    border: 1.5px dashed currentColor; padding: 5px 12px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 10px;
+    cursor: pointer; text-transform: uppercase; opacity: 0.7;
+  }
+  .stop-card .add-btn:hover { opacity: 1; }
+
+  .pressure-test {
+    text-align: center; margin-top: 30px;
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-2);
+  }
+  .pressure-test em { font-weight: 700; }
+
+  /* Effort/Impact Map — simplified labels */
+  .ei-section {
+    background: var(--tch-cream);
+    margin: 80px -32px;
+    padding: 60px 40px;
+    border-top: 4px solid var(--tch-ink);
+    border-bottom: 4px solid var(--tch-ink);
+    position: relative;
+  }
+  .ei-section::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, var(--tch-ink) 0.7px, transparent 0.7px);
+    background-size: 12px 12px; pointer-events: none; opacity: 0.18;
+  }
+  .ei-section > * { position: relative; }
+  .ei-intro {
+    text-align: center; max-width: 720px; margin: 0 auto 36px;
+  }
+  .ei-intro p {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-2); line-height: 1.25;
+  }
+  .ei-intro p em { font-weight: 700; color: var(--tch-red); }
+
+  .matrix-wrap {
+    display: grid; grid-template-columns: 30px 1fr;
+    gap: 14px; max-width: 820px; margin: 0 auto;
+  }
+  .matrix-y-axis {
+    display: flex; flex-direction: column; justify-content: space-between;
+    align-items: center; padding: 20px 0;
+  }
+  .matrix-y-label {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.22em; font-size: 11px;
+    text-transform: uppercase;
+  }
+  .matrix-y-label.high { color: var(--tch-red); }
+  .matrix-y-label.low { color: rgba(28,28,30,0.4); }
+
+  .matrix-stack { display: flex; flex-direction: column; }
+  .matrix {
+    background: var(--tch-cream);
+    border: 3px solid var(--tch-ink);
+    box-shadow: 8px 8px 0 var(--tch-ink);
+    aspect-ratio: 1.25;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+  }
+  .quad {
+    border: 1px solid var(--tch-ink-line);
+    padding: 18px;
+    position: relative; overflow: auto;
+  }
+  .quad-label {
+    position: absolute; top: 8px; right: 12px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 9px;
+    color: rgba(28,28,30,0.4); text-transform: uppercase;
+    background: var(--tch-cream); padding: 2px 6px;
+  }
+  .qtl { background: rgba(236,49,7,0.08); }
+  .qtl .quad-label { color: var(--tch-red); }
+  .qtr { background: rgba(246,237,82,0.18); }
+  .qtr .quad-label { color: var(--tch-ink); font-weight: 800; }
+  .qbl { background: rgba(28,28,30,0.04); }
+  .qbr { background: rgba(46,99,231,0.08); }
+  .qbr .quad-label { color: var(--tch-blue); }
+  .ei-sticky-row { margin-top: 20px; display: grid; gap: 10px; }
+  .ei-sticky {
+    display: block;
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 10px 12px;
+    font-size: 12px; cursor: pointer; user-select: none;
+    border: 1.5px solid var(--tch-ink);
+    box-shadow: 2px 2px 0 var(--tch-ink);
+    transform: rotate(-0.6deg);
+    font-family: var(--tch-mono); font-weight: 500;
+    max-width: 100%; overflow-wrap: break-word;
+    transition: all 0.15s;
+    position: relative;
+    line-height: 1.4;
+  }
+  .ei-sticky:hover { transform: rotate(-1.2deg) scale(1.02); }
+  .ei-sticky .sticky-tag {
+    display: block;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.12em; font-size: 10px;
+    margin-bottom: 4px; text-transform: uppercase;
+    opacity: 0.85;
+  }
+  .ei-sticky .sticky-action {
+    font-family: var(--tch-mono); font-size: 12px;
+    line-height: 1.35;
+  }
+  .ei-sticky.diy { background: var(--tch-blue); color: var(--tch-cream); transform: rotate(0.8deg); }
+  .ei-sticky.diy:hover { transform: rotate(1.4deg) scale(1.02); }
+  .ei-sticky.levelup { background: var(--tch-red); color: var(--tch-cream); transform: rotate(-0.8deg); }
+  .ei-sticky.levelup:hover { transform: rotate(-1.4deg) scale(1.02); }
+  .ei-sticky.notnow { background: var(--tch-cream); color: var(--tch-ink); transform: rotate(0.6deg); }
+  .ei-sticky.add-btn {
+    background: transparent; color: rgba(28,28,30,0.5);
+    border: 1.5px dashed var(--tch-ink-line);
+    box-shadow: none;
+    transform: rotate(0deg);
+    text-align: center; font-style: italic;
+    font-size: 11px;
+  }
+  .ei-sticky.add-btn:hover {
+    background: rgba(246,237,82,0.5); color: var(--tch-ink);
+    border-color: var(--tch-ink); border-style: solid;
+    transform: rotate(0deg) scale(1.02);
+  }
+
+  /* LOCKED state — client committed to this path */
+  .ei-sticky.locked {
+    outline: 3px solid var(--tch-ink);
+    outline-offset: 3px;
+    box-shadow: 4px 4px 0 var(--tch-ink), 0 0 0 4px var(--tch-yellow);
+  }
+  .ei-sticky.locked::before {
+    content: '✓ LOCKED';
+    position: absolute; top: -16px; left: 50%; transform: translateX(-50%) rotate(-3deg);
+    background: var(--tch-ink); color: var(--tch-yellow);
+    padding: 2px 7px; font-size: 9px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  /* UNCHOSEN state — the path they didn't pick (stays visible as future option) */
+  .ei-sticky.unchosen {
+    opacity: 0.42;
+    transform: rotate(0deg);
+    box-shadow: 1px 1px 0 var(--tch-ink);
+  }
+  .ei-sticky.unchosen::after {
+    content: '↑ Ready when you are';
+    display: block;
+    font-size: 9px; font-weight: 700; letter-spacing: 0.1em;
+    margin-top: 2px;
+    text-transform: uppercase;
+    opacity: 0.8;
+  }
+  .matrix-x-axis {
+    display: flex; justify-content: space-between;
+    margin-top: 12px; padding: 0 4px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.22em; font-size: 11px;
+    color: rgba(28,28,30,0.5); text-transform: uppercase;
+  }
+  .matrix-x-axis .right { color: var(--tch-red); }
+
+  .ei-howto {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 22px;
+    margin-top: 30px;
+    max-width: 760px; margin-left: auto; margin-right: auto;
+    border-left: 4px solid var(--tch-yellow);
+  }
+  .ei-howto h5 {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.18em; font-size: 11px;
+    color: var(--tch-yellow); margin-bottom: 10px; text-transform: uppercase;
+  }
+  .ei-howto ol { padding-left: 22px; }
+  .ei-howto li { font-size: 13px; padding: 4px 0; }
+  .ei-howto li strong { color: var(--tch-yellow); }
+
+  /* First Move */
+  .first-move {
+    background: var(--tch-red); color: var(--tch-cream);
+    padding: 50px 40px; margin: 80px -32px;
+    position: relative; overflow: hidden;
+  }
+  .first-move::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0,0,0,0.06) 2px 3px);
+    pointer-events: none;
+  }
+  .first-move > * { position: relative; }
+  .first-move .marker { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.24em; font-size: 11px; color: var(--tch-yellow); margin-bottom: 14px; text-transform: uppercase; }
+  .first-move h3 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: clamp(48px, 7vw, 88px); line-height: 0.95; margin-bottom: 18px;
+  }
+  .first-move h3 em { font-weight: 700; color: var(--tch-yellow); }
+  .first-move .body { font-size: var(--tch-step-0); max-width: 680px; margin-bottom: 24px; }
+  .first-move .move-input {
+    width: 100%; max-width: 680px;
+    background: transparent; color: var(--tch-cream);
+    border: none; border-bottom: 3px solid var(--tch-cream);
+    padding: 10px 0;
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-2);
+  }
+  .first-move .move-input:focus { outline: none; border-color: var(--tch-yellow); }
+  .first-move .move-input::placeholder { color: rgba(245,242,235,0.5); font-style: italic; }
+  .first-move .examples {
+    margin-top: 12px;
+    font-family: var(--tch-mono); font-size: 12px;
+    color: rgba(245,242,235,0.7);
+  }
+  .first-move .examples strong { color: var(--tch-yellow); font-weight: 700; }
+  .first-move .timer-row { display: flex; gap: 16px; align-items: center; margin-top: 24px; flex-wrap: wrap; }
+  .first-move .start-60 {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    border: 2px solid var(--tch-ink);
+    padding: 12px 22px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase;
+    box-shadow: 4px 4px 0 var(--tch-ink);
+  }
+  .first-move .did-it { display: flex; gap: 8px; flex-wrap: wrap; }
+  .first-move .did-it button {
+    background: transparent; color: var(--tch-cream);
+    border: 2px solid var(--tch-cream);
+    padding: 8px 16px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.12em; font-size: 11px;
+    cursor: pointer; text-transform: uppercase;
+  }
+  .first-move .did-it button:hover { background: var(--tch-cream); color: var(--tch-red); }
+
+  /* Close */
+  .close { background: var(--tch-cream); padding: 40px 0; }
+  .qa-card {
+    background: var(--tch-cream); padding: 24px;
+    border: 2px solid var(--tch-ink);
+    border-left: 6px solid var(--tch-blue);
+    margin-bottom: 28px;
+  }
+  .qa-card h4 { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.2em; font-size: 12px; color: var(--tch-blue); margin-bottom: 12px; text-transform: uppercase; }
+  .qa-card textarea {
+    width: 100%; min-height: 70px; resize: vertical;
+    border: 1.5px dashed var(--tch-ink-line); padding: 10px;
+    font-family: var(--tch-mono); font-size: var(--tch-step-0);
+    background: var(--tch-cream); color: var(--tch-ink);
+  }
+
+  .close-script {
+    background: var(--tch-ink); color: var(--tch-cream);
+    padding: 44px;
+    margin: 30px 0;
+    border: 2px solid var(--tch-ink);
+    box-shadow: 8px 8px 0 var(--tch-red);
+    position: relative;
+  }
+  .close-script::before {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px);
+    pointer-events: none;
+  }
+  .close-script .lead {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.22em; font-size: 11px;
+    color: var(--tch-yellow); margin-bottom: 22px;
+    text-transform: uppercase;
+    position: relative;
+  }
+  .close-script .line {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: var(--tch-step-3); line-height: 1.4;
+    margin-bottom: 14px;
+    position: relative;
+  }
+  .close-script .line:last-child { margin-bottom: 0; }
+  .close-script .blank {
+    display: inline-block; min-width: 180px;
+    border-bottom: 3px solid var(--tch-yellow);
+    color: var(--tch-yellow); padding: 0 10px;
+    font-style: italic; font-weight: 700;
+  }
+  .close-script .blank[contenteditable]:focus { outline: none; background: rgba(246,237,82,0.14); }
+
+  .promise {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 24px;
+    margin: 24px 0;
+    border: 2px solid var(--tch-ink);
+    box-shadow: var(--tch-shadow-hard-sm);
+    transform: rotate(-0.5deg);
+  }
+  .promise .label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.2em; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; }
+  .promise p { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-2); }
+  .promise p em { font-weight: 700; background: var(--tch-ink); color: var(--tch-yellow); padding: 0 8px; }
+
+  /* COUPON with tracking code */
+  .referral { margin-top: 32px; position: relative; }
+  .coupon {
+    background: var(--tch-yellow); color: var(--tch-ink);
+    border: 3px dashed var(--tch-ink);
+    padding: 28px 36px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 36px;
+    align-items: center;
+    position: relative;
+  }
+  .coupon::before, .coupon::after {
+    content: ''; position: absolute;
+    width: 18px; height: 18px;
+    background: var(--tch-cream);
+    border: 2px solid var(--tch-ink);
+    border-radius: 50%;
+    top: 50%; transform: translateY(-50%);
+  }
+  .coupon::before { left: -10px; }
+  .coupon::after { right: -10px; }
+  .coupon-left .stamp {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.22em; font-size: 11px;
+    color: var(--tch-red); margin-bottom: 8px; text-transform: uppercase;
+  }
+  .coupon-left h4 {
+    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-size: clamp(22px, 3vw, 32px); line-height: 1.05;
+    margin-bottom: 12px;
+  }
+  .coupon-left h4 em { font-weight: 700; color: var(--tch-red); }
+  .coupon-left p {
+    font-family: var(--tch-mono); font-size: 12px;
+    color: rgba(28,28,30,0.7); margin-bottom: 12px;
+  }
+  .coupon-code-row {
+    display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+  }
+  .coupon-code {
+    display: inline-block;
+    background: var(--tch-ink); color: var(--tch-yellow);
+    padding: 6px 14px;
+    font-family: var(--tch-mono); font-weight: 700; font-size: 13px;
+    letter-spacing: 0.16em;
+    border: 2px solid var(--tch-ink);
+  }
+  .coupon-code-label {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 10px;
+    text-transform: uppercase; color: rgba(28,28,30,0.6);
+  }
+  .coupon-right {
     text-align: center;
-    padding: 60px 20px;
-    color: var(--megha);
+    border-left: 2px dashed var(--tch-ink);
+    padding-left: 36px;
+  }
+  .coupon-amount {
+    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-size: clamp(54px, 8vw, 92px); line-height: 0.85;
+    color: var(--tch-red);
+  }
+  .coupon-detail {
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.16em; font-size: 10px;
+    text-transform: uppercase; margin-top: 6px;
+  }
+
+  /* B-Side floating */
+  .bside {
+    position: fixed; top: 80px; right: 24px;
+    width: 290px; max-height: 65vh;
+    background: var(--tch-yellow); color: var(--tch-ink);
+    padding: 16px;
+    border: 2.5px solid var(--tch-ink);
+    box-shadow: 6px 6px 0 var(--tch-ink);
+    z-index: 90;
+    transform: rotate(-1.5deg);
+    overflow-y: auto;
+    transition: all 0.25s;
+  }
+  .bside.collapsed { transform: rotate(-2deg) translateY(calc(-100% + 60px)); }
+  .bside h3 { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-1); margin-bottom: 4px; }
+  .bside h3 em { font-weight: 700; }
+  .bside .sub { font-size: 10px; opacity: 0.6; margin-bottom: 14px; }
+  .bside-row { display: flex; gap: 6px; margin-bottom: 8px; align-items: center; }
+  .bside-row input {
+    flex: 1; background: transparent;
+    border: none; border-bottom: 1px solid var(--tch-ink);
+    padding: 4px 0; font-family: var(--tch-mono); font-size: 12px;
+  }
+  .bside-row input:focus { outline: none; }
+  .bside-row .x { background: transparent; border: none; color: var(--tch-ink); cursor: pointer; opacity: 0.5; font-size: 16px; }
+  .bside-add {
+    background: var(--tch-ink); color: var(--tch-yellow);
+    border: none; padding: 6px 12px; margin-top: 6px;
+    font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.14em; font-size: 10px;
+    cursor: pointer; text-transform: uppercase;
+  }
+
+  @media (max-width: 768px) {
+    .intro-grid, .findings-grid, .audit-grid, .direction-grid, .stop-leave-missing { grid-template-columns: 1fr; }
+    .bside, .mj-drawer-toggle { display: none; }
+    .section-num { font-size: 4rem; }
+    .north-star, .diagnosis, .first-move, .ei-section { margin-left: -20px; margin-right: -20px; padding: 40px 24px; }
+    .matrix-wrap { grid-template-columns: 28px 1fr; }
+    .coupon { grid-template-columns: 1fr; }
+    .coupon-right { border-left: none; border-top: 2px dashed var(--tch-ink); padding: 14px 0 0; }
   }
 </style>
 </head>
 <body>
-<div class="container">
 
-  <header>
-    <div>
-      <h1>🎯 Live Workshop</h1>
-      <div class="meta" id="metaLine">Loading session…</div>
+<header class="top">
+  <div class="left">
+    <span class="nav-logo tch-logo-3stack-white"></span>
+    <span class="section-tag" id="sectionIndicator">SETUP / INTRODUCTIONS</span>
+  </div>
+  <div class="right">
+    <span id="saveStatus" style="font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.65); margin-right: 4px;">—</span>
+    <a href="/templates-v2/hub.html" style="font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 11px; text-transform: uppercase; color: var(--tch-cream); text-decoration: none; padding: 5px 12px; border: 1px solid rgba(245,242,235,0.4);">← Hub</a>
+    <div class="timer" id="timer" onclick="toggleTimer()">00:00</div>
+    <button class="tch-btn yellow" onclick="toggleBSide()">B-SIDE</button>
+  </div>
+</header>
+
+<button class="mj-drawer-toggle" onclick="toggleMJDrawer()">☎ M+J Setup</button>
+<aside class="mj-drawer" id="mjDrawer">
+  <div class="head">↳ M + J Only · pre-populated from morning prep</div>
+  <h2>Today's Session</h2>
+  <div class="row"><div class="k">Client</div>Rae Solano</div>
+  <div class="row"><div class="k">Business</div>Solano Studio · Ceramics</div>
+  <div class="row"><div class="k">Session #</div>001</div>
+  <div class="row"><div class="k">Website</div>solanostudio.com</div>
+  <div class="row"><div class="k">Instagram</div>@solanostudio</div>
+  <div class="row"><div class="k">Time</div>9:30 AM PST · 43 min away</div>
+  <div class="pause-note">↳ All values pulled live from Notion + morning prep dashboard. Edit upstream, not here.</div>
+  <button class="start" onclick="startSession()">START SESSION ☎</button>
+</aside>
+
+<aside class="bside" id="bsidePanel">
+  <h3>The <em>B-Side</em></h3>
+  <div class="sub">Ideas too good to lose. Not today's focus.</div>
+  <div id="bsideRows">
+    <div class="bside-row">
+      <input type="text" placeholder="Capture an idea...">
+      <button class="x" onclick="this.parentElement.remove()">×</button>
     </div>
-    <div class="controls">
-      <span class="save-status" id="saveStatus">—</span>
-      <a class="btn" href="/templates-v2/morning-prep.html">← Morning Prep</a>
-      <a class="btn" id="debriefLink" href="#" style="display:none;background:#9333ea;color:#fff;border-color:#9333ea">Debrief →</a>
-    </div>
-  </header>
+  </div>
+  <button class="bside-add" onclick="addBSideRow()">+ ADD</button>
+</aside>
 
-  <div id="errorScreen" style="display:none" class="error-screen"></div>
+<main>
 
-  <div id="workshopRoot" style="display:none">
+  <!-- 00 / INTRODUCTIONS -->
+  <section class="section" data-time="0:00–2:00" data-name="INTRODUCTIONS">
+    <div class="section-num">00<span class="slash">/</span></div>
+    <div class="section-name">Meet Your Creative Directors · 0:00–2:00</div>
+    <h2 class="sec-h1">Meet your<br><em>creative directors</em>.</h2>
+    <p class="section-frame">Quick intros. 60 seconds each. We go first so you see the vibe — then it's your turn.</p>
 
-    <section class="north-star">
-      <h2>★ North Star</h2>
-      <input type="text" id="northStar" placeholder="What's the one outcome this workshop should deliver?">
-    </section>
+    <div class="intro-grid">
 
-    <div class="workshop">
-
-      <aside class="inbox">
-        <h2>💡 Ideas</h2>
-        <p class="hint">Capture raw ideas here. Drag to a quadrant when ready.</p>
-        <div class="inbox-list" id="inboxList"></div>
-        <div class="add-idea">
-          <input type="text" id="ideaInput" placeholder="New idea…">
-          <button id="addIdeaBtn" type="button">+ Add</button>
-        </div>
-      </aside>
-
-      <div class="matrix">
-        <div class="quadrant quick_wins" data-quadrant="quick_wins">
-          <div class="quadrant-head">
-            <strong>Quick Wins</strong>
-            <span class="axes">high impact · low effort</span>
-          </div>
-          <div class="quadrant-list" data-quadrant-list="quick_wins"></div>
-        </div>
-        <div class="quadrant big_bets" data-quadrant="big_bets">
-          <div class="quadrant-head">
-            <strong>Big Bets</strong>
-            <span class="axes">high impact · high effort</span>
-          </div>
-          <div class="quadrant-list" data-quadrant-list="big_bets"></div>
-        </div>
-        <div class="quadrant fill_ins" data-quadrant="fill_ins">
-          <div class="quadrant-head">
-            <strong>Fill-ins</strong>
-            <span class="axes">low impact · low effort</span>
-          </div>
-          <div class="quadrant-list" data-quadrant-list="fill_ins"></div>
-        </div>
-        <div class="quadrant time_sinks" data-quadrant="time_sinks">
-          <div class="quadrant-head">
-            <strong>Time Sinks</strong>
-            <span class="axes">low impact · high effort</span>
-          </div>
-          <div class="quadrant-list" data-quadrant-list="time_sinks"></div>
+      <div class="cd-card megha">
+        <span class="role-stamp">Lead Strategist</span>
+        <div class="name">Megha <em>Kraft</em></div>
+        <div class="descriptor">Brand strategy. Cultural fluency. Off-script thinker.</div>
+        <div class="cd-stats">
+          <div class="cd-stat"><span class="stat-name">Storyteller</span><span class="stat-dots">●●●●●</span></div>
+          <div class="cd-stat"><span class="stat-name">Decisiveness</span><span class="stat-dots">●●●●●</span></div>
+          <div class="cd-stat"><span class="stat-name">Warmth</span><span class="stat-dots">●●●●●</span></div>
+          <div class="cd-stat"><span class="stat-name">Wit</span><span class="stat-dots">●●●●○</span></div>
         </div>
       </div>
 
+      <div class="cd-card jake">
+        <span class="role-stamp">Lead Operator</span>
+        <div class="name">Jake <em>Goble</em></div>
+        <div class="descriptor">Visual systems. Sonic identity. The connective tissue.</div>
+        <div class="cd-stats">
+          <div class="cd-stat"><span class="stat-name">Taste</span><span class="stat-dots">●●●●●</span></div>
+          <div class="cd-stat"><span class="stat-name">Empathy</span><span class="stat-dots">●●●●●</span></div>
+          <div class="cd-stat"><span class="stat-name">Connection</span><span class="stat-dots">●●●●●</span></div>
+          <div class="cd-stat"><span class="stat-name">Human-Centric</span><span class="stat-dots">●●●●○</span></div>
+        </div>
+      </div>
+
+      <div class="cd-card client">
+        <span class="role-stamp">YOU</span>
+        <div class="name">Your <em>turn</em>.</div>
+        <div class="descriptor">60 seconds. Who you are. What you do. What you want today.</div>
+        <button class="micro-timer-btn" onclick="start60()">▶ START 60-SECOND TIMER</button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- 01 / YOUR STORY -->
+  <section class="section" data-time="2:00–7:00" data-name="YOUR STORY">
+    <div class="section-num">01<span class="slash">/</span></div>
+    <div class="section-name">Your Story · 2:00–7:00</div>
+    <h2 class="sec-h1">What's <em>actually</em><br>happening?</h2>
+    <p class="section-frame">This is what you told us before the call. We'll read it back so we're aligned. Then one question — answer messy, not polished.</p>
+
+    <div class="intake">
+      <div class="from-tag">↳ From your intake</div>
+      <div class="intake-row"><div class="k">What brought you here</div><div class="v" id="intakeBrought">[Auto-populated from Tally]</div></div>
+      <div class="intake-row"><div class="k">Biggest challenge</div><div class="v" id="intakeChallenge">[Auto-populated from Tally]</div></div>
+      <div class="intake-row"><div class="k">What success looks like</div><div class="v" id="intakeSuccess">[Auto-populated from Tally]</div></div>
+      <div class="intake-row"><div class="k">Type</div><div class="v" id="intakeType">[Auto: solo founder · maker · bootstrap]</div></div>
     </div>
 
-    <footer>
-      The Creative Hotline · V2 Live Workshop · Batch 4 · Autosave on
-    </footer>
+    <div class="question-card">
+      <p class="q">"So — what's <em>really</em> going on?"</p>
+      <span class="answer-window">3 minutes · the version you don't put on Instagram</span>
+    </div>
+  </section>
 
+  <!-- 02 / DIALING IN -->
+  <section class="section" data-time="7:00–12:00" data-name="DIALING IN">
+    <div class="section-num">02<span class="slash">/</span></div>
+    <div class="section-name">Dialing In · 7:00–12:00</div>
+    <h2 class="sec-h1">Here's what we<br><em>picked up</em>.</h2>
+    <p class="section-frame">We did the homework. Here's what we caught — what's working and where the gap is. Hypothesis, not verdict. Push back if it doesn't land.</p>
+
+    <div class="findings-grid">
+      <div class="finding megha">
+        <div class="who">Megha · Brand & Positioning</div>
+        <h4>What we <em>love</em></h4>
+        <p id="meghaLike">[Auto-populated from morning prep]</p>
+      </div>
+      <div class="finding jake">
+        <div class="who">Jake · Design & Systems</div>
+        <h4>What we <em>love</em></h4>
+        <p id="jakeLike">[Auto-populated from morning prep]</p>
+      </div>
+    </div>
+
+    <div class="gap">
+      <div class="label">↳ Where we think the gap is</div>
+      <p id="gapHypothesis">[Pre-filled gap hypothesis — sharp, one-sentence diagnosis]</p>
+    </div>
+
+    <div class="pushback">"Before we go deeper — is this the <em>real</em> problem?"</div>
+  </section>
+
+  <!-- 03 / NORTH STAR -->
+  <section class="north-star section" data-time="12:00–15:00" data-name="NORTH STAR">
+    <span class="ribbon">03 / North Star · 12:00–15:00</span>
+    <p class="q">If you could only do <em>one thing</em><br>for the next 90 days —<br>what would it be?</p>
+    <textarea id="northStar" placeholder="Caught raw. Their words, not yours."></textarea>
+    <div class="nudge">↳ Sets the frequency for everything that follows.</div>
+  </section>
+
+  <!-- 04 / WHAT WE SEE -->
+  <section class="diagnosis section" data-time="15:00–25:00" data-name="WHAT WE SEE">
+    <div class="section-num">04<span class="slash">/</span></div>
+    <div class="section-name">What We See · 15:00–25:00</div>
+    <h2 class="sec-h1 on-ink" style="color: var(--tch-cream);">The thing<br><em>beneath</em><br>the thing.</h2>
+    <p class="section-frame">Four pillars. Pre-scored from our research. Let's walk them together.</p>
+
+    <div class="substep">
+      <div class="substep-head">
+        <span class="time-pill yellow">15:00–19:00</span>
+        <span class="substep-title">The Four Pillars</span>
+        <span class="duration">1 min per pillar · 4 min</span>
+      </div>
+      <div class="audit-grid">
+        <div class="pillar" onclick="cyclePillar(this)" data-score="0">
+          <h4>Positioning</h4><div class="desc">Who you are in the market</div>
+          <div class="dots">○○○○○</div><div class="score-label">— / 5</div>
+        </div>
+        <div class="pillar" onclick="cyclePillar(this)" data-score="0">
+          <h4>Messaging</h4><div class="desc">How you talk about it</div>
+          <div class="dots">○○○○○</div><div class="score-label">— / 5</div>
+        </div>
+        <div class="pillar" onclick="cyclePillar(this)" data-score="0">
+          <h4>Execution</h4><div class="desc">The quality of the output</div>
+          <div class="dots">○○○○○</div><div class="score-label">— / 5</div>
+        </div>
+        <div class="pillar" onclick="cyclePillar(this)" data-score="0">
+          <h4>Distribution</h4><div class="desc">Where + how people find you</div>
+          <div class="dots">○○○○○</div><div class="score-label">— / 5</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="substep">
+      <div class="substep-head">
+        <span class="time-pill yellow">19:00–22:00</span>
+        <span class="substep-title">Our Read</span>
+        <span class="duration">3 min</span>
+      </div>
+      <div class="hunch">
+        <div class="label">↳ Here's what we see</div>
+        <p id="hunch">[Pre-filled diagnosis sentence — sharp, one-sentence read]</p>
+      </div>
+    </div>
+
+    <div class="substep">
+      <div class="substep-head">
+        <span class="time-pill red">~22:00</span>
+        <span class="substep-title">Quick Check-In</span>
+        <span class="duration">1 min</span>
+      </div>
+      <div class="recal">
+        <div class="lightning">⚡</div>
+        <div class="label">Are we <em>onto something</em>?</div>
+        <div class="question">Tell us — yes, adjust, or pivot.</div>
+        <div class="recal-pills">
+          <button class="recal-pill yes" onclick="setActive(this)">Yes — Keep Going</button>
+          <button class="recal-pill adjust" onclick="setActive(this)">Adjust</button>
+          <button class="recal-pill pivot" onclick="setActive(this)">Pivot</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="substep">
+      <div class="substep-head">
+        <span class="time-pill yellow">22:00–25:00</span>
+        <span class="substep-title">What We'd Push On</span>
+        <span class="duration">2 min</span>
+      </div>
+      <div class="direction-grid">
+        <div class="direction-card megha">
+          <div class="who">Megha · Brand + Positioning</div>
+          <p id="meghaDirection">[Pre-filled from morning prep]</p>
+        </div>
+        <div class="direction-card jake">
+          <div class="who">Jake · Design + Systems</div>
+          <p id="jakeDirection">[Pre-filled from morning prep]</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOMATIC RESET -->
+  <div class="somatic">
+    <div class="marker">~25:00 · A Breath</div>
+    <h3>We just gave you a lot. Take a breath.<br><em>What's landing? What isn't?</em></h3>
+    <div class="pulse-row">
+      <button class="pulse-pill" onclick="setActive(this)">🟢 With Us</button>
+      <button class="pulse-pill" onclick="setActive(this)">🟡 Processing</button>
+      <button class="pulse-pill" onclick="setActive(this)">🔴 Stuck</button>
+    </div>
   </div>
 
-</div>
+  <!-- 05 / THE PLAY -->
+  <section class="section" data-time="25:00–35:00" data-name="THE PLAY">
+    <div class="section-num">05<span class="slash">/</span></div>
+    <div class="section-name">The Play · 25:00–35:00</div>
+    <h2 class="sec-h1">Here's the <em>play</em>.</h2>
+    <p class="section-frame">Pre-drafted from what we found. Now we pressure-test it together.</p>
 
-<div class="toast" id="toast"></div>
+    <div class="move">
+      <div class="move-head">
+        <span class="move-icon">⚡</span>
+        <span class="move-tag">72-Hour Win</span>
+        <span class="move-time"><span class="time-pill">25:00–27:00 · 2 min</span></span>
+      </div>
+      <input class="move-title-input" type="text" id="move72" placeholder="[Pre-filled — the specific action]" />
+      <textarea class="move-why-input" id="move72Why" placeholder="Why this · tied to the diagnosis"></textarea>
+    </div>
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+    <div class="move week">
+      <div class="move-head">
+        <span class="move-icon">📋</span>
+        <span class="move-tag">1-Week Move</span>
+        <span class="move-time"><span class="time-pill">27:00–29:00 · 2 min</span></span>
+      </div>
+      <input class="move-title-input" type="text" id="move1w" placeholder="[Pre-filled — the specific action]" />
+      <textarea class="move-why-input" id="move1wWhy" placeholder="Why this"></textarea>
+    </div>
+
+    <div class="move month">
+      <div class="move-head">
+        <span class="move-icon">📅</span>
+        <span class="move-tag">1-Month Build</span>
+        <span class="move-time"><span class="time-pill">29:00–31:00 · 2 min</span></span>
+      </div>
+      <input class="move-title-input" type="text" id="move1m" placeholder="[Pre-filled — the specific action]" />
+      <textarea class="move-why-input" id="move1mWhy" placeholder="Why this"></textarea>
+    </div>
+
+    <div class="stop-leave-missing">
+      <div class="stop-card stop">
+        <div class="stop-card-head">
+          <h4>⛔ Not Doing</h4>
+          <span class="mini-time">2 min</span>
+        </div>
+        <ul id="stopList">
+          <li contenteditable="true">[Pre-filled · specific stop]</li>
+          <li contenteditable="true">[Pre-filled · specific stop]</li>
+        </ul>
+        <button class="add-btn" onclick="addStopItem()">+ Add yours</button>
+      </div>
+      <div class="stop-card leave">
+        <div class="stop-card-head">
+          <h4>⏸ Leave Alone</h4>
+          <span class="mini-time">1 min</span>
+        </div>
+        <ul id="leaveList">
+          <li contenteditable="true">[Pre-filled · strength to protect]</li>
+          <li contenteditable="true">[Pre-filled · strength to protect]</li>
+        </ul>
+        <button class="add-btn" onclick="addLeaveItem()">+ Add yours</button>
+      </div>
+      <div class="stop-card missing">
+        <div class="stop-card-head">
+          <h4>❓ What's Missing</h4>
+          <span class="mini-time">1.5 min</span>
+        </div>
+        <ul id="missingList">
+          <li contenteditable="true">[Client adds here · what we missed]</li>
+        </ul>
+        <button class="add-btn" onclick="addMissingItem()">+ Add yours</button>
+      </div>
+    </div>
+
+    <div class="pressure-test">"Does this feel right? <em>What's missing?</em>"</div>
+  </section>
+
+  <!-- 06 / THE MAP -->
+  <section class="ei-section section" data-time="35:00–40:00" data-name="THE MAP">
+    <div class="section-num" style="text-align:center; color: var(--tch-red);">06<span class="slash">/</span></div>
+    <div class="section-name" style="text-align:center;">The Map · 35:00–40:00</div>
+    <h2 class="sec-h1" style="text-align:center;">The <em>map</em>.</h2>
+    <div class="ei-intro">
+      <p>Each move drops onto the grid. <em>High impact + low effort = do this now.</em> Everything else gets a real answer.</p>
+    </div>
+
+    <div class="matrix-wrap">
+      <div class="matrix-y-axis">
+        <div class="matrix-y-label high">High Impact ▲</div>
+        <div class="matrix-y-label low">▼ Low Impact</div>
+      </div>
+      <div class="matrix-stack">
+        <div class="matrix">
+          <div class="quad qtl">
+            <span class="quad-label">Do Now · DIY · Path A</span>
+            <div class="ei-sticky-row" id="quadDIY">
+              <span class="ei-sticky diy" data-move="72hr" data-path="A" onclick="lockPath(this)">
+                <span class="sticky-tag">⚡ 72-Hour · DIY</span>
+                <span class="sticky-action" id="map-72-A">[The action you'd take yourself]</span>
+              </span>
+              <span class="ei-sticky diy" data-move="1wk" data-path="A" onclick="lockPath(this)">
+                <span class="sticky-tag">📋 1-Week · DIY</span>
+                <span class="sticky-action" id="map-1w-A">[The action you'd take yourself]</span>
+              </span>
+              <span class="ei-sticky diy" data-move="1mo" data-path="A" onclick="lockPath(this)">
+                <span class="sticky-tag">📅 1-Month · DIY</span>
+                <span class="sticky-action" id="map-1m-A">[The action you'd take yourself]</span>
+              </span>
+              <span class="ei-sticky add-btn" onclick="addStickyTo('quadDIY','diy')">+ Add a move</span>
+            </div>
+          </div>
+          <div class="quad qtr">
+            <span class="quad-label">Level Up · Path B</span>
+            <div class="ei-sticky-row" id="quadLevelUp">
+              <span class="ei-sticky levelup" data-move="72hr" data-path="B" onclick="lockPath(this)">
+                <span class="sticky-tag">⚡ 72-Hour · Level Up</span>
+                <span class="sticky-action" id="map-72-B">[The action with help / better tools]</span>
+              </span>
+              <span class="ei-sticky levelup" data-move="1wk" data-path="B" onclick="lockPath(this)">
+                <span class="sticky-tag">📋 1-Week · Level Up</span>
+                <span class="sticky-action" id="map-1w-B">[The action with help / better tools]</span>
+              </span>
+              <span class="ei-sticky levelup" data-move="1mo" data-path="B" onclick="lockPath(this)">
+                <span class="sticky-tag">📅 1-Month · Level Up</span>
+                <span class="sticky-action" id="map-1m-B">[The action with help / better tools]</span>
+              </span>
+              <span class="ei-sticky add-btn" onclick="addStickyTo('quadLevelUp','levelup')">+ Add a move</span>
+            </div>
+          </div>
+          <div class="quad qbl">
+            <span class="quad-label">From the B-Side</span>
+            <div class="ei-sticky-row" id="quadBSide">
+              <span class="ei-sticky add-btn" onclick="syncFromBSide()">↺ Pull from B-Side</span>
+            </div>
+          </div>
+          <div class="quad qbr">
+            <span class="quad-label">Not Now</span>
+            <div class="ei-sticky-row" id="quadNotNow">
+              <span class="ei-sticky notnow">
+                <span class="sticky-tag">⛔ Not Doing</span>
+                <span class="sticky-action">[From your stop list]</span>
+              </span>
+              <span class="ei-sticky add-btn" onclick="addStickyTo('quadNotNow','notnow')">+ Add a move</span>
+            </div>
+          </div>
+        </div>
+        <div class="matrix-x-axis">
+          <span>◀ Low effort</span>
+          <span class="right">High effort ▶</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="ei-howto">
+      <h5>↳ Here's what we'll do</h5>
+      <ol>
+        <li><strong>Walk it:</strong> Every move from before is already on the grid. Left side = what you'd do yourself. Right side = what you'd do with help.</li>
+        <li><strong>Pick a path:</strong> For each move, tap the version you're committing to. The other stays visible — ready when you are.</li>
+        <li><strong>Anything missing?</strong> Hit "+ Add a move" in any quadrant — yours, or pull anything we parked on the B-Side.</li>
+        <li><strong>Lock it:</strong> What you choose here saves into your Creative File. We pick up exactly where this leaves off.</li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- FIRST MOVE -->
+  <section class="first-move section" data-time="40:00–42:00" data-name="MAKE THE CALL">
+    <div class="marker">⚡ 40:00–42:00 · Make The Call</div>
+    <h3>Make the<br><em>call</em>.</h3>
+    <p class="body">Before you hang up — you do one tiny thing on this call. Not the whole 72-hour win. Just the first crack of it. We watch you do it.</p>
+    <input class="move-input" type="text" placeholder="The micro-move..." />
+    <div class="examples"><strong>Example moves:</strong> Update IG bio to "Hand-thrown ceramics · made monthly in Austin" · Archive the line that doesn't fit · Draft the email subject line · DM the dream collaborator.</div>
+    <div class="timer-row">
+      <button class="start-60" onclick="start60()">▶ Start 60-Second Timer</button>
+      <div class="did-it">
+        <button onclick="setActive(this)">Did It</button>
+        <button onclick="setActive(this)">Partial</button>
+        <button onclick="setActive(this)">Saved For After</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 / THE CLOSE -->
+  <section class="close section" data-time="42:00–45:00" data-name="THE CLOSE">
+    <div class="section-num">07<span class="slash">/</span></div>
+    <div class="section-name">The Close · 42:00–45:00</div>
+    <h2 class="sec-h1">Land the <em>plane</em>.</h2>
+    <p class="section-frame">Wrapping up. Final questions. Then we summarize in one sentence — what you came in with, what we found, what's changed.</p>
+
+    <div class="qa-card">
+      <h4>Questions?</h4>
+      <textarea placeholder="Anything that didn't land? Anything still rolling around?"></textarea>
+    </div>
+
+    <div class="close-script">
+      <div class="lead">↳ The summary</div>
+      <p class="line">You came in with <span class="blank" contenteditable="true">___</span>.</p>
+      <p class="line">We found <span class="blank" contenteditable="true">___</span>.</p>
+      <p class="line">That changes <span class="blank" contenteditable="true">___</span>.</p>
+    </div>
+
+    <div class="promise">
+      <div class="label">Your action plan</div>
+      <p>Lands in your inbox in <em>24 hours</em>. Everything from today saved in your Creative File.</p>
+    </div>
+
+    <div class="referral">
+      <div class="coupon">
+        <div class="coupon-left">
+          <div class="stamp">☎ Pass it on</div>
+          <h4>Know someone with a <em>creative emergency</em>? Tell them to dial in.</h4>
+          <p>You both get a credit on your next session. Use the code below — no expiry, just don't sit on it.</p>
+          <div class="coupon-code-row">
+            <span class="coupon-code-label">Your code:</span>
+            <span class="coupon-code" id="referralCode">RAE-DIAL-100</span>
+          </div>
+        </div>
+        <div class="coupon-right">
+          <div class="coupon-amount">$100</div>
+          <div class="coupon-detail">Off both your<br>next sessions</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
 <script>
-(function () {
-  // ---- URL ---------------------------------------------------------------
-  const params = new URLSearchParams(window.location.search);
-  const sessionId = params.get('sessionId');
-
-  // ---- DOM refs ----------------------------------------------------------
-  const errorScreen = document.getElementById('errorScreen');
-  const workshopRoot = document.getElementById('workshopRoot');
-  const metaLine = document.getElementById('metaLine');
-  const saveStatus = document.getElementById('saveStatus');
-  const debriefLink = document.getElementById('debriefLink');
-  const northStarInput = document.getElementById('northStar');
-  const inboxList = document.getElementById('inboxList');
-  const ideaInput = document.getElementById('ideaInput');
-  const addIdeaBtn = document.getElementById('addIdeaBtn');
-  const toast = document.getElementById('toast');
-  const quadrantLists = {
-    quick_wins: document.querySelector('[data-quadrant-list="quick_wins"]'),
-    big_bets:   document.querySelector('[data-quadrant-list="big_bets"]'),
-    fill_ins:   document.querySelector('[data-quadrant-list="fill_ins"]'),
-    time_sinks: document.querySelector('[data-quadrant-list="time_sinks"]'),
-  };
-  const QUADRANTS = ['quick_wins', 'big_bets', 'fill_ins', 'time_sinks'];
-
-  // ---- State -------------------------------------------------------------
-  /** @type {{version:1, northStar:string, ideas:Array, updatedAt:string|null}} */
-  let state = {
-    version: 1,
-    northStar: '',
-    ideas: [],
-    updatedAt: null,
-  };
-  let currentSessionState = 'Unknown';
-
-  // ---- Utilities ---------------------------------------------------------
-  function showError(msg) {
-    errorScreen.style.display = 'block';
-    errorScreen.textContent = msg;
-    workshopRoot.style.display = 'none';
+  /* TIMER */
+  let secs = 0, on = false, intvl;
+  function toggleTimer() { on = !on; if (on) intvl = setInterval(tick, 1000); else clearInterval(intvl); }
+  function tick() {
+    secs++;
+    const m = String(Math.floor(secs / 60)).padStart(2, '0');
+    const s = String(secs % 60).padStart(2, '0');
+    const t = document.getElementById('timer');
+    t.textContent = `${m}:${s}`;
+    if (secs >= 35*60 && secs < 40*60) t.classList.add('warning'); else t.classList.remove('warning');
+    if (secs >= 40*60) t.classList.add('critical');
+    updateIndicator();
   }
-  function showToast(msg, isError) {
-    toast.textContent = msg;
-    toast.classList.toggle('error', !!isError);
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2500);
-  }
-  function fmtTime(iso) {
-    if (!iso) return '—';
-    if (iso.length === 10) return iso;
-    try {
-      return new Date(iso).toLocaleString(undefined, {
-        weekday: 'short', month: 'short', day: 'numeric',
-        hour: 'numeric', minute: '2-digit',
-      });
-    } catch { return iso; }
-  }
-  function fmtNow() {
-    return new Date().toLocaleTimeString(undefined, {
-      hour: 'numeric', minute: '2-digit'
-    });
-  }
-  function escapeAttr(s) {
-    return String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;');
-  }
-  function newIdeaId() {
-    return 'idea_' + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-  }
-  function badgeClass(state) {
-    return 'badge ' + (state || 'unknown').toLowerCase();
-  }
-
-  // ---- Save (debounced autosave) -----------------------------------------
-  let saveTimer = null;
-  let inflightSave = null;
-  const SAVE_DEBOUNCE_MS = 2000;
-
-  function scheduleSave() {
-    if (!sessionId) return;
-    saveStatus.textContent = 'unsaved…';
-    saveStatus.className = 'save-status saving';
-    if (saveTimer) clearTimeout(saveTimer);
-    saveTimer = setTimeout(doSave, SAVE_DEBOUNCE_MS);
-  }
-
-  async function doSave() {
-    saveTimer = null;
-    state.updatedAt = new Date().toISOString();
-    const payload = { workshopJson: JSON.stringify(state) };
-
-    saveStatus.textContent = 'saving…';
-    saveStatus.className = 'save-status saving';
-
-    try {
-      // If a save is already inflight, wait for it before starting another —
-      // prevents race conditions where an older save lands after a newer one.
-      if (inflightSave) await inflightSave;
-      inflightSave = fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-workshop`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const res = await inflightSave;
-      inflightSave = null;
-      const body = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        saveStatus.textContent = `save failed: ${body.message || body.error || 'unknown'}`;
-        saveStatus.className = 'save-status error';
-        return;
+  function updateIndicator() {
+    const sections = document.querySelectorAll('[data-time]');
+    let cur = sections[0]; const min = secs / 60;
+    sections.forEach(sec => {
+      const r = sec.getAttribute('data-time');
+      if (r && r.includes('–')) {
+        const [s] = r.split('–'); const [mm] = s.split(':').map(Number);
+        if (min >= mm) cur = sec;
       }
-      saveStatus.textContent = `saved ${fmtNow()}`;
-      saveStatus.className = 'save-status saved';
-      // If the server transitioned Prep → Session, update our badge.
-      if (body.advanced && body.state && body.state !== currentSessionState) {
-        currentSessionState = body.state;
-        updateMetaLine();
-        showToast('Session locked in — Prep → Session');
-      } else if (body.state) {
-        currentSessionState = body.state;
-      }
-    } catch (err) {
-      inflightSave = null;
-      saveStatus.textContent = `save failed: ${err.message}`;
-      saveStatus.className = 'save-status error';
-    }
-  }
-
-  // ---- Rendering ---------------------------------------------------------
-  // Strategy: we render each idea card once and let Sortable.js physically
-  // move the DOM node between containers when the user drags. State.ideas[i]
-  // .quadrant is updated in the Sortable onAdd callback. We DO NOT re-render
-  // on every move — that would tear down Sortable's drag state.
-
-  function renderAll() {
-    // Clear all containers.
-    inboxList.innerHTML = '';
-    QUADRANTS.forEach(q => quadrantLists[q].innerHTML = '');
-
-    // Place each idea into the right container based on its quadrant.
-    state.ideas.forEach(idea => {
-      const card = buildCard(idea);
-      const target = idea.quadrant && quadrantLists[idea.quadrant]
-        ? quadrantLists[idea.quadrant]
-        : inboxList;
-      target.appendChild(card);
     });
+    if (cur) document.getElementById('sectionIndicator').textContent = cur.getAttribute('data-name');
   }
-
-  function buildCard(idea) {
-    const card = document.createElement('div');
-    card.className = 'idea-card';
-    card.dataset.ideaId = idea.id;
-    card.innerHTML = `
-      <div class="idea-head">
-        <textarea class="idea-text" rows="1" placeholder="(empty)">${escapeText(idea.text)}</textarea>
-        <button class="idea-delete" type="button" aria-label="Delete idea">×</button>
-      </div>
-      <div class="idea-paths">
-        <div class="path">
-          <label>Path A — DIY</label>
-          <textarea class="path-a" placeholder="What can the client do themselves?">${escapeText(idea.pathA)}</textarea>
-        </div>
-        <div class="path">
-          <label>Path B — Level Up</label>
-          <textarea class="path-b" placeholder="What changes if we (TCH) take it on?">${escapeText(idea.pathB)}</textarea>
-        </div>
-      </div>
-    `;
-
-    const textEl = card.querySelector('.idea-text');
-    // Defer autoGrow until the card is in the DOM — detached textareas
-    // report scrollHeight ~4px, which would lock the height too small.
-    requestAnimationFrame(() => {
-      autoGrow(textEl);
-      card.querySelectorAll('.path-a, .path-b').forEach(autoGrow);
-    });
-    textEl.addEventListener('input', () => {
-      idea.text = textEl.value;
-      autoGrow(textEl);
-      scheduleSave();
-    });
-    const pathAEl = card.querySelector('.path-a');
-    pathAEl.addEventListener('input', () => {
-      idea.pathA = pathAEl.value;
-      scheduleSave();
-    });
-    const pathBEl = card.querySelector('.path-b');
-    pathBEl.addEventListener('input', () => {
-      idea.pathB = pathBEl.value;
-      scheduleSave();
-    });
-    const delBtn = card.querySelector('.idea-delete');
-    delBtn.addEventListener('click', () => {
-      if (!confirm('Delete this idea?')) return;
-      state.ideas = state.ideas.filter(i => i.id !== idea.id);
-      card.remove();
-      scheduleSave();
-    });
-
-    return card;
+  function start60() {
+    let c = 60;
+    const i = setInterval(() => { c--; if (c <= 0) { clearInterval(i); alert('60 seconds up.'); } }, 1000);
   }
-
-  function escapeText(s) {
-    return String(s || '')
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+  function toggleMJDrawer() { document.getElementById('mjDrawer').classList.toggle('open'); }
+  function startSession() { if (!on) toggleTimer(); toggleMJDrawer(); }
+  function cyclePillar(el) {
+    let s = parseInt(el.getAttribute('data-score')) + 1;
+    if (s > 5) s = 0;
+    el.setAttribute('data-score', s);
+    el.querySelector('.dots').textContent = '●'.repeat(s) + '○'.repeat(5 - s);
+    el.querySelector('.score-label').textContent = (s === 0 ? '—' : s) + ' / 5';
   }
-
-  function autoGrow(textarea) {
-    textarea.style.height = 'auto';
-    textarea.style.height = (textarea.scrollHeight) + 'px';
+  function setActive(el) {
+    const sib = el.parentElement.querySelectorAll('button');
+    sib.forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
   }
-
-  // ---- Sortable setup ----------------------------------------------------
-  function setupSortables() {
-    const opts = (quadrantName) => ({
-      group: 'ideas',
-      animation: 150,
-      ghostClass: 'sortable-ghost',
-      dragClass: 'sortable-drag',
-      onAdd: (evt) => {
-        const ideaId = evt.item.dataset.ideaId;
-        const idea = state.ideas.find(i => i.id === ideaId);
-        if (idea && idea.quadrant !== quadrantName) {
-          idea.quadrant = quadrantName;
-          // Re-run autogrow on path textareas now that they're visible.
-          evt.item.querySelectorAll('textarea').forEach(autoGrow);
-          scheduleSave();
-        }
-      },
-    });
-    Sortable.create(inboxList, opts(null));
-    QUADRANTS.forEach(q => Sortable.create(quadrantLists[q], opts(q)));
+  /* MAP — pick a path per move. Locking one path de-emphasizes the other. */
+  function lockPath(el) {
+    const move = el.getAttribute('data-move');
+    if (!move) return;
+    const pair = document.querySelectorAll(`.ei-sticky[data-move="${move}"]`);
+    pair.forEach(s => s.classList.remove('locked', 'unchosen'));
+    el.classList.add('locked');
+    pair.forEach(s => { if (s !== el) s.classList.add('unchosen'); });
   }
-
-  // ---- Add idea ----------------------------------------------------------
-  function addIdea() {
-    const text = ideaInput.value.trim();
-    if (!text) return;
-    const idea = {
-      id: newIdeaId(),
-      text,
-      quadrant: null,
-      pathA: '',
-      pathB: '',
-      createdAt: new Date().toISOString(),
-    };
-    state.ideas.push(idea);
-    const card = buildCard(idea);
-    inboxList.appendChild(card);
-    ideaInput.value = '';
-    ideaInput.focus();
-    scheduleSave();
+  /* MAP — add a sticky live to any quadrant */
+  function addStickyTo(quadId, kind) {
+    const tag = prompt('Tag (e.g., "Quick Win" or move name):');
+    if (!tag) return;
+    const action = prompt('What\'s the action?');
+    if (!action) return;
+    const newSticky = document.createElement('span');
+    newSticky.className = 'ei-sticky' + (kind === 'diy' ? ' diy' : kind === 'levelup' ? ' levelup' : kind === 'notnow' ? ' notnow' : '');
+    newSticky.innerHTML = `<span class="sticky-tag">${tag}</span><span class="sticky-action">${action}</span>`;
+    const quad = document.getElementById(quadId);
+    quad.insertBefore(newSticky, quad.querySelector('.add-btn'));
   }
-
-  // ---- North Star --------------------------------------------------------
-  northStarInput.addEventListener('input', () => {
-    state.northStar = northStarInput.value;
-    scheduleSave();
-  });
-
-  // ---- Add-idea wiring ---------------------------------------------------
-  addIdeaBtn.addEventListener('click', addIdea);
-  ideaInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      addIdea();
-    }
-  });
-
-  // ---- Initial load ------------------------------------------------------
-  function updateMetaLine(session) {
-    const state = currentSessionState || 'Unknown';
-    const badge = `<span class="${badgeClass(state)}">${state}</span>`;
-    if (session) {
-      const product = session.payment?.product || '—';
-      const when = fmtTime(session.scheduledAt);
-      const sid = session.sessionId ? `#${session.sessionId}` : '';
-      metaLine.innerHTML = `${escapeText(session.clientName)} ${sid} · ${escapeText(product)} · ${when} · ${badge}`;
-    } else {
-      // Re-render with whatever clientName we have stashed
-      const existing = metaLine.dataset.base || '';
-      metaLine.innerHTML = `${existing} · ${badge}`;
-    }
-  }
-
-  async function loadSession() {
-    if (!sessionId) {
-      showError('Missing ?sessionId= in URL. Open this page from Morning Prep.');
+  /* MAP — sync B-Side captures from the floating panel into bottom-left quadrant */
+  function syncFromBSide() {
+    const bsideInputs = document.querySelectorAll('#bsideRows input');
+    const captured = [];
+    bsideInputs.forEach(inp => { if (inp.value.trim()) captured.push(inp.value.trim()); });
+    const quad = document.getElementById('quadBSide');
+    quad.querySelectorAll('.ei-sticky:not(.add-btn)').forEach(s => s.remove());
+    if (captured.length === 0) {
+      alert('No B-Side ideas captured yet. Add something to the B-Side panel first.');
       return;
     }
-
+    const addBtn = quad.querySelector('.add-btn');
+    captured.forEach(text => {
+      const newSticky = document.createElement('span');
+      newSticky.className = 'ei-sticky';
+      newSticky.innerHTML = `<span class="sticky-tag">B-Side</span><span class="sticky-action">${text}</span>`;
+      quad.insertBefore(newSticky, addBtn);
+    });
+  }
+  function toggleBSide() { document.getElementById('bsidePanel').classList.toggle('collapsed'); }
+  function addBSideRow() {
+    const r = document.createElement('div'); r.className = 'bside-row';
+    r.innerHTML = `<input type="text" placeholder="Capture an idea..."><button class="x" onclick="this.parentElement.remove()">×</button>`;
+    document.getElementById('bsideRows').appendChild(r);
+  }
+  function addStopItem() { addLi('stopList', 'New stop item...'); }
+  function addLeaveItem() { addLi('leaveList', 'New leave-alone...'); }
+  function addMissingItem() { addLi('missingList', 'What we missed...'); }
+  function addLi(id, txt) {
+    const li = document.createElement('li'); li.contentEditable = 'true'; li.textContent = txt;
+    document.getElementById(id).appendChild(li); li.focus();
+  }
+  function persist() {
+    const data = {};
+    document.querySelectorAll('input, textarea').forEach(el => { if (el.id) data[el.id] = el.value; });
+    data.secs = secs;
     try {
-      const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
-      const body = await res.json();
-      if (!res.ok) {
-        showError(`Failed to load session: ${body.message || body.error}`);
-        return;
+      const key = window.__sessionId ? `tch_session_v2_2:${window.__sessionId}` : 'tch_session_v2_2';
+      localStorage.setItem(key, JSON.stringify(data));
+    } catch (e) {}
+    if (window.__sessionId) scheduleServerSave();
+  }
+  document.addEventListener('input', persist);
+
+  // -----------------------------------------------------------------------
+  // sessionId-aware data layer (V2 wiring on top of Megha's interactive UI)
+  //   - URL ?sessionId=X drives all data binding
+  //   - Without it, the page still renders + saves to localStorage only
+  //   - With it: fetches session/intake to populate M+J drawer, autosaves
+  //     workshop blob to /api/sessions/{id}/save-workshop
+  // -----------------------------------------------------------------------
+  (function wireSessionId() {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('sessionId');
+    if (!sessionId) {
+      setStatus('local-only · pass ?sessionId=X to enable server sync', 'idle');
+      return;
+    }
+    window.__sessionId = sessionId;
+
+    const statusEl = document.getElementById('saveStatus');
+    let saveTimer = null;
+    let inflight = null;
+
+    function setStatus(text, kind) {
+      if (!statusEl) return;
+      statusEl.textContent = text;
+      statusEl.style.color = kind === 'error'
+        ? 'rgba(255,180,180,0.95)'
+        : kind === 'saving' ? 'rgba(246,237,82,0.9)'
+        : kind === 'saved' ? 'rgba(74,222,128,0.85)'
+        : 'rgba(245,242,235,0.65)';
+    }
+    window.__wsSetStatus = setStatus;
+
+    function collectWorkshopBlob() {
+      const blob = { _v: 'v2_2', _at: new Date().toISOString(), secs: window.secs || 0, fields: {}, lists: {} };
+      document.querySelectorAll('input, textarea').forEach(el => {
+        if (el.id) blob.fields[el.id] = el.value;
+      });
+      ['stopList','leaveList','missingList','bsideRows'].forEach(id => {
+        const root = document.getElementById(id);
+        if (!root) return;
+        blob.lists[id] = Array.from(root.children).map(child => child.innerText || '').filter(Boolean);
+      });
+      blob.pillars = Array.from(document.querySelectorAll('.pillar')).map(p => ({
+        score: Number(p.dataset.score || 0),
+        label: p.querySelector('.pillar-label')?.textContent?.trim() || '',
+      }));
+      return blob;
+    }
+
+    function scheduleServerSave() {
+      if (saveTimer) clearTimeout(saveTimer);
+      setStatus('saving…', 'saving');
+      saveTimer = setTimeout(doServerSave, 900);
+    }
+    window.scheduleServerSave = scheduleServerSave;
+
+    async function doServerSave() {
+      if (inflight) { inflight.abort?.(); }
+      try {
+        inflight = new AbortController();
+        const blob = collectWorkshopBlob();
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-workshop`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workshop: blob }),
+          signal: inflight.signal,
+        });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        setStatus('saved · ' + new Date().toLocaleTimeString(), 'saved');
+      } catch (err) {
+        if (err.name === 'AbortError') return;
+        console.error('[workshop save]', err);
+        setStatus('save error', 'error');
+      } finally {
+        inflight = null;
       }
+    }
 
-      currentSessionState = body.state || 'Unknown';
-      // The Debrief link is always available once a session exists — Jake/Megha
-      // may want to start drafting debrief notes mid-call.
-      debriefLink.href = `/templates-v2/debrief.html?sessionId=${encodeURIComponent(sessionId)}`;
-      debriefLink.style.display = 'inline-block';
-      document.title = `${body.clientName || 'Workshop'} · Live Workshop · TCH`;
-      metaLine.dataset.base = `${body.clientName || 'Untitled'} · ${body.payment?.product || '—'} · ${fmtTime(body.scheduledAt)}`;
-      updateMetaLine(body);
-
-      // Restore prior workshop blob if it exists.
-      if (body.workshopJson) {
-        try {
-          const parsed = JSON.parse(body.workshopJson);
-          if (parsed && typeof parsed === 'object') {
-            state = {
-              version: 1,
-              northStar: typeof parsed.northStar === 'string' ? parsed.northStar : '',
-              ideas: Array.isArray(parsed.ideas) ? parsed.ideas.map(sanitizeIdea).filter(Boolean) : [],
-              updatedAt: parsed.updatedAt || null,
-            };
-          }
-        } catch (err) {
-          console.warn('Could not parse existing workshopJson — starting fresh.', err);
+    function setRow(label, value) {
+      // Pre-populate the M+J drawer rows by label match
+      document.querySelectorAll('.mj-drawer .row').forEach(r => {
+        const k = r.querySelector('.k')?.textContent?.trim();
+        if (k && k.toLowerCase() === label.toLowerCase()) {
+          // Replace text node(s) after .k
+          let node = r.firstChild;
+          // Strip everything after the .k inner div
+          while (r.lastChild && r.lastChild !== r.querySelector('.k')) r.removeChild(r.lastChild);
+          // Re-add the .k
+          const kEl = r.querySelector('.k') || document.createElement('div');
+          // Append value as text node
+          r.appendChild(document.createTextNode(value));
         }
+      });
+    }
+
+    async function loadSessionContext() {
+      try {
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
+        if (!res.ok) throw new Error('session ' + res.status);
+        const s = await res.json();
+        const intake = s.intake || {};
+        const payment = s.payment || {};
+        setRow('Client', intake.clientName || payment.customerName || '—');
+        setRow('Business', intake.businessName || intake.brand || '—');
+        setRow('Session #', s.id ? s.id.slice(-6) : '—');
+        setRow('Website', intake.website || '—');
+        setRow('Instagram', intake.instagram || '—');
+        if (s.scheduledAt) {
+          try {
+            const d = new Date(s.scheduledAt);
+            const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: tz });
+            const mins = Math.round((d - new Date()) / 60000);
+            const rel = mins > 0 ? ` · ${mins} min away` : mins > -60 ? ` · started ${-mins} min ago` : '';
+            setRow('Time', `${time}${rel}`);
+          } catch(e) {}
+        }
+        setStatus('loaded · saved locally', 'idle');
+      } catch (err) {
+        console.warn('[workshop load]', err);
+        setStatus('load failed · running offline', 'error');
       }
-
-      northStarInput.value = state.northStar;
-      workshopRoot.style.display = '';
-      renderAll();
-      setupSortables();
-      saveStatus.textContent = state.ideas.length > 0 || state.northStar ? 'loaded' : 'ready';
-      saveStatus.className = 'save-status';
-    } catch (err) {
-      showError(`Network error loading session: ${err.message}`);
     }
-  }
 
-  function sanitizeIdea(raw) {
-    if (!raw || typeof raw !== 'object') return null;
-    const quadrant = QUADRANTS.includes(raw.quadrant) ? raw.quadrant : null;
-    return {
-      id: typeof raw.id === 'string' ? raw.id : newIdeaId(),
-      text: typeof raw.text === 'string' ? raw.text : '',
-      quadrant,
-      pathA: typeof raw.pathA === 'string' ? raw.pathA : '',
-      pathB: typeof raw.pathB === 'string' ? raw.pathB : '',
-      createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : new Date().toISOString(),
-    };
-  }
-
-  // ---- Warn on unsaved exit ---------------------------------------------
-  window.addEventListener('beforeunload', (e) => {
-    if (saveTimer || inflightSave) {
-      e.preventDefault();
-      e.returnValue = '';
-    }
-  });
-
-  loadSession();
-})();
+    loadSessionContext();
+  })();
 </script>
 </body>
 </html>
