@@ -67,6 +67,42 @@ interface IntakeSummary {
   briefStatus: string;
   briefGeneratedAt?: string;
   files: IntakeFile[];
+  // ---- Full intake content for prep / workshop / debrief templates ----
+  // These fields used to live only inside Notion; templates were rendering
+  // "Unnamed client" / "No intake emergency on file yet" because they had
+  // no way to read them. Added 2026-05-19 after Megha + Jake hit it on TCH-9.
+  clientName?: string;
+  brand?: string;
+  role?: string;
+  email?: string;
+  phone?: string;
+  creativeEmergency?: string;
+  whatTried?: string;
+  deadline?: string;
+  constraintsAvoid?: string;
+  magicWand?: string;
+  inspiration?: string;
+  aiOverview?: string;
+  aiIntakeSummary?: string;
+  desiredOutcomes?: string[];
+  priceRange?: string;
+  monthlyRevenue?: string;
+  teamSize?: string;
+  hoursPerWeek?: string;
+  monthlyBudget?: string;
+  primaryPlatform?: string;
+  website?: string;
+  websiteIg?: string;
+  instagram?: string;
+  linkedin?: string;
+  twitter?: string;
+  tiktok?: string;
+  youtube?: string;
+  brandWebsite?: string;
+  portfolioWebsite?: string;
+  brandLinks?: string;
+  successDefinition?: string;
+  targetAudience?: string;
 }
 
 async function fetchPaymentSummary(id: string): Promise<PaymentSummary | null> {
@@ -99,26 +135,58 @@ async function fetchPaymentSummary(id: string): Promise<PaymentSummary | null> {
  * once the Tally → n8n → Notion mapping is in place. Until then, this
  * returns an empty array so the Hub renders "no files yet" cleanly.
  */
+// Property extractors used to read the full intake row. These mirror the
+// helpers in /api/sessions/today/route.ts but live here so the per-session
+// endpoint can include the same depth of intake content.
+function readTitle(p: PageObjectResponse["properties"], key: string): string {
+  const v = p[key];
+  return v?.type === "title" ? v.title.map((t) => t.plain_text).join("") : "";
+}
+function readText(p: PageObjectResponse["properties"], key: string): string {
+  const v = p[key];
+  return v?.type === "rich_text"
+    ? v.rich_text.map((t) => t.plain_text).join("")
+    : "";
+}
+function readEmail(p: PageObjectResponse["properties"], key: string): string {
+  const v = p[key];
+  return v?.type === "email" && v.email ? v.email : "";
+}
+function readPhone(p: PageObjectResponse["properties"], key: string): string {
+  const v = p[key];
+  return v?.type === "phone_number" && v.phone_number ? v.phone_number : "";
+}
+function readSelect(p: PageObjectResponse["properties"], key: string): string {
+  const v = p[key];
+  return v?.type === "select" && v.select ? v.select.name : "";
+}
+function readMultiSelect(
+  p: PageObjectResponse["properties"],
+  key: string,
+): string[] {
+  const v = p[key];
+  return v?.type === "multi_select" ? v.multi_select.map((o) => o.name) : [];
+}
+function readUrl(p: PageObjectResponse["properties"], key: string): string {
+  const v = p[key];
+  return v?.type === "url" && v.url ? v.url : "";
+}
+function readDateStart(
+  p: PageObjectResponse["properties"],
+  key: string,
+): string | undefined {
+  const v = p[key];
+  return v?.type === "date" && v.date?.start ? v.date.start : undefined;
+}
+
 async function fetchIntakeSummary(id: string): Promise<IntakeSummary | null> {
   try {
     const page = (await getNotion().pages.retrieve({
       page_id: id,
     })) as PageObjectResponse;
     const p = page.properties;
-    const status =
-      p["Intake Status"]?.type === "select" && p["Intake Status"].select
-        ? p["Intake Status"].select.name
-        : "";
-    const briefStatus =
-      p["Research Brief Status"]?.type === "select" &&
-      p["Research Brief Status"].select
-        ? p["Research Brief Status"].select.name
-        : "Not Generated";
-    const briefGeneratedAt =
-      p["Research Brief Generated At"]?.type === "date" &&
-      p["Research Brief Generated At"].date?.start
-        ? p["Research Brief Generated At"].date.start
-        : undefined;
+
+    // Brand Files → flatten Notion files property into {name, url}[]
     const filesProp = p["Brand Files"];
     const files: IntakeFile[] =
       filesProp?.type === "files"
@@ -134,7 +202,45 @@ async function fetchIntakeSummary(id: string): Promise<IntakeSummary | null> {
             })
             .filter((f) => f.url)
         : [];
-    return { id: page.id, status, briefStatus, briefGeneratedAt, files };
+
+    return {
+      id: page.id,
+      status: readSelect(p, "Intake Status"),
+      briefStatus: readSelect(p, "Research Brief Status") || "Not Generated",
+      briefGeneratedAt: readDateStart(p, "Research Brief Generated At"),
+      files,
+      // ---- Full intake content ----
+      clientName: readTitle(p, "Client Name") || undefined,
+      brand: readText(p, "Brand") || undefined,
+      role: readText(p, "Role") || undefined,
+      email: readEmail(p, "Email") || undefined,
+      phone: readPhone(p, "Phone") || undefined,
+      creativeEmergency: readText(p, "Creative Emergency") || undefined,
+      whatTried: readText(p, "What They've Tried") || undefined,
+      deadline: readText(p, "Deadline") || undefined,
+      constraintsAvoid: readText(p, "Constraints / Avoid") || undefined,
+      magicWand: readText(p, "Magic Wand") || undefined,
+      inspiration: readText(p, "Inspiration") || undefined,
+      aiOverview: readText(p, "AI Overview") || undefined,
+      aiIntakeSummary: readText(p, "AI Intake Summary") || undefined,
+      desiredOutcomes: readMultiSelect(p, "Desired Outcome"),
+      priceRange: readSelect(p, "Price Range") || undefined,
+      monthlyRevenue: readSelect(p, "Monthly Revenue") || undefined,
+      teamSize: readSelect(p, "Team Size") || undefined,
+      hoursPerWeek: readSelect(p, "Hours Per Week") || undefined,
+      monthlyBudget: readSelect(p, "Monthly Budget") || undefined,
+      primaryPlatform: readSelect(p, "Primary Platform") || undefined,
+      websiteIg: readUrl(p, "Website / IG") || undefined,
+      brandWebsite: readUrl(p, "Brand Website") || undefined,
+      portfolioWebsite: readUrl(p, "Portfolio Website") || undefined,
+      linkedin: readUrl(p, "LinkedIn") || undefined,
+      twitter: readUrl(p, "X/Twitter") || undefined,
+      tiktok: readUrl(p, "TikTok URL") || undefined,
+      youtube: readUrl(p, "YouTube") || undefined,
+      brandLinks: readText(p, "Brand Links") || undefined,
+      successDefinition: readText(p, "Success Definition") || undefined,
+      targetAudience: readText(p, "Target Audience") || undefined,
+    };
   } catch {
     return null;
   }
