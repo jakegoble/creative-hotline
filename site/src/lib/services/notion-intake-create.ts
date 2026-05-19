@@ -262,6 +262,18 @@ export async function createIntakeFromTally(
   // Set Intake Status so the morning-prep pipeline picks up the row.
   properties["Intake Status"] = { select: { name: intakeStatus } };
 
+  // DEBUG (2026-05-19): full properties dump to diagnose silent-drop bug.
+  // P0 from NEXT-SESSION-START-HERE-2026-05-20-v2.md — parser produced
+  // intake.primaryPlatform = "Website" but the resulting Notion row was
+  // missing Primary Platform along with 13 other properties. No errors.
+  // Logging the assembled `properties` here pinpoints whether the drop is
+  // in our builder (key absent before create) or in Notion's accept path
+  // (key sent but silently rejected).
+  console.log(
+    "[notion/intake-create] properties dump:",
+    JSON.stringify(properties),
+  );
+
   const page = await client.pages.create({
     parent: {
       type: "data_source_id",

@@ -487,6 +487,16 @@ export function parseTallyIntake(payload: TallyWebhookPayload): ParsedIntake {
     console.log("[tally/parser] unknown labels (ignored):", unknownLabels);
   }
 
+  // DEBUG (2026-05-19): full intake dump to diagnose silent-drop bug.
+  // P0 from NEXT-SESSION-START-HERE-2026-05-20-v2.md — Jake's TCH-13 booking
+  // saw the parser deploy clean but Notion rows still missing ~14 fields.
+  // Logging the parsed `out` here lets us compare against the Notion writer's
+  // properties dump to see whether the drop is in parsing or in writing.
+  console.log(
+    "[tally/parser] parsed intake dump:",
+    JSON.stringify(out),
+  );
+
   return out;
 }
 
