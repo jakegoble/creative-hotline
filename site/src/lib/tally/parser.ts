@@ -292,24 +292,40 @@ export function parseTallyIntake(payload: TallyWebhookPayload): ParsedIntake {
   // were captured by Tally but landed empty in Notion because all 4 had
   // label "Untitled link field" in the payload.
   // ---------------------------------------------------------------------
+  /** Pull the hostname out of a URL string. Tolerates missing scheme. */
+  function urlHostname(raw: string): string {
+    try {
+      const withScheme = /^https?:\/\//i.test(raw) ? raw : `https://${raw}`;
+      return new URL(withScheme).hostname.toLowerCase().replace(/^www\./, "");
+    } catch {
+      return "";
+    }
+  }
   for (const field of fields) {
     if (!field || field.type !== "INPUT_LINK") continue;
     const lbl = normalizeLabel(field.label || "");
     if (lbl !== "untitled link field") continue;
     const url = safeString(field.value);
     if (!url) continue;
-    const lower = url.toLowerCase();
-    if (/(?:^|\.)linkedin\.com\//.test(lower) && !out.linkedin) {
+    const host = urlHostname(url);
+    if (!host) continue;
+    // Match the hostname exactly (or a subdomain of) the social platforms.
+    // Earlier regex incorrectly required the char before the hostname to be
+    // `^` or `.`, which failed on plain `https://linkedin.com/...` strings
+    // because the preceding char in the raw URL is `/` (the slash after the
+    // scheme). Parsing the URL via `new URL` and then matching the hostname
+    // sidesteps that whole class of bug.
+    if (/(?:^|\.)linkedin\.com$/.test(host) && !out.linkedin) {
       out.linkedin = url;
     } else if (
-      /(?:^|\.)(?:x|twitter)\.com\//.test(lower) &&
+      /(?:^|\.)(?:x|twitter)\.com$/.test(host) &&
       !out.twitter
     ) {
       out.twitter = url;
-    } else if (/(?:^|\.)tiktok\.com\//.test(lower) && !out.tiktok) {
+    } else if (/(?:^|\.)tiktok\.com$/.test(host) && !out.tiktok) {
       out.tiktok = url;
     } else if (
-      /(?:^|\.)(?:youtube\.com|youtu\.be)\//.test(lower) &&
+      /(?:^|\.)(?:youtube\.com|youtu\.be)$/.test(host) &&
       !out.youtube
     ) {
       out.youtube = url;
