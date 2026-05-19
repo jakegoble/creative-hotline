@@ -301,37 +301,64 @@ export function parseTallyIntake(payload: TallyWebhookPayload): ParsedIntake {
       return "";
     }
   }
+  /** Best-effort string extraction — handles string, number, [string], object. */
+  function extractRawValue(v: unknown): string {
+    if (typeof v === "string") return v.trim();
+    if (typeof v === "number") return String(v);
+    if (Array.isArray(v) && v.length > 0) return extractRawValue(v[0]);
+    if (v && typeof v === "object") {
+      const o = v as Record<string, unknown>;
+      if (typeof o.url === "string") return o.url.trim();
+      if (typeof o.value === "string") return o.value.trim();
+    }
+    return "";
+  }
+  // PERMISSIVE fallback: scan EVERY field's value for known social URL hosts.
+  // We don't check field.type or field.label — Tally's webhook payload for
+  // Link fields with the default "Untitled link field" question doesn't
+  // promote the typed heading into the label, and we've seen the type
+  // attribute also be unreliable depending on how the field was inserted.
+  // The simplest, most robust fix is: if any field's value is a recognizable
+  // social URL, route it to the corresponding ParsedIntake key.
+  //
+  // Safe because: keys are only set if currently empty (defensive), and
+  // hostnames are checked against an explicit allowlist (linkedin/x/twitter/
+  // tiktok/youtube/youtu.be). Random URLs go nowhere.
+  const debugFieldTypes: Array<{label: string; type: string; hasValue: boolean}> = [];
   for (const field of fields) {
-    if (!field || field.type !== "INPUT_LINK") continue;
-    const lbl = normalizeLabel(field.label || "");
-    if (lbl !== "untitled link field") continue;
-    const url = safeString(field.value);
-    if (!url) continue;
-    const host = urlHostname(url);
+    if (!field) continue;
+    debugFieldTypes.push({
+      label: (field.label || "").slice(0, 60),
+      type: field.type || "",
+      hasValue: Boolean(field.value),
+    });
+    const rawValue = extractRawValue(field.value);
+    if (!rawValue) continue;
+    const host = urlHostname(rawValue);
     if (!host) continue;
-    // Match the hostname exactly (or a subdomain of) the social platforms.
-    // Earlier regex incorrectly required the char before the hostname to be
-    // `^` or `.`, which failed on plain `https://linkedin.com/...` strings
-    // because the preceding char in the raw URL is `/` (the slash after the
-    // scheme). Parsing the URL via `new URL` and then matching the hostname
-    // sidesteps that whole class of bug.
     if (/(?:^|\.)linkedin\.com$/.test(host) && !out.linkedin) {
-      out.linkedin = url;
+      out.linkedin = rawValue;
     } else if (
       /(?:^|\.)(?:x|twitter)\.com$/.test(host) &&
       !out.twitter
     ) {
-      out.twitter = url;
+      out.twitter = rawValue;
     } else if (/(?:^|\.)tiktok\.com$/.test(host) && !out.tiktok) {
-      out.tiktok = url;
+      out.tiktok = rawValue;
     } else if (
       /(?:^|\.)(?:youtube\.com|youtu\.be)$/.test(host) &&
       !out.youtube
     ) {
-      out.youtube = url;
+      out.youtube = rawValue;
     }
-    // Unknown hostnames are silently dropped — better than misrouting.
   }
+  // Diagnostic: log the field-shape inventory so we can see what Tally
+  // actually sends for these Link fields. Helps debug future label/type
+  // surprises.
+  console.log(
+    "[tally/parser] field shape inventory:",
+    JSON.stringify(debugFieldTypes),
+  );
 
   if (unknownLabels.length > 0) {
     console.log("[tally/parser] unknown labels (ignored):", unknownLabels);
