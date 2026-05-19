@@ -274,6 +274,49 @@ export function parseTallyIntake(payload: TallyWebhookPayload): ParsedIntake {
     (out as any)[def.key] = def.extract(field);
   }
 
+  // ---------------------------------------------------------------------
+  // Fallback: route "Untitled link field" type INPUT_LINK by URL hostname.
+  //
+  // Tally has a quirk where Link fields added in certain layouts don't
+  // inherit a typed-question as their `label` in the webhook payload —
+  // they stay as the default "Untitled link field" even when the visible
+  // form heading reads "LinkedIn" / "X / Twitter" / "TikTok" / "YouTube".
+  // Multiple unlabeled Link fields then arrive in the payload all with
+  // the same label, indistinguishable by the FIELD_MAP lookup above.
+  //
+  // We pattern-match the URL hostname to route to the right ParsedIntake
+  // key. Only fires for fields the main loop didn't already populate, and
+  // only writes to keys that aren't already set — defensive both ways.
+  //
+  // Discovered 2026-05-19 during the Quiet Town retest: 4 social URLs
+  // were captured by Tally but landed empty in Notion because all 4 had
+  // label "Untitled link field" in the payload.
+  // ---------------------------------------------------------------------
+  for (const field of fields) {
+    if (!field || field.type !== "INPUT_LINK") continue;
+    const lbl = normalizeLabel(field.label || "");
+    if (lbl !== "untitled link field") continue;
+    const url = safeString(field.value);
+    if (!url) continue;
+    const lower = url.toLowerCase();
+    if (/(?:^|\.)linkedin\.com\//.test(lower) && !out.linkedin) {
+      out.linkedin = url;
+    } else if (
+      /(?:^|\.)(?:x|twitter)\.com\//.test(lower) &&
+      !out.twitter
+    ) {
+      out.twitter = url;
+    } else if (/(?:^|\.)tiktok\.com\//.test(lower) && !out.tiktok) {
+      out.tiktok = url;
+    } else if (
+      /(?:^|\.)(?:youtube\.com|youtu\.be)\//.test(lower) &&
+      !out.youtube
+    ) {
+      out.youtube = url;
+    }
+    // Unknown hostnames are silently dropped — better than misrouting.
+  }
+
   if (unknownLabels.length > 0) {
     console.log("[tally/parser] unknown labels (ignored):", unknownLabels);
   }
