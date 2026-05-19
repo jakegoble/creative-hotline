@@ -197,11 +197,38 @@ const FIELD_MAP: FieldDef[] = [
 ];
 
 /**
- * Build a lookup map from normalized label → FieldDef. Normalization is
- * trim + lowercase so trivial typo/case differences don't break matching.
+ * Build a lookup map from normalized label → FieldDef.
+ *
+ * Normalization handles real-world label drift we've observed in Tally:
+ *   - "(optional ...)" parenthetical suffix Megha adds to non-required fields
+ *     ("LinkedIn (optional — leave blank if you don't have one)" → "LinkedIn")
+ *   - Helper / description text after an em-dash or en-dash
+ *     ('AI Overview (optional) — drop in a quick brief...' → 'AI Overview')
+ *   - Smart vs straight quotes ("Who's" with ' vs ')
+ *   - Multi-whitespace collapse + trim + lowercase
+ *
+ * The Cutover Test on 2026-05-18 worked because Megha hadn't added the
+ * "(optional)" suffix yet. After her 2026-05-19 form edits, raw label
+ * compare against FIELD_MAP started failing silently. Stripping these
+ * variations is the surgical fix.
  */
 function normalizeLabel(s: string): string {
-  return s.trim().toLowerCase();
+  return s
+    // Strip "(optional ...)" parenthetical anywhere in the label.
+    // Matches "(optional)", "(optional — leave blank if you don't have one)", etc.
+    .replace(/\s*\(optional\b[^)]*\)\s*/gi, " ")
+    // Strip helper text after a hyphen/en-dash/em-dash that's preceded by whitespace.
+    // The dash must have whitespace before it so we don't strip hyphenated words
+    // like "90-day". Matches " — drop in a quick brief", " - leave blank", etc.
+    .replace(/\s+[—–-]\s.*$/, "")
+    // Normalize smart quotes → straight quotes. Tally's editor sometimes
+    // auto-replaces ' with ' (U+2019). String compare considers them different.
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    // Collapse whitespace runs into a single space.
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 
 const LABEL_INDEX: Map<string, FieldDef> = (() => {
@@ -213,6 +240,67 @@ const LABEL_INDEX: Map<string, FieldDef> = (() => {
   }
   return m;
 })();
+
+/**
+ * Canonical position → ParsedIntake key map.
+ *
+ * Used as a POSITIONAL FALLBACK when label-based matching fails. Tally
+ * occasionally rebuilds a field (e.g. converting a TextBlock heading
+ * into a Question Block) and the resulting webhook label drifts away
+ * from what FIELD_MAP knows. Position in the field array is more stable
+ * than the label string in those cases.
+ *
+ * Index = position among INPUT fields only (section banners filtered out).
+ * Keep this in sync with the Tally form `b5W1JE` layout.
+ */
+const CANONICAL_FIELD_ORDER: (keyof ParsedIntake | null)[] = [
+  "fullName",          // 0  — Full Name
+  "role",              // 1  — Role
+  "brand",             // 2  — Brand / Company
+  "phone",             // 3  — Phone Number
+  "email",             // 4  — E-mail Address
+  "instagram",         // 5  — Instagram
+  "website",           // 6  — Website
+  "linkedin",          // 7  — LinkedIn
+  "twitter",           // 8  — X / Twitter
+  "tiktok",            // 9  — TikTok
+  "youtube",           // 10 — YouTube
+  "aiOverview",        // 11 — AI Overview
+  "creativeEmergency", // 12 — What's the creative emergency?
+  "desiredOutcomes",   // 13 — What do you actually want out of this call?
+  "whatTried",         // 14 — What have you already tried?
+  "deadline",          // 15 — Any deadlines or fires we should know about?
+  "constraintsAvoid",  // 16 — Anything we should avoid?
+  "priceRange",        // 17 — What's your price range of offering?
+  "monthlyRevenue",    // 18 — What's your approximate monthly revenue?
+  "teamSize",          // 19 — Who's on your team?
+  "hoursPerWeek",      // 20 — How many hours/week do you spend on your business?
+  "monthlyBudget",     // 21 — Monthly budget for tools and outside help?
+  "magicWand",         // 22 — If you could wave a magic wand...
+  "primaryPlatform",   // 23 — Where do you spend most of your creative energy right now?
+  "inspiration",       // 24 — Who or what inspires you / your brand right now?
+  "brandFiles",        // 25 — Drop anything we should see / Brand files
+];
+
+/** Reverse map: ParsedIntake key → ExtractFn (derived from FIELD_MAP). */
+const KEY_TO_EXTRACT: Map<string, ExtractFn> = (() => {
+  const m = new Map<string, ExtractFn>();
+  for (const def of FIELD_MAP) {
+    m.set(def.key as string, def.extract);
+  }
+  return m;
+})();
+
+/**
+ * Is this Tally field an INPUT field (vs. a section banner / LABEL block)?
+ * Section banners arrive in the payload with type="LABEL" and no value;
+ * we skip them when counting positions.
+ */
+function isInputField(f: TallyField | undefined | null): boolean {
+  if (!f) return false;
+  if (f.type === "LABEL") return false;
+  return true;
+}
 
 // ---------- Main parser ----------
 
@@ -262,7 +350,9 @@ export function parseTallyIntake(payload: TallyWebhookPayload): ParsedIntake {
   const out = emptyIntake();
   const fields = payload?.data?.fields ?? [];
   const unknownLabels: string[] = [];
+  const matchedKeys = new Set<string>();
 
+  // ----- Pass 1: label-based matching (preferred) -----
   for (const field of fields) {
     if (!field || typeof field.label !== "string") continue;
     const def = LABEL_INDEX.get(normalizeLabel(field.label));
@@ -272,7 +362,40 @@ export function parseTallyIntake(payload: TallyWebhookPayload): ParsedIntake {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (out as any)[def.key] = def.extract(field);
+    matchedKeys.add(def.key as string);
   }
+
+  // ----- Pass 2: positional fallback for unmatched keys -----
+  // Catches fields whose webhook label drifted away from FIELD_MAP (e.g.
+  // after a Tally form rebuild) but whose POSITION in the form is intact.
+  // Only fills a key if label-pass didn't already match it — so label match
+  // wins when both succeed and we never overwrite a valid label-derived value.
+  const inputFields = fields.filter(isInputField);
+  inputFields.forEach((field, idx) => {
+    if (idx >= CANONICAL_FIELD_ORDER.length) return;
+    const key = CANONICAL_FIELD_ORDER[idx];
+    if (!key) return;
+    if (matchedKeys.has(key as string)) return;
+    const extract = KEY_TO_EXTRACT.get(key as string);
+    if (!extract) return;
+    const value = extract(field);
+    // Only write a non-empty value — empty string / empty array means
+    // the field was on the form but the respondent left it blank, and
+    // we'd rather leave the parsed key empty than commit to nothing.
+    if (
+      (typeof value === "string" && value !== "") ||
+      (Array.isArray(value) && value.length > 0) ||
+      (typeof value === "boolean") ||
+      (typeof value === "number")
+    ) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (out as any)[key] = value;
+      matchedKeys.add(key as string);
+      console.log(
+        `[tally/parser] positional fallback → ${key} (idx=${idx}, label="${(field.label || "").slice(0, 60)}")`,
+      );
+    }
+  });
 
   // ---------------------------------------------------------------------
   // Fallback: route "Untitled link field" type INPUT_LINK by URL hostname.
