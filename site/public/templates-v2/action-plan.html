@@ -1068,12 +1068,14 @@
         const transcriptEl = document.getElementById('transcriptLink');
         if (transcriptEl) {
           if (s.firefliesUrl) {
-            transcriptEl.href = s.firefliesUrl;
+            // Client gets a clean text-only transcript page — NEVER the raw
+            // Fireflies URL (that would expose the internal Fireflies workspace).
+            transcriptEl.href = `/templates-v2/transcript.html?sessionId=${encodeURIComponent(sessionId)}`;
             transcriptEl.setAttribute('target', '_blank');
             transcriptEl.setAttribute('rel', 'noopener');
           } else {
             // No transcript yet — hide the whole offer line so the client doesn't
-            // click a dead link expecting a recording that doesn't exist.
+            // click a dead link expecting a transcript that doesn't exist.
             const wrap = transcriptEl.closest('p, div');
             if (wrap) wrap.style.display = 'none';
           }
