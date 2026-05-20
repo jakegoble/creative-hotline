@@ -1014,10 +1014,18 @@
     // Wire editor links/buttons
     const dbf = document.getElementById('debriefLink');
     if (dbf) dbf.href = `/templates-v2/debrief.html?sessionId=${encodeURIComponent(sessionId)}`;
-    // Creative File placeholder: until Phase 2 surfaces a per-client folder, route
-    // back to the Hub so the client lands somewhere meaningful instead of a dead #.
+    // Creative File: there is no per-client folder yet (Phase 2). For operators
+    // (?edit=1 / review mode) route to the internal Hub for convenience. For CLIENTS
+    // we must NOT expose the internal Hub — hide the link until a real client-facing
+    // Creative File destination exists.
     const cfl = document.getElementById('creativeFileLink');
-    if (cfl) cfl.href = `/templates-v2/hub.html?sessionId=${encodeURIComponent(sessionId)}`;
+    if (cfl) {
+      if (isEditor) {
+        cfl.href = `/templates-v2/hub.html?sessionId=${encodeURIComponent(sessionId)}`;
+      } else {
+        cfl.style.display = 'none';
+      }
+    }
     const regen = document.getElementById('regenerateBtn');
     if (regen) {
       regen.addEventListener('click', async () => {
@@ -1096,6 +1104,5 @@
   } catch (_) {}
 })();
 </script>
-<script src="/templates-v2/_shared/sidenav.js" defer></script>
 </body>
 </html>
