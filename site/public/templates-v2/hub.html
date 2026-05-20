@@ -1171,9 +1171,11 @@
     // Pick which session to load: URL ?sessionId=, else the first today's
     const url = new URL(window.location.href);
     const requested = url.searchParams.get('sessionId');
-    const target = requested && sessionsCache.find(s => s.id === requested)
-      ? requested
-      : (sessionsCache[0]?.id || requested);
+    // Always honor an explicitly-requested session — even one that isn't in
+    // today's roster (e.g. a future/past session opened from the Sessions
+    // drawer). Only fall back to today's first session when no sessionId is set.
+    // (Fixes: clicking tomorrow's session in the drawer reloaded today's.)
+    const target = requested || (sessionsCache[0] && sessionsCache[0].id) || '';
 
     if (target) {
       await loadClient(target);
