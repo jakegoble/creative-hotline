@@ -70,6 +70,8 @@ import {
   isLateBooking,
   processSession,
 } from "@/lib/email/frankie-followups";
+import { config } from "@/lib/config";
+import { sendSms } from "@/lib/services/twilio";
 
 // Calendly needs the raw, un-parsed body to verify the signature.
 export const runtime = "nodejs";
@@ -260,9 +262,27 @@ export async function POST(request: Request) {
           `[calendly-webhook] created Messaging Contact for ${phoneE164}`,
         );
       }
+
+      // Intake-link SMS backup — the confirmation email can land in spam, so
+      // text the intake link too (Megha 2026-05-21). Only fires when Calendly
+      // captured a phone (the consent-gated phone field on the booking form)
+      // AND this is a freshly-created session, so webhook retries don't re-text.
+      if (result.created && phoneE164) {
+        const intakeUrl = config.frankieEmails.tallyUrl;
+        const sms = await sendSms({
+          to: phoneE164,
+          body:
+            "Frankie here from The Creative Hotline ☎️ Your call's booked. " +
+            "One thing left — fill out your intake (about 8 min): " +
+            `${intakeUrl} · Reply STOP to opt out.`,
+        });
+        console.log(
+          `[calendly-webhook] intake-link SMS to ${phoneE164}: ${sms.ok ? "sent" : "skipped (" + sms.error + ")"}`,
+        );
+      }
     } catch (err) {
-      // CRM sync failure must NEVER block the booking flow.
-      console.warn("[calendly-webhook] Messaging Contact sync failed:", err);
+      // CRM sync failure / SMS must NEVER block the booking flow.
+      console.warn("[calendly-webhook] Messaging Contact sync / intake SMS failed:", err);
     }
 
     // ---- Late-booking inline Frankie #2/#3 ----

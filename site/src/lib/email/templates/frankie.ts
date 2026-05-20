@@ -61,6 +61,8 @@ One thing to know: your action plan lands in your inbox **24 hours after the cal
 **Service agreement:** attached as a PDF — also viewable [here](${input.serviceAgreementUrl}).
 **Receipt:** Stripe will email you a copy.
 
+**Don't lose me to spam.** If this landed in your spam or Promotions folder, drag it to your inbox and add hello@thecreativehotline.com to your contacts. I send a couple more notes before your call — that's how they actually reach you.
+
 Questions? Hit reply or text the hotline at +1 (413) 767-4332.
 
 Talk soon,
@@ -122,6 +124,8 @@ One thing to know: your action plan lands in your inbox **24 hours after the cal
 
 **Service agreement:** attached as a PDF — also viewable [here](${input.serviceAgreementUrl}).
 **Receipt:** Stripe will email you a copy.
+
+**Don't lose me to spam.** If this landed in your spam or Promotions folder, drag it to your inbox and add hello@thecreativehotline.com to your contacts. I send a couple more notes before your call — that's how they actually reach you.
 
 Questions? Hit reply or text the hotline at +1 (413) 767-4332.
 
