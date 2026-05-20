@@ -10,6 +10,8 @@
   .top { background: var(--tch-ink); color: var(--tch-cream); padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid var(--tch-red); position: relative; }
   .top::before { content: ''; position: absolute; inset: 0; background: repeating-linear-gradient(to bottom, transparent 0 2px, rgba(255,255,255,0.04) 2px 3px); pointer-events: none; }
   .top .left, .top .right { display: flex; gap: 14px; align-items: center; position: relative; z-index: 2; }
+  a.top-left-link, .top a.left { transition: opacity 0.15s; }
+  .top a.left:hover { opacity: 0.82; }
   .top .nav-logo { width: 84px; height: 36px; }
   .top h1 { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-1); }
   .top h1 em { font-weight: 700; color: var(--tch-yellow); }
@@ -126,7 +128,7 @@
 <body>
 
 <header class="top">
-  <div class="left"><span class="nav-logo tch-logo-3stack-white"></span><h1>Client <em>Hub</em></h1></div>
+  <a class="left" href="/templates-v2/hub.html" title="Back to the main dashboard (today's sessions)" style="text-decoration:none;color:inherit;cursor:pointer;"><span class="nav-logo tch-logo-3stack-white"></span><h1>Client <em>Hub</em></h1></a>
   <div class="right">
     <a id="notionRawLink" href="#" target="_blank" rel="noopener" style="display:none;font-family:var(--tch-nord);font-weight:500;letter-spacing:0.14em;font-size:10px;color:var(--tch-cream);text-transform:uppercase;text-decoration:none;padding:5px 10px;border:1.5px solid rgba(245,242,235,0.35);" title="Open this session's raw record in Notion">↳ Notion ⤴</a>
     <span class="role-tag" id="userRole" onclick="toggleRole()">Logged in as: Megha</span>
