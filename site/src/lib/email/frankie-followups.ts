@@ -91,20 +91,26 @@ async function isIntakeSubmitted(
   return /submitted|complete|reviewed|done/i.test(status);
 }
 
+/**
+ * Format a session's scheduled time for the Frankie email templates.
+ * Returns time only — e.g. "11:00 AM PT" — because:
+ *   - Frankie #2 body reads "Your call ... is tomorrow at [time]"
+ *   - Frankie #3 subject reads "Tomorrow at [time] · Here's how we make it count"
+ * Day-of-week is implied by "tomorrow" since both emails fire 24h pre-call.
+ * Per Megha's V2 spec (TCH-V2-CLIENT-ONBOARDING-EMAILS.md), [SESSION_TIME] is
+ * the time portion only — adding the weekday led to "tomorrow at Wednesday at
+ * 11:00 AM PT" double-stamping.
+ */
 function formatSessionTime(iso?: string): string {
   if (!iso) return "soon";
   try {
     const d = new Date(iso);
-    const day = d.toLocaleDateString("en-US", {
-      weekday: "long",
-      timeZone: "America/Los_Angeles",
-    });
     const time = d.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
       timeZone: "America/Los_Angeles",
     });
-    return `${day} at ${time} PT`;
+    return `${time} PT`;
   } catch {
     return iso;
   }

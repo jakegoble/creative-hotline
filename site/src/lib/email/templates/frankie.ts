@@ -181,7 +181,7 @@ export interface CallerPrepInput {
 
 export function callerPrepEmail(input: CallerPrepInput): FrankieEmail {
   return {
-    subject: `${input.sessionTime} · Here's how we make it count`,
+    subject: `Tomorrow at ${input.sessionTime} · Here's how we make it count`,
     previewText: "Your one-pager for the call. Read this, then forget about it.",
     categories: ["onboarding", "frankie", "caller_prep"],
     bodyMarkdown: `Hey ${input.firstName} —

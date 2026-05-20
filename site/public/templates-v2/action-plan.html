@@ -913,7 +913,7 @@
           <h4>Single Session</h4>
           <div class="price">$699</div>
           <p>Check in. Pressure-test. Get fresh direction on what surfaced after this. We already know your brand — no ramp-up.</p>
-          <a href="#" class="cta">Book A Follow-Up</a>
+          <a href="#" target="_blank" rel="noopener" class="cta" id="bookFollowUpLink">Book A Follow-Up</a>
         </div>
         <div class="upsell featured">
           <span class="save">Save $300</span>
@@ -921,7 +921,7 @@
           <h4>Three Sessions</h4>
           <div class="price">$1,500</div>
           <p>Three sessions. Use within 60 days. Ongoing creative direction without retainer commitment. Each session builds on the last.</p>
-          <a href="#" class="cta">Lock In The Bundle</a>
+          <a href="#" target="_blank" rel="noopener" class="cta" id="lockBundleLink">Lock In The Bundle</a>
         </div>
       </div>
 
@@ -1014,6 +1014,10 @@
     // Wire editor links/buttons
     const dbf = document.getElementById('debriefLink');
     if (dbf) dbf.href = `/templates-v2/debrief.html?sessionId=${encodeURIComponent(sessionId)}`;
+    // Creative File placeholder: until Phase 2 surfaces a per-client folder, route
+    // back to the Hub so the client lands somewhere meaningful instead of a dead #.
+    const cfl = document.getElementById('creativeFileLink');
+    if (cfl) cfl.href = `/templates-v2/hub.html?sessionId=${encodeURIComponent(sessionId)}`;
     const regen = document.getElementById('regenerateBtn');
     if (regen) {
       regen.addEventListener('click', async () => {
@@ -1044,6 +1048,27 @@
             const d = new Date(s.scheduledAt);
             setText('sessionDate', d.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }));
           } catch(e) {}
+        }
+        // Wire the client-facing CTAs from the session payload. The /api/sessions/:id
+        // response includes bookingUrls (firstCall / singleCall / clarityBundle)
+        // sourced from env vars; firefliesUrl is the session's recording.
+        const urls = s.bookingUrls || {};
+        const followUpEl = document.getElementById('bookFollowUpLink');
+        if (followUpEl && urls.singleCall) followUpEl.href = urls.singleCall;
+        const bundleEl = document.getElementById('lockBundleLink');
+        if (bundleEl && urls.clarityBundle) bundleEl.href = urls.clarityBundle;
+        const transcriptEl = document.getElementById('transcriptLink');
+        if (transcriptEl) {
+          if (s.firefliesUrl) {
+            transcriptEl.href = s.firefliesUrl;
+            transcriptEl.setAttribute('target', '_blank');
+            transcriptEl.setAttribute('rel', 'noopener');
+          } else {
+            // No transcript yet — hide the whole offer line so the client doesn't
+            // click a dead link expecting a recording that doesn't exist.
+            const wrap = transcriptEl.closest('p, div');
+            if (wrap) wrap.style.display = 'none';
+          }
         }
         setStatus('loaded', 'idle');
       })

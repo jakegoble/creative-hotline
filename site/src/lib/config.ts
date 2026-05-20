@@ -87,14 +87,16 @@ export const config = {
       singleCall: process.env.CALENDLY_URL_SINGLE_CALL ?? "",
       clarityBundle: process.env.CALENDLY_URL_CLARITY_BUNDLE ?? "",
     },
-    /** Tally intake URL (prefilled with email at send time). */
-    tallyUrl: process.env.TALLY_INTAKE_URL ?? "https://tally.so/r/intake",
+    /** Tally intake URL (prefilled with email at send time). Fallback uses the
+     *  Creative Hotline Intake form ID (b5W1JE) — must match if TALLY_INTAKE_URL
+     *  env var is unset. The bare "/intake" path 404s. */
+    tallyUrl: process.env.TALLY_INTAKE_URL ?? "https://tally.so/r/b5W1JE",
     /** Service agreement hosted URL — populated when Megha approves draft.
      *  Default points at our Vercel-hosted working-draft page so the link
      *  always resolves; override via env var to point at the Webflow page
      *  (or a different hosted URL) once final legal copy is published. */
     serviceAgreementUrl:
-      process.env.SERVICE_AGREEMENT_URL ?? "https://api.thecreativehotline.com/legal/service-agreement.html",
+      process.env.SERVICE_AGREEMENT_URL ?? "https://api.thecreativehotline.com/legal/creative-hotline-service-agreement.html",
     /** Base URL for the hosted caller-prep one-pager. Frankie #3 (the
      *  night-before email) appends `?sessionId=<id>` so the page renders
      *  personalized for the client. Override with CALLER_PREP_BASE_URL to
