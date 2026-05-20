@@ -616,11 +616,41 @@
           }
         }
         if (blocks[1]) {
+          // Research brief is generated HERE on the Hub — the command center that
+          // sits between Tally intake and Morning Prep. Flow (per Megha):
+          //   Tally intake → generate Research Brief (here) → Morning Prep consumes it.
+          // The brief backend is POST /api/research-brief/generate { intakeId }.
           const bs = (s.intake && s.intake.briefStatus) || 'Not Generated';
-          if (bs === 'Ready') blocks[1].textContent = 'Research brief ready. Open Morning Prep to read →';
-          else if (bs === 'Generating') blocks[1].textContent = 'Research brief generating… check back in 30s.';
-          else if (bs === 'Failed') blocks[1].textContent = 'Research brief failed. Re-run from Morning Prep.';
-          else blocks[1].textContent = 'Research brief not yet generated — kick it off from Morning Prep.';
+          const intakeId = s.intake && s.intake.id;
+          if (bs === 'Ready') {
+            blocks[1].textContent = 'Research brief ready. Open Morning Prep to read →';
+          } else if (bs === 'Generating') {
+            blocks[1].textContent = 'Research brief generating… check back in ~30s, then reload.';
+          } else if (!s.intake) {
+            blocks[1].textContent = 'No intake yet — research brief generates once the client submits Tally.';
+          } else {
+            // Not Generated or Failed → offer a real Generate button right here.
+            const failed = bs === 'Failed';
+            blocks[1].innerHTML =
+              (failed
+                ? 'Research brief failed last run. '
+                : 'Research brief not yet generated. ') +
+              'Generate it here — it reads the Tally intake and feeds Morning Prep.' +
+              '<br><button type="button" id="genBriefBtn" style="margin-top:10px;font-family:var(--tch-nord);font-weight:700;letter-spacing:0.12em;font-size:11px;text-transform:uppercase;color:var(--tch-cream);background:var(--tch-red);border:none;border-radius:5px;padding:8px 16px;cursor:pointer;">' +
+              (failed ? 'Re-generate Research Brief ☎' : 'Generate Research Brief ☎') +
+              '</button>';
+            const genBtn = document.getElementById('genBriefBtn');
+            if (genBtn) {
+              if (!intakeId) {
+                genBtn.disabled = true;
+                genBtn.title = 'No linked intake to generate from';
+                genBtn.style.opacity = '0.5';
+                genBtn.style.cursor = 'not-allowed';
+              } else {
+                genBtn.addEventListener('click', () => window.generateResearchBrief(intakeId));
+              }
+            }
+          }
         }
         // Client Library — render real Tally file uploads from s.intake.files,
         // or an empty-state line when none.
@@ -1023,6 +1053,49 @@
     setState(target);
   }
   window.loadClient = loadClient;
+
+  // -------------------------------------------------------------------------
+  // Research Brief generation — POST /api/research-brief/generate { intakeId }
+  // The Hub is the canonical place to kick this off (sits between Tally intake
+  // and Morning Prep, per Megha's flow: Tally → Brief → Morning Prep). The
+  // backend reads the Intake row, calls Claude (~10s), persists the JSON, and
+  // flips Research Brief Status to Ready. Morning Prep + Workshop consume it.
+  // -------------------------------------------------------------------------
+  async function generateResearchBrief(intakeId) {
+    if (!intakeId) return;
+    const btn = document.getElementById('genBriefBtn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Generating… (~10–15s)';
+      btn.style.opacity = '0.6';
+      btn.style.cursor = 'wait';
+    }
+    try {
+      const res = await fetch('/api/research-brief/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ intakeId }),
+      });
+      if (!res.ok) {
+        let detail = 'HTTP ' + res.status;
+        try { const j = await res.json(); detail = j.reason || j.error || detail; } catch {}
+        throw new Error(detail);
+      }
+      // Success — reload the current session so the Prep panel reflects "Ready"
+      // and the brief is available to Morning Prep.
+      if (btn) btn.textContent = 'Brief ready ✓ reloading…';
+      setTimeout(() => { if (currentSessionId) loadClient(currentSessionId); }, 600);
+    } catch (err) {
+      console.error('[hub] research brief generation failed', err);
+      if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+        btn.style.cursor = 'pointer';
+        btn.textContent = 'Generation failed — retry ☎';
+      }
+    }
+  }
+  window.generateResearchBrief = generateResearchBrief;
 
   // -------------------------------------------------------------------------
   // Fireflies URL save — PATCH /api/sessions/[id]
