@@ -562,5 +562,23 @@
     loadContext();
   })();
 </script>
+<script>
+/* Preserve sessionId on Hub back-links — added 2026-05-20 to fix nav losing session context */
+(function preserveSessionIdOnHubLinks() {
+  try {
+    var sid = new URL(location.href).searchParams.get('sessionId');
+    if (!sid) return;
+    document.querySelectorAll('a[href*="hub.html"]').forEach(function(a) {
+      try {
+        var u = new URL(a.href, location.href);
+        if (!u.searchParams.has('sessionId')) {
+          u.searchParams.set('sessionId', sid);
+          a.href = u.toString();
+        }
+      } catch (_) {}
+    });
+  } catch (_) {}
+})();
+</script>
 </body>
 </html>
