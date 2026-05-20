@@ -262,16 +262,17 @@ export async function createIntakeFromTally(
   // Set Intake Status so the morning-prep pipeline picks up the row.
   properties["Intake Status"] = { select: { name: intakeStatus } };
 
-  // DEBUG (2026-05-19): full properties dump to diagnose silent-drop bug.
-  // P0 from NEXT-SESSION-START-HERE-2026-05-20-v2.md — parser produced
-  // intake.primaryPlatform = "Website" but the resulting Notion row was
-  // missing Primary Platform along with 13 other properties. No errors.
-  // Logging the assembled `properties` here pinpoints whether the drop is
-  // in our builder (key absent before create) or in Notion's accept path
-  // (key sent but silently rejected).
+  // DEBUG2 (2026-05-19): small key-list summary — previous JSON.stringify
+  // log didn't surface in Vercel runtime logs (likely too large to index).
+  // Object.keys is short, deterministic, and tells us EXACTLY which
+  // properties were assembled before sending to Notion. If a property
+  // appears here but is missing from the resulting page, Notion silently
+  // rejected it. If a property doesn't appear here at all, the builder
+  // didn't include it (intake field was empty or the if-guard failed).
+  // Build cache buster: this comment block forces turbopack to recompile.
   console.log(
-    "[notion/intake-create] properties dump:",
-    JSON.stringify(properties),
+    "[notion/intake-diag] sending keys:",
+    Object.keys(properties).join(","),
   );
 
   const page = await client.pages.create({

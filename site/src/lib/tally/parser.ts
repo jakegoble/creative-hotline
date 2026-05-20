@@ -487,15 +487,19 @@ export function parseTallyIntake(payload: TallyWebhookPayload): ParsedIntake {
     console.log("[tally/parser] unknown labels (ignored):", unknownLabels);
   }
 
-  // DEBUG (2026-05-19): full intake dump to diagnose silent-drop bug.
-  // P0 from NEXT-SESSION-START-HERE-2026-05-20-v2.md — Jake's TCH-13 booking
-  // saw the parser deploy clean but Notion rows still missing ~14 fields.
-  // Logging the parsed `out` here lets us compare against the Notion writer's
-  // properties dump to see whether the drop is in parsing or in writing.
-  console.log(
-    "[tally/parser] parsed intake dump:",
-    JSON.stringify(out),
-  );
+  // DEBUG2 (2026-05-19): small per-key summary — large JSON dump didn't
+  // surface in Vercel logs (likely too large to index reliably). Log a
+  // compact "key → byte-length" summary so we can confirm which fields
+  // the parser populated without exceeding Vercel's log size limit.
+  // Build cache buster: this comment block forces turbopack to recompile.
+  const populated: Record<string, number> = {};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const [k, v] of Object.entries(out as any)) {
+    if (typeof v === "string" && v.length > 0) populated[k] = v.length;
+    else if (Array.isArray(v) && v.length > 0) populated[k] = v.length;
+    else if (typeof v === "boolean" && v) populated[k] = 1;
+  }
+  console.log("[tally/parser-diag] populated:", JSON.stringify(populated));
 
   return out;
 }
