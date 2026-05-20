@@ -43,6 +43,7 @@ import {
 } from "@/lib/tally/parser";
 import type { TallyWebhookPayload } from "@/lib/tally/types";
 import { createIntakeFromTally } from "@/lib/services/notion-intake-create";
+import { relinkSessionIntakeByEmail } from "@/lib/services/notion-sessions-write";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -186,6 +187,45 @@ export async function POST(request: Request): Promise<Response> {
       created: result.created,
       email: intake.email,
     });
+
+    // Reverse-link any Session created by the Calendly webhook for the same
+    // booking. Calendly fires ~5 min BEFORE Tally, so the Session was either
+    // unlinked or linked to an older/stale Intake. Now that the fresh full
+    // Intake exists, point the Session at it.
+    //
+    // Only runs when Tally actually created a new Intake (skips the dedupe
+    // path). Failures are caught + logged but don't 4xx — the new Intake row
+    // exists either way, and manual relink works as fallback.
+    if (result.created && intake.email) {
+      try {
+        // 14-day window: clients often delay Tally for hours/days after paying.
+        // Calendly's own use of findPaymentByEmail uses 30 min because it runs
+        // ~1s after Stripe; Tally has no such tight coupling.
+        const relink = await relinkSessionIntakeByEmail(
+          intake.email,
+          result.pageId,
+          60 * 24 * 14,
+        );
+        console.log("[tally/webhook] session relink", {
+          email: intake.email,
+          newIntakeId: result.pageId,
+          relinked: relink.relinked,
+          sessionId: relink.sessionId,
+        });
+      } catch (relinkErr) {
+        const detail =
+          relinkErr instanceof Error
+            ? relinkErr.message
+            : String(relinkErr);
+        console.error(
+          "[tally/webhook] session relink failed:",
+          detail,
+          relinkErr,
+        );
+        // Non-fatal: keep the 200, Intake row was created successfully.
+      }
+    }
+
     return jsonResponse({
       ok: true,
       pageId: result.pageId,

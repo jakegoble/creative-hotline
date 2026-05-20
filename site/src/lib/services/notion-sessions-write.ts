@@ -15,6 +15,7 @@
 
 import { Client as NotionClient } from "@notionhq/client";
 import { config } from "../config";
+import { findPaymentByEmail } from "./notion-payments-write";
 
 let _client: NotionClient | null = null;
 
@@ -143,6 +144,66 @@ export async function createSession(
   });
 
   return { pageId: page.id, created: true };
+}
+
+/**
+ * Reverse-link a Session's `Linked Intake` to a fresh Intake row.
+ *
+ * Solves a race condition in the V2 booking pipeline:
+ *
+ *   t=0    Stripe → Payment row created
+ *   t=0    Calendly invitee.created → Session row created. `findIntakeIdByEmail`
+ *          runs and either finds an EXISTING (possibly stale/partial) intake or
+ *          finds nothing; Session.Linked Intake gets set accordingly.
+ *   t=+5m  User finishes Tally form → Intake row created with full V2 data.
+ *
+ * Before this helper, the Session stayed linked to whatever existed at Calendly
+ * time — including stale partial rows from the legacy Tally→Notion-native
+ * integration. The hub UI reads via Session.Linked Intake, so it rendered the
+ * partial row even when the fresh full intake was sitting right next to it.
+ *
+ * Strategy: when Tally creates a new Intake, find the Payment that came from
+ * Stripe for the same email in the same booking window (default 30 min),
+ * locate the Session that was created off that Payment, and overwrite its
+ * Linked Intake to point at the new intake. Idempotent — re-linking to the
+ * same intake is a no-op on Notion's side.
+ *
+ * Returns the session ID that was relinked, or null if no eligible Session was
+ * found (e.g. user filled the Tally form without booking, or webhooks fired
+ * far apart). Non-fatal: the Tally route logs failures but keeps the 200.
+ */
+export async function relinkSessionIntakeByEmail(
+  email: string,
+  newIntakePageId: string,
+  windowMinutes: number = 30,
+): Promise<{ sessionId: string | null; relinked: boolean }> {
+  if (!email || !newIntakePageId) {
+    return { sessionId: null, relinked: false };
+  }
+
+  // 1. Find the recent Payment for this email (Stripe webhook target).
+  const paymentId = await findPaymentByEmail(email, windowMinutes);
+  if (!paymentId) {
+    return { sessionId: null, relinked: false };
+  }
+
+  // 2. Find the Session created off that Payment (Calendly webhook target).
+  const sessionId = await findSessionByPaymentId(paymentId);
+  if (!sessionId) {
+    return { sessionId: null, relinked: false };
+  }
+
+  // 3. Overwrite Linked Intake. Notion silently no-ops if already correct.
+  const client = getClient();
+  await client.pages.update({
+    page_id: sessionId,
+    properties: {
+      "Linked Intake": { relation: [{ id: newIntakePageId }] },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any,
+  });
+
+  return { sessionId, relinked: true };
 }
 
 /**
