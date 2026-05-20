@@ -1038,7 +1038,7 @@
         const payment = s.payment || {};
         setText('clientName', intake.clientName || payment.customerName || '[Client Name]');
         setText('businessName', intake.businessName || intake.brand || '[Business Name]');
-        setText('sessionNum', (s.id || '').slice(-3).toUpperCase() || '001');
+        setText('sessionNum', s.sessionId ? `TCH-${s.sessionId}` : ((s.id || '').slice(-3).toUpperCase() || '001'));
         if (s.scheduledAt) {
           try {
             const d = new Date(s.scheduledAt);
@@ -1071,5 +1071,6 @@
   } catch (_) {}
 })();
 </script>
+<script src="/templates-v2/_shared/sidenav.js" defer></script>
 </body>
 </html>

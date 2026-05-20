@@ -372,7 +372,14 @@
     });
 
     document.getElementById('snapshot').className = 'snapshot stage-' + s;
-    try { localStorage.setItem('tch_hub_state_' + currentSessionId, s); } catch (e) {}
+    // Stamp the cache with sessionId so reads can verify the value actually
+    // belongs to this session (legacy unscoped writes can otherwise bleed across).
+    try {
+      localStorage.setItem(
+        'tch_hub_state_' + currentSessionId,
+        JSON.stringify({ sessionId: currentSessionId, stage: s, ts: Date.now() }),
+      );
+    } catch (e) {}
   }
   window.setState = setState;
 
@@ -988,13 +995,27 @@
       console.warn('[hub] could not update dynamic panel content', e);
     }
 
-    // Pick which state column to show: prefer URL hash, then localStorage, then session.state
+    // Pick which state column to show: prefer URL hash, then localStorage, then session.state.
+    // localStorage is only honored if the stamped sessionId matches the URL's sessionId —
+    // protects against legacy unscoped writes or any future bleed across sessions.
     const urlState = (new URL(window.location.href)).hash.replace('#', '');
     let target = STATES.includes(urlState) ? urlState : null;
     if (!target) {
       try {
         const saved = localStorage.getItem('tch_hub_state_' + sessionId);
-        if (saved && STATES.includes(saved)) target = saved;
+        if (saved) {
+          let savedStage = null;
+          if (saved.startsWith('{')) {
+            const parsed = JSON.parse(saved);
+            if (parsed && parsed.sessionId === sessionId && STATES.includes(parsed.stage)) {
+              savedStage = parsed.stage;
+            }
+          } else if (STATES.includes(saved)) {
+            // Legacy raw-string write — key was already scoped per session, so trust it.
+            savedStage = saved;
+          }
+          if (savedStage) target = savedStage;
+        }
       } catch (e) {}
     }
     if (!target) target = (s.state || 'prep').toLowerCase();
@@ -1086,5 +1107,6 @@
   boot();
 })();
 </script>
+<script src="/templates-v2/_shared/sidenav.js" defer></script>
 </body>
 </html>

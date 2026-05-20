@@ -181,7 +181,7 @@ export interface CallerPrepInput {
 
 export function callerPrepEmail(input: CallerPrepInput): FrankieEmail {
   return {
-    subject: `Tomorrow at ${input.sessionTime} · Here's how we make it count`,
+    subject: `${input.sessionTime} · Here's how we make it count`,
     previewText: "Your one-pager for the call. Read this, then forget about it.",
     categories: ["onboarding", "frankie", "caller_prep"],
     bodyMarkdown: `Hey ${input.firstName} —
@@ -234,7 +234,7 @@ The ones who get the most out of this show up with one real question — not ten
 
 Your action plan lands in your inbox **24 hours after the call**. Wall, matrix, B-Side — all folded in.
 
-${input.callerPrepUrl ? `Full one-pager: [${input.callerPrepUrl}](${input.callerPrepUrl})\n\n` : ""}Talk soon.
+${input.callerPrepUrl ? `[Open your prep one-pager →](${input.callerPrepUrl})\n\n` : ""}Talk soon.
 
 — F
 

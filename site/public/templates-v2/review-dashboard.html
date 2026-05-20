@@ -285,8 +285,8 @@
 
   <aside class="sidebar">
     <h3>Today's Sessions</h3>
-    <div class="day-title" id="dayTitle">Thursday, Mar 20</div>
-    <div class="day-meta">3 sessions · review by 5:00 PM</div>
+    <div class="day-title" id="dayTitle">—</div>
+    <div class="day-meta" id="dayMeta">— sessions · review by 5:00 PM</div>
 
     <div class="queue" id="reviewQueue">
       <div class="queue-item" style="opacity:0.6;cursor:default">
@@ -582,6 +582,18 @@
     document.getElementById('statInReview').textContent = nInReview;
     document.getElementById('statApproved').textContent = nApproved;
     document.getElementById('statSent').textContent = nSentToday;
+
+    // Sidebar header: today's date + session count (replaces hardcoded "Thursday, Mar 20" demo).
+    const dt = new Date();
+    const dayTitleEl = document.getElementById('dayTitle');
+    if (dayTitleEl) {
+      dayTitleEl.textContent = dt.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+    }
+    const dayMetaEl = document.getElementById('dayMeta');
+    if (dayMetaEl) {
+      const total = STATE.sessions.length;
+      dayMetaEl.textContent = `${total} session${total === 1 ? '' : 's'} · review by 5:00 PM`;
+    }
   }
 
   // -------- session detail ---------------------------------------------
@@ -1031,5 +1043,6 @@
   } catch (_) {}
 })();
 </script>
+<script src="/templates-v2/_shared/sidenav.js" defer></script>
 </body>
 </html>

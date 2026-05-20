@@ -251,6 +251,44 @@ export async function findSessionByCalendlyEventUri(
 }
 
 /**
+ * Get all sessions whose Session Date falls within [startISO, endISO] (inclusive).
+ * Used by the side-nav calendar to populate past + upcoming sessions across the
+ * V2 templates without needing one round-trip per day.
+ *
+ * Both dates are ISO strings (date-only or full ISO datetimes). The query is
+ * inclusive on both ends — pass the same value for a single day, or a wide
+ * range (e.g. -30d to +60d) to power calendar / list UIs.
+ */
+export async function getSessionsInRange(
+  startISO: string,
+  endISO: string,
+): Promise<SessionRecord[]> {
+  const client = getClient();
+  const filter: QueryDataSourceParameters["filter"] = {
+    and: [
+      { property: "Session Date", date: { on_or_after: startISO } },
+      { property: "Session Date", date: { on_or_before: endISO } },
+    ],
+  };
+  const pages: PageObjectResponse[] = [];
+  let cursor: string | undefined;
+  do {
+    const response = await client.dataSources.query({
+      data_source_id: config.notion.sessionsDbId,
+      filter,
+      sorts: [{ property: "Session Date", direction: "ascending" }],
+      start_cursor: cursor,
+      page_size: 100,
+    });
+    for (const page of response.results) {
+      if ("properties" in page) pages.push(page as PageObjectResponse);
+    }
+    cursor = response.has_more ? (response.next_cursor ?? undefined) : undefined;
+  } while (cursor);
+  return pages.map(parseSession);
+}
+
+/**
  * Get all sessions in a given state. Used by Review dashboard, send pipeline.
  */
 export async function getSessionsByState(
