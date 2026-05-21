@@ -50,6 +50,10 @@ export const config = {
 
   manychat: {
     apiKey: process.env.MANYCHAT_API_KEY ?? "",
+    /** Shared secret ManyChat sends (header `x-manychat-secret` or body.secret)
+     *  to authenticate calls to /api/manychat/frankie. If unset, the endpoint
+     *  allows all callers — set it in prod so randos can't burn Claude tokens. */
+    webhookSecret: process.env.MANYCHAT_WEBHOOK_SECRET ?? "",
   },
 
   fireflies: {
