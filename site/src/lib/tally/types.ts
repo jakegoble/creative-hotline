@@ -178,4 +178,6 @@ export interface ParsedIntake {
   platforms?: string[];
   /** Q7 "Drop your links." — Tally repeating URL field, joined as newline-separated string */
   brandLinks?: string;
+  /** Catch-all "Is there anything else we should know?" — TEXTAREA (added 2026-05-20 per Megha) */
+  anythingElse?: string;
 }

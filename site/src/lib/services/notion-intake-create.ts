@@ -204,6 +204,8 @@ export async function createIntakeFromTally(
   if (intake.targetAudience)
     properties["Target Audience"] = richText(intake.targetAudience);
   if (intake.brandLinks) properties["Brand Links"] = richText(intake.brandLinks);
+  if (intake.anythingElse)
+    properties["Anything Else"] = richText(intake.anythingElse);
   if (intake.aiOverview)
     properties["AI Overview"] = richText(intake.aiOverview);
 

@@ -193,7 +193,10 @@ const FIELD_MAP: FieldDef[] = [
   { labels: ["How do you make money? (Select all that apply.)", "How do you make money?", "Revenue model"], key: "revenueModel", extract: extractSelectMany },
   { labels: ["Who are you trying to reach?", "Target audience"], key: "targetAudience", extract: extractString },
   { labels: ["Where do you live online? (Select all that apply.)", "Where do you live online?", "Platforms", "Current platforms"], key: "platforms", extract: extractSelectMany },
-  { labels: ["Drop your links.", "Drop your links", "Brand links"], key: "brandLinks", extract: extractString },
+  { labels: ["Drop your links.", "Drop your links", "Brand links", "Any other links we should check out?", "Any other links?", "Other links"], key: "brandLinks", extract: extractString },
+
+  // ---------- Catch-all + extra-links additions (2026-05-20 per Megha) ----------
+  { labels: ["Is there anything else we should know?", "Anything else we should know?", "Anything else", "Anything we missed?"], key: "anythingElse", extract: extractString },
 ];
 
 /**
