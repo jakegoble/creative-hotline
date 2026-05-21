@@ -312,6 +312,30 @@ export function routeKeyword(body: string): KeywordMatch {
 }
 
 /**
+ * Twilio Advanced Opt-Out (enabled on the Messaging Service 2026-05-20) OWNS
+ * these STOP/START/HELP-family keywords: Twilio sends the (Frankie-toned)
+ * compliance reply itself AND still forwards the inbound to this webhook. If we
+ * also reply, the user gets TWO messages. So the inbound route returns empty
+ * TwiML for these — Twilio's reply is the only one sent. The CRM opt-in/opt-out
+ * write still runs. Must mirror the keyword lists in Twilio Console → Opt-Out
+ * Management. NOTE: HOTLINE/JOIN/SUBSCRIBE are intentionally NOT here — Twilio
+ * doesn't intercept them, so the webhook's Frankie welcome is the only reply.
+ */
+const TWILIO_MANAGED_KEYWORDS = new Set<string>([
+  // opt-out
+  "STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT", "REVOKE", "OPTOUT",
+  // opt-in (Twilio's set — note HOTLINE is ours, handled by the webhook)
+  "START", "UNSTOP", "YES",
+  // help
+  "HELP",
+]);
+
+/** True if the FIRST token is a keyword Twilio's Opt-Out engine replies to. */
+export function isTwilioManagedKeyword(body: string): boolean {
+  return TWILIO_MANAGED_KEYWORDS.has(firstToken(body));
+}
+
+/**
  * Test helper: how many SMS segments a reply will use (160 chars per segment,
  * 153 for multi-segment due to UDH overhead). Used by the unit test to assert
  * no reply exceeds 2 segments.

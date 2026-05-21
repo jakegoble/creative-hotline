@@ -33,7 +33,12 @@
  */
 
 import { NextResponse } from "next/server";
-import { routeKeyword, type KeywordIntent, BOOKING_URL } from "@/lib/sms/keywords";
+import {
+  routeKeyword,
+  isTwilioManagedKeyword,
+  type KeywordIntent,
+  BOOKING_URL,
+} from "@/lib/sms/keywords";
 import { frankieSmsReply, type FrankieContext } from "@/lib/sms/frankie-ai";
 import { sendHumanHandoffAlert } from "@/lib/sms/handoff";
 import {
@@ -72,6 +77,18 @@ function twimlResponse(message: string, status = 200): Response {
     status,
     headers: { "Content-Type": "text/xml; charset=utf-8" },
   });
+}
+
+/**
+ * Empty TwiML — a valid 200 with NO <Message>, so Twilio sends nothing from the
+ * webhook. Used for STOP/START/HELP-family keywords, which Twilio's Advanced
+ * Opt-Out already replies to; replying here too would double-message the user.
+ */
+function emptyTwimlResponse(): Response {
+  return new NextResponse(
+    '<?xml version="1.0" encoding="UTF-8"?>\n<Response></Response>',
+    { status: 200, headers: { "Content-Type": "text/xml; charset=utf-8" } },
+  );
 }
 
 /**
@@ -257,6 +274,19 @@ export async function POST(request: Request): Promise<Response> {
     }
   } else {
     console.warn("[twilio/inbound] could not normalize From:", rawFrom);
+  }
+
+  // ---- Suppress reply for Twilio-managed compliance keywords ------------
+  // Advanced Opt-Out (enabled on the Messaging Service) already replies to
+  // STOP/START/HELP-family keywords AND forwards them here. Replying again
+  // double-messages the user (observed: HELP returned two bubbles). Stay silent
+  // for those exact keywords — the CRM opt-in/opt-out write above already ran.
+  if (isTwilioManagedKeyword(rawBody)) {
+    console.log(
+      "[twilio/inbound] reply suppressed — Twilio Opt-Out owns this keyword:",
+      match.keyword,
+    );
+    return emptyTwimlResponse();
   }
 
   // ---- Human handoff alert ----------------------------------------------
