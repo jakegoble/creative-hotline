@@ -745,8 +745,8 @@
         </div>
         <h3 id="move72Title">[The specific action — punchy, verb-led]</h3>
         <div class="why-now">
-          <strong>Why now:</strong> <span id="move72Why">[Tied to diagnosis — references what they said.]</span><br>
-          <strong>What changes:</strong> <span id="move72Change">[Observable outcome.]</span>
+          <strong>Why now:</strong> <span id="move72Why">[Tied to diagnosis — references what they said.]</span>
+          <span id="move72ChangeLine"><br><strong>What changes:</strong> <span id="move72Change">[Observable outcome.]</span></span>
         </div>
         <div class="paths">
           <div class="path diy">
@@ -767,8 +767,8 @@
         </div>
         <h3 id="move1wTitle">[The specific action]</h3>
         <div class="why-now">
-          <strong>Why now:</strong> <span id="move1wWhy">[Tied to diagnosis.]</span><br>
-          <strong>What changes:</strong> <span id="move1wChange">[Observable outcome.]</span>
+          <strong>Why now:</strong> <span id="move1wWhy">[Tied to diagnosis.]</span>
+          <span id="move1wChangeLine"><br><strong>What changes:</strong> <span id="move1wChange">[Observable outcome.]</span></span>
         </div>
         <div class="paths">
           <div class="path diy">
@@ -789,8 +789,8 @@
         </div>
         <h3 id="move1mTitle">[The specific action]</h3>
         <div class="why-now">
-          <strong>Why now:</strong> <span id="move1mWhy">[Tied to diagnosis.]</span><br>
-          <strong>What changes:</strong> <span id="move1mChange">[Observable outcome.]</span>
+          <strong>Why now:</strong> <span id="move1mWhy">[Tied to diagnosis.]</span>
+          <span id="move1mChangeLine"><br><strong>What changes:</strong> <span id="move1mChange">[Observable outcome.]</span></span>
         </div>
         <div class="paths">
           <div class="path diy">
@@ -874,7 +874,8 @@
     <div class="section-num-tag">10 / What Success Looks Like</div>
     <h2 class="section-title">Realistic <em>benchmarks</em>.</h2>
     <p class="section-sub">Not aspirational fluff. Things you can actually measure.</p>
-    <div class="bench-grid">
+    <p class="section-sub" id="successNarrative" style="display:none;"></p>
+    <div class="bench-grid" id="benchGrid">
       <div class="bench">
         <div class="day">7 Days</div>
         <div class="goal" id="bench7">[7-day goal]</div>
@@ -1085,34 +1086,36 @@
       // 07 Action Plan — three timed moves
       const ap = plan.actionPlan || {};
       const moveMap = {
-        win72hr:    { title: 'move72Title', why: 'move72Why', diy: 'move72DIY', up: 'move72LevelUp', change: 'move72Change' },
-        move1week:  { title: 'move1wTitle', why: 'move1wWhy', diy: 'move1wDIY', up: 'move1wLevelUp', change: 'move1wChange' },
-        build1month:{ title: 'move1mTitle', why: 'move1mWhy', diy: 'move1mDIY', up: 'move1mLevelUp', change: 'move1mChange' },
+        win72hr:    { title: 'move72Title', why: 'move72Why', diy: 'move72DIY', up: 'move72LevelUp', changeLine: 'move72ChangeLine' },
+        move1week:  { title: 'move1wTitle', why: 'move1wWhy', diy: 'move1wDIY', up: 'move1wLevelUp', changeLine: 'move1wChangeLine' },
+        build1month:{ title: 'move1mTitle', why: 'move1mWhy', diy: 'move1mDIY', up: 'move1mLevelUp', changeLine: 'move1mChangeLine' },
       };
       Object.keys(moveMap).forEach(k => {
         const mv = ap[k]; const m = moveMap[k];
+        // The schema has no separate "what changes" field, so the
+        // "What changes:" line never has data — hide the whole line
+        // (label + <br> + span) so it doesn't render empty/bracketed in
+        // the client deliverable, whether or not the move itself exists.
+        const chgLine = document.getElementById(m.changeLine);
+        if (chgLine) chgLine.style.display = 'none';
         if (!mv) return;
         setText(m.title, mv.title);
         // "detail" carries the rationale → Why now.
         setText(m.why, mv.detail);
         setText(m.diy, mv.pathA);
         setText(m.up, mv.pathB);
-        // The schema has no separate "what changes" field — clear that slot so
-        // the placeholder text doesn't ship in the client deliverable.
-        const chg = document.getElementById(m.change);
-        if (chg) chg.textContent = '';
       });
 
       // 08 Effort / Impact Map — place items into the four quadrants.
       // Quadrant → DOM container map (DIY / Level Up / B-Side / Not Now).
       const ei = Array.isArray(plan.effortImpact) ? plan.effortImpact : [];
+      const quadEls = {
+        high_impact_low_effort: document.querySelector('.ei-quad.do-now'),
+        high_impact_high_effort: document.querySelector('.ei-quad.level-up'),
+        low_impact_low_effort: document.querySelector('.ei-quad.quick'),
+        low_impact_high_effort: document.querySelector('.ei-quad.notnow'),
+      };
       if (ei.length) {
-        const quadEls = {
-          high_impact_low_effort: document.querySelector('.ei-quad.do-now'),
-          high_impact_high_effort: document.querySelector('.ei-quad.level-up'),
-          low_impact_low_effort: document.querySelector('.ei-quad.quick'),
-          low_impact_high_effort: document.querySelector('.ei-quad.notnow'),
-        };
         // Clear existing placeholder ei-items (keep the quad label).
         Object.values(quadEls).forEach(q => {
           if (!q) return;
@@ -1129,6 +1132,27 @@
           el.innerHTML = '<span class="ei-action">' + esc(item.title) + '</span>';
           q.appendChild(el);
         });
+      } else {
+        // No effort/impact data → the static bracketed placeholders would
+        // ship in the client deliverable. Wire the Not Now quadrant from
+        // plan.notDoing (the only real data we have for this map) and strip
+        // every other quadrant's placeholder ei-items.
+        const nd2 = Array.isArray(plan.notDoing) ? plan.notDoing.filter(Boolean) : [];
+        const notNow = quadEls.low_impact_high_effort;
+        if (notNow) {
+          notNow.querySelectorAll('.ei-item').forEach(n => n.remove());
+          nd2.forEach(t => {
+            const el = document.createElement('div');
+            el.className = 'ei-item notnow';
+            el.innerHTML = '<span class="ei-tag">⛔ Not Doing</span><span class="ei-action">' + esc(t) + '</span>';
+            notNow.appendChild(el);
+          });
+        }
+        // Strip bracketed placeholders from the remaining quadrants.
+        [quadEls.high_impact_low_effort, quadEls.high_impact_high_effort, quadEls.low_impact_low_effort].forEach(q => {
+          if (!q) return;
+          q.querySelectorAll('.ei-item').forEach(n => n.remove());
+        });
       }
 
       // 09 Tools → render one .tool per entry
@@ -1140,18 +1164,18 @@
         ).join('');
       }
 
-      // 10 What Success Looks Like — single string → lead the 30/60/90 grid.
-      // Schema has one blob, not 7/30/90 splits, so place it as a single
-      // narrative and hide the other two benchmark cards.
+      // 10 What Success Looks Like — schema has one combined blob, not
+      // 7/30/90 splits. Showing it under a "7 Days" label is misleading, so
+      // hide the whole benchmark grid and render the success text as a plain
+      // narrative paragraph under the section title instead.
       if (typeof plan.success === 'string' && plan.success.trim()) {
-        setText('bench7', plan.success.trim());
-        const k7 = document.getElementById('know7');
-        if (k7) k7.style.display = 'none';
-        ['bench30', 'bench90'].forEach(id => {
-          const el = document.getElementById(id);
-          const card = el && el.closest('.bench');
-          if (card) card.style.display = 'none';
-        });
+        const grid = document.getElementById('benchGrid');
+        if (grid) grid.style.display = 'none';
+        const narr = document.getElementById('successNarrative');
+        if (narr) {
+          narr.textContent = plan.success.trim();
+          narr.style.display = '';
+        }
       }
 
       // 11 Continue the Conversation — pitch line over the upsell cards.

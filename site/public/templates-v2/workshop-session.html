@@ -1108,10 +1108,10 @@
 
     <div class="intake">
       <div class="from-tag">↳ From your intake</div>
-      <div class="intake-row"><div class="k">What brought you here</div><div class="v" id="intakeBrought">[Auto-populated from Tally]</div></div>
-      <div class="intake-row"><div class="k">Biggest challenge</div><div class="v" id="intakeChallenge">[Auto-populated from Tally]</div></div>
-      <div class="intake-row"><div class="k">What success looks like</div><div class="v" id="intakeSuccess">[Auto-populated from Tally]</div></div>
-      <div class="intake-row"><div class="k">Type</div><div class="v" id="intakeType">[Auto: solo founder · maker · bootstrap]</div></div>
+      <div class="intake-row"><div class="k">What brought you here</div><div class="v" id="intakeBrought">—</div></div>
+      <div class="intake-row"><div class="k">Biggest challenge</div><div class="v" id="intakeChallenge">—</div></div>
+      <div class="intake-row"><div class="k">What success looks like</div><div class="v" id="intakeSuccess">—</div></div>
+      <div class="intake-row"><div class="k">Type</div><div class="v" id="intakeType">—</div></div>
     </div>
 
     <div class="question-card">
@@ -1131,18 +1131,18 @@
       <div class="finding megha">
         <div class="who">Megha · Brand & Positioning</div>
         <h4>What we <em>love</em></h4>
-        <p id="meghaLike">[Auto-populated from morning prep]</p>
+        <p id="meghaLike">—</p>
       </div>
       <div class="finding jake">
         <div class="who">Jake · Design & Systems</div>
         <h4>What we <em>love</em></h4>
-        <p id="jakeLike">[Auto-populated from morning prep]</p>
+        <p id="jakeLike">—</p>
       </div>
     </div>
 
     <div class="gap">
       <div class="label">↳ Where we think the gap is</div>
-      <p id="gapHypothesis">[Pre-filled gap hypothesis — sharp, one-sentence diagnosis]</p>
+      <p id="gapHypothesis">—</p>
     </div>
 
     <div class="pushback">"Before we go deeper — is this the <em>real</em> problem?"</div>
@@ -1197,7 +1197,7 @@
       </div>
       <div class="hunch">
         <div class="label">↳ Here's what we see</div>
-        <p id="hunch">[Pre-filled diagnosis sentence — sharp, one-sentence read]</p>
+        <p id="hunch">—</p>
       </div>
     </div>
 
@@ -1228,11 +1228,11 @@
       <div class="direction-grid">
         <div class="direction-card megha">
           <div class="who">Megha · Brand + Positioning</div>
-          <p id="meghaDirection">[Pre-filled from morning prep]</p>
+          <p id="meghaDirection">—</p>
         </div>
         <div class="direction-card jake">
           <div class="who">Jake · Design + Systems</div>
-          <p id="jakeDirection">[Pre-filled from morning prep]</p>
+          <p id="jakeDirection">—</p>
         </div>
       </div>
     </div>
@@ -1262,7 +1262,7 @@
         <span class="move-tag">72-Hour Win</span>
         <span class="move-time"><span class="time-pill">25:00–27:00 · 2 min</span></span>
       </div>
-      <input class="move-title-input" type="text" id="move72" placeholder="[Pre-filled — the specific action]" />
+      <input class="move-title-input" type="text" id="move72" placeholder="The specific action…" />
       <textarea class="move-why-input" id="move72Why" placeholder="Why this · tied to the diagnosis"></textarea>
     </div>
 
@@ -1272,7 +1272,7 @@
         <span class="move-tag">1-Week Move</span>
         <span class="move-time"><span class="time-pill">27:00–29:00 · 2 min</span></span>
       </div>
-      <input class="move-title-input" type="text" id="move1w" placeholder="[Pre-filled — the specific action]" />
+      <input class="move-title-input" type="text" id="move1w" placeholder="The specific action…" />
       <textarea class="move-why-input" id="move1wWhy" placeholder="Why this"></textarea>
     </div>
 
@@ -1282,7 +1282,7 @@
         <span class="move-tag">1-Month Build</span>
         <span class="move-time"><span class="time-pill">29:00–31:00 · 2 min</span></span>
       </div>
-      <input class="move-title-input" type="text" id="move1m" placeholder="[Pre-filled — the specific action]" />
+      <input class="move-title-input" type="text" id="move1m" placeholder="The specific action…" />
       <textarea class="move-why-input" id="move1mWhy" placeholder="Why this"></textarea>
     </div>
 
@@ -1293,8 +1293,7 @@
           <span class="mini-time">2 min</span>
         </div>
         <ul id="stopList">
-          <li contenteditable="true">[Pre-filled · specific stop]</li>
-          <li contenteditable="true">[Pre-filled · specific stop]</li>
+          <li contenteditable="true"></li>
         </ul>
         <button class="add-btn" onclick="addStopItem()">+ Add yours</button>
       </div>
@@ -1304,8 +1303,7 @@
           <span class="mini-time">1 min</span>
         </div>
         <ul id="leaveList">
-          <li contenteditable="true">[Pre-filled · strength to protect]</li>
-          <li contenteditable="true">[Pre-filled · strength to protect]</li>
+          <li contenteditable="true"></li>
         </ul>
         <button class="add-btn" onclick="addLeaveItem()">+ Add yours</button>
       </div>
@@ -1315,7 +1313,7 @@
           <span class="mini-time">1.5 min</span>
         </div>
         <ul id="missingList">
-          <li contenteditable="true">[Client adds here · what we missed]</li>
+          <li contenteditable="true"></li>
         </ul>
         <button class="add-btn" onclick="addMissingItem()">+ Add yours</button>
       </div>
@@ -1345,15 +1343,15 @@
             <div class="ei-sticky-row" id="quadDIY">
               <span class="ei-sticky diy" data-move="72hr" data-path="A" onclick="lockPath(this)">
                 <span class="sticky-tag">⚡ 72-Hour · DIY</span>
-                <span class="sticky-action" id="map-72-A">[The action you'd take yourself]</span>
+                <span class="sticky-action" id="map-72-A">Set during the session</span>
               </span>
               <span class="ei-sticky diy" data-move="1wk" data-path="A" onclick="lockPath(this)">
                 <span class="sticky-tag">📋 1-Week · DIY</span>
-                <span class="sticky-action" id="map-1w-A">[The action you'd take yourself]</span>
+                <span class="sticky-action" id="map-1w-A">Set during the session</span>
               </span>
               <span class="ei-sticky diy" data-move="1mo" data-path="A" onclick="lockPath(this)">
                 <span class="sticky-tag">📅 1-Month · DIY</span>
-                <span class="sticky-action" id="map-1m-A">[The action you'd take yourself]</span>
+                <span class="sticky-action" id="map-1m-A">Set during the session</span>
               </span>
               <span class="ei-sticky add-btn" onclick="addStickyTo('quadDIY','diy')">+ Add a move</span>
             </div>
@@ -1363,15 +1361,15 @@
             <div class="ei-sticky-row" id="quadLevelUp">
               <span class="ei-sticky levelup" data-move="72hr" data-path="B" onclick="lockPath(this)">
                 <span class="sticky-tag">⚡ 72-Hour · Level Up</span>
-                <span class="sticky-action" id="map-72-B">[The action with help / better tools]</span>
+                <span class="sticky-action" id="map-72-B">The version with help / better tools</span>
               </span>
               <span class="ei-sticky levelup" data-move="1wk" data-path="B" onclick="lockPath(this)">
                 <span class="sticky-tag">📋 1-Week · Level Up</span>
-                <span class="sticky-action" id="map-1w-B">[The action with help / better tools]</span>
+                <span class="sticky-action" id="map-1w-B">The version with help / better tools</span>
               </span>
               <span class="ei-sticky levelup" data-move="1mo" data-path="B" onclick="lockPath(this)">
                 <span class="sticky-tag">📅 1-Month · Level Up</span>
-                <span class="sticky-action" id="map-1m-B">[The action with help / better tools]</span>
+                <span class="sticky-action" id="map-1m-B">The version with help / better tools</span>
               </span>
               <span class="ei-sticky add-btn" onclick="addStickyTo('quadLevelUp','levelup')">+ Add a move</span>
             </div>
@@ -1387,7 +1385,7 @@
             <div class="ei-sticky-row" id="quadNotNow">
               <span class="ei-sticky notnow">
                 <span class="sticky-tag">⛔ Not Doing</span>
-                <span class="sticky-action">[From your stop list]</span>
+                <span class="sticky-action">Pulled from your stop list</span>
               </span>
               <span class="ei-sticky add-btn" onclick="addStickyTo('quadNotNow','notnow')">+ Add a move</span>
             </div>
@@ -1416,7 +1414,7 @@
     <div class="marker">⚡ 40:00–42:00 · Make The Call</div>
     <h3>Make the<br><em>call</em>.</h3>
     <p class="body">Before you hang up — you do one tiny thing on this call. Not the whole 72-hour win. Just the first crack of it. We watch you do it.</p>
-    <input class="move-input" type="text" placeholder="The micro-move..." />
+    <input class="move-input" type="text" id="firstMove" placeholder="The micro-move..." />
     <div class="examples"><strong>Example moves:</strong> Update IG bio to "Hand-thrown ceramics · made monthly in Austin" · Archive the line that doesn't fit · Draft the email subject line · DM the dream collaborator.</div>
     <div class="timer-row">
       <button class="start-60" onclick="start60()">▶ Start 60-Second Timer</button>
@@ -1676,12 +1674,108 @@
       });
     }
 
+    // ---- text helpers for seeding ---------------------------------------
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    // True when a value is empty or is a literal bracket placeholder like
+    // "[Pre-filled · …]" — those should be treated as "not yet filled".
+    function isPlaceholder(v) {
+      const t = (v == null ? '' : String(v)).trim();
+      return t === '' || t.startsWith('[');
+    }
+    const join = (arr) => Array.isArray(arr) ? arr.filter(Boolean).join(' · ') : '';
+    const firstClause = (s, n) => {
+      const t = (s || '').toString().trim();
+      if (!t) return '';
+      return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t;
+    };
+
     // Seed the workshop's "from morning prep" / Claude-read slots from the
     // Research Brief so the facilitator screen carries the pre-call read into
     // the live session. Graceful: leaves placeholders if the brief isn't Ready.
     function setSlot(id, val) {
       const el = document.getElementById(id);
       if (el && val) el.textContent = val;
+    }
+    // Set an <input> value only when it's currently empty (or bracket
+    // placeholder) — never clobbers a restored/typed value. Fires `input`
+    // so the autosave layer persists the seeded text.
+    function seedInputIfEmpty(id, val) {
+      const el = document.getElementById(id);
+      if (!el || !val) return;
+      if (!isPlaceholder(el.value)) return;
+      el.value = val;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    // Replace an editable <ul>'s items from a list, but ONLY when every
+    // current <li> is empty or a bracket placeholder (i.e., untouched and
+    // not restored). Keeps it contenteditable + triggers a save.
+    function seedListIfPlaceholder(id, items) {
+      const ul = document.getElementById(id);
+      if (!ul) return;
+      const clean = (items || []).filter(Boolean);
+      if (clean.length === 0) return;
+      const allPlaceholder = Array.from(ul.children).every(li => isPlaceholder(li.innerText));
+      if (ul.children.length && !allPlaceholder) return;
+      ul.innerHTML = clean
+        .map(t => `<li contenteditable="true">${escapeHtml(String(t))}</li>`)
+        .join('');
+      ul.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+
+    // Section 01 · YOUR STORY — read the intake straight back to the client.
+    // These <div> slots aren't editable, so a plain overwrite is correct.
+    function seedFromIntake(intake) {
+      if (!intake) return;
+      setSlot('intakeBrought', intake.creativeEmergency);
+      // "Biggest challenge" = the magic-wand "fix one thing" answer; fall back
+      // to what they've already tried if the wand answer is blank.
+      setSlot('intakeChallenge', intake.magicWand || intake.whatTried);
+      setSlot('intakeSuccess', intake.successDefinition);
+      // Derived one-liner: role · team size · price model.
+      const typeBits = [intake.role, intake.teamSize, intake.priceRange]
+        .map(x => (x || '').toString().trim()).filter(Boolean);
+      if (typeBits.length) setSlot('intakeType', typeBits.join(' · '));
+    }
+
+    // Restore a previously-saved workshop blob (server-side workshopJson, with
+    // a localStorage fallback) BEFORE any seeding runs, so M+J's live edits
+    // survive a reload and seeding only ever fills the still-empty slots.
+    function restoreWorkshopBlob(workshopJson) {
+      let blob = null;
+      if (typeof workshopJson === 'string' && workshopJson.trim()) {
+        try { blob = JSON.parse(workshopJson); } catch (e) { blob = null; }
+      }
+      if (!blob) {
+        try {
+          const raw = localStorage.getItem(`tch_session_v2_2:${sessionId}`);
+          if (raw) blob = JSON.parse(raw);
+        } catch (e) { blob = null; }
+      }
+      if (!blob || typeof blob !== 'object') return;
+      const fields = blob.fields || blob; // localStorage shape is flat {id:val}
+      Object.keys(fields).forEach(id => {
+        if (id === 'secs') return;
+        const el = document.getElementById(id);
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+          const v = fields[id];
+          // Skip restoring values that are themselves bracket placeholders.
+          if (typeof v === 'string' && !isPlaceholder(v)) el.value = v;
+        }
+      });
+      const lists = blob.lists || {};
+      Object.keys(lists).forEach(id => {
+        const ul = document.getElementById(id);
+        const items = (lists[id] || []).filter(t => !isPlaceholder(t));
+        if (ul && items.length) {
+          ul.innerHTML = items
+            .map(t => `<li contenteditable="true">${escapeHtml(String(t))}</li>`)
+            .join('');
+        }
+      });
     }
     async function seedFromBrief(intakeId) {
       if (!intakeId) return;
@@ -1695,7 +1789,6 @@
         if (!brief || typeof brief !== 'object') return;
 
         const unlock = brief.unlock || {};
-        const join = (arr) => Array.isArray(arr) ? arr.filter(Boolean).join(' · ') : '';
 
         // 02 Dialing In — "What we love" reads + the gap hypothesis.
         setSlot('meghaLike', join(brief.brandPositioning));
@@ -1713,9 +1806,60 @@
           jakeDir = (jakeDir ? jakeDir + ' · ' : '') + notDo.map(t => `⛔ Don't: ${t}`).join(' · ');
         }
         setSlot('jakeDirection', jakeDir);
+
+        // ---- 05 THE PLAY · proposed moves (only fill if untouched) --------
+        const dist = Array.isArray(brief.distributionSystems) ? brief.distributionSystems.filter(Boolean) : [];
+        const aud = Array.isArray(brief.audience) ? brief.audience.filter(Boolean) : [];
+        const pos = Array.isArray(brief.brandPositioning) ? brief.brandPositioning.filter(Boolean) : [];
+        // Concise, action-shaped proposals derived from the brief. These are
+        // facilitator starting points — M+J pressure-test + edit them live.
+        const move72Action = firstClause(unlock.testQuestion || aud[0] || pos[0], 90);
+        const move1wAction  = firstClause(dist[0] || aud[1] || aud[0], 90);
+        const move1mAction  = firstClause(unlock.hypothesis || dist[1] || dist[0], 90);
+        seedInputIfEmpty('move72', move72Action);
+        seedInputIfEmpty('move1w', move1wAction);
+        seedInputIfEmpty('move1m', move1mAction);
+
+        // NOT DOING ← thingsToNotDo · LEAVE ALONE ← strengths worth protecting
+        // (brandPositioning reads) · WHAT'S MISSING ← open questions.
+        seedListIfPlaceholder('stopList', notDo);
+        seedListIfPlaceholder('leaveList', pos);
+        seedListIfPlaceholder('missingList', brief.openQuestions);
+
+        // ---- 06 THE MAP · DIY (A) / Level-Up (B) / Not Now ----------------
+        // The map mirrors the Section-05 moves: Path A = the move as a
+        // self-serve action, Path B = the same move with help / better tools.
+        // syncMapFromMoves() (called after all seeding) copies the live move
+        // inputs into the grid, so brief-seeded OR hand-typed moves both show.
+        // Not Now ← first "don't" guardrail from the stop list. Display-only
+        // sticky (no user input to clobber), so fill it whenever we have data.
+        if (notDo.length) {
+          const ns = document.querySelector('#quadNotNow .ei-sticky.notnow .sticky-action');
+          if (ns) ns.textContent = notDo[0];
+        }
+        syncMapFromMoves();
       } catch (err) {
         console.warn('[workshop brief seed]', err);
       }
+    }
+
+    // Mirror the Section-05 move inputs into the Section-06 map stickies.
+    // Path A shows the action verbatim; Path B frames it as "With help: …".
+    // Falls back to clean prompt text (never a bracket) when a move is blank.
+    function syncMapFromMoves() {
+      const moves = [
+        { input: 'move72', a: 'map-72-A', b: 'map-72-B' },
+        { input: 'move1w', a: 'map-1w-A', b: 'map-1w-B' },
+        { input: 'move1m', a: 'map-1m-A', b: 'map-1m-B' },
+      ];
+      moves.forEach(m => {
+        const src = document.getElementById(m.input);
+        const val = src && !isPlaceholder(src.value) ? src.value.trim() : '';
+        const aEl = document.getElementById(m.a);
+        const bEl = document.getElementById(m.b);
+        if (aEl) aEl.textContent = val || 'Set during the session';
+        if (bEl) bEl.textContent = val ? `With help: ${val}` : 'The version with help / better tools';
+      });
     }
 
     async function loadSessionContext() {
@@ -1740,8 +1884,15 @@
             setRow('Time', `${time}${rel}`);
           } catch(e) {}
         }
-        // Seed the Claude-read / morning-prep slots from the research brief
-        // on the linked intake. Fire-and-forget; never blocks the header.
+        // 1) Restore any previously-saved workshop blob FIRST so M+J's live
+        //    edits survive a reload. 2) Then read the intake into Section 01.
+        //    3) Then seed the brief-derived slots — all guarded to only fill
+        //    fields still empty/placeholder, so nothing above gets clobbered.
+        restoreWorkshopBlob(s.workshopJson);
+        seedFromIntake(intake);
+        // Mirror moves into the map now (covers restored/typed moves and the
+        // brief-not-ready case), then let the async brief seed re-sync.
+        syncMapFromMoves();
         if (intake.id) seedFromBrief(intake.id);
         setStatus('loaded · saved locally', 'idle');
       } catch (err) {
@@ -1751,6 +1902,12 @@
     }
 
     loadSessionContext();
+
+    // Keep the Section-06 map in sync as M+J edit the Section-05 moves live.
+    ['move72', 'move1w', 'move1m'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.addEventListener('input', syncMapFromMoves);
+    });
   })();
 </script>
 <script>

@@ -202,10 +202,10 @@
 </header>
 
 <div class="meta-bar">
-  <div><div class="k">Client</div><div class="v" id="clientName">[Client Name]</div></div>
-  <div><div class="k">Brand</div><div class="v" id="businessName">[Business Name]</div></div>
-  <div><div class="k">Session</div><div class="v" id="sessionDate">[Date · 9:30 AM]</div></div>
-  <div><div class="k">Started</div><div class="v" id="startTime">[Auto on disconnect]</div></div>
+  <div><div class="k">Client</div><div class="v" id="clientName">—</div></div>
+  <div><div class="k">Brand</div><div class="v" id="businessName">—</div></div>
+  <div><div class="k">Session</div><div class="v" id="sessionDate">—</div></div>
+  <div><div class="k">Started</div><div class="v" id="startTime">—</div></div>
 </div>
 
 <main>
@@ -218,8 +218,8 @@
       <div class="autopop-item"><div class="k">Authority Score</div><div class="v" id="authScore">— / 20</div></div>
       <div class="autopop-item"><div class="k">Recalibration</div><div class="v" id="recalRes">— · captured live</div></div>
       <div class="autopop-item"><div class="k">Somatic Pulse</div><div class="v" id="somaticRes">— · captured live</div></div>
-      <div class="autopop-item"><div class="k">North Star</div><div class="v" id="northStarPreview">[Verbatim from client]</div></div>
-      <div class="autopop-item"><div class="k">First Move</div><div class="v" id="firstMovePreview">[The micro-move + did they do it]</div></div>
+      <div class="autopop-item"><div class="k">North Star</div><div class="v" id="northStarPreview">— captured live</div></div>
+      <div class="autopop-item"><div class="k">First Move</div><div class="v" id="firstMovePreview">— captured live</div></div>
       <div class="autopop-item"><div class="k">B-Side Items</div><div class="v" id="bSideCount">— captured</div></div>
     </div>
   </div>
@@ -536,12 +536,28 @@
         if (startEl) startEl.textContent = new Date().toLocaleTimeString();
 
         // Pull workshop blob → autopop grid (Authority Score, B-side count, etc.)
-        const ws = s.workshop || s.workshopBlob || null;
+        // The API returns workshopJson as a STRING — parse it. (Older code read
+        // s.workshop / s.workshopBlob, which the endpoint never returns, so the
+        // grid silently never populated.)
+        let ws = null;
+        if (typeof s.workshopJson === 'string' && s.workshopJson.trim()) {
+          try { ws = JSON.parse(s.workshopJson); } catch (e) { ws = null; }
+        } else if (s.workshop || s.workshopBlob) {
+          ws = s.workshop || s.workshopBlob;
+        }
         if (ws) {
           const fields = ws.fields || {};
           if (fields.northStar) {
             const el = document.getElementById('northStarPreview');
             if (el) el.textContent = `"${fields.northStar}"`;
+          }
+          // First Move — the micro-move the client took on the call. No
+          // separate "did they do it" capture exists, so show the move text
+          // alone. Hide the bracket placeholder when there's nothing yet.
+          const fmEl = document.getElementById('firstMovePreview');
+          if (fmEl) {
+            const fm = (fields.firstMove || '').trim();
+            fmEl.textContent = fm ? `"${fm}"` : '— not captured';
           }
           if (Array.isArray(ws.pillars)) {
             const total = ws.pillars.reduce((s, p) => s + (Number(p.score) || 0), 0);
