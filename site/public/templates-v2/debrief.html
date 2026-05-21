@@ -500,7 +500,7 @@
         const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-debrief`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ debrief: snapshot }),
+          body: JSON.stringify({ debriefJson: JSON.stringify(snapshot) }),
           signal: inflight.signal,
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);

@@ -131,6 +131,10 @@ interface GenerateInput {
   debriefJson: string;
   /** Plain-text Fireflies transcript. May be empty if not available. */
   transcript: string;
+  /** Research Brief JSON (Claude's pre-call read) from the linked Intake.
+   *  Optional — empty string when no brief is on file. Grounds the plan in
+   *  the voice / audience / authority-baseline / Unlock established pre-call. */
+  researchBriefJson?: string;
 }
 
 interface MessagesResponse {
@@ -150,6 +154,10 @@ function buildPrompt(input: GenerateInput): { system: string; user: string } {
   const transcriptBlock = input.transcript
     ? `CALL TRANSCRIPT (Fireflies, plain text — use this to ground specifics):\n${input.transcript.slice(0, 60000)}`
     : "CALL TRANSCRIPT: (no transcript linked — work from the workshop + debrief)";
+
+  const researchBriefBlock = input.researchBriefJson
+    ? `RESEARCH BRIEF JSON (Claude's pre-call read — voice, audience, authority pillar baselines, the Unlock, things-to-not-do):\n${input.researchBriefJson}`
+    : "";
 
   const system = `You are Frankie, the AI strategist for The Creative Hotline.
 
@@ -180,7 +188,7 @@ Rules:
 - Output ONLY valid JSON. No markdown, no commentary, no code fences.`;
 
   const user = `Generate the Creative Hotline Action Plan (11 sections) for ${input.clientName}.
-
+${researchBriefBlock ? `\n${researchBriefBlock}\n` : ""}
 ${workshopBlock}
 
 ${debriefBlock}

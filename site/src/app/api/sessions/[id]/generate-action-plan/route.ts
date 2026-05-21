@@ -25,6 +25,9 @@
  */
 
 import { NextResponse } from "next/server";
+import { Client as NotionClient } from "@notionhq/client";
+import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
+import { config } from "@/lib/config";
 import { getSessionById } from "@/lib/services/notion-sessions-read";
 import {
   updateSessionFields,
@@ -32,6 +35,28 @@ import {
 } from "@/lib/services/notion-sessions-write";
 import { generateActionPlanV2 } from "@/lib/services/action-plan";
 import { fetchTranscriptText } from "@/lib/services/fireflies";
+
+/**
+ * Fetch the persisted Research Brief JSON from the linked Intake page. Mirrors
+ * how /api/research-brief/get reads it: retrieve the page, read the "Research
+ * Brief JSON" rich_text property. Returns "" when there's no intake linked or
+ * the brief isn't on file — the action plan generator treats it as optional.
+ */
+async function fetchResearchBriefJson(intakeId: string | undefined): Promise<string> {
+  if (!intakeId) return "";
+  try {
+    const notion = new NotionClient({ auth: config.notion.apiKey });
+    const page = (await notion.pages.retrieve({
+      page_id: intakeId,
+    })) as PageObjectResponse;
+    const v = page.properties["Research Brief JSON"];
+    return v?.type === "rich_text"
+      ? v.rich_text.map((t) => t.plain_text).join("")
+      : "";
+  } catch {
+    return "";
+  }
+}
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -96,6 +121,13 @@ export async function POST(
     }
   }
 
+  // Optional: pull the Research Brief JSON off the first linked Intake so the
+  // action plan is grounded in Claude's pre-call read (voice, audience,
+  // authority baselines, the Unlock, things-to-not-do).
+  const researchBriefJson = await fetchResearchBriefJson(
+    session.linkedIntakeIds[0],
+  );
+
   // Generate the plan.
   let plan;
   try {
@@ -104,6 +136,7 @@ export async function POST(
       workshopJson: session.workshopJson || "",
       debriefJson: session.debriefJson || "",
       transcript,
+      researchBriefJson,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "generation_failed";

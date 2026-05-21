@@ -1645,7 +1645,7 @@
         const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-workshop`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ workshop: blob }),
+          body: JSON.stringify({ workshopJson: JSON.stringify(blob) }),
           signal: inflight.signal,
         });
         if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1676,6 +1676,48 @@
       });
     }
 
+    // Seed the workshop's "from morning prep" / Claude-read slots from the
+    // Research Brief so the facilitator screen carries the pre-call read into
+    // the live session. Graceful: leaves placeholders if the brief isn't Ready.
+    function setSlot(id, val) {
+      const el = document.getElementById(id);
+      if (el && val) el.textContent = val;
+    }
+    async function seedFromBrief(intakeId) {
+      if (!intakeId) return;
+      try {
+        const res = await fetch(`/api/research-brief/get?intakeId=${encodeURIComponent(intakeId)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status !== 'Ready' || !data.json) return;
+        let brief = null;
+        try { brief = JSON.parse(data.json); } catch (e) { return; }
+        if (!brief || typeof brief !== 'object') return;
+
+        const unlock = brief.unlock || {};
+        const join = (arr) => Array.isArray(arr) ? arr.filter(Boolean).join(' · ') : '';
+
+        // 02 Dialing In — "What we love" reads + the gap hypothesis.
+        setSlot('meghaLike', join(brief.brandPositioning));
+        setSlot('jakeLike', join(brief.distributionSystems));
+        // The Unlock hypothesis is the sharp one-sentence gap diagnosis.
+        setSlot('gapHypothesis', unlock.hypothesis);
+
+        // 04 What We See — pre-filled diagnosis + directions to push on.
+        setSlot('hunch', unlock.hypothesis || unlock.testQuestion);
+        // Megha pushes on positioning/audience; Jake on distribution/systems.
+        setSlot('meghaDirection', join(brief.audience) || join(brief.brandPositioning));
+        let jakeDir = join(brief.distributionSystems);
+        const notDo = Array.isArray(brief.thingsToNotDo) ? brief.thingsToNotDo.filter(Boolean) : [];
+        if (notDo.length) {
+          jakeDir = (jakeDir ? jakeDir + ' · ' : '') + notDo.map(t => `⛔ Don't: ${t}`).join(' · ');
+        }
+        setSlot('jakeDirection', jakeDir);
+      } catch (err) {
+        console.warn('[workshop brief seed]', err);
+      }
+    }
+
     async function loadSessionContext() {
       try {
         const res = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}`);
@@ -1698,6 +1740,9 @@
             setRow('Time', `${time}${rel}`);
           } catch(e) {}
         }
+        // Seed the Claude-read / morning-prep slots from the research brief
+        // on the linked intake. Fire-and-forget; never blocks the header.
+        if (intake.id) seedFromBrief(intake.id);
         setStatus('loaded · saved locally', 'idle');
       } catch (err) {
         console.warn('[workshop load]', err);

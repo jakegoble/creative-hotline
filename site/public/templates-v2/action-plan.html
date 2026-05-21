@@ -1001,6 +1001,165 @@
       const el = document.getElementById(id);
       if (el && val) el.textContent = val;
     };
+    const esc = (s) => String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+    // ---------- render the generated Action Plan (ActionPlanV2) ----------
+    // The plan JSON is the source of truth (Section 1–11). Every section that
+    // has a slot here is populated; missing fields leave the template
+    // placeholder in place (or hide their card).
+    function renderActionPlan(planJson) {
+      if (!planJson) return;
+      let plan;
+      try { plan = JSON.parse(planJson); } catch (e) { return; }
+      if (!plan || typeof plan !== 'object') return;
+
+      // 01 North Star
+      setText('northStar', plan.northStar);
+
+      // 02 What We Learned — single string → lead paragraph. Clear the
+      // pullquote + second paragraph placeholders since we only have one blob.
+      if (typeof plan.whatWeLearned === 'string' && plan.whatWeLearned.trim()) {
+        setText('diagnosisPara1', plan.whatWeLearned.trim());
+        const pull = document.getElementById('diagnosisPullquote');
+        if (pull) pull.style.display = 'none';
+        const p2 = document.getElementById('diagnosisPara2');
+        if (p2) p2.style.display = 'none';
+      }
+
+      // 03 Creative Authority Read
+      const ar = plan.authorityRead || {};
+      const pillarMap = {
+        Positioning: { score: 'scorePos', bar: 'barPos', read: 'readPos' },
+        Messaging:   { score: 'scoreMsg', bar: 'barMsg', read: 'readMsg' },
+        Execution:   { score: 'scoreExec', bar: 'barExec', read: 'readExec' },
+        Distribution:{ score: 'scoreDist', bar: 'barDist', read: 'readDist' },
+      };
+      let total = 0, counted = 0;
+      (Array.isArray(ar.pillars) ? ar.pillars : []).forEach(p => {
+        const m = p && pillarMap[p.pillar];
+        if (!m) return;
+        const score = Number(p.score);
+        if (Number.isFinite(score)) {
+          setText(m.score, score + ' / 5');
+          const bar = document.getElementById(m.bar);
+          if (bar) bar.style.width = Math.max(0, Math.min(100, (score / 5) * 100)) + '%';
+          total += score; counted += 1;
+        }
+        if (p.read) setText(m.read, p.read);
+      });
+      if (counted) setText('totalScore', total + ' / 20');
+
+      // 04 What We Love → render one .love-item per entry
+      const love = Array.isArray(plan.whatWeLove) ? plan.whatWeLove.filter(Boolean) : [];
+      const loveGrid = document.querySelector('.love-grid');
+      if (loveGrid && love.length) {
+        loveGrid.innerHTML = love.map(t =>
+          '<div class="love-item"><span class="star">✦</span><p>' + esc(t) + '</p></div>'
+        ).join('');
+      }
+
+      // 05 Things You Said That Matter → quote blocks (schema has no "why")
+      const said = Array.isArray(plan.thingsYouSaid) ? plan.thingsYouSaid.filter(Boolean) : [];
+      const quotesWrap = document.querySelector('.quotes');
+      if (quotesWrap && said.length) {
+        quotesWrap.innerHTML = said.map(q =>
+          '<div class="quote-block"><div class="q">' + esc(q) + '</div></div>'
+        ).join('');
+      }
+
+      // 06 What We're Not Doing → single notDoing list. The template splits
+      // Stop / Not Yet; we only have one list, so fill Stop and hide Not Yet.
+      const nd = Array.isArray(plan.notDoing) ? plan.notDoing.filter(Boolean) : [];
+      if (nd.length) {
+        const stop = document.getElementById('stopList');
+        if (stop) stop.innerHTML = nd.map(t => '<li>' + esc(t) + '</li>').join('');
+        const notYet = document.getElementById('notYetList');
+        if (notYet) {
+          const col = notYet.closest('.nd-col');
+          if (col) col.style.display = 'none';
+        }
+      }
+
+      // 07 Action Plan — three timed moves
+      const ap = plan.actionPlan || {};
+      const moveMap = {
+        win72hr:    { title: 'move72Title', why: 'move72Why', diy: 'move72DIY', up: 'move72LevelUp', change: 'move72Change' },
+        move1week:  { title: 'move1wTitle', why: 'move1wWhy', diy: 'move1wDIY', up: 'move1wLevelUp', change: 'move1wChange' },
+        build1month:{ title: 'move1mTitle', why: 'move1mWhy', diy: 'move1mDIY', up: 'move1mLevelUp', change: 'move1mChange' },
+      };
+      Object.keys(moveMap).forEach(k => {
+        const mv = ap[k]; const m = moveMap[k];
+        if (!mv) return;
+        setText(m.title, mv.title);
+        // "detail" carries the rationale → Why now.
+        setText(m.why, mv.detail);
+        setText(m.diy, mv.pathA);
+        setText(m.up, mv.pathB);
+        // The schema has no separate "what changes" field — clear that slot so
+        // the placeholder text doesn't ship in the client deliverable.
+        const chg = document.getElementById(m.change);
+        if (chg) chg.textContent = '';
+      });
+
+      // 08 Effort / Impact Map — place items into the four quadrants.
+      // Quadrant → DOM container map (DIY / Level Up / B-Side / Not Now).
+      const ei = Array.isArray(plan.effortImpact) ? plan.effortImpact : [];
+      if (ei.length) {
+        const quadEls = {
+          high_impact_low_effort: document.querySelector('.ei-quad.do-now'),
+          high_impact_high_effort: document.querySelector('.ei-quad.level-up'),
+          low_impact_low_effort: document.querySelector('.ei-quad.quick'),
+          low_impact_high_effort: document.querySelector('.ei-quad.notnow'),
+        };
+        // Clear existing placeholder ei-items (keep the quad label).
+        Object.values(quadEls).forEach(q => {
+          if (!q) return;
+          q.querySelectorAll('.ei-item').forEach(n => n.remove());
+        });
+        ei.forEach(item => {
+          const q = quadEls[item.quadrant];
+          if (!q) return;
+          const isDiy = item.quadrant === 'high_impact_low_effort';
+          const isUp = item.quadrant === 'high_impact_high_effort';
+          const cls = 'ei-item' + (isDiy ? ' diy' : isUp ? ' levelup' : '');
+          const el = document.createElement('div');
+          el.className = cls;
+          el.innerHTML = '<span class="ei-action">' + esc(item.title) + '</span>';
+          q.appendChild(el);
+        });
+      }
+
+      // 09 Tools → render one .tool per entry
+      const tools = Array.isArray(plan.tools) ? plan.tools.filter(Boolean) : [];
+      const toolsGrid = document.querySelector('.tools-grid');
+      if (toolsGrid && tools.length) {
+        toolsGrid.innerHTML = tools.map(t =>
+          '<div class="tool"><div class="tool-icon">🔧</div><div><div class="desc">' + esc(t) + '</div></div></div>'
+        ).join('');
+      }
+
+      // 10 What Success Looks Like — single string → lead the 30/60/90 grid.
+      // Schema has one blob, not 7/30/90 splits, so place it as a single
+      // narrative and hide the other two benchmark cards.
+      if (typeof plan.success === 'string' && plan.success.trim()) {
+        setText('bench7', plan.success.trim());
+        const k7 = document.getElementById('know7');
+        if (k7) k7.style.display = 'none';
+        ['bench30', 'bench90'].forEach(id => {
+          const el = document.getElementById(id);
+          const card = el && el.closest('.bench');
+          if (card) card.style.display = 'none';
+        });
+      }
+
+      // 11 Continue the Conversation — pitch line over the upsell cards.
+      if (typeof plan.continueConversation === 'string' && plan.continueConversation.trim()) {
+        const sub = document.querySelector('section.section:last-of-type .section-sub');
+        if (sub) sub.textContent = plan.continueConversation.trim();
+      }
+    }
     const setStatus = (text, kind) => {
       const el = document.getElementById('editorStatus');
       if (!el) return;
@@ -1079,6 +1238,14 @@
             const wrap = transcriptEl.closest('p, div');
             if (wrap) wrap.style.display = 'none';
           }
+        }
+        // Render the generated plan body from actionPlanJson (the source of
+        // truth for Sections 1–11). Wrapped so a malformed plan never blocks
+        // the cover/CTA wiring above.
+        try {
+          renderActionPlan(s.actionPlanJson);
+        } catch (e) {
+          console.warn('[action-plan render]', e);
         }
         setStatus('loaded', 'idle');
       })
