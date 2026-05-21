@@ -183,18 +183,39 @@ export async function sendEmail(input: SendInput): Promise<SendResult> {
 }
 
 /**
- * Health check — verify SendGrid is reachable + key valid.
+ * Health check — verify SendGrid can actually SEND, without delivering mail.
  * Used by the existing /api/health endpoint pattern.
+ *
+ * We validate via SendGrid SANDBOX MODE: a POST to /v3/mail/send with
+ * `mail_settings.sandbox_mode.enable = true` runs SendGrid's full validation
+ * (auth + verified sender + payload) and returns 2xx WITHOUT sending anything.
+ *
+ * Why not the old GET /v3/senders probe: a restricted "Mail Send"-scoped API
+ * key (the recommended least-privilege key for transactional sending) gets a
+ * 403 on /v3/senders even though it sends mail perfectly. That produced a
+ * FALSE "down" on the health dashboard while real handoff/confirmation emails
+ * delivered fine. The sandbox send is scope-accurate — it answers the only
+ * question that matters: "can this key send right now?".
  */
 export async function ping(): Promise<{ ok: boolean; latency: number }> {
   const start = Date.now();
   const apiKey = getSendGridKey();
   if (!apiKey) return { ok: false, latency: 0 };
   try {
-    // SendGrid doesn't have a dedicated ping endpoint; we check the key by
-    // hitting the senders list endpoint (cheap, no side effects).
-    const res = await fetch("https://api.sendgrid.com/v3/senders", {
-      headers: { Authorization: `Bearer ${apiKey}` },
+    const res = await fetch("https://api.sendgrid.com/v3/mail/send", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: SENDER.email }] }],
+        from: { email: SENDER.email, name: SENDER.name },
+        subject: "healthcheck",
+        content: [{ type: "text/plain", value: "ping" }],
+        // Validate only — SendGrid does NOT deliver when sandbox mode is on.
+        mail_settings: { sandbox_mode: { enable: true } },
+      }),
     });
     return { ok: res.ok, latency: Date.now() - start };
   } catch {
