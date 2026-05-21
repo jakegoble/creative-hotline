@@ -26,49 +26,34 @@ import type { IntakeRecord } from "./notion";
 // ---------------------------------------------------------------------------
 
 export interface ResearchBrief {
-  /** 0-100 — overall content health score with breakdown. */
-  contentHealth: {
-    score: number;
-    breakdown: {
-      consistency: number; // 0-25
-      clarity: number; // 0-25
-      audienceFit: number; // 0-25
-      momentum: number; // 0-25
-    };
-    rationale: string; // 1-2 sentences
+  /** One-line orienting summary of who this client is. 1 sentence. */
+  clientSnapshot: string;
+  /** Morning Prep Section 01 (Brand & Positioning, M lead). Claude's read on
+   *  voice, visual identity, and brand-promise gaps. 3-5 short bullets. */
+  brandPositioning: string[];
+  /** Morning Prep Section 02 (Distribution & Systems, J lead). SEO /
+   *  conversion-path / owned-audience reads + the core systems gap. 3-5 bullets. */
+  distributionSystems: string[];
+  /** Morning Prep Section 03 (Audience, shared). Who they actually reach vs.
+   *  who they want + reference brands worth naming. 3-5 short bullets. */
+  audience: string[];
+  /** Morning Prep Section 04 (Creative Authority Audit). Claude's baseline
+   *  score (1-5, integer) + one-line read for each of the four pillars. */
+  authorityBaseline: {
+    positioning: { score: number; note: string };
+    messaging: { score: number; note: string };
+    execution: { score: number; note: string };
+    distribution: { score: number; note: string };
   };
-  /** Brand voice — adjectives + 1-sentence read of the current voice. */
-  voice: {
-    descriptors: string[]; // 3-5 single-word adjectives
-    currentRead: string; // 2-3 sentences
-    aspirational: string; // what the voice WANTS to be — 1-2 sentences
-  };
-  /** Visual identity — current state read. */
-  visualIdentity: {
-    descriptors: string[];
-    consistency: "high" | "medium" | "low" | "absent";
-    notes: string; // 1-2 sentences
-  };
-  /** Audience read — who they're actually reaching vs who they want. */
-  audience: {
-    actualRead: string; // 1-2 sentences — who's engaging
-    targetMatch: "strong" | "partial" | "weak" | "unknown"; // vs intake target_audience
-    gapNotes: string; // 1-2 sentences
-  };
-  /** Top posts / content callouts (best-guess based on intake links). */
-  topContentSignals: string[]; // 3-5 short bullets
-  /** Where their content is missing. */
-  contentGaps: string[]; // 3-5 short bullets
-  /** Story hooks — angles M+J should explore on the call. */
-  storyHooks: string[]; // 3-5 hooks, each 1 sentence
-  /** "The Unlock" — single biggest hypothesis for what would change everything. */
+  /** "The Unlock" — the single biggest hypothesis + the question that tests it. */
   unlock: {
-    hypothesis: string; // 2-3 sentences
-    confidence: "high" | "medium" | "low";
-    testable: boolean; // can be validated within 7 days?
+    hypothesis: string; // 2-3 sentences — the one thread to pull on the call
+    testQuestion: string; // 1 sentence M+J can literally ask
   };
-  /** Raw notes Claude wants to flag for M+J prep — anything not in structured fields. */
-  facilitatorNotes: string; // 2-4 sentences
+  /** Hard "do not" guardrails for the session. 2-4 short bullets. */
+  thingsToNotDo: string[];
+  /** Key unknowns M+J should resolve live. 2-4 short bullets. */
+  openQuestions: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -78,11 +63,32 @@ export interface ResearchBrief {
 function buildSystemPrompt(): string {
   return `You are the strategic research engine for The Creative Hotline, a high-ticket creative consultancy ($499–$1,500/session) co-run by Megha Kraft and Jake Goble. You produce 5-minute pre-call research briefs that give Megha and Jake everything they need to walk into a 45-minute workshop session knowing the client's situation cold.
 
-Your output is a structured JSON Research Brief. Be specific, not generic. Brutal honesty is the brand — soft praise is worse than useful critique. If the intake is thin, say so in the field; do NOT invent data you don't have.
+Be specific, not generic. Brutal honesty is the brand — soft praise is worse than useful critique. If the intake is thin, say so in the field; do NOT invent data you don't have (e.g., if you can't see their feed, say the audit needs a live check rather than guessing a visual-identity verdict).
 
 Voice: Frankie-adjacent — warm, sharp, decisive, zero buzzwords. Talk like someone who has seen 200 creative founders, not like a marketing textbook.
 
-Return ONLY valid JSON matching the schema. No prose preamble, no markdown fences, no trailing commas.`;
+Return ONLY valid JSON matching EXACTLY this schema (no prose preamble, no markdown fences, no extra keys, no trailing commas):
+
+{
+  "clientSnapshot": "one sentence on who this client is",
+  "brandPositioning": ["3-5 bullets: Claude's read on their voice, visual identity, and brand-promise gaps"],
+  "distributionSystems": ["3-5 bullets: distribution / SEO / conversion-path / owned-audience reads + the core systems gap"],
+  "audience": ["3-5 bullets: who they actually reach vs who they want + reference brands worth naming"],
+  "authorityBaseline": {
+    "positioning": { "score": 3, "note": "one-line read; score is an integer 1-5" },
+    "messaging": { "score": 3, "note": "one-line read; integer 1-5" },
+    "execution": { "score": 3, "note": "one-line read; integer 1-5" },
+    "distribution": { "score": 3, "note": "one-line read; integer 1-5" }
+  },
+  "unlock": {
+    "hypothesis": "2-3 sentences — the single biggest thread to pull on the call",
+    "testQuestion": "one sentence M+J can literally ask to test the hypothesis"
+  },
+  "thingsToNotDo": ["2-4 bullets: hard 'do not' guardrails for this session"],
+  "openQuestions": ["2-4 bullets: key unknowns M+J should resolve live"]
+}
+
+Every authorityBaseline score MUST be an integer from 1 to 5. When the intake is too thin to judge a pillar, score it conservatively (low) and say so in the note. The "unlock" is the most important field — make the hypothesis a clear, single-thread thesis.`;
 }
 
 function buildUserPrompt(intake: IntakeRecord, extras: { priceRange?: string; monthlyRevenue?: string; teamSize?: string; primaryPlatform?: string; magicWand?: string; inspiration?: string }): string {
@@ -113,7 +119,7 @@ Inspirations they cited: "${extras.inspiration || "(blank)"}"
 
 YOUR TASK
 =========
-Produce a Research Brief using the JSON schema described in the system prompt. Be specific to THIS client. Where the intake is thin, mark fields conservatively (e.g., visualIdentity.consistency = "absent", audience.targetMatch = "unknown") rather than guessing. The "Unlock" hypothesis is the most important field — it should give M+J a clear, single-thread thesis to test on the call.
+Produce the Research Brief as JSON matching the schema in the system prompt EXACTLY. Be specific to THIS client. Where the intake is thin, score authority pillars conservatively and note that a live audit is needed rather than inventing a verdict. The "unlock" hypothesis is the most important field — give M+J one clear thread to pull on the call.
 
 Return ONLY the JSON object.`;
 }

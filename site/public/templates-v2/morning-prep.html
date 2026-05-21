@@ -831,58 +831,49 @@
     s = (s || '').toString().trim();
     return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
   }
-  function pillarScore(v) {
-    // breakdown values are 0-25; map to a 0-5 baseline.
-    const n = Math.round((Number(v) || 0) / 5);
+  function pscore(pillar) {
+    // authorityBaseline.<pillar>.score is an integer 1-5.
+    const n = Math.round(Number(pillar && pillar.score) || 0);
     return Math.max(0, Math.min(5, n));
   }
 
   function renderBrief(brief) {
     if (!brief || typeof brief !== 'object') return;
-    const v = brief.voice || {};
-    const vi = brief.visualIdentity || {};
-    const au = brief.audience || {};
-    const ch = brief.contentHealth || {};
-    const bd = ch.breakdown || {};
+    const ab = brief.authorityBaseline || {};
     const unlock = brief.unlock || {};
 
-    // Section 01 — Brand & Positioning
-    fillList('autopopBrand', [
-      v.currentRead ? `Voice now: ${v.currentRead}` : null,
-      v.aspirational ? `Voice should become: ${v.aspirational}` : null,
-      (v.descriptors && v.descriptors.length) ? `Voice reads as: ${v.descriptors.join(', ')}` : null,
-      (vi.notes || vi.consistency) ? `Visual ID (${vi.consistency || 'unknown'}): ${vi.notes || '—'}` : null,
-      (brief.contentGaps && brief.contentGaps[0]) ? `Biggest gap: ${brief.contentGaps[0]}` : null,
-    ]);
+    // Section 01 — Brand & Positioning (M lead)
+    fillList('autopopBrand', brief.brandPositioning);
 
-    // Section 02 — Distribution & Systems
+    // Section 02 — Distribution & Systems (J lead) + hard "don't" guardrails
     fillList('autopopDistribution', [
-      ...(brief.topContentSignals || []).map(s => `Signal: ${s}`),
-      ...(brief.contentGaps || []).map(s => `Gap: ${s}`),
-      unlock.hypothesis ? `The Unlock${unlock.confidence ? ` (${unlock.confidence} confidence)` : ''}: ${unlock.hypothesis}` : null,
+      ...(brief.distributionSystems || []),
+      ...((brief.thingsToNotDo || []).map(t => `⛔ Don't: ${t}`)),
     ]);
 
-    // Section 03 — Audience
+    // Section 03 — Audience (shared) + open questions to resolve live
     fillList('autopopAudience', [
-      au.actualRead ? `Reaching now: ${au.actualRead}` : null,
-      (au.targetMatch || au.gapNotes) ? `Target match: ${au.targetMatch || 'unknown'} — ${au.gapNotes || ''}`.trim() : null,
-      ...((brief.storyHooks || []).map(h => `Story hook: ${h}`)),
+      ...(brief.audience || []),
+      ...((brief.openQuestions || []).map(q => `❓ Open: ${q}`)),
     ]);
 
-    // Section 04 — Authority Audit baselines (Claude). Map content-health
-    // breakdown → the four pillars, each 0-5.
-    const pos = pillarScore(bd.clarity);
-    const msg = pillarScore(bd.audienceFit);
-    const exe = pillarScore(bd.consistency);
-    const dist = pillarScore(bd.momentum);
-    setText('baselinePositioning', `${pos} / 5 — ${trunc(v.currentRead || ch.rationale || 'Claude baseline', 96)}`);
-    setText('baselineMessaging', `${msg} / 5 — ${trunc(au.actualRead || au.gapNotes || 'Claude baseline', 96)}`);
-    setText('baselineExecution', `${exe} / 5 — ${trunc(vi.notes || 'Claude baseline', 96)}`);
-    setText('baselineDistribution', `${dist} / 5 — ${trunc(ch.rationale || 'Claude baseline', 96)}`);
+    // Section 04 — Authority Audit baselines (Claude). Each pillar 1-5 + note.
+    const pos = pscore(ab.positioning);
+    const msg = pscore(ab.messaging);
+    const exe = pscore(ab.execution);
+    const dist = pscore(ab.distribution);
+    setText('baselinePositioning', `${pos} / 5 — ${trunc((ab.positioning || {}).note || 'Claude baseline', 100)}`);
+    setText('baselineMessaging', `${msg} / 5 — ${trunc((ab.messaging || {}).note || 'Claude baseline', 100)}`);
+    setText('baselineExecution', `${exe} / 5 — ${trunc((ab.execution || {}).note || 'Claude baseline', 100)}`);
+    setText('baselineDistribution', `${dist} / 5 — ${trunc((ab.distribution || {}).note || 'Claude baseline', 100)}`);
     setText('authBaseline', `${pos + msg + exe + dist} / 20`);
 
-    // Snapshot — The Unlock
-    if (unlock.hypothesis) setText('unlock', unlock.hypothesis);
+    // Snapshot — The Unlock (+ the question that tests it)
+    if (unlock.hypothesis) {
+      setText('unlock', unlock.testQuestion
+        ? `${unlock.hypothesis}  ·  Test: ${unlock.testQuestion}`
+        : unlock.hypothesis);
+    }
 
     setCheckDone('ck-research');
   }
