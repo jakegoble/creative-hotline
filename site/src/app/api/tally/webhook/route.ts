@@ -35,7 +35,7 @@
  * one place we DO want a non-2xx, because that's a security concern.)
  */
 
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { config } from "@/lib/config";
 import {
   parseTallyIntake,
@@ -44,9 +44,13 @@ import {
 import type { TallyWebhookPayload } from "@/lib/tally/types";
 import { createIntakeFromTally } from "@/lib/services/notion-intake-create";
 import { relinkSessionIntakeByEmail } from "@/lib/services/notion-sessions-write";
+import { runResearchBriefGeneration } from "@/lib/services/run-research-brief";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+// The brief auto-generates in the background (after the 200) via after();
+// give that callback room for the ~10-15s Claude call.
+export const maxDuration = 60;
 
 /** Form ID we expect — we only process the Creative Hotline Intake form. */
 const EXPECTED_FORM_ID = "b5W1JE";
@@ -224,6 +228,42 @@ export async function POST(request: Request): Promise<Response> {
         );
         // Non-fatal: keep the 200, Intake row was created successfully.
       }
+    }
+
+    // Auto-generate the research brief in the BACKGROUND. This is the core of
+    // Megha's ask (2026-05-21): after Tally, the brief should generate on its
+    // own and just be linked for review — no "Generate" button. after() runs
+    // the callback AFTER the 200 is returned to Tally, so Tally never waits on
+    // the ~10-15s Claude call (and never hits its retry timeout). The
+    // orchestrator is idempotent + self-healing, so this is safe on the dedupe
+    // path too (it skips when a brief is already Ready / fresh in-flight).
+    if (result.pageId) {
+      after(async () => {
+        try {
+          const brief = await runResearchBriefGeneration(result.pageId);
+          console.log("[tally/webhook] research brief auto-gen", {
+            intakeId: result.pageId,
+            email: intake.email,
+            status: brief.status,
+            outcome:
+              brief.ok && "generated" in brief
+                ? "generated"
+                : brief.ok && "skipped" in brief
+                  ? `skipped:${brief.skipped}`
+                  : "failed",
+          });
+        } catch (briefErr) {
+          const detail =
+            briefErr instanceof Error ? briefErr.message : String(briefErr);
+          console.error(
+            "[tally/webhook] research brief auto-gen failed:",
+            detail,
+            briefErr,
+          );
+          // Non-fatal: the Intake row exists; the Hub/Morning Prep self-heal
+          // path will re-trigger generation on next load.
+        }
+      });
     }
 
     return jsonResponse({

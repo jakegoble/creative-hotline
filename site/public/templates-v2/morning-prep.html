@@ -795,17 +795,137 @@
 
       // Prep status checks
       if (intake.clientName) setCheckDone('ck-intake');
-      // Research brief check: would inspect a "Research Brief Status" intake field if surfaced; skip for now.
 
       // Workshop submit destination
       const btn = document.getElementById('workshopBtn');
       if (btn) btn.href = `/templates-v2/workshop-session.html?sessionId=${encodeURIComponent(sessionId)}`;
 
-      // TODO Phase 2: fetch /api/research-brief/get?intakeId=... and populate autopop sections + baseline pillar scores.
+      // Research brief — auto-populate Claude's reads, pillar baselines, and the
+      // Unlock hypothesis. The brief generates automatically after Tally; if it
+      // isn't Ready yet this also self-heals (idempotent) and refreshes itself.
+      if (intake.id) loadResearchBrief(intake.id, intake.briefStatus);
     } catch(err) {
       console.error('[morning-prep] load failed', err);
       setText('clientName', 'Could not load session');
       setText('businessName', err.message || String(err));
+    }
+  }
+
+  // ---------- Research brief rendering + self-heal ----------
+  // The brief generates automatically after Tally (background) and is read here
+  // for prep. If it isn't Ready yet, we re-trigger generation (idempotent) and
+  // refresh once — no buttons, no manual step (per Megha 2026-05-21).
+  const _briefAutoFired = new Set();
+  let _briefPolls = 0;
+
+  function fillList(id, items) {
+    const ul = document.getElementById(id);
+    if (!ul) return;
+    const clean = (items || []).filter(Boolean);
+    if (clean.length === 0) return;
+    ul.innerHTML = clean
+      .map(t => `<li>${escapeHtml(String(t))}</li>`)
+      .join('');
+  }
+  function trunc(s, n) {
+    s = (s || '').toString().trim();
+    return s.length > n ? s.slice(0, n - 1).trimEnd() + '…' : s;
+  }
+  function pillarScore(v) {
+    // breakdown values are 0-25; map to a 0-5 baseline.
+    const n = Math.round((Number(v) || 0) / 5);
+    return Math.max(0, Math.min(5, n));
+  }
+
+  function renderBrief(brief) {
+    if (!brief || typeof brief !== 'object') return;
+    const v = brief.voice || {};
+    const vi = brief.visualIdentity || {};
+    const au = brief.audience || {};
+    const ch = brief.contentHealth || {};
+    const bd = ch.breakdown || {};
+    const unlock = brief.unlock || {};
+
+    // Section 01 — Brand & Positioning
+    fillList('autopopBrand', [
+      v.currentRead ? `Voice now: ${v.currentRead}` : null,
+      v.aspirational ? `Voice should become: ${v.aspirational}` : null,
+      (v.descriptors && v.descriptors.length) ? `Voice reads as: ${v.descriptors.join(', ')}` : null,
+      (vi.notes || vi.consistency) ? `Visual ID (${vi.consistency || 'unknown'}): ${vi.notes || '—'}` : null,
+      (brief.contentGaps && brief.contentGaps[0]) ? `Biggest gap: ${brief.contentGaps[0]}` : null,
+    ]);
+
+    // Section 02 — Distribution & Systems
+    fillList('autopopDistribution', [
+      ...(brief.topContentSignals || []).map(s => `Signal: ${s}`),
+      ...(brief.contentGaps || []).map(s => `Gap: ${s}`),
+      unlock.hypothesis ? `The Unlock${unlock.confidence ? ` (${unlock.confidence} confidence)` : ''}: ${unlock.hypothesis}` : null,
+    ]);
+
+    // Section 03 — Audience
+    fillList('autopopAudience', [
+      au.actualRead ? `Reaching now: ${au.actualRead}` : null,
+      (au.targetMatch || au.gapNotes) ? `Target match: ${au.targetMatch || 'unknown'} — ${au.gapNotes || ''}`.trim() : null,
+      ...((brief.storyHooks || []).map(h => `Story hook: ${h}`)),
+    ]);
+
+    // Section 04 — Authority Audit baselines (Claude). Map content-health
+    // breakdown → the four pillars, each 0-5.
+    const pos = pillarScore(bd.clarity);
+    const msg = pillarScore(bd.audienceFit);
+    const exe = pillarScore(bd.consistency);
+    const dist = pillarScore(bd.momentum);
+    setText('baselinePositioning', `${pos} / 5 — ${trunc(v.currentRead || ch.rationale || 'Claude baseline', 96)}`);
+    setText('baselineMessaging', `${msg} / 5 — ${trunc(au.actualRead || au.gapNotes || 'Claude baseline', 96)}`);
+    setText('baselineExecution', `${exe} / 5 — ${trunc(vi.notes || 'Claude baseline', 96)}`);
+    setText('baselineDistribution', `${dist} / 5 — ${trunc(ch.rationale || 'Claude baseline', 96)}`);
+    setText('authBaseline', `${pos + msg + exe + dist} / 20`);
+
+    // Snapshot — The Unlock
+    if (unlock.hypothesis) setText('unlock', unlock.hypothesis);
+
+    setCheckDone('ck-research');
+  }
+
+  function setBriefPending(msg) {
+    const txt = msg || 'Research brief generating automatically… this section fills in on its own.';
+    ['autopopBrand', 'autopopDistribution', 'autopopAudience'].forEach(id => {
+      const ul = document.getElementById(id);
+      if (ul) ul.innerHTML = `<li class="pending">${escapeHtml(txt)}</li>`;
+    });
+  }
+
+  async function loadResearchBrief(intakeId, briefStatusHint) {
+    if (!intakeId) return;
+    try {
+      const res = await fetch(`/api/research-brief/get?intakeId=${encodeURIComponent(intakeId)}`);
+      if (!res.ok) throw new Error('brief get ' + res.status);
+      const data = await res.json();
+      if (data.status === 'Ready' && data.json) {
+        let brief = null;
+        try { brief = JSON.parse(data.json); } catch (e) { console.error('[morning-prep] brief JSON parse failed', e); }
+        if (brief) { renderBrief(brief); return; }
+      }
+      // Not ready (or unparseable) — show auto-generating state, self-heal once,
+      // then re-check a couple of times. No buttons, no manual step.
+      setBriefPending();
+      if (!_briefAutoFired.has(intakeId)) {
+        _briefAutoFired.add(intakeId);
+        fetch('/api/research-brief/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ intakeId }),
+        }).catch(err => {
+          console.error('[morning-prep] brief auto-heal failed', err);
+          _briefAutoFired.delete(intakeId);
+        });
+      }
+      if (_briefPolls < 2) {
+        _briefPolls += 1;
+        setTimeout(() => loadResearchBrief(intakeId, 'poll'), 16000);
+      }
+    } catch (err) {
+      console.error('[morning-prep] research brief load failed', err);
     }
   }
 

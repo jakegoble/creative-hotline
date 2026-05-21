@@ -618,40 +618,23 @@
           }
         }
         if (blocks[1]) {
-          // Research brief is generated HERE on the Hub — the command center that
-          // sits between Tally intake and Morning Prep. Flow (per Megha):
-          //   Tally intake → generate Research Brief (here) → Morning Prep consumes it.
-          // The brief backend is POST /api/research-brief/generate { intakeId }.
+          // The research brief generates AUTOMATICALLY — Tally fires it in the
+          // background the moment the intake lands (per Megha 2026-05-21: no
+          // "Generate" button, it should just be ready + linked for review).
+          // The Hub is a self-healing safety net: if a brief is somehow missing,
+          // failed, or a stale/dead run, we auto-trigger generation here on load.
+          // The backend is idempotent so this never double-spends.
           const bs = (s.intake && s.intake.briefStatus) || 'Not Generated';
           const intakeId = s.intake && s.intake.id;
-          if (bs === 'Ready') {
+          if (!s.intake) {
+            blocks[1].textContent = 'No intake yet — the research brief generates automatically once the client submits Tally.';
+          } else if (bs === 'Ready') {
             blocks[1].textContent = 'Research brief ready. Open Morning Prep to read →';
-          } else if (bs === 'Generating') {
-            blocks[1].textContent = 'Research brief generating… check back in ~30s, then reload.';
-          } else if (!s.intake) {
-            blocks[1].textContent = 'No intake yet — research brief generates once the client submits Tally.';
           } else {
-            // Not Generated or Failed → offer a real Generate button right here.
-            const failed = bs === 'Failed';
-            blocks[1].innerHTML =
-              (failed
-                ? 'Research brief failed last run. '
-                : 'Research brief not yet generated. ') +
-              'Generate it here — it reads the Tally intake and feeds Morning Prep.' +
-              '<br><button type="button" id="genBriefBtn" style="margin-top:10px;font-family:var(--tch-nord);font-weight:700;letter-spacing:0.12em;font-size:11px;text-transform:uppercase;color:var(--tch-cream);background:var(--tch-red);border:none;border-radius:5px;padding:8px 16px;cursor:pointer;">' +
-              (failed ? 'Re-generate Research Brief ☎' : 'Generate Research Brief ☎') +
-              '</button>';
-            const genBtn = document.getElementById('genBriefBtn');
-            if (genBtn) {
-              if (!intakeId) {
-                genBtn.disabled = true;
-                genBtn.title = 'No linked intake to generate from';
-                genBtn.style.opacity = '0.5';
-                genBtn.style.cursor = 'not-allowed';
-              } else {
-                genBtn.addEventListener('click', () => window.generateResearchBrief(intakeId));
-              }
-            }
+            // Not Generated / Failed / Generating → it should already be running.
+            // Auto-heal: re-trigger generation (idempotent) and refresh on its own.
+            blocks[1].textContent = 'Research brief generating automatically… this refreshes on its own.';
+            if (intakeId) window.autoHealResearchBrief(intakeId);
           }
         }
         // Client Library — render real Tally file uploads from s.intake.files,
@@ -1057,47 +1040,35 @@
   window.loadClient = loadClient;
 
   // -------------------------------------------------------------------------
-  // Research Brief generation — POST /api/research-brief/generate { intakeId }
-  // The Hub is the canonical place to kick this off (sits between Tally intake
-  // and Morning Prep, per Megha's flow: Tally → Brief → Morning Prep). The
-  // backend reads the Intake row, calls Claude (~10s), persists the JSON, and
-  // flips Research Brief Status to Ready. Morning Prep + Workshop consume it.
+  // Research Brief AUTO-HEAL — POST /api/research-brief/generate { intakeId }
+  // There is no "Generate" button anymore. Tally fires generation in the
+  // background the moment the intake lands; this is the Hub's self-healing
+  // safety net (per Megha 2026-05-21: the brief should just be ready + linked,
+  // no manual step). If the Prep panel loads and the brief is missing / failed
+  // / a stale dead run, we silently re-trigger generation here and let the
+  // panel refresh itself. The backend is idempotent (skips Ready / fresh
+  // in-flight runs) so this never double-spends. We fire at most once per
+  // intake per page load to avoid loops.
   // -------------------------------------------------------------------------
-  async function generateResearchBrief(intakeId) {
-    if (!intakeId) return;
-    const btn = document.getElementById('genBriefBtn');
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = 'Generating… (~10–15s)';
-      btn.style.opacity = '0.6';
-      btn.style.cursor = 'wait';
-    }
+  const _briefAutoFired = new Set();
+  async function autoHealResearchBrief(intakeId) {
+    if (!intakeId || _briefAutoFired.has(intakeId)) return;
+    _briefAutoFired.add(intakeId);
     try {
-      const res = await fetch('/api/research-brief/generate', {
+      await fetch('/api/research-brief/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ intakeId }),
       });
-      if (!res.ok) {
-        let detail = 'HTTP ' + res.status;
-        try { const j = await res.json(); detail = j.reason || j.error || detail; } catch {}
-        throw new Error(detail);
-      }
-      // Success — reload the current session so the Prep panel reflects "Ready"
-      // and the brief is available to Morning Prep.
-      if (btn) btn.textContent = 'Brief ready ✓ reloading…';
-      setTimeout(() => { if (currentSessionId) loadClient(currentSessionId); }, 600);
+      // Whether it generated now or was already in-flight, refresh once the
+      // Claude call has had time to land so the panel flips to "ready".
+      setTimeout(() => { if (currentSessionId) loadClient(currentSessionId); }, 16000);
     } catch (err) {
-      console.error('[hub] research brief generation failed', err);
-      if (btn) {
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.style.cursor = 'pointer';
-        btn.textContent = 'Generation failed — retry ☎';
-      }
+      console.error('[hub] research brief auto-heal failed', err);
+      _briefAutoFired.delete(intakeId); // allow a later load to retry
     }
   }
-  window.generateResearchBrief = generateResearchBrief;
+  window.autoHealResearchBrief = autoHealResearchBrief;
 
   // -------------------------------------------------------------------------
   // Fireflies URL save — PATCH /api/sessions/[id]
