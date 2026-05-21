@@ -33,11 +33,14 @@
  */
 
 import { NextResponse } from "next/server";
-import { routeKeyword, type KeywordIntent } from "@/lib/sms/keywords";
+import { routeKeyword, type KeywordIntent, BOOKING_URL } from "@/lib/sms/keywords";
+import { frankieSmsReply, type FrankieContext } from "@/lib/sms/frankie-ai";
+import { sendHumanHandoffAlert } from "@/lib/sms/handoff";
 import {
   normalizePhoneE164,
   upsertContactByPhone,
   type Channel,
+  type MessagingContact,
 } from "@/lib/services/notion-messaging";
 import { stripWhatsappPrefix } from "@/lib/services/twilio";
 
@@ -113,6 +116,10 @@ function buildContactUpdate(
       };
     case "book":
       return { ...base, addTags: ["hot-lead"] };
+    case "human":
+      // Tag for triage + so a "needs-human" Notion view can surface them even
+      // if the email alert fails to send.
+      return { ...base, addTags: ["needs-human"] };
     case "info":
     case "deals":
     case "fallback":
@@ -120,6 +127,20 @@ function buildContactUpdate(
       return base;
   }
 }
+
+/**
+ * Pull the first email address out of an inbound message body. Used to capture
+ * email straight from SMS (mirrors the ManyChat "drop your email" step) so an
+ * SMS-only lead becomes reachable by email + linkable to a future booking.
+ * Returns "" if none found. Conservative pattern — avoids matching @handles.
+ */
+function extractEmail(body: string): string {
+  const m = (body || "").match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/);
+  return m ? m[0].toLowerCase() : "";
+}
+
+/** Canned acknowledgement when someone texts us their email (AI unavailable). */
+const EMAIL_ACK = `Got it — I'll make sure the good stuff lands there. Ready when you are: ${BOOKING_URL}`;
 
 export async function POST(request: Request): Promise<Response> {
   let formData: FormData;
@@ -146,6 +167,7 @@ export async function POST(request: Request): Promise<Response> {
   const phone = normalizePhoneE164(fromE164);
   const channel: Channel = isWhatsApp ? "WhatsApp" : "SMS";
   const match = routeKeyword(rawBody);
+  const capturedEmail = extractEmail(rawBody);
 
   console.log("[twilio/inbound]", {
     messageSid,
@@ -153,7 +175,9 @@ export async function POST(request: Request): Promise<Response> {
     to: rawTo,
     channel,
     keyword: match.keyword,
+    topic: match.topic,
     intent: match.intent,
+    capturedEmail: capturedEmail || undefined,
   });
 
   // Fire the CRM write in the background — we don't block the reply on it. If
@@ -163,10 +187,22 @@ export async function POST(request: Request): Promise<Response> {
   // the response terminates the invocation and kills any pending promises —
   // background writes silently drop. We pay ~1-2s of latency to guarantee the
   // Notion row lands, still well inside Twilio's 15s webhook timeout.
+  // Tracks the post-write contact so we can tailor the AI fallback reply
+  // (don't re-ask for email, don't push booking on someone who already booked).
+  let contactForCtx: MessagingContact | null = null;
+  let contactIsNew = false;
+
   if (phone) {
-    const update = buildContactUpdate(match.intent, match.keyword, phone, channel);
+    const update = {
+      ...buildContactUpdate(match.intent, match.keyword, phone, channel),
+      // Capture an email straight off the text if they sent one. Only set when
+      // present so we never clobber an existing email with a blank.
+      ...(capturedEmail ? { email: capturedEmail } : {}),
+    };
     try {
       const { isNew, contact } = await upsertContactByPhone(update);
+      contactForCtx = contact;
+      contactIsNew = isNew;
       // First-time opt-in → kick off drip step_1 so the cron picks them up
       // on Day 1. We do this in a SECOND update because we need `isNew` to
       // decide; baking it into the first update would race ahead of new
@@ -223,7 +259,51 @@ export async function POST(request: Request): Promise<Response> {
     console.warn("[twilio/inbound] could not normalize From:", rawFrom);
   }
 
-  return twimlResponse(match.reply);
+  // ---- Human handoff alert ----------------------------------------------
+  // The texter asked for a real person. The contact is already tagged
+  // "needs-human" above; now email the team inbox so someone picks it up.
+  // Awaited (Vercel kills pending promises post-response) but fail-soft.
+  if (match.intent === "human" && phone) {
+    const alert = await sendHumanHandoffAlert({
+      phone,
+      message: rawBody,
+      channel,
+      contactId: contactForCtx?.id,
+    });
+    console.log("[twilio/inbound] human handoff alert:", alert);
+  }
+
+  // ---- Resolve the reply text -------------------------------------------
+  // High-intent keywords (BOOK/PRICING/INFO/DEALS/STOP/HOTLINE) use the fast,
+  // free, compliance-safe canned reply. Anything the router couldn't classify
+  // ("fallback") is handed to the Claude-powered Frankie so a real human
+  // sentence gets a real answer instead of "didn't catch that."
+  let replyText = match.reply;
+
+  if (match.intent === "fallback") {
+    const ctx: FrankieContext = {
+      channel,
+      hasBooked: contactForCtx?.tags.includes("booked") ?? false,
+      // If they just texted their email, treat it as on-file so Frankie won't
+      // re-ask; otherwise reflect what's stored.
+      hasEmail: Boolean(capturedEmail) || Boolean(contactForCtx?.email),
+    };
+    const aiReply = await frankieSmsReply(rawBody, ctx);
+    if (aiReply) {
+      replyText = aiReply;
+    } else if (capturedEmail) {
+      // AI unavailable but they handed us an email — acknowledge + nudge.
+      replyText = EMAIL_ACK;
+    }
+    // else: keep the canned fallback menu (match.reply).
+    console.log("[twilio/inbound] fallback reply:", {
+      usedAI: Boolean(aiReply),
+      capturedEmail: Boolean(capturedEmail),
+      contactIsNew,
+    });
+  }
+
+  return twimlResponse(replyText);
 }
 
 /**
