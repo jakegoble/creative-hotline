@@ -38,12 +38,13 @@ export type ContactStatus = "active" | "opted_out" | "paused";
 export type ContactSource =
   | "keyword_sms"
   | "keyword_whatsapp"
+  | "instagram_dm"
   | "manual"
   | "import"
   | "email_signup"
   | "ad_campaign"
   | "referral";
-export type Channel = "SMS" | "WhatsApp" | "Email";
+export type Channel = "SMS" | "WhatsApp" | "Email" | "Instagram";
 
 export interface MessagingContact {
   /** Notion page ID. */
@@ -62,6 +63,14 @@ export interface MessagingContact {
   channels: Channel[];
   /** Lifecycle tags — "booked" + "paid-client" halt the drip cron. */
   tags: string[];
+  /** Latest one-line summary of what the lead is stuck on (AI-extracted). */
+  statedProblem: string;
+  /** founder | agency | creator | marketer | small business | other (AI-extracted). */
+  businessType: string;
+  /** pricing | services | objection | fit | booking | info | … (AI-extracted). */
+  leadTopic: string;
+  /** ManyChat contact ID — the dedupe key for Instagram leads with no phone. */
+  manychatId: string;
 }
 
 /**
@@ -154,6 +163,10 @@ function pageToContact(page: PageObjectResponse): MessagingContact {
     source: parseSelect<ContactSource>(props["Source"]),
     channels: parseMultiSelect<Channel>(props["Channel"]),
     tags: parseMultiSelect<string>(props["Tags"]),
+    statedProblem: parseText(props["Stated Problem"]),
+    businessType: parseSelect<string>(props["Business Type"]) ?? "",
+    leadTopic: parseSelect<string>(props["Lead Topic"]) ?? "",
+    manychatId: parseText(props["ManyChat ID"]),
   };
 }
 
@@ -203,6 +216,28 @@ export async function findContactByEmail(
   return pageToContact(first as PageObjectResponse);
 }
 
+/**
+ * Find a contact by ManyChat contact ID. The dedupe key for Instagram leads
+ * that have no phone and haven't given an email yet. Returns null if no match.
+ */
+export async function findContactByManychatId(
+  manychatId: string,
+): Promise<MessagingContact | null> {
+  if (!manychatId) return null;
+  const client = getClient();
+  const response = await client.dataSources.query({
+    data_source_id: config.notion.messagingDbId,
+    filter: {
+      property: "ManyChat ID",
+      rich_text: { equals: manychatId },
+    },
+    page_size: 1,
+  });
+  const first = response.results[0];
+  if (!first || !("properties" in first)) return null;
+  return pageToContact(first as PageObjectResponse);
+}
+
 interface UpsertInput {
   phone: string;
   /**
@@ -236,6 +271,16 @@ interface UpsertInput {
    * If omitted on create, defaults to ["SMS"] for backward compatibility.
    */
   addChannels?: Channel[];
+  /** Latest AI-extracted one-line problem summary (overwrites prior). */
+  statedProblem?: string;
+  /** AI-extracted business type/role. */
+  businessType?: string;
+  /** AI-extracted lead topic. */
+  leadTopic?: string;
+  /** ManyChat contact ID — set on Instagram leads so they can be deduped. */
+  manychatId?: string;
+  /** Display name for the contact title (e.g. IG first name). */
+  name?: string;
 }
 
 /** Build a Notion property update payload from an UpsertInput. */
@@ -264,13 +309,25 @@ function buildProperties(
   }
 
   if (isNew) {
-    // Title = phone number (until we capture a name)
+    // Title: prefer a real name, else phone, else ManyChat ID (IG leads have
+    // no phone) — never blank.
+    const title =
+      input.name?.trim() || input.phone || input.manychatId || "New contact";
     props["Contact Name"] = {
-      title: [{ type: "text", text: { content: input.phone } }],
+      title: [{ type: "text", text: { content: title } }],
     };
-    props["Phone"] = { phone_number: input.phone };
+    // Phone only when present — Instagram leads may have none.
+    if (input.phone) {
+      props["Phone"] = { phone_number: input.phone };
+    }
     if (input.source) {
       props["Source"] = { select: { name: input.source } };
+    }
+    // ManyChat ID is the dedupe key for IG leads; only written on create.
+    if (input.manychatId) {
+      props["ManyChat ID"] = {
+        rich_text: [{ type: "text", text: { content: input.manychatId } }],
+      };
     }
   }
   // Email only gets written when explicitly provided — avoids clobbering on
@@ -291,6 +348,20 @@ function buildProperties(
   }
   if (input.dripStage) {
     props["Drip Stage"] = { select: { name: input.dripStage } };
+  }
+  // AI-extracted lead/qualification fields (write whenever provided).
+  if (input.statedProblem) {
+    props["Stated Problem"] = {
+      rich_text: [
+        { type: "text", text: { content: input.statedProblem.slice(0, 1900) } },
+      ],
+    };
+  }
+  if (input.businessType) {
+    props["Business Type"] = { select: { name: input.businessType } };
+  }
+  if (input.leadTopic) {
+    props["Lead Topic"] = { select: { name: input.leadTopic } };
   }
   if (input.optInDate !== undefined) {
     props["Opt-In Date"] = input.optInDate
@@ -374,6 +445,90 @@ export async function upsertContactByPhone(
   });
   const contact = pageToContact(created as PageObjectResponse);
   return { contact, isNew: true };
+}
+
+/** Input for upserting an Instagram (ManyChat) lead into the shared CRM. */
+export interface InstagramUpsertInput {
+  /** ManyChat contact ID — required dedupe key when no email. */
+  manychatId: string;
+  email?: string;
+  name?: string;
+  statedProblem?: string;
+  businessType?: string;
+  leadTopic?: string;
+  addTags?: string[];
+  complianceNote?: string;
+}
+
+/**
+ * Upsert an Instagram lead into the SAME Notion Messaging Contacts DB as SMS —
+ * so IG and SMS leads live in one CRM view. Dedupe order: email (cross-channel
+ * identity) → ManyChat ID. IG leads have no phone, so this path skips the
+ * phone requirement of upsertContactByPhone. Never throws on a bad write — the
+ * caller (ManyChat route) treats failures as non-fatal.
+ */
+export async function upsertInstagramContact(
+  input: InstagramUpsertInput,
+): Promise<{ contact: MessagingContact; isNew: boolean }> {
+  if (!input.manychatId && !input.email) {
+    throw new Error("upsertInstagramContact needs a manychatId or email");
+  }
+  const client = getClient();
+
+  // Dedupe: email first (a lead may also be an SMS contact), then ManyChat ID.
+  let existing: MessagingContact | null = null;
+  if (input.email) existing = await findContactByEmail(input.email);
+  if (!existing && input.manychatId) {
+    existing = await findContactByManychatId(input.manychatId);
+  }
+
+  const upsert: UpsertInput = {
+    phone: "", // IG leads have no phone — buildProperties guards this
+    manychatId: input.manychatId,
+    email: input.email,
+    name: input.name,
+    statedProblem: input.statedProblem,
+    businessType: input.businessType,
+    leadTopic: input.leadTopic,
+    addChannels: ["Instagram"],
+    addTags: input.addTags,
+    touchInteraction: true,
+    source: "instagram_dm",
+    complianceNote: input.complianceNote,
+  };
+
+  if (existing) {
+    const properties = buildProperties(
+      upsert,
+      false,
+      existing.complianceLog,
+      existing.channels,
+      existing.tags,
+    );
+    if (Object.keys(properties).length > 0) {
+      await client.pages.update({
+        page_id: existing.id,
+        properties: properties as Parameters<
+          typeof client.pages.update
+        >[0]["properties"],
+      });
+    }
+    const refreshed = input.email
+      ? await findContactByEmail(input.email)
+      : await findContactByManychatId(input.manychatId);
+    return { contact: refreshed ?? existing, isNew: false };
+  }
+
+  const properties = buildProperties(upsert, true, "", [], []);
+  const created = await client.pages.create({
+    parent: { data_source_id: config.notion.messagingDbId } as Parameters<
+      typeof client.pages.create
+    >[0]["parent"],
+    properties: properties as Parameters<
+      typeof client.pages.create
+    >[0]["properties"],
+  });
+  return { contact: pageToContact(created as PageObjectResponse), isNew: true };
 }
 
 /**

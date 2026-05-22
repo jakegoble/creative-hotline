@@ -29,8 +29,13 @@
  */
 
 import { NextResponse } from "next/server";
-import { frankieSmsReply, type FrankieContext } from "@/lib/sms/frankie-ai";
+import {
+  frankieReplyAndLead,
+  type FrankieContext,
+  type LeadExtraction,
+} from "@/lib/sms/frankie-ai";
 import { BOOKING_URL } from "@/lib/sms/keywords";
+import { upsertInstagramContact } from "@/lib/services/notion-messaging";
 import { config } from "@/lib/config";
 
 export const runtime = "nodejs";
@@ -103,23 +108,58 @@ export async function POST(request: Request): Promise<Response> {
     return NextResponse.json(manychatResponse(EMPTY_REPLY), { status: 200 });
   }
 
+  // ManyChat can also send these (add them to the request body): the contact
+  // ID is the Notion dedupe key for IG leads with no email; email/name enrich
+  // the unified CRM record. All optional — the reply works without them.
+  const contactId = String(body.contact_id ?? body.contactId ?? "").trim();
+  const email = String(body.email ?? "").trim();
+  const name = String(body.first_name ?? body.name ?? "").trim();
+
   const ctx: FrankieContext = {
     channel: "Instagram",
     hasBooked: asBool(body.has_booked),
-    hasEmail: asBool(body.has_email) || Boolean(body.email),
+    hasEmail: asBool(body.has_email) || Boolean(email),
   };
 
   let reply: string | null = null;
+  let lead: LeadExtraction | null = null;
   try {
-    reply = await frankieSmsReply(message, ctx);
+    const r = await frankieReplyAndLead(message, ctx);
+    reply = r.reply;
+    lead = r.lead;
   } catch (err) {
     console.error("[manychat/frankie] reply threw:", err);
+  }
+
+  // Mirror the qualified lead into the SAME Notion CRM as SMS — one view across
+  // both channels. Dedupe by email → ManyChat ID; needs at least one key.
+  // Awaited (Vercel kills pending promises after response) + fail-soft.
+  if (
+    lead &&
+    (contactId || email) &&
+    (lead.problem || lead.businessType || lead.topic || lead.tags.length)
+  ) {
+    try {
+      await upsertInstagramContact({
+        manychatId: contactId,
+        email: email || undefined,
+        name: name || undefined,
+        statedProblem: lead.problem || undefined,
+        businessType: lead.businessType || undefined,
+        leadTopic: lead.topic || undefined,
+        addTags: lead.tags.length ? lead.tags : undefined,
+        complianceNote: `IG DM: ${message.slice(0, 120)}`,
+      });
+    } catch (err) {
+      console.error("[manychat/frankie] Notion mirror failed:", err);
+    }
   }
 
   console.log("[manychat/frankie]", {
     len: message.length,
     usedAI: Boolean(reply),
-    hasBooked: ctx.hasBooked,
+    hasContactId: Boolean(contactId),
+    lead: lead ? { topic: lead.topic, tags: lead.tags } : null,
   });
 
   return NextResponse.json(manychatResponse(reply ?? FALLBACK_REPLY), {

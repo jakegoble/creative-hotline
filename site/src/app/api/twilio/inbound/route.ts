@@ -39,7 +39,7 @@ import {
   type KeywordIntent,
   BOOKING_URL,
 } from "@/lib/sms/keywords";
-import { frankieSmsReply, type FrankieContext } from "@/lib/sms/frankie-ai";
+import { frankieReplyAndLead, type FrankieContext } from "@/lib/sms/frankie-ai";
 import { sendHumanHandoffAlert } from "@/lib/sms/handoff";
 import {
   normalizePhoneE164,
@@ -318,7 +318,7 @@ export async function POST(request: Request): Promise<Response> {
       // re-ask; otherwise reflect what's stored.
       hasEmail: Boolean(capturedEmail) || Boolean(contactForCtx?.email),
     };
-    const aiReply = await frankieSmsReply(rawBody, ctx);
+    const { reply: aiReply, lead } = await frankieReplyAndLead(rawBody, ctx);
     if (aiReply) {
       replyText = aiReply;
     } else if (capturedEmail) {
@@ -326,9 +326,32 @@ export async function POST(request: Request): Promise<Response> {
       replyText = EMAIL_ACK;
     }
     // else: keep the canned fallback menu (match.reply).
+
+    // Capture the qualified lead into the CRM. Separate write — the lead is
+    // only known after the AI extraction (which ran concurrently with the
+    // reply). Fail-soft: a capture miss never affects the reply the user got.
+    if (
+      phone &&
+      lead &&
+      (lead.problem || lead.businessType || lead.topic || lead.tags.length)
+    ) {
+      try {
+        await upsertContactByPhone({
+          phone,
+          statedProblem: lead.problem || undefined,
+          businessType: lead.businessType || undefined,
+          leadTopic: lead.topic || undefined,
+          addTags: lead.tags.length ? lead.tags : undefined,
+        });
+      } catch (err) {
+        console.error("[twilio/inbound] lead capture failed:", err);
+      }
+    }
+
     console.log("[twilio/inbound] fallback reply:", {
       usedAI: Boolean(aiReply),
       capturedEmail: Boolean(capturedEmail),
+      lead: lead ? { topic: lead.topic, tags: lead.tags } : null,
       contactIsNew,
     });
   }

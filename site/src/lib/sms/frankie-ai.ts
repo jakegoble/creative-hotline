@@ -241,3 +241,156 @@ export async function frankieSmsReply(
     clearTimeout(timer);
   }
 }
+
+// ---------------------------------------------------------------------------
+// Lead extraction (qualification capture)
+//
+// A SECOND, separate Claude call that pulls structured lead data out of the
+// inbound message. Run CONCURRENTLY with the reply (see frankieReplyAndLead) so
+// it adds ~no latency and never constrains reply quality with JSON-mode. The
+// captured fields land in the Notion CRM so the team walks into calls prepared
+// and can follow up with people who ask but don't book.
+// ---------------------------------------------------------------------------
+
+/** Structured lead data extracted from an inbound message, for the CRM. */
+export interface LeadExtraction {
+  /** <=~15-word summary of what they're stuck on / asking. "" if none. */
+  problem: string;
+  /** founder | agency | creator | marketer | small business | other | "" */
+  businessType: string;
+  /** pricing | services | objection | fit | booking | info | off_topic | other | "" */
+  topic: string;
+  /** Subset of the controlled tag vocab (mirrors the ManyChat tag taxonomy). */
+  tags: string[];
+}
+
+/** Controlled tag vocabulary — keeps CRM tags consistent across channels. */
+const LEAD_TAG_VOCAB = new Set<string>([
+  "high_intent",
+  "viewed_pricing",
+  "objection_price",
+  "objection_timing",
+  "asked_services",
+  "needs_human",
+]);
+
+const LEAD_TOPIC_VOCAB = new Set<string>([
+  "pricing",
+  "services",
+  "objection",
+  "fit",
+  "booking",
+  "info",
+  "off_topic",
+  "other",
+]);
+
+/** Pure: the extraction system prompt. Exported for tests. */
+export function buildExtractionPrompt(): string {
+  return [
+    "You extract structured lead data from a SINGLE inbound message to The Creative Hotline (a creative-strategy consultancy that sells 60-min 1-on-1 strategy calls).",
+    "Return ONLY a JSON object — no prose, no markdown, no code fences:",
+    '{"problem": string, "business_type": string, "topic": string, "tags": string[]}',
+    "- problem: a <=15-word summary of what the person is stuck on or asking. Empty string if nothing substantive (e.g. a bare greeting).",
+    "- business_type: one of founder, agency, creator, marketer, small business, other. Empty string if unknown.",
+    "- topic: one of pricing, services, objection, fit, booking, info, off_topic, other.",
+    "- tags: zero or more of high_intent, viewed_pricing, objection_price, objection_timing, asked_services, needs_human. Only include a tag clearly supported by the message.",
+    "Infer ONLY from the message. Never invent details. When unsure, use empty values.",
+  ].join("\n");
+}
+
+/** Coerce a raw parsed object into a safe LeadExtraction. Pure + exported. */
+export function normalizeLead(o: Record<string, unknown>): LeadExtraction {
+  const str = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+  const problem = str(o.problem).slice(0, 200);
+  const businessType = str(o.business_type).toLowerCase().slice(0, 40);
+  let topic = str(o.topic).toLowerCase();
+  if (!LEAD_TOPIC_VOCAB.has(topic)) topic = topic ? "other" : "";
+  const rawTags = Array.isArray(o.tags) ? o.tags : [];
+  const tags = [
+    ...new Set(
+      rawTags
+        .map((t) => String(t).trim().toLowerCase())
+        .filter((t) => LEAD_TAG_VOCAB.has(t)),
+    ),
+  ];
+  return { problem, businessType, topic, tags };
+}
+
+/** Parse the model's JSON (tolerant of stray prose/fences). Pure + exported. */
+export function parseLeadJson(raw: string): LeadExtraction | null {
+  if (!raw) return null;
+  const m = raw.match(/\{[\s\S]*\}/);
+  if (!m) return null;
+  try {
+    return normalizeLead(JSON.parse(m[0]) as Record<string, unknown>);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Extract structured lead data from an inbound message. Fail-soft → null
+ * (caller simply skips capture that turn). Uses temperature 0 + a tiny token
+ * budget; model overridable via FRANKIE_EXTRACT_MODEL for cost tuning.
+ */
+export async function extractLead(
+  userMessage: string,
+): Promise<LeadExtraction | null> {
+  const apiKey = config.anthropic.apiKey;
+  if (!apiKey) return null;
+  const body = (userMessage ?? "").trim();
+  if (!body) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), CLAUDE_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${ANTHROPIC_BASE}/messages`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: process.env.FRANKIE_EXTRACT_MODEL || frankieModel(),
+        max_tokens: 200,
+        temperature: 0,
+        system: buildExtractionPrompt(),
+        messages: [{ role: "user", content: body }],
+      }),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      console.error(`[frankie-ai] extract API ${res.status}`);
+      return null;
+    }
+    const data = (await res.json()) as MessagesResponse;
+    const raw =
+      data.content?.find((c) => c.type === "text")?.text ??
+      data.content?.[0]?.text ??
+      "";
+    return parseLeadJson(raw);
+  } catch (err) {
+    console.error("[frankie-ai] extract failed:", err);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Generate Frankie's reply AND extract lead data — two concurrent Claude calls,
+ * so total latency ≈ one call. Reply failure → null reply (caller uses the
+ * canned fallback); extraction failure → null lead (caller skips capture).
+ */
+export async function frankieReplyAndLead(
+  userMessage: string,
+  ctx: FrankieContext = {},
+): Promise<{ reply: string | null; lead: LeadExtraction | null }> {
+  const [reply, lead] = await Promise.all([
+    frankieSmsReply(userMessage, ctx),
+    extractLead(userMessage),
+  ]);
+  return { reply, lead };
+}
