@@ -79,7 +79,10 @@
   .input-block { background: var(--tch-cream); border: 1.5px solid var(--tch-ink-line); padding: 14px; margin-bottom: 12px; border-left: 5px solid currentColor; }
   .input-block.m { color: var(--tch-red); }
   .input-block.j { color: var(--tch-blue); }
-  .input-block.shared { color: var(--tch-yellow); border-left-color: var(--tch-yellow); }
+  .input-block.shared { color: var(--tch-ink); border-left-color: var(--tch-yellow); }
+  /* Yellow-on-cream is unreadable, so the "shared / both approve" tab becomes a
+     yellow chip with black text. Border stays yellow. */
+  .input-block.shared .who { display: inline-block; background: var(--tch-yellow); color: var(--tch-ink); padding: 3px 9px; }
   .input-block.auto { color: var(--tch-ink); border-left-color: var(--tch-ink); background: rgba(28,28,30,0.04); }
   .input-block .who { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 11px; margin-bottom: 8px; text-transform: uppercase; }
   .input-block .body { color: var(--tch-ink); font-family: var(--tch-mono); font-size: 13px; line-height: 1.5; }
@@ -151,13 +154,13 @@
     <div class="snapshot stage-review" id="snapshot">
       <div class="snap-left">
         <div class="label">↳ Client Snapshot</div>
-        <h2>Rae <em>Solano</em></h2>
-        <div class="biz">Solano Studio · Handmade ceramics + home goods · Austin, TX · First Call $499</div>
+        <h2>Loading…</h2>
+        <div class="biz"></div>
       </div>
       <div class="snap-grid">
-        <div class="snap-stat"><div class="k">Authority Score</div><div class="v">12 / 20</div></div>
-        <div class="snap-stat"><div class="k">Session Score</div><div class="v">9.0</div></div>
-        <div class="snap-stat"><div class="k">Diagnosis Conf.</div><div class="v" style="color: var(--tch-red);">6.5 ⚠</div></div>
+        <div class="snap-stat"><div class="k">Authority Score</div><div class="v">—</div></div>
+        <div class="snap-stat"><div class="k">Session Score</div><div class="v">—</div></div>
+        <div class="snap-stat"><div class="k">Diagnosis Conf.</div><div class="v">—</div></div>
       </div>
     </div>
 
@@ -173,8 +176,8 @@
       <div class="three-panel">
         <div class="panel left">
           <div class="panel-head"><span class="panel-tag">↳ Auto · From the System</span></div>
-          <div class="input-block auto"><div class="who">From Tally Intake</div><div class="body">"Doing a lot but nothing's actually growing." Type: Solo founder · Maker · Bootstrap</div></div>
-          <div class="input-block auto"><div class="who">Claude's Research Brief</div><div class="body">Voice: trying elevated, reading functional. Visual: warm, no system. Audience: 70% local, not the buyer.</div></div>
+          <div class="input-block auto"><div class="who">From Tally Intake</div><div class="body">—</div></div>
+          <div class="input-block auto"><div class="who">Claude's Research Brief</div><div class="body">—</div></div>
           <div class="input-block auto" id="prepClientLibrary"><div class="who">Client Library</div><div class="empty" style="font-family:var(--tch-mono);font-size:12px;color:rgba(28,28,30,0.55);">No files uploaded yet.</div></div>
           <div class="input-block auto"><div class="who">Reference Docs</div>
             <a href="/legal/service-agreement.html" target="_blank" rel="noopener" class="quick-link"><span class="icon">📜</span><span class="label">Service agreement</span><span class="arrow">↗</span></a>
@@ -222,9 +225,9 @@
       <div class="three-panel">
         <div class="panel left">
           <div class="panel-head"><span class="panel-tag">↳ Just-Captured</span></div>
-          <div class="input-block auto"><div class="who">Audit Score</div><div class="body">Total: 12 / 20</div></div>
-          <div class="input-block auto"><div class="who">North Star · Their Words</div><div class="body">"Build Solano Studio around one hero collection."</div></div>
-          <div class="input-block auto"><div class="who">First Move Result</div><div class="body">✓ Did it: Updated IG bio live on call.</div></div>
+          <div class="input-block auto"><div class="who">Audit Score</div><div class="body">—</div></div>
+          <div class="input-block auto"><div class="who">North Star · Their Words</div><div class="body">—</div></div>
+          <div class="input-block auto"><div class="who">First Move Result</div><div class="body">—</div></div>
         </div>
         <div class="panel center" id="debriefCenterPanel">
           <div class="panel-head"><span class="panel-tag">↳ The 10 Questions · Snapshot</span></div>
@@ -251,7 +254,7 @@
       <div class="three-panel">
         <div class="panel left">
           <div class="panel-head"><span class="panel-tag">↳ Reference</span></div>
-          <div class="input-block auto"><div class="who">Debrief Summary</div><div class="body">Score 9.0 · Conf 6.5 ⚠ · Tone: Direct + Sharp · Upsell: Strong</div></div>
+          <div class="input-block auto"><div class="who">Debrief Summary</div><div class="body">—</div></div>
           <div class="input-block auto" id="reviewTranscriptBlock">
             <div class="who">Transcript · Ready ✓</div>
             <a href="#" class="quick-link"><span class="icon">📄</span><span class="label">Full transcript</span><span class="arrow">→</span></a>
@@ -284,7 +287,7 @@
       <div class="three-panel">
         <div class="panel left">
           <div class="panel-head"><span class="panel-tag">↳ Delivered</span></div>
-          <div class="input-block auto"><div class="who">Action Plan · Sent</div><div class="body">Mar 21 · 11:42 AM PST<br>Email: ✓ · SMS: ✓</div></div>
+          <div class="input-block auto"><div class="who">Action Plan · Sent</div><div class="body">—</div></div>
           <div class="input-block auto" id="sentDeliverableBlock" style="display:none;"><div class="who">Client Deliverable</div>
             <a id="sentActionPlanLink" href="#" target="_blank" rel="noopener" class="quick-link"><span class="icon">📨</span><span class="label">Open action plan</span><span class="arrow">↗</span></a>
             <a id="sentEmailPreviewLink" href="#" target="_blank" rel="noopener" class="quick-link"><span class="icon">👁</span><span class="label">Preview Frankie email</span><span class="arrow">↗</span></a>
