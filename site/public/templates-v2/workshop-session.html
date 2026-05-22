@@ -1614,7 +1614,10 @@
     function collectWorkshopBlob() {
       const blob = { _v: 'v2_2', _at: new Date().toISOString(), secs: window.secs || 0, fields: {}, lists: {} };
       document.querySelectorAll('input, textarea').forEach(el => {
-        if (el.id) blob.fields[el.id] = el.value;
+        // Never persist a placeholder (empty, "[…]" stub, or lone dash) as if it
+        // were real M+J input — store '' so it can't leak downstream to the
+        // debrief autopop or action plan.
+        if (el.id) blob.fields[el.id] = isPlaceholder(el.value) ? '' : el.value;
       });
       ['stopList','leaveList','missingList'].forEach(id => {
         const root = document.getElementById(id);
@@ -1693,7 +1696,9 @@
     // "[Pre-filled · …]" — those should be treated as "not yet filled".
     function isPlaceholder(v) {
       const t = (v == null ? '' : String(v)).trim();
-      return t === '' || t.startsWith('[');
+      // Empty, a bracketed "[Pre-filled · …]" stub, or a lone em/en-dash that
+      // some screens use as a "captured live / not yet filled" marker.
+      return t === '' || t === '—' || t === '–' || t === '-' || t.startsWith('[');
     }
     const join = (arr) => Array.isArray(arr) ? arr.filter(Boolean).join(' · ') : '';
     const firstClause = (s, n) => {

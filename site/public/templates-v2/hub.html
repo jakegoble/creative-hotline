@@ -604,6 +604,22 @@
       try { if (s.debriefJson) debrief = JSON.parse(s.debriefJson); } catch {}
       try { if (s.actionPlanJson) actionPlan = JSON.parse(s.actionPlanJson); } catch {}
 
+      // Normalize debrief key drift. debrief.html saves meghaScore/jakeScore/
+      // meghaConf/jakeConf/insight plus the four quick-picks under _pills{}, but
+      // this hub historically read sessionScoreM/confidenceM/nonObviousInsight/
+      // diagnosisTone/upsellSignal. Alias the real keys onto the expected names
+      // so the debrief panel populates instead of showing "—".
+      if (debrief) {
+        const _p = debrief._pills || {};
+        debrief.sessionScoreM     = debrief.sessionScoreM     ?? debrief.meghaScore;
+        debrief.sessionScoreJ     = debrief.sessionScoreJ     ?? debrief.jakeScore;
+        debrief.confidenceM       = debrief.confidenceM       ?? debrief.meghaConf;
+        debrief.confidenceJ       = debrief.confidenceJ       ?? debrief.jakeConf;
+        debrief.nonObviousInsight = debrief.nonObviousInsight ?? debrief.insight;
+        debrief.diagnosisTone     = debrief.diagnosisTone     ?? _p['Diagnosis tone'];
+        debrief.upsellSignal      = debrief.upsellSignal      ?? _p['Upsell signal'];
+      }
+
       // ----- PREP PANEL -----
       const prepPanel = document.getElementById('state-prep');
       if (prepPanel) {
