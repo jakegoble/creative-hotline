@@ -575,14 +575,28 @@
   }
 </style>
 </head>
-<body>
+<body class="ap-loading">
+<style>
+  /* Loading gate — keep the deliverable hidden behind a loader until the plan
+     has rendered, so no bracket/placeholder defaults flash before data arrives.
+     reveal() runs on success, empty-state, error, and a 6s safety timeout, so
+     the page can never get stuck blank. */
+  body.ap-loading > section,
+  body.ap-loading > main,
+  body.ap-loading > footer { visibility: hidden; }
+  .ap-loader { position: fixed; inset: 0; z-index: 9999; display: flex; align-items: center;
+    justify-content: center; background: var(--tch-ink); color: var(--tch-cream);
+    font-family: var(--tch-mono); font-size: 13px; letter-spacing: 0.04em; }
+  body:not(.ap-loading) .ap-loader { display: none; }
+</style>
+<div class="ap-loader">Loading your action plan…</div>
 
 <!-- ============== COVER ============== -->
 <section class="cover">
   <div class="cover-inner">
     <div class="cover-top">
       <span class="tch-logo-3stack-white" style="height: 38px; width: 84px;"></span>
-      <span class="session-tag">Session #<span id="sessionNum">001</span></span>
+      <span class="session-tag">Session #<span id="sessionNum">—</span></span>
     </div>
     <h1>Your<br/>Action<br/>Plan.</h1>
     <div class="tag-line">☎ Senior creative direction · 24-hour delivery</div>
@@ -1244,13 +1258,17 @@
       });
     }
 
+    // Loading gate: reveal once rendered (or on failure), and never keep the
+    // page hidden longer than 6s even if the fetch/render hangs.
+    function revealActionPlan() { document.body.classList.remove('ap-loading'); }
+    setTimeout(revealActionPlan, 6000);
     fetch(`/api/sessions/${encodeURIComponent(sessionId)}`)
       .then(r => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
       .then(s => {
         const intake = s.intake || {};
         const payment = s.payment || {};
-        setText('clientName', intake.clientName || payment.customerName || '[Client Name]');
-        setText('businessName', intake.businessName || intake.brand || '[Business Name]');
+        setText('clientName', intake.clientName || payment.customerName || '—');
+        setText('businessName', intake.businessName || intake.brand || '—');
         setText('sessionNum', s.sessionId ? `TCH-${s.sessionId}` : ((s.id || '').slice(-3).toUpperCase() || '001'));
         if (s.scheduledAt) {
           try {
@@ -1290,10 +1308,12 @@
           console.warn('[action-plan render]', e);
         }
         setStatus('loaded', 'idle');
+        revealActionPlan();
       })
       .catch(err => {
         console.warn('[action-plan load]', err);
         setStatus('load failed', 'error');
+        revealActionPlan();
       });
   })();
 </script>
