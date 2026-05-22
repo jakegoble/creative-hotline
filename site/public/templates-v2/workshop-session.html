@@ -1616,11 +1616,20 @@
       document.querySelectorAll('input, textarea').forEach(el => {
         if (el.id) blob.fields[el.id] = el.value;
       });
-      ['stopList','leaveList','missingList','bsideRows'].forEach(id => {
+      ['stopList','leaveList','missingList'].forEach(id => {
         const root = document.getElementById(id);
         if (!root) return;
-        blob.lists[id] = Array.from(root.children).map(child => child.innerText || '').filter(Boolean);
+        blob.lists[id] = Array.from(root.children).map(child => (child.innerText || '').trim()).filter(Boolean);
       });
+      // B-Side rows hold their value in an <input>, not text content. Reading
+      // child.innerText here returns only the "×" remove-button glyph, so read
+      // the input values directly (and drop empty rows).
+      const bsideRoot = document.getElementById('bsideRows');
+      if (bsideRoot) {
+        blob.lists.bsideRows = Array.from(bsideRoot.querySelectorAll('input'))
+          .map(inp => (inp.value || '').trim())
+          .filter(Boolean);
+      }
       blob.pillars = Array.from(document.querySelectorAll('.pillar')).map(p => ({
         score: Number(p.dataset.score || 0),
         label: p.querySelector('.pillar-label')?.textContent?.trim() || '',

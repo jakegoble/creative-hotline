@@ -659,16 +659,27 @@
     try { debrief = JSON.parse(s.debriefJson); }
     catch { wrap.style.display = 'none'; return; }
     wrap.style.display = '';
-    // Build a row from whichever keys the debrief has
+    // Build a row from whichever keys the debrief has.
+    // The debrief saves scores/confidence at the top level, the four quick-pick
+    // selections under _pills, and the rest as free-text reflections. (Older
+    // top-level keys are kept as fallbacks.)
     const row = document.getElementById('debriefRow');
     const items = [];
+    const pills = debrief._pills || {};
+    const scoreStr = (debrief.meghaScore || debrief.jakeScore)
+      ? `${debrief.meghaScore || '—'} / ${debrief.jakeScore || '—'} (M/J)` : '';
+    const confStr = (debrief.meghaConf || debrief.jakeConf)
+      ? `${debrief.meghaConf || '—'} / ${debrief.jakeConf || '—'} (M/J)` : '';
     const fields = [
-      ['Tone', debrief.tone],
-      ['Landed Hardest', debrief.landedHardest],
-      ['Path', debrief.path],
-      ['Upsell Read', debrief.upsell],
-      ['First Move', debrief.firstMove],
-      ['Authority', debrief.authority || debrief.authorityScore],
+      ['Session Score', scoreStr],
+      ['Confidence', confStr],
+      ['Diagnosis Tone', pills['Diagnosis tone'] || debrief.tone],
+      ['Landed Hardest', pills['What landed hardest'] || debrief.landedHardest],
+      ['Upsell Read', pills['Upsell signal'] || debrief.upsell],
+      ['Primary Path', pills['Primary action path'] || debrief.path],
+      ['Disagreement', debrief.disagreement],
+      ['Unresolved', debrief.unresolved],
+      ['B-Side Routing', debrief.bsideRouting],
     ];
     fields.forEach(([k,v]) => {
       if (v) items.push(`<div class="item"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`);
