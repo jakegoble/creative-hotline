@@ -1744,6 +1744,16 @@
     // Restore a previously-saved workshop blob (server-side workshopJson, with
     // a localStorage fallback) BEFORE any seeding runs, so M+J's live edits
     // survive a reload and seeding only ever fills the still-empty slots.
+    // Set a pillar widget's score: data-score + filled dots + "N / 5" label.
+    function setPillarScore(el, sc) {
+      sc = Math.max(0, Math.min(5, Number(sc) || 0));
+      if (!sc) return;
+      el.setAttribute('data-score', sc);
+      const dots = el.querySelector('.dots');
+      if (dots) dots.textContent = '●'.repeat(sc) + '○'.repeat(5 - sc);
+      const lbl = el.querySelector('.score-label');
+      if (lbl) lbl.textContent = sc + ' / 5';
+    }
     function restoreWorkshopBlob(workshopJson) {
       let blob = null;
       if (typeof workshopJson === 'string' && workshopJson.trim()) {
@@ -1776,6 +1786,13 @@
             .join('');
         }
       });
+      // Restore the four pillar scores (M+J's live scoring) from the saved blob.
+      if (Array.isArray(blob.pillars)) {
+        const pillarEls = document.querySelectorAll('.pillar');
+        blob.pillars.forEach((p, i) => {
+          if (pillarEls[i]) setPillarScore(pillarEls[i], p && p.score);
+        });
+      }
     }
     async function seedFromBrief(intakeId) {
       if (!intakeId) return;
@@ -1795,6 +1812,20 @@
         setSlot('jakeLike', join(brief.distributionSystems));
         // The Unlock hypothesis is the sharp one-sentence gap diagnosis.
         setSlot('gapHypothesis', unlock.hypothesis);
+
+        // 04 Pillars — pre-score from Claude's authority baseline (the section
+        // is labeled "pre-scored from our research"). Only fill a pillar still
+        // at 0, so a restored or M+J-adjusted score is never clobbered.
+        const ab = brief.authorityBaseline || {};
+        const pmap = {
+          positioning: ab.positioning, messaging: ab.messaging,
+          execution: ab.execution, distribution: ab.distribution,
+        };
+        document.querySelectorAll('.pillar').forEach(el => {
+          if (Number(el.getAttribute('data-score')) > 0) return;
+          const name = (el.querySelector('h4')?.textContent || '').trim().toLowerCase();
+          if (pmap[name]) setPillarScore(el, pmap[name].score);
+        });
 
         // 04 What We See — pre-filled diagnosis + directions to push on.
         setSlot('hunch', unlock.hypothesis || unlock.testQuestion);

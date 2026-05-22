@@ -1010,11 +1010,29 @@
     // The plan JSON is the source of truth (Section 1–11). Every section that
     // has a slot here is populated; missing fields leave the template
     // placeholder in place (or hide their card).
+    // When there's no generated plan yet (or it's unreadable), the static
+    // section markup still contains bracketed example copy ([Their North
+    // Star…], [TOOL NAME], etc.). A client/M+J opening the page before the
+    // plan is generated must NOT see those placeholders — hide the whole
+    // deliverable and show a clean "on the way" state instead.
+    function showActionPlanPending() {
+      const m = document.querySelector('main');
+      if (!m || document.getElementById('apPendingNote')) return;
+      m.style.display = 'none';
+      const note = document.createElement('div');
+      note.id = 'apPendingNote';
+      note.style.cssText = 'max-width:680px;margin:96px auto;text-align:center;padding:0 24px;';
+      note.innerHTML =
+        '<div style="font-family:var(--tch-display);font-style:italic;font-weight:700;font-size:var(--tch-step-3);line-height:1.05;margin-bottom:14px;">Your action plan is on the way.</div>' +
+        '<div style="font-family:var(--tch-mono);font-size:var(--tch-step-0);opacity:0.7;line-height:1.6;">We draft it within 24 hours of your session — it lands in your inbox and right here. Check back soon.</div>';
+      m.parentNode.insertBefore(note, m);
+    }
+
     function renderActionPlan(planJson) {
-      if (!planJson) return;
+      if (!planJson) { showActionPlanPending(); return; }
       let plan;
-      try { plan = JSON.parse(planJson); } catch (e) { return; }
-      if (!plan || typeof plan !== 'object') return;
+      try { plan = JSON.parse(planJson); } catch (e) { showActionPlanPending(); return; }
+      if (!plan || typeof plan !== 'object') { showActionPlanPending(); return; }
 
       // 01 North Star
       setText('northStar', plan.northStar);
