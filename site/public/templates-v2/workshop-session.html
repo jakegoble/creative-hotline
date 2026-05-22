@@ -1787,13 +1787,23 @@
       });
       const lists = blob.lists || {};
       Object.keys(lists).forEach(id => {
-        const ul = document.getElementById(id);
-        const items = (lists[id] || []).filter(t => !isPlaceholder(t));
-        if (ul && items.length) {
-          ul.innerHTML = items
-            .map(t => `<li contenteditable="true">${escapeHtml(String(t))}</li>`)
-            .join('');
+        const container = document.getElementById(id);
+        if (!container) return;
+        // Drop placeholders and any stray "×" rows left over from the old
+        // collector bug (it used to store the remove-button glyph).
+        const items = (lists[id] || []).filter(t => !isPlaceholder(t) && String(t).trim() !== '×');
+        if (!items.length) return;
+        if (id === 'bsideRows') {
+          // B-Side rows are input-based .bside-row divs, not <li>. Rebuild them
+          // so the collector (which reads input values) round-trips correctly.
+          container.innerHTML = items.map(t =>
+            `<div class="bside-row"><input type="text" placeholder="Capture an idea..." value="${escapeHtml(String(t))}"><button class="x" onclick="this.parentElement.remove()">×</button></div>`
+          ).join('');
+          return;
         }
+        container.innerHTML = items
+          .map(t => `<li contenteditable="true">${escapeHtml(String(t))}</li>`)
+          .join('');
       });
       // Restore the four pillar scores (M+J's live scoring) from the saved blob.
       if (Array.isArray(blob.pillars)) {
