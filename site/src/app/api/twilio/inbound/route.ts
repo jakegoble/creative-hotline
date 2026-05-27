@@ -133,6 +133,11 @@ function buildContactUpdate(
       };
     case "book":
       return { ...base, addTags: ["hot-lead"] };
+    case "beta":
+      // Beta-launch promo responder. Same hot-lead treatment as a book, plus a
+      // "beta-call" tag so the campaign's leads are filterable in the CRM for
+      // attribution + follow-up.
+      return { ...base, addTags: ["hot-lead", "beta-call"] };
     case "human":
       // Tag for triage + so a "needs-human" Notion view can surface them even
       // if the email alert fails to send.

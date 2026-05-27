@@ -39,7 +39,12 @@ import {
   preferredOutboundChannel,
   type MessagingContact,
 } from "@/lib/services/notion-messaging";
-import { nextDripStep, type DripStage } from "@/lib/sms/drips";
+import {
+  nextDripStep,
+  DRIP_SEQUENCE,
+  BETA_DRIP_SEQUENCE,
+  type DripStage,
+} from "@/lib/sms/drips";
 import { getWhatsAppTemplate } from "@/lib/sms/whatsapp-templates";
 import type { SmsResult } from "@/lib/services/twilio";
 
@@ -123,7 +128,18 @@ async function runDrips(): Promise<{
 
   for (const contact of contacts) {
     const preferred = preferredOutboundChannel(contact);
-    const eligibility = nextDripStep(contact.dripStage, contact.optInDate);
+    // BETA-CALL leads (tagged "beta-call" by the inbound "beta" intent) get the
+    // promo-specific drip copy + tighter cadence; everyone else stays on the
+    // evergreen nurture. Note: the WhatsApp path still uses the generic
+    // stage template (no beta WA template approved) — fine, beta is SMS-driven.
+    const isBeta = contact.tags.includes("beta-call");
+    const sequence = isBeta ? BETA_DRIP_SEQUENCE : DRIP_SEQUENCE;
+    const eligibility = nextDripStep(
+      contact.dripStage,
+      contact.optInDate,
+      new Date(),
+      sequence,
+    );
     if (!eligibility) {
       skipped++;
       results.push({

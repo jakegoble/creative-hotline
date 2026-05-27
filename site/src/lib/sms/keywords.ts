@@ -46,6 +46,7 @@ export type KeywordIntent =
   | "opt_out" // STOP — Status=opted_out, halt drips
   | "info" // INFO/PRICING/location/services/help — engagement, no status change
   | "book" // BOOK/SCHEDULE — engagement + add "hot-lead" tag
+  | "beta" // BETA-CALL — promo campaign; high-intent, tag "hot-lead" + "beta-call"
   | "deals" // DEALS/PROMO — engagement
   | "human" // explicit ask for a real person — tag "needs-human" + alert ops
   | "fallback"; // anything else — handed to the Claude-powered Frankie
@@ -55,6 +56,7 @@ export type KeywordTopic =
   | "opt_in"
   | "opt_out"
   | "book"
+  | "beta"
   | "pricing"
   | "info"
   | "services"
@@ -83,13 +85,14 @@ const REPLIES: Record<KeywordTopic, string> = {
   pricing:
     "Three options: First Call $499 (new clients) · Single Call $699 (returning) · 3-Session Clarity Sprint $1,495. All 60-min strategy calls, action plan in 24 hrs. Text BOOK to lock one in.",
   book: `Let's do it — grab a slot: ${BOOKING_URL}. 60-min call, action plan within 24 hrs. Want it sent to your email too? Just reply with your address.`,
+  beta: `You found the BETA line. A senior creative director on the phone in under 24 hrs. Normally $499 — code BETA-CALL takes $200 off, so it's $299. Money-back guarantee, keep the session either way. Grab a slot: ${BOOKING_URL} (enter BETA-CALL at checkout).`,
   services:
     "Short answer: probably yes. The Hotline is for brand direction, messaging, content that's not landing, launches, pricing, positioning — the creative stuff that's got you stuck. Tell me your specific challenge, or text BOOK to talk it through on a 60-min call.",
   location: `We run 100% remote — every call's over Zoom, so it doesn't matter if you're in LA or London. You bring the creative problem, we build the plan. Text BOOK to grab a 60-min slot: ${BOOKING_URL}`,
   help:
     "Frankie here — your hotline operator. Just text me what you're stuck on, or use: BOOK (grab a call) · PRICING (see options) · INFO (how it works) · DEALS. Reply STOP to opt out.",
   human: `Got it — I'm looping in a real human. Jake or Megha will text you back shortly. Want to grab a call slot in the meantime? ${BOOKING_URL}`,
-  deals: `No active promo right now — you'll be first to know when one drops. Best move: lock a First Call at $499 before prices climb. ${BOOKING_URL}`,
+  deals: `Yes — the BETA launch is on: code BETA-CALL takes $200 off a First Call, so it's $299 instead of $499. Senior creative director on the phone in under 24 hrs, money-back guarantee. Grab a slot: ${BOOKING_URL} (enter BETA-CALL at checkout).`,
   opt_out: "You're unsubscribed. Reply START anytime to come back. — Frankie",
   fallback:
     "Frankie here — tell me what you're stuck on, or try BOOK, PRICING, INFO, or DEALS.",
@@ -100,6 +103,7 @@ const TOPIC_INTENT: Record<KeywordTopic, KeywordIntent> = {
   opt_in: "opt_in",
   opt_out: "opt_out",
   book: "book",
+  beta: "beta",
   deals: "deals",
   pricing: "info",
   info: "info",
@@ -140,6 +144,13 @@ const EXACT_TRIGGERS: Record<string, KeywordTopic> = {
   BOOKING: "book",
   SCHEDULE: "book",
   APPOINTMENT: "book",
+  // beta launch campaign — the advertised keyword is "BETA-CALL". firstToken
+  // strips the hyphen ("BETA-CALL" -> "BETACALL") and takes only the first word
+  // ("BETA CALL" -> "BETA"), so both spellings are registered here. To retire
+  // the promo, remove these two entries + the beta PHRASE_PATTERNS rule below
+  // (the canned reply then never fires; DEALS/AI brain copy revert separately).
+  BETACALL: "beta",
+  BETA: "beta",
   // pricing
   PRICING: "pricing",
   PRICE: "pricing",
@@ -196,6 +207,13 @@ const PHRASE_PATTERNS: { topic: KeywordTopic; re: RegExp }[] = [
   {
     topic: "opt_in",
     re: /\b(SIGN ME UP|OPT ?IN|COUNT ME IN|IM IN|I AM IN)\b/,
+  },
+  {
+    // Beta launch promo. High priority (above book/pricing/deals) so anything
+    // referencing the beta — "the beta call", "is the beta still open", "beta
+    // spot" — routes to the $299 promo reply instead of the generic price list.
+    topic: "beta",
+    re: /\b(BETA ?CALL|BETACALL|BETA SPOTS?|BETA SPECIAL|BETA DEAL|BETA OFFER|BETA PRICE|THE BETA)\b/,
   },
   {
     // Explicit ask for a real person. Checked before "book" so "talk to a real
