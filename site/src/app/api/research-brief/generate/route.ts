@@ -23,8 +23,11 @@ import { runResearchBriefGeneration } from "@/lib/services/run-research-brief";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Research brief generation can take 8-15s — give it room.
-export const maxDuration = 60;
+// Research brief generation: the V2 brief schema (cleaned read-back, distinct
+// see/gap, what's-working, push-on, structured moves) ~doubled the output, so a
+// real Claude call now runs ~40-90s. 60s was getting killed mid-flight and
+// leaving the row stuck on "Generating". Give it real headroom.
+export const maxDuration = 120;
 
 export async function POST(request: Request) {
   let intakeId: string;

@@ -49,8 +49,10 @@ import { runResearchBriefGeneration } from "@/lib/services/run-research-brief";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 // The brief auto-generates in the background (after the 200) via after();
-// give that callback room for the ~10-15s Claude call.
-export const maxDuration = 60;
+// the V2 brief schema ~doubled output so the Claude call now runs ~40-90s.
+// 60s killed the after() callback mid-flight (row stuck on "Generating");
+// give it real headroom so the auto-trigger completes without the self-heal.
+export const maxDuration = 120;
 
 /** Form ID we expect — we only process the Creative Hotline Intake form. */
 const EXPECTED_FORM_ID = "b5W1JE";
