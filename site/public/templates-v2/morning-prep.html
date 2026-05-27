@@ -22,7 +22,7 @@
   }
   .top .left, .top .right { display: flex; gap: 14px; align-items: center; position: relative; z-index: 2; }
   .top h1 {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-1);
     margin: 0;
   }
@@ -55,7 +55,7 @@
     max-width: 720px; margin: 60px auto;
   }
   .picker-card h2 {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-3); line-height: 1; margin: 0 0 8px;
   }
   .picker-card p { font-family: var(--tch-mono); font-size: 14px; color: rgba(28,28,30,0.7); margin: 6px 0 20px; }
@@ -66,7 +66,7 @@
     padding: 14px 18px;
     display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
   }
-  .picker-list .name { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-1); }
+  .picker-list .name { font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-1); }
   .picker-list .meta { font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.6); }
   .picker-list a.open {
     background: var(--tch-ink); color: var(--tch-cream);
@@ -100,7 +100,7 @@
     margin-bottom: 14px; text-transform: uppercase;
   }
   .snapshot h2 {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-4); line-height: 0.95;
     margin: 0 0 8px;
   }
@@ -117,7 +117,7 @@
     color: rgba(28,28,30,0.55); margin-bottom: 6px; text-transform: uppercase;
   }
   .snap-block .v {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-2); line-height: 1.1;
   }
   .snap-block .small { font-family: var(--tch-mono); font-size: 13px; }
@@ -143,11 +143,11 @@
     margin-bottom: 18px; flex-wrap: wrap;
   }
   .sec-num {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-3); color: rgba(28,28,30,0.25); line-height: 1;
   }
   .sec-title {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-3); flex: 1; line-height: 1;
     margin: 0;
   }
@@ -244,7 +244,7 @@
   .pillar-score-row input {
     width: 50px; padding: 4px;
     border: 1.5px solid var(--tch-ink-line);
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-1); text-align: center;
     background: var(--tch-cream);
   }
@@ -252,7 +252,7 @@
   .pillar-combined {
     margin-top: 10px; padding-top: 8px;
     border-top: 1px dashed var(--tch-ink-line);
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-2); color: var(--tch-red); text-align: center;
   }
 
@@ -559,6 +559,8 @@
 
     <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 14px;">Files uploaded through Tally. Click to open the full file.</p>
 
+    <p style="margin-bottom: 14px;"><a id="viewIntakeLink" href="#" target="_blank" rel="noopener" style="font-family: var(--tch-nord, system-ui); font-weight:700; letter-spacing:0.08em; font-size:12px; text-transform:uppercase; color: var(--tch-red); text-decoration:underline;">↳ Open the client's intake · research brief →</a></p>
+
     <div class="library" id="libraryGrid">
       <div class="library-empty">No files uploaded yet.</div>
     </div>
@@ -798,6 +800,11 @@
       const btn = document.getElementById('workshopBtn');
       if (btn) btn.href = `/templates-v2/workshop-session.html?sessionId=${encodeURIComponent(sessionId)}`;
 
+      // Library — wire the "open the client's intake" link to the research-brief
+      // viewer (the synthesized view built from their Tally submission).
+      const viewIntake = document.getElementById('viewIntakeLink');
+      if (viewIntake) viewIntake.href = `/templates-v2/research-brief.html?sessionId=${encodeURIComponent(sessionId)}`;
+
       // Research brief — auto-populate Claude's reads, pillar baselines, and the
       // Unlock hypothesis. The brief generates automatically after Tally; if it
       // isn't Ready yet this also self-heals (idempotent) and refreshes itself.
@@ -842,6 +849,21 @@
     ul.innerHTML = clean
       .map(t => `<li contenteditable="true">${escapeHtml(String(t))}</li>`)
       .join('');
+  }
+  // Seed an editable <textarea>/<input> from the brief ONLY when empty (or a
+  // bracket placeholder), firing `input` so the autosave layer persists it.
+  function seedInputIfEmpty(id, val) {
+    const el = document.getElementById(id);
+    if (!el || !val) return;
+    const cur = (el.value || '').trim();
+    if (cur !== '' && !cur.startsWith('[')) return;
+    el.value = val;
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  function joinBrief(arr) { return Array.isArray(arr) ? arr.filter(Boolean).join('\n') : ''; }
+  function moveByHorizon(moves, h) {
+    if (!Array.isArray(moves)) return null;
+    return moves.find(m => m && typeof m.horizon === 'string' && m.horizon.toLowerCase().indexOf(h) !== -1) || null;
   }
   function trunc(s, n) {
     s = (s || '').toString().trim();
@@ -896,6 +918,21 @@
     // fills if untouched (placeholder/empty) so restored drafts survive.
     seedDraftListIfEmpty('stopDraft', brief.thingsToNotDo);
     seedDraftListIfEmpty('leaveDraft', brief.brandPositioning);
+
+    // ---- Section 06 PRE-DRAFT inputs — seed editably so M+J can SEE + EDIT
+    // the gap hypothesis, "what we like", and the three moves before the call
+    // (only fills empty/placeholder fields; never clobbers typed/restored text).
+    const work = brief.whatsWorking || {};
+    const moves = Array.isArray(brief.moves) ? brief.moves : [];
+    seedInputIfEmpty('gapHypothesis', unlock.hypothesis);
+    seedInputIfEmpty('mLike', joinBrief(work.brand && work.brand.length ? work.brand : brief.brandPositioning));
+    seedInputIfEmpty('jLike', joinBrief(work.systems && work.systems.length ? work.systems : brief.distributionSystems));
+    const m72 = moveByHorizon(moves, '72') || moves[0];
+    const m1w = moveByHorizon(moves, 'week') || moves[1];
+    const m1m = moveByHorizon(moves, 'month') || moves[2];
+    if (m72) seedInputIfEmpty('win72h', m72.diy);
+    if (m1w) seedInputIfEmpty('win1w', m1w.diy);
+    if (m1m) seedInputIfEmpty('win1m', m1m.diy);
 
     setCheckDone('ck-research');
   }

@@ -26,16 +26,16 @@
      ============================================================ */
   .sec-h1 {
     font-family: var(--tch-display);
-    font-style: italic;
+    font-style: normal;
     font-weight: 400;
     font-size: clamp(48px, 7vw, 88px);
-    line-height: 1.0;
+    line-height: 1.05;
     letter-spacing: -0.015em;
-    margin-bottom: 14px;
+    margin-bottom: 28px;
   }
   .sec-h1 em {
     font-style: italic;
-    font-weight: 700;
+    font-weight: 400;
     color: var(--tch-red);
   }
   .sec-h1.on-ink em { color: var(--tch-yellow); }
@@ -74,7 +74,7 @@
     display: inline-block;
   }
   .timer {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-2);
     color: var(--tch-cream); cursor: pointer;
     padding: 4px 14px;
@@ -111,7 +111,7 @@
     color: var(--tch-yellow); margin-bottom: 14px; text-transform: uppercase;
   }
   .mj-drawer h2 {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-2); margin-bottom: 14px;
   }
   .mj-drawer .row {
@@ -311,11 +311,25 @@
   .finding.megha .who { color: var(--tch-red); }
   .finding.jake .who { color: var(--tch-blue); }
   .finding h4 {
-    font-family: var(--tch-display); font-style: italic; font-weight: 400;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-2); margin-bottom: 10px;
   }
-  .finding h4 em { font-weight: 700; }
+  .finding h4 em { font-style: italic; font-weight: 400; color: var(--tch-red); }
   .finding p { font-size: var(--tch-step-0); }
+  /* "What we love" + "What we'd push on" render as bullet lists, not prose */
+  .finding ul, .direction-card ul { list-style: none; margin: 0; padding: 0; }
+  .finding ul li, .direction-card ul li {
+    position: relative; padding-left: 18px; margin-bottom: 8px;
+    font-size: var(--tch-step-0); line-height: 1.4;
+  }
+  .finding ul li:last-child, .direction-card ul li:last-child { margin-bottom: 0; }
+  .finding ul li::before, .direction-card ul li::before {
+    content: '→'; position: absolute; left: 0; color: var(--tch-red);
+    font-family: var(--tch-nord); font-weight: 700;
+  }
+  .direction-card ul li::before { color: inherit; }
+  .direction-card.megha ul li::before { color: var(--tch-red); }
+  .direction-card.jake ul li::before { color: var(--tch-blue); }
 
   .gap {
     background: var(--tch-yellow); color: var(--tch-ink);
@@ -325,8 +339,10 @@
     margin-bottom: 18px;
   }
   .gap .label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; margin-bottom: 10px; text-transform: uppercase; }
-  .gap p { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-3); line-height: 1.15; }
-  .gap p em { font-weight: 700; }
+  .gap .gap-statement { font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2); line-height: 1.1; }
+  .gap .gap-statement em { font-style: italic; font-weight: 400; }
+  .gap .gap-sub { font-family: var(--tch-mono); font-size: var(--tch-step-0); line-height: 1.45; margin-top: 12px; color: rgba(28,28,30,0.72); }
+  .gap .gap-sub:empty { display: none; }
 
   .pushback {
     text-align: center; padding: 24px 0;
@@ -454,8 +470,10 @@
     padding: 22px;
   }
   .hunch .label { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; color: var(--tch-red); margin-bottom: 8px; text-transform: uppercase; }
-  .hunch p { font-family: var(--tch-display); font-style: italic; font-weight: 400; font-size: var(--tch-step-3); line-height: 1.2; }
-  .hunch p em { font-weight: 700; }
+  .hunch p { font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2); line-height: 1.18; }
+  .hunch p em { font-style: italic; font-weight: 400; color: var(--tch-yellow); }
+  .hunch .hunch-sub { font-family: var(--tch-mono); font-size: var(--tch-step-0); line-height: 1.45; margin-top: 12px; color: rgba(245,242,235,0.72); }
+  .hunch .hunch-sub:empty { display: none; }
 
   .recal { text-align: center; padding: 16px 0; }
   .recal .lightning { font-size: var(--tch-step-2); }
@@ -548,9 +566,9 @@
   }
   .move-time { margin-left: auto; }
   .move-title-input {
-    width: 100%;
-    font-family: var(--tch-display); font-style: italic; font-weight: 400;
-    font-size: var(--tch-step-2); line-height: 1.1;
+    width: 100%; display: block; resize: none; overflow: hidden;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
+    font-size: var(--tch-step-2); line-height: 1.15;
     border: none; background: transparent;
     padding: 8px 0; color: var(--tch-ink);
   }
@@ -959,7 +977,7 @@
     padding-left: 36px;
   }
   .coupon-amount {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: clamp(54px, 8vw, 92px); line-height: 0.85;
     color: var(--tch-red);
   }
@@ -1131,18 +1149,19 @@
       <div class="finding megha">
         <div class="who">Megha · Brand & Positioning</div>
         <h4>What we <em>love</em></h4>
-        <p id="meghaLike">—</p>
+        <ul id="meghaLike"><li>—</li></ul>
       </div>
       <div class="finding jake">
         <div class="who">Jake · Design & Systems</div>
         <h4>What we <em>love</em></h4>
-        <p id="jakeLike">—</p>
+        <ul id="jakeLike"><li>—</li></ul>
       </div>
     </div>
 
     <div class="gap">
       <div class="label">↳ Where we think the gap is</div>
-      <p id="gapHypothesis">—</p>
+      <p class="gap-statement" id="gapHypothesis">—</p>
+      <p class="gap-sub" id="gapHypothesisSub"></p>
     </div>
 
     <div class="pushback">"Before we go deeper — is this the <em>real</em> problem?"</div>
@@ -1198,6 +1217,7 @@
       <div class="hunch">
         <div class="label">↳ Here's what we see</div>
         <p id="hunch">—</p>
+        <p class="hunch-sub" id="hunchSub"></p>
       </div>
     </div>
 
@@ -1228,11 +1248,11 @@
       <div class="direction-grid">
         <div class="direction-card megha">
           <div class="who">Megha · Brand + Positioning</div>
-          <p id="meghaDirection">—</p>
+          <ul id="meghaDirection"><li>—</li></ul>
         </div>
         <div class="direction-card jake">
           <div class="who">Jake · Design + Systems</div>
-          <p id="jakeDirection">—</p>
+          <ul id="jakeDirection"><li>—</li></ul>
         </div>
       </div>
     </div>
@@ -1262,7 +1282,7 @@
         <span class="move-tag">72-Hour Win</span>
         <span class="move-time"><span class="time-pill">25:00–27:00 · 2 min</span></span>
       </div>
-      <input class="move-title-input" type="text" id="move72" placeholder="The specific action…" />
+      <textarea class="move-title-input" rows="1" id="move72" placeholder="The specific action…" oninput="autoGrowMove(this)"></textarea>
       <textarea class="move-why-input" id="move72Why" placeholder="Why this · tied to the diagnosis"></textarea>
     </div>
 
@@ -1272,7 +1292,7 @@
         <span class="move-tag">1-Week Move</span>
         <span class="move-time"><span class="time-pill">27:00–29:00 · 2 min</span></span>
       </div>
-      <input class="move-title-input" type="text" id="move1w" placeholder="The specific action…" />
+      <textarea class="move-title-input" rows="1" id="move1w" placeholder="The specific action…" oninput="autoGrowMove(this)"></textarea>
       <textarea class="move-why-input" id="move1wWhy" placeholder="Why this"></textarea>
     </div>
 
@@ -1282,7 +1302,7 @@
         <span class="move-tag">1-Month Build</span>
         <span class="move-time"><span class="time-pill">29:00–31:00 · 2 min</span></span>
       </div>
-      <input class="move-title-input" type="text" id="move1m" placeholder="The specific action…" />
+      <textarea class="move-title-input" rows="1" id="move1m" placeholder="The specific action…" oninput="autoGrowMove(this)"></textarea>
       <textarea class="move-why-input" id="move1mWhy" placeholder="Why this"></textarea>
     </div>
 
@@ -1329,6 +1349,16 @@
     <h2 class="sec-h1" style="text-align:center;">The <em>map</em>.</h2>
     <div class="ei-intro">
       <p>Each move drops onto the grid. <em>High impact + low effort = do this now.</em> Everything else gets a real answer.</p>
+    </div>
+
+    <div class="ei-howto">
+      <h5>↳ Here's what we'll do</h5>
+      <ol>
+        <li><strong>Walk it:</strong> Every move from before is already on the grid. Left side = what you'd do yourself. Right side = what you'd do with help.</li>
+        <li><strong>Pick a path:</strong> For each move, tap the version you're committing to. The other stays visible — ready when you are.</li>
+        <li><strong>Anything missing?</strong> Hit "+ Add a move" in any quadrant — yours, or pull anything we parked on the B-Side.</li>
+        <li><strong>Lock it:</strong> What you choose here saves into your Creative File. We pick up exactly where this leaves off.</li>
+      </ol>
     </div>
 
     <div class="matrix-wrap">
@@ -1398,15 +1428,6 @@
       </div>
     </div>
 
-    <div class="ei-howto">
-      <h5>↳ Here's what we'll do</h5>
-      <ol>
-        <li><strong>Walk it:</strong> Every move from before is already on the grid. Left side = what you'd do yourself. Right side = what you'd do with help.</li>
-        <li><strong>Pick a path:</strong> For each move, tap the version you're committing to. The other stays visible — ready when you are.</li>
-        <li><strong>Anything missing?</strong> Hit "+ Add a move" in any quadrant — yours, or pull anything we parked on the B-Side.</li>
-        <li><strong>Lock it:</strong> What you choose here saves into your Creative File. We pick up exactly where this leaves off.</li>
-      </ol>
-    </div>
   </section>
 
   <!-- FIRST MOVE -->
@@ -1567,6 +1588,14 @@
   function addLi(id, txt) {
     const li = document.createElement('li'); li.contentEditable = 'true'; li.textContent = txt;
     document.getElementById(id).appendChild(li); li.focus();
+  }
+  // Global so inline oninput="autoGrowMove(this)" on the §05 move textareas
+  // resolves. Grows a wrapping move title so long pre-drafted text never
+  // truncates (the "Here's the play" overflow fix).
+  function autoGrowMove(el) {
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = (el.scrollHeight || 0) + 'px';
   }
   function persist() {
     const data = {};
@@ -1740,6 +1769,40 @@
       ul.dispatchEvent(new Event('input', { bubbles: true }));
     }
 
+    // Fill a display <ul> with bullet <li>s from an array. These are
+    // facilitator/client READS (not editable), so a plain overwrite is right.
+    // Skips silently when the list is empty so we never blank a real value
+    // with nothing. Items are rendered as plain text (HTML-escaped).
+    function seedBullets(id, items) {
+      const ul = document.getElementById(id);
+      if (!ul) return;
+      const clean = (items || []).map(x => (x == null ? '' : String(x)).trim()).filter(Boolean);
+      if (!clean.length) return;
+      // Only overwrite when the list is still the "—" placeholder.
+      const current = Array.from(ul.children).map(li => li.innerText);
+      const allPlaceholder = current.every(t => isPlaceholder(t));
+      if (ul.children.length && !allPlaceholder) return;
+      ul.innerHTML = clean.map(t => `<li>${escapeHtml(t)}</li>`).join('');
+    }
+    // Split a multi-sentence statement into a 1-sentence headline + the rest
+    // as a supporting subline, so diagnostic statements read as
+    // "headline + paragraph subline" instead of one giant block.
+    function setSlotPair(headlineId, subId, text) {
+      const t = (text == null ? '' : String(text)).trim();
+      if (!t) return;
+      const m = t.match(/^(.*?[.!?])(\s+)(.*)$/s);
+      const head = m ? m[1].trim() : t;
+      const sub = m ? m[3].trim() : '';
+      setSlot(headlineId, head);
+      const subEl = document.getElementById(subId);
+      if (subEl && sub) subEl.textContent = sub;
+    }
+    // (autoGrowMove is defined globally above so inline oninput handlers
+    //  on the §05 move textareas resolve; it's reused here during seeding.)
+    // Holds the brief's structured moves so the §06 map can show the
+    // Level-Up (Path B) text, not just "With help: <diy>".
+    let briefMoves = [];
+
     // Section 01 · YOUR STORY — read the intake straight back to the client.
     // These <div> slots aren't editable, so a plain overwrite is correct.
     function seedFromIntake(intake) {
@@ -1831,11 +1894,22 @@
 
         const unlock = brief.unlock || {};
 
-        // 02 Dialing In — "What we love" reads + the gap hypothesis.
-        setSlot('meghaLike', join(brief.brandPositioning));
-        setSlot('jakeLike', join(brief.distributionSystems));
-        // The Unlock hypothesis is the sharp one-sentence gap diagnosis.
-        setSlot('gapHypothesis', unlock.hypothesis);
+        const working = brief.whatsWorking || {};
+        const pushOn = brief.whatToPushOn || {};
+
+        // 01 Your Story — overwrite the raw "what brought you here" with the
+        // cleaned, de-jargoned read-back (fixes spelling / clarifies messy
+        // answers). Falls back to the raw intake value when absent.
+        if (brief.intakeReadback) setSlot('intakeBrought', brief.intakeReadback);
+
+        // 02 Dialing In — "What we love" = GENUINE positives, as bullets.
+        // Prefer the dedicated whatsWorking field; fall back to the older
+        // (mixed) positioning/systems reads so legacy briefs still populate.
+        seedBullets('meghaLike', (working.brand && working.brand.length) ? working.brand : brief.brandPositioning);
+        seedBullets('jakeLike', (working.systems && working.systems.length) ? working.systems : brief.distributionSystems);
+        // The gap = the underlying hypothesis, split into a 1-sentence
+        // headline + a supporting subline (no more "giant italic" block).
+        setSlotPair('gapHypothesis', 'gapHypothesisSub', unlock.hypothesis);
 
         // 04 Pillars — pre-score from Claude's authority baseline (the section
         // is labeled "pre-scored from our research"). Only fill a pillar still
@@ -1851,29 +1925,41 @@
           if (pmap[name]) setPillarScore(el, pmap[name].score);
         });
 
-        // 04 What We See — pre-filled diagnosis + directions to push on.
-        setSlot('hunch', unlock.hypothesis || unlock.testQuestion);
-        // Megha pushes on positioning/audience; Jake on distribution/systems.
-        setSlot('meghaDirection', join(brief.audience) || join(brief.brandPositioning));
-        let jakeDir = join(brief.distributionSystems);
+        // 04 What We See — the OBSERVATION (surface pattern), kept DISTINCT
+        // from the gap hypothesis above. Split into headline + subline.
+        // Fall back to testQuestion only if no dedicated observation exists.
+        setSlotPair('hunch', 'hunchSub', unlock.observation || unlock.testQuestion);
+        // "What we'd push on" = CONSTRUCTIVE, client-facing feedback bullets.
+        // Megha = brand, Jake = systems. Fall back to the older reads.
         const notDo = Array.isArray(brief.thingsToNotDo) ? brief.thingsToNotDo.filter(Boolean) : [];
-        if (notDo.length) {
-          jakeDir = (jakeDir ? jakeDir + ' · ' : '') + notDo.map(t => `⛔ Don't: ${t}`).join(' · ');
-        }
-        setSlot('jakeDirection', jakeDir);
+        seedBullets('meghaDirection', (pushOn.brand && pushOn.brand.length) ? pushOn.brand : brief.audience);
+        seedBullets('jakeDirection', (pushOn.systems && pushOn.systems.length) ? pushOn.systems : brief.distributionSystems);
 
         // ---- 05 THE PLAY · proposed moves (only fill if untouched) --------
         const dist = Array.isArray(brief.distributionSystems) ? brief.distributionSystems.filter(Boolean) : [];
         const aud = Array.isArray(brief.audience) ? brief.audience.filter(Boolean) : [];
         const pos = Array.isArray(brief.brandPositioning) ? brief.brandPositioning.filter(Boolean) : [];
-        // Concise, action-shaped proposals derived from the brief. These are
-        // facilitator starting points — M+J pressure-test + edit them live.
-        const move72Action = firstClause(unlock.testQuestion || aud[0] || pos[0], 90);
-        const move1wAction  = firstClause(dist[0] || aud[1] || aud[0], 90);
-        const move1mAction  = firstClause(unlock.hypothesis || dist[1] || dist[0], 90);
-        seedInputIfEmpty('move72', move72Action);
-        seedInputIfEmpty('move1w', move1wAction);
-        seedInputIfEmpty('move1m', move1mAction);
+        // Prefer the brief's structured moves (DIY + Level-Up + Why per
+        // horizon). Keep them on `briefMoves` so the §06 map can show the
+        // Level-Up (Path B) text. Fall back to the older clause-shaping when a
+        // brief predates the structured field.
+        briefMoves = Array.isArray(brief.moves) ? brief.moves : [];
+        const slots = [
+          { action: 'move72', why: 'move72Why' },
+          { action: 'move1w', why: 'move1wWhy' },
+          { action: 'move1m', why: 'move1mWhy' },
+        ];
+        const fallbackDiy = [
+          firstClause(unlock.testQuestion || aud[0] || pos[0], 120),
+          firstClause(dist[0] || aud[1] || aud[0], 120),
+          firstClause(unlock.hypothesis || dist[1] || dist[0], 120),
+        ];
+        slots.forEach((s, i) => {
+          const m = briefMoves[i] || {};
+          seedInputIfEmpty(s.action, m.diy || fallbackDiy[i]);
+          seedInputIfEmpty(s.why, m.why);            // §39: "why this matters" was never seeded
+          autoGrowMove(document.getElementById(s.action));
+        });
 
         // NOT DOING ← thingsToNotDo · LEAVE ALONE ← strengths worth protecting
         // (brandPositioning reads) · WHAT'S MISSING ← open questions.
@@ -1907,13 +1993,16 @@
         { input: 'move1w', a: 'map-1w-A', b: 'map-1w-B' },
         { input: 'move1m', a: 'map-1m-A', b: 'map-1m-B' },
       ];
-      moves.forEach(m => {
+      moves.forEach((m, i) => {
         const src = document.getElementById(m.input);
         const val = src && !isPlaceholder(src.value) ? src.value.trim() : '';
         const aEl = document.getElementById(m.a);
         const bEl = document.getElementById(m.b);
+        // Path A (DIY) = the live move text. Path B (Level-Up) = the brief's
+        // structured Level-Up version when we have it, else a sensible frame.
+        const levelUp = (briefMoves[i] && briefMoves[i].levelUp || '').trim();
         if (aEl) aEl.textContent = val || 'Set during the session';
-        if (bEl) bEl.textContent = val ? `With help: ${val}` : 'The version with help / better tools';
+        if (bEl) bEl.textContent = levelUp || (val ? `With help: ${val}` : 'The version with help / better tools');
       });
     }
 
@@ -1961,7 +2050,11 @@
     // Keep the Section-06 map in sync as M+J edit the Section-05 moves live.
     ['move72', 'move1w', 'move1m'].forEach(id => {
       const el = document.getElementById(id);
-      if (el) el.addEventListener('input', syncMapFromMoves);
+      if (el) {
+        el.addEventListener('input', syncMapFromMoves);
+        // Grow restored values too (seedFromBrief only grows what it seeds).
+        autoGrowMove(el);
+      }
     });
   })();
 </script>

@@ -50,6 +50,14 @@ export interface ActionMove {
   owner: "client" | "tch";
 }
 
+/** A single 7/30/90-day benchmark: a concrete goal + how you'll know you hit it. */
+export interface Benchmark {
+  /** The measurable goal for this horizon. 1 sentence. */
+  goal: string;
+  /** How the client will know they hit it (the signal). 1 sentence. */
+  signal: string;
+}
+
 /** A move placed on the Effort/Impact matrix. */
 export interface EffortImpactItem {
   title: string;
@@ -117,8 +125,16 @@ export interface ActionPlanV2 {
   tools: string[];
 
   // ---------- Section 10: What Success Looks Like ----------
-  /** 2-3 sentence definition of success at 30/60/90. */
+  /** 2-3 sentence definition of success at 30/60/90. Kept as a narrative
+   *  fallback; the structured `benchmarks` below drive the visual grid. */
   success: string;
+  /** Structured 7/30/90-day benchmarks — each a goal + the signal that you
+   *  hit it. Rendered as the visual grid in action-plan.html (not buried prose). */
+  benchmarks: {
+    sevenDay: Benchmark;
+    thirtyDay: Benchmark;
+    ninetyDay: Benchmark;
+  };
 
   // ---------- Section 11: Continue the Conversation ----------
   /** 1-2 sentence pitch on next step — usually an upsell hook. */
@@ -220,9 +236,16 @@ Return JSON matching exactly this shape:
     { "title": "string", "quadrant": "high_impact_low_effort"|"high_impact_high_effort"|"low_impact_low_effort"|"low_impact_high_effort", "path": "A"|"B"|null }
   ],
   "tools": ["string (tool name — why)", ...],
-  "success": "string (2-3 sentences defining 30/60/90 success)",
+  "success": "string (2-3 sentences defining 30/60/90 success — narrative)",
+  "benchmarks": {
+    "sevenDay":  { "goal": "string (concrete, measurable 7-day goal)", "signal": "string (how they'll know they hit it)" },
+    "thirtyDay": { "goal": "string (30-day goal)", "signal": "string (the signal)" },
+    "ninetyDay": { "goal": "string (90-day goal)", "signal": "string (the signal)" }
+  },
   "continueConversation": "string (1-2 sentence next-step pitch)"
 }
+
+The "benchmarks" must be specific and measurable (not aspirational fluff) — they render as a visual 7/30/90 grid the client tracks against.
 
 JSON ONLY. No prose around it.`;
 
@@ -375,6 +398,7 @@ export async function generateActionPlanV2(
     effortImpact: normalizeEffortImpact(parsed.effortImpact),
     tools: normalizeStringArray(parsed.tools),
     success: typeof parsed.success === "string" ? parsed.success.trim() : "",
+    benchmarks: normalizeBenchmarks(parsed.benchmarks),
     continueConversation:
       typeof parsed.continueConversation === "string"
         ? parsed.continueConversation.trim()
@@ -421,6 +445,24 @@ function normalizeActionPlan(raw: unknown): ActionPlanV2["actionPlan"] {
     win72hr: normalizeMove(r.win72hr),
     move1week: normalizeMove(r.move1week),
     build1month: normalizeMove(r.build1month),
+  };
+}
+
+function normalizeBenchmark(raw: unknown): Benchmark {
+  if (!raw || typeof raw !== "object") return { goal: "", signal: "" };
+  const r = raw as Record<string, unknown>;
+  return {
+    goal: typeof r.goal === "string" ? r.goal.trim() : "",
+    signal: typeof r.signal === "string" ? r.signal.trim() : "",
+  };
+}
+
+function normalizeBenchmarks(raw: unknown): ActionPlanV2["benchmarks"] {
+  const r = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  return {
+    sevenDay: normalizeBenchmark(r.sevenDay),
+    thirtyDay: normalizeBenchmark(r.thirtyDay),
+    ninetyDay: normalizeBenchmark(r.ninetyDay),
   };
 }
 

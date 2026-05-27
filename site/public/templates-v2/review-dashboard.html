@@ -56,7 +56,7 @@
     color: var(--tch-yellow); margin-bottom: 6px; text-transform: uppercase;
   }
   .day-title {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-3); margin-bottom: 4px; color: var(--tch-cream);
   }
   .day-meta {
@@ -73,7 +73,7 @@
   .queue-item:hover { background: rgba(245,242,235,0.1); }
   .queue-item.active { border-left-color: var(--tch-red); background: rgba(236,49,7,0.12); }
   .queue-item .name {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-1); margin-bottom: 2px;
   }
   .queue-item .biz { font-family: var(--tch-mono); font-size: 11px; color: rgba(245,242,235,0.6); margin-bottom: 8px; }
@@ -100,7 +100,7 @@
   .session-head { margin-bottom: 28px; padding-bottom: 22px; border-bottom: 2px solid var(--tch-ink); }
   .breadcrumb { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.18em; font-size: 11px; color: var(--tch-red); text-transform: uppercase; margin-bottom: 10px; }
   .session-head h1 {
-    font-family: var(--tch-display); font-style: italic; font-weight: 700;
+    font-family: var(--tch-display); font-style: normal; font-weight: 400;
     font-size: var(--tch-step-3); line-height: 1.0; margin-bottom: 10px;
   }
   .session-head .meta { display: flex; gap: 18px; font-family: var(--tch-mono); font-size: 12px; color: rgba(28,28,30,0.65); flex-wrap: wrap; }
@@ -132,7 +132,7 @@
   .section-card.shared { border-left-color: var(--tch-yellow); }
   .section-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; flex-wrap: wrap; gap: 10px; }
   .section-head .left { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .section-num-tag-r { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2); color: rgba(28,28,30,0.3); }
+  .section-num-tag-r { font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2); color: rgba(28,28,30,0.3); }
   .section-name { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.06em; font-size: 14px; text-transform: uppercase; }
 
   .section-actions { display: flex; gap: 6px; }
@@ -875,9 +875,11 @@
               ${showJ ? `<span class="check-pill ${jDone?'done':''}">${jDone?'J ✓':'J'}</span>` : ''}
             </span></div>
             <div>
-              <button class="approve-btn ${myApproved?'approved':''}" data-action="approve" data-idx="${idx}" ${myApproved?'disabled':''}>
-                ${myApproved ? '✓ Approved' : `Approve as ${STATE.role.toUpperCase()}`}
-              </button>
+              ${both
+                ? `<button class="approve-btn approved" disabled>✓ Approved · M+J</button>`
+                : myApproved
+                  ? `<button class="approve-btn approved" disabled>✓ You — awaiting ${STATE.role === 'm' ? 'J' : 'M'}</button>`
+                  : `<button class="approve-btn" data-action="approve" data-idx="${idx}">Approve as ${STATE.role.toUpperCase()}</button>`}
             </div>
           </div>
         </div>`;
@@ -920,10 +922,14 @@
     const ap = !!s.actionPlanJson;
     setGate('ActionPlan', ap, ap ? 'Generated' : 'Not yet generated');
 
-    // gate 2: all sections approved
+    // gate 2: all sections approved. Each section needs BOTH M+J — surface
+    // that in the gate text so a half-approved plan doesn't read as "stuck".
     const total = sections.length;
     const approved = sections.filter((sec, idx) => isSectionFullyApproved(sec, approvals, idx)).length;
-    setGate('Sections', total > 0 && approved === total, `${approved} of ${total}`, total ? (approved/total*100) : 0);
+    const sectionsText = (total > 0 && approved === total)
+      ? `${approved} of ${total}`
+      : `${approved} of ${total} · each needs M+J (toggle role)`;
+    setGate('Sections', total > 0 && approved === total, sectionsText, total ? (approved/total*100) : 0);
 
     // gate 3 + 4: role sign-offs
     const signoff = getSignoff(sid);

@@ -53,7 +53,7 @@
   .snap-left .biz { font-family: var(--tch-mono); font-size: 13px; margin-top: 6px; }
   .snap-grid { display: grid; grid-template-columns: repeat(3, auto); gap: 24px; }
   .snap-stat .k { font-family: var(--tch-nord); font-weight: 500; letter-spacing: 0.14em; font-size: 10px; color: rgba(28,28,30,0.6); text-transform: uppercase; margin-bottom: 4px; }
-  .snap-stat .v { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2); }
+  .snap-stat .v { font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2); }
   .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin: 0 32px 24px; border: 2px solid var(--tch-ink); background: var(--tch-cream); }
   .step { padding: 16px 18px; cursor: pointer; border-right: 1.5px solid var(--tch-ink); transition: all 0.15s; position: relative; }
   .step:last-child { border-right: none; }
@@ -65,7 +65,7 @@
   .step.active.s-review { background: var(--tch-red); color: var(--tch-cream); }
   .step.active.s-sent { background: var(--tch-green); color: var(--tch-ink); }
   .step.complete::before { content: '✓'; position: absolute; top: 10px; right: 12px; font-family: var(--tch-nord); font-weight: 700; font-size: 14px; color: var(--tch-green); }
-  .step .num { font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-1); margin-bottom: 4px; }
+  .step .num { font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-1); margin-bottom: 4px; }
   .step .name { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.16em; font-size: 11px; text-transform: uppercase; }
   .step .duration { font-family: var(--tch-mono); font-size: 10px; opacity: 0.6; margin-top: 4px; }
   .three-panel { display: grid; grid-template-columns: 320px 1fr 320px; gap: 20px; margin: 0 32px 32px; }
@@ -232,12 +232,12 @@
         <div class="panel center" id="debriefCenterPanel">
           <div class="panel-head"><span class="panel-tag">↳ The 10 Questions · Snapshot</span></div>
           <div class="twocol">
-            <div class="input-block m"><div class="who">Megha · Score</div><div class="body" id="debriefScoreM" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
-            <div class="input-block j"><div class="who">Jake · Score</div><div class="body" id="debriefScoreJ" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
+            <div class="input-block m"><div class="who">Megha · Score</div><div class="body" id="debriefScoreM" style="font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2);">—</div></div>
+            <div class="input-block j"><div class="who">Jake · Score</div><div class="body" id="debriefScoreJ" style="font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2);">—</div></div>
           </div>
           <div class="twocol">
-            <div class="input-block m"><div class="who">Megha · Conf.</div><div class="body" id="debriefConfM" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
-            <div class="input-block j"><div class="who">Jake · Conf.</div><div class="body" id="debriefConfJ" style="font-family: var(--tch-display); font-style: italic; font-weight: 700; font-size: var(--tch-step-2);">—</div></div>
+            <div class="input-block m"><div class="who">Megha · Conf.</div><div class="body" id="debriefConfM" style="font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2);">—</div></div>
+            <div class="input-block j"><div class="who">Jake · Conf.</div><div class="body" id="debriefConfJ" style="font-family: var(--tch-display); font-style: normal; font-weight: 400; font-size: var(--tch-step-2);">—</div></div>
           </div>
           <div class="input-block shared"><div class="who">Non-Obvious Insight</div><div class="body" id="debriefInsight" style="font-family: var(--tch-mono); font-size: 13px; font-style: italic;">—</div></div>
           <a href="debrief.html" class="quick-link"><span class="icon">📋</span><span class="label">Edit in full debrief flow</span><span class="arrow">→</span></a>
@@ -648,7 +648,9 @@
           if (!s.intake) {
             blocks[1].textContent = 'No intake yet — the research brief generates automatically once the client submits Tally.';
           } else if (bs === 'Ready') {
-            blocks[1].textContent = 'Research brief ready. Open Morning Prep to read →';
+            blocks[1].innerHTML = 'Research brief ready. '
+              + '<a href="research-brief.html?sessionId=' + encodeURIComponent(s.id || '')
+              + '" target="_blank" rel="noopener" style="color:var(--tch-red);font-weight:700;text-decoration:underline;">Open the brief →</a>';
           } else {
             // Not Generated / Failed / Generating → it should already be running.
             // Auto-heal: re-trigger generation (idempotent) and refresh on its own.

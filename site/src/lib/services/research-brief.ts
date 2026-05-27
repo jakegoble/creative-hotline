@@ -47,13 +47,40 @@ export interface ResearchBrief {
   };
   /** "The Unlock" — the single biggest hypothesis + the question that tests it. */
   unlock: {
-    hypothesis: string; // 2-3 sentences — the one thread to pull on the call
+    /** WHAT WE SEE (Workshop §04) — the surface-level pattern/symptom we
+     *  observe in their brand. Distinct from `hypothesis`: this is the
+     *  observable thing, the hypothesis is the underlying cause. 1-2 sentences. */
+    observation: string;
+    hypothesis: string; // 2-3 sentences — the one thread to pull on the call (the GAP / underlying cause)
     testQuestion: string; // 1 sentence M+J can literally ask
   };
   /** Hard "do not" guardrails for the session. 2-4 short bullets. */
   thingsToNotDo: string[];
   /** Key unknowns M+J should resolve live. 2-4 short bullets. */
   openQuestions: string[];
+
+  // --- V2 workshop-facing fields (added 2026-05-27 for Megha's edit-pass) ---
+  /** Workshop §01 "What's actually happening" — a CLEANED, clarified 1-2
+   *  sentence read-back of the client's own story (fix spelling/grammar,
+   *  de-jargon, keep their meaning). Written TO the client (2nd person). */
+  intakeReadback: string;
+  /** Workshop §02 "What we love" — GENUINE positives about their brand.
+   *  brand = Megha's read, systems = Jake's read. 2-3 bullets each, 2nd person. */
+  whatsWorking: { brand: string[]; systems: string[] };
+  /** Workshop §04 "What we'd push on" — CONSTRUCTIVE client-facing feedback
+   *  (not internal notes). brand = Megha, systems = Jake. 2-3 bullets each,
+   *  2nd person, specific and kind-but-honest. */
+  whatToPushOn: { brand: string[]; systems: string[] };
+  /** Workshop §05 "Here's the play" — three pre-drafted moves. For each
+   *  horizon, a DIY version (they do it themselves) AND a Level-Up version
+   *  (the same move done with help / better tools), plus WHY it matters.
+   *  All 2nd person, editable live by M+J. */
+  moves: Array<{
+    horizon: "72-hour" | "1-week" | "1-month";
+    diy: string;
+    levelUp: string;
+    why: string;
+  }>;
 }
 
 // ---------------------------------------------------------------------------
@@ -81,14 +108,31 @@ Return ONLY valid JSON matching EXACTLY this schema (no prose preamble, no markd
     "distribution": { "score": 3, "note": "one-line read; integer 1-5" }
   },
   "unlock": {
-    "hypothesis": "2-3 sentences — the single biggest thread to pull on the call",
+    "observation": "1-2 sentences — the surface PATTERN you observe (what we SEE). This is the symptom, not the cause.",
+    "hypothesis": "2-3 sentences — the underlying GAP beneath the observation (the single biggest thread to pull). Must be DISTINCT from observation.",
     "testQuestion": "one sentence M+J can literally ask to test the hypothesis"
   },
   "thingsToNotDo": ["2-4 bullets: hard 'do not' guardrails for this session"],
-  "openQuestions": ["2-4 bullets: key unknowns M+J should resolve live"]
+  "openQuestions": ["2-4 bullets: key unknowns M+J should resolve live"],
+  "intakeReadback": "1-2 sentences, written TO the client (2nd person), cleanly summarizing their own story back to them — fix spelling/grammar, drop jargon, keep their meaning. e.g. 'You're a ceramics studio that blew up on TikTok, and now you're not sure how to turn that attention into steady wholesale orders.'",
+  "whatsWorking": {
+    "brand": ["2-3 bullets — GENUINE positives about their brand/positioning, 2nd person ('Your voice is unmistakably yours…')"],
+    "systems": ["2-3 bullets — GENUINE positives about their distribution/systems, 2nd person"]
+  },
+  "whatToPushOn": {
+    "brand": ["2-3 bullets — CONSTRUCTIVE, client-facing feedback on brand/positioning, 2nd person, specific and kind-but-honest"],
+    "systems": ["2-3 bullets — CONSTRUCTIVE, client-facing feedback on distribution/systems, 2nd person"]
+  },
+  "moves": [
+    { "horizon": "72-hour", "diy": "the specific action they can do themselves in 72 hours, 2nd person", "levelUp": "the same move done with help / better tools", "why": "1 sentence — why this matters, tied to the diagnosis" },
+    { "horizon": "1-week", "diy": "…", "levelUp": "…", "why": "…" },
+    { "horizon": "1-month", "diy": "…", "levelUp": "…", "why": "…" }
+  ]
 }
 
-Every authorityBaseline score MUST be an integer from 1 to 5. When the intake is too thin to judge a pillar, score it conservatively (low) and say so in the note. The "unlock" is the most important field — make the hypothesis a clear, single-thread thesis.`;
+Every authorityBaseline score MUST be an integer from 1 to 5. When the intake is too thin to judge a pillar, score it conservatively (low) and say so in the note. The "unlock" is the most important field — make the hypothesis a clear, single-thread thesis, and keep "observation" (what we SEE on the surface) DISTINCT from "hypothesis" (the GAP underneath).
+
+POINT OF VIEW — IMPORTANT: All CLIENT-FACING fields (intakeReadback, whatsWorking, whatToPushOn, moves) must be written in the SECOND PERSON, addressing the client directly ("you", "your") — never third person ("the client's problem is…"). These are read aloud or shown on screen to the client during the call. The internal-only fields (brandPositioning, distributionSystems, audience, authorityBaseline, thingsToNotDo, openQuestions) are notes M+J read privately and can stay analytical.`;
 }
 
 function buildUserPrompt(intake: IntakeRecord, extras: { priceRange?: string; monthlyRevenue?: string; teamSize?: string; primaryPlatform?: string; magicWand?: string; inspiration?: string }): string {
@@ -162,7 +206,7 @@ export async function generateResearchBrief(
     },
     body: JSON.stringify({
       model: config.anthropic.model,
-      max_tokens: 4096,
+      max_tokens: 8192,
       system: buildSystemPrompt(),
       messages: [
         {
