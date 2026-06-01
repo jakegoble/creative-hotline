@@ -84,10 +84,17 @@
   .move .lvl { font-size: 13px; margin-bottom: 8px; }
   .move .lvl b { font-family: var(--tch-nord, system-ui); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); }
   .move .why { font-size: 12px; color: var(--muted); font-style: italic; }
+  .scorecard { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .scorecell { background: #fff; border: 1.5px solid var(--line); padding: 12px 14px; }
+  .scorecell .sname { font-family: var(--tch-nord, system-ui); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; }
+  .scorecell .sscore { font-family: var(--tch-display, Georgia, serif); font-style: normal; font-weight: 400; font-size: 24px; color: var(--red); line-height: 1; margin: 4px 0 6px; }
+  .scorecell .sscore.audit { font-size: 12px; font-family: var(--tch-nord, system-ui); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue); }
+  .scorecell .snote { font-size: 12px; color: #333; }
   .state { padding: 48px 8px; text-align: center; color: var(--muted); font-family: var(--tch-nord, system-ui); letter-spacing: 0.08em; text-transform: uppercase; font-size: 12px; }
   .foot { margin-top: 30px; font-size: 11px; color: var(--muted); font-family: var(--tch-nord, system-ui); letter-spacing: 0.1em; text-transform: uppercase; text-align: center; }
   @media (max-width: 620px) {
     .pillars, .two-col { grid-template-columns: 1fr; }
+    .scorecard { grid-template-columns: repeat(2, 1fr); }
   }
   @media print {
     header.top { background: #fff; color: #000; border-bottom: 2px solid #000; }
@@ -205,6 +212,67 @@
             return out + "</div>";
           }).join("")
         + "</div>";
+    }
+
+    // Brand voice + visual identity (client-facing reads)
+    if (brief.brandVoice) {
+      html += '<div class="sec"><div class="lab">Brand voice</div><div class="card"><p class="statement">' + emify(brief.brandVoice) + "</p></div></div>";
+    }
+    if (brief.visualIdentity) {
+      html += '<div class="sec"><div class="lab">Visual identity</div><div class="card blue"><p class="statement">' + emify(brief.visualIdentity) + "</p></div></div>";
+    }
+
+    // Content health scorecard (6 dimensions; null score = needs live audit)
+    var ch = brief.contentHealth || {};
+    var chCells = [
+      ["Visual quality", ch.visualQuality], ["Brand cohesion", ch.brandCohesion],
+      ["Copy & captions", ch.copyCaptions], ["Engagement", ch.engagement],
+      ["Storytelling", ch.storytelling], ["Conversion path", ch.conversionPath]
+    ].filter(function (c) { return c[1] && (c[1].score != null || (c[1].note && String(c[1].note).trim())); });
+    if (chCells.length) {
+      html += '<div class="sec"><div class="lab">Content health</div><div class="scorecard">'
+        + chCells.map(function (c) {
+            var v = c[1] || {};
+            var scoreHtml = (v.score == null)
+              ? '<div class="sscore audit">Needs live audit</div>'
+              : '<div class="sscore">' + esc(v.score) + " / 5</div>";
+            return '<div class="scorecell"><div class="sname">' + esc(c[0]) + "</div>" + scoreHtml + '<div class="snote">' + esc(v.note || "") + "</div></div>";
+          }).join("")
+        + "</div></div>";
+    }
+
+    // Competitive position
+    if (arr(brief.competitivePosition).length) {
+      html += '<div class="sec"><div class="lab">Competitive position</div><div class="card">' + bullets(brief.competitivePosition) + "</div></div>";
+    }
+
+    // The story you're telling (current vs should-be)
+    var st = brief.storyTelling || {};
+    if (st.current || st.shouldBe) {
+      html += '<div class="sec"><div class="lab">The story you’re telling</div><div class="two-col">'
+        + '<div><div class="col-h m">Right now</div><div class="card">' + (st.current ? '<p class="statement">' + emify(st.current) + "</p>" : '<p class="sub">Not provided in this brief.</p>') + "</div></div>"
+        + '<div><div class="col-h j">Should be</div><div class="card blue">' + (st.shouldBe ? '<p class="statement">' + emify(st.shouldBe) + "</p>" : '<p class="sub">Not provided in this brief.</p>') + "</div></div>"
+        + "</div></div>";
+    }
+
+    // Story hooks
+    if (arr(brief.storyHooks).length) {
+      html += '<div class="sec"><div class="lab">Story hooks</div><div class="card">' + bullets(brief.storyHooks) + "</div></div>";
+    }
+
+    // Virality levers
+    if (arr(brief.viralityLevers).length) {
+      html += '<div class="sec"><div class="lab">Virality levers</div><div class="card blue">' + bullets(brief.viralityLevers) + "</div></div>";
+    }
+
+    // The elephant — hard truth, named kindly
+    if (brief.elephant) {
+      html += '<div class="sec"><div class="lab">The elephant in the room</div><div class="card ink"><p class="statement" style="color:var(--tch-cream)">' + emify(brief.elephant) + "</p></div></div>";
+    }
+
+    // Reference brands
+    if (arr(brief.referenceBrands).length) {
+      html += '<div class="sec"><div class="lab">North-star brands</div><div class="card">' + bullets(brief.referenceBrands) + "</div></div>";
     }
 
     // Guardrails + open questions

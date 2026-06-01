@@ -584,7 +584,7 @@
   }
   .move-why-input:focus { outline: none; border-color: var(--tch-red); background: var(--tch-cream); }
 
-  .stop-leave-missing { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-top: 24px; }
+  .stop-leave-missing { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-top: 24px; }
   .stop-card {
     padding: 22px; box-shadow: var(--tch-shadow-hard-sm);
     border: 2px solid var(--tch-ink);
@@ -1135,6 +1135,16 @@
     <div class="question-card">
       <p class="q">"So — what's <em>really</em> going on?"</p>
       <span class="answer-window">3 minutes · the version you don't put on Instagram</span>
+      <!-- 3-minute timer bar (Megha req #16) — mirrors the 60-sec timer pattern -->
+      <div class="rgo-timer" style="margin-top:18px;">
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <button type="button" id="rgoTimerBtn" onclick="startRgoTimer()" style="font-family:var(--tch-nord);font-weight:700;letter-spacing:0.12em;font-size:12px;text-transform:uppercase;background:var(--tch-ink);color:var(--tch-cream);border:none;padding:10px 16px;cursor:pointer;">▶ Start 3-min timer</button>
+          <span id="rgoTimerTime" style="font-family:var(--tch-mono);font-size:18px;color:var(--tch-ink);">03:00</span>
+        </div>
+        <div style="margin-top:10px;height:8px;background:rgba(28,28,30,0.12);border:2px solid var(--tch-ink);">
+          <div id="rgoTimerFill" style="height:100%;width:100%;background:var(--tch-ink);transition:width 1s linear;"></div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -1326,6 +1336,16 @@
           <li contenteditable="true"></li>
         </ul>
         <button class="add-btn" onclick="addLeaveItem()">+ Add yours</button>
+      </div>
+      <div class="stop-card park">
+        <div class="stop-card-head">
+          <h4>🔖 Parking · Later</h4>
+          <span class="mini-time">1 min</span>
+        </div>
+        <ul id="parkList">
+          <li contenteditable="true"></li>
+        </ul>
+        <button class="add-btn" onclick="addParkItem()">+ Add yours</button>
       </div>
       <div class="stop-card missing">
         <div class="stop-card-head">
@@ -1522,6 +1542,33 @@
     let c = 60;
     const i = setInterval(() => { c--; if (c <= 0) { clearInterval(i); alert('60 seconds up.'); } }, 1000);
   }
+  // 3-minute timer with a visible depleting bar for "what's really going on" (#16).
+  // Clicking again restarts it.
+  function startRgoTimer() {
+    const btn = document.getElementById('rgoTimerBtn');
+    const timeEl = document.getElementById('rgoTimerTime');
+    const fillEl = document.getElementById('rgoTimerFill');
+    if (window.__rgoInt) { clearInterval(window.__rgoInt); window.__rgoInt = null; }
+    const total = 180; let c = total;
+    function paint() {
+      const m = String(Math.floor(c / 60)).padStart(2, '0');
+      const s = String(c % 60).padStart(2, '0');
+      if (timeEl) timeEl.textContent = c > 0 ? `${m}:${s}` : "Time's up";
+      if (fillEl) {
+        fillEl.style.width = Math.max(0, c / total * 100) + '%';
+        fillEl.style.background = c <= 30 ? 'var(--tch-red)' : 'var(--tch-ink)';
+      }
+    }
+    paint();
+    if (btn) btn.textContent = '↻ Restart 3-min timer';
+    window.__rgoInt = setInterval(() => {
+      c--; paint();
+      if (c <= 0) {
+        clearInterval(window.__rgoInt); window.__rgoInt = null;
+        if (btn) btn.textContent = '▶ Start 3-min timer';
+      }
+    }, 1000);
+  }
   function toggleMJDrawer() { document.getElementById('mjDrawer').classList.toggle('open'); }
   function startSession() { if (!on) toggleTimer(); toggleMJDrawer(); }
   function cyclePillar(el) {
@@ -1584,6 +1631,7 @@
   }
   function addStopItem() { addLi('stopList', 'New stop item...'); }
   function addLeaveItem() { addLi('leaveList', 'New leave-alone...'); }
+  function addParkItem() { addLi('parkList', 'Park for later...'); }
   function addMissingItem() { addLi('missingList', 'What we missed...'); }
   function addLi(id, txt) {
     const li = document.createElement('li'); li.contentEditable = 'true'; li.textContent = txt;
@@ -1648,7 +1696,7 @@
         // debrief autopop or action plan.
         if (el.id) blob.fields[el.id] = isPlaceholder(el.value) ? '' : el.value;
       });
-      ['stopList','leaveList','missingList'].forEach(id => {
+      ['stopList','leaveList','parkList','missingList'].forEach(id => {
         const root = document.getElementById(id);
         if (!root) return;
         blob.lists[id] = Array.from(root.children).map(child => (child.innerText || '').trim()).filter(Boolean);
@@ -1932,8 +1980,13 @@
         // "What we'd push on" = CONSTRUCTIVE, client-facing feedback bullets.
         // Megha = brand, Jake = systems. Fall back to the older reads.
         const notDo = Array.isArray(brief.thingsToNotDo) ? brief.thingsToNotDo.filter(Boolean) : [];
-        seedBullets('meghaDirection', (pushOn.brand && pushOn.brand.length) ? pushOn.brand : brief.audience);
-        seedBullets('jakeDirection', (pushOn.systems && pushOn.systems.length) ? pushOn.systems : brief.distributionSystems);
+        // CLIENT-FACING: seed ONLY from whatToPushOn (constructive, 2nd-person).
+        // Do NOT fall back to internal reads (audience / distributionSystems) —
+        // those carry internal notes like "we don't know their subscriber-to-buyer
+        // ratio" that must never leak onto a client-facing slot (Megha #22). If the
+        // brief predates whatToPushOn, leave the "—" placeholder for M+J to fill live.
+        if (pushOn.brand && pushOn.brand.length) seedBullets('meghaDirection', pushOn.brand);
+        if (pushOn.systems && pushOn.systems.length) seedBullets('jakeDirection', pushOn.systems);
 
         // ---- 05 THE PLAY · proposed moves (only fill if untouched) --------
         const dist = Array.isArray(brief.distributionSystems) ? brief.distributionSystems.filter(Boolean) : [];
@@ -1961,11 +2014,15 @@
           autoGrowMove(document.getElementById(s.action));
         });
 
-        // NOT DOING ← thingsToNotDo · LEAVE ALONE ← strengths worth protecting
-        // (brandPositioning reads) · WHAT'S MISSING ← open questions.
+        // NOT DOING ← thingsToNotDo (declarative). LEAVE ALONE ← strengths worth
+        // protecting. PARKING ← blank, for M+J to fill live with things to revisit
+        // later (Megha #15 — parking is a distinct bucket from not-doing). WHAT'S
+        // MISSING ← left BLANK on purpose (Megha #26): it's the CLIENT's space to
+        // tell us anything we haven't covered — never pre-fill it with Claude's
+        // open questions.
         seedListIfPlaceholder('stopList', notDo);
         seedListIfPlaceholder('leaveList', pos);
-        seedListIfPlaceholder('missingList', brief.openQuestions);
+        // (parkList + missingList intentionally NOT seeded — blank for live input)
 
         // ---- 06 THE MAP · DIY (A) / Level-Up (B) / Not Now ----------------
         // The map mirrors the Section-05 moves: Path A = the move as a

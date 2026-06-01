@@ -81,6 +81,49 @@ export interface ResearchBrief {
     levelUp: string;
     why: string;
   }>;
+
+  // --- V2 richer social/creative analysis (added 2026-06-01, Megha edit-pass) ---
+  //
+  // PHASE NOTE: These sections deepen the *qualitative* read of the client's
+  // brand and content, modeled on the original V1 brief template's richer
+  // sections. In Phase 1 (now) they are written from the intake TEXT alone —
+  // the generator must NEVER invent follower counts, engagement %, or post
+  // metrics it cannot actually see. Any numeric dimension that genuinely needs
+  // the live feed is flagged "needs live audit" (score: null).
+  //
+  // PHASE 2 (future): real engagement metrics + content-health scoring computed
+  // from the actual feed will arrive via client OAuth social connectors. These
+  // same fields will then be populated with live data instead of "needs live
+  // audit" placeholders. All fields below are OPTIONAL so old briefs without
+  // them still parse and render.
+
+  /** Six-dimension content health scorecard. Each sub-score is 1-5 ONLY where
+   *  judgable from intake text; dimensions requiring the live feed (esp.
+   *  visualQuality, engagement) are set to score: null + note "needs live audit". */
+  contentHealth?: {
+    visualQuality: { score: number | null; note: string };
+    brandCohesion: { score: number | null; note: string };
+    copyCaptions: { score: number | null; note: string };
+    engagement: { score: number | null; note: string };
+    storytelling: { score: number | null; note: string };
+    conversionPath: { score: number | null; note: string };
+  };
+  /** Brand voice assessment, client-facing (2nd person). */
+  brandVoice?: string;
+  /** Visual identity read; if the feed isn't visible, say so plainly. */
+  visualIdentity?: string;
+  /** Where they sit vs competitors — qualitative bullets. */
+  competitivePosition?: string[];
+  /** The story they tell now vs the one they should tell. */
+  storyTelling?: { current: string; shouldBe: string };
+  /** 3-6 specific, concrete content ideas. */
+  storyHooks?: string[];
+  /** 2-4 levers that could make content hit. */
+  viralityLevers?: string[];
+  /** The hard truth to address directly, kindly. */
+  elephant?: string;
+  /** Brands worth name-dropping as north stars. */
+  referenceBrands?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -127,12 +170,33 @@ Return ONLY valid JSON matching EXACTLY this schema (no prose preamble, no markd
     { "horizon": "72-hour", "diy": "the specific action they can do themselves in 72 hours, 2nd person", "levelUp": "the same move done with help / better tools", "why": "1 sentence — why this matters, tied to the diagnosis" },
     { "horizon": "1-week", "diy": "…", "levelUp": "…", "why": "…" },
     { "horizon": "1-month", "diy": "…", "levelUp": "…", "why": "…" }
-  ]
+  ],
+  "contentHealth": {
+    "visualQuality": { "score": null, "note": "needs live audit" },
+    "brandCohesion": { "score": 3, "note": "1-line read; integer 1-5 if judgable from intake text, else null + 'needs live audit'" },
+    "copyCaptions": { "score": 3, "note": "1-line read; 1-5 if judgable, else null" },
+    "engagement": { "score": null, "note": "needs live audit" },
+    "storytelling": { "score": 3, "note": "1-line read; 1-5 if judgable, else null" },
+    "conversionPath": { "score": 3, "note": "1-line read; 1-5 if judgable, else null" }
+  },
+  "brandVoice": "2-3 sentences, 2nd person — your read on their voice and tone (warm, sharp, on-brand?)",
+  "visualIdentity": "2-3 sentences, 2nd person — read on their visual identity; if you can't see the feed, say so plainly ('this needs a live look at your feed')",
+  "competitivePosition": ["2-4 bullets — where you sit vs competitors, qualitative (no invented market-share numbers)"],
+  "storyTelling": {
+    "current": "1-2 sentences, 2nd person — the story you're telling right now",
+    "shouldBe": "1-2 sentences, 2nd person — the sharper story you should be telling"
+  },
+  "storyHooks": ["3-6 specific, concrete content ideas tailored to THIS client"],
+  "viralityLevers": ["2-4 levers that could make their content actually hit"],
+  "elephant": "1-2 sentences — the hard truth to name directly, kindly. The thing nobody's said out loud yet.",
+  "referenceBrands": ["1-4 brands worth name-dropping as north stars for this client"]
 }
+
+PHASE 1 — TEXT-ONLY ANALYSIS (CRITICAL): You are working from the intake TEXT and brand-link text ONLY. You can NOT see the client's live feed. Do NOT invent follower counts, engagement rates, post metrics, view counts, or any number you cannot derive from the intake. For contentHealth, score a dimension 1-5 ONLY when the intake text genuinely supports a judgment; for any dimension that requires seeing the live feed (especially "visualQuality" and "engagement"), set "score": null and "note": "needs live audit". When in doubt, flag what needs a live audit rather than guessing. (Phase 2 will supply real social data via client OAuth connectors — until then, honesty about what you can't see is the rule.)
 
 Every authorityBaseline score MUST be an integer from 1 to 5. When the intake is too thin to judge a pillar, score it conservatively (low) and say so in the note. The "unlock" is the most important field — make the hypothesis a clear, single-thread thesis, and keep "observation" (what we SEE on the surface) DISTINCT from "hypothesis" (the GAP underneath).
 
-POINT OF VIEW — IMPORTANT: All CLIENT-FACING fields (intakeReadback, whatsWorking, whatToPushOn, moves) must be written in the SECOND PERSON, addressing the client directly ("you", "your") — never third person ("the client's problem is…"). These are read aloud or shown on screen to the client during the call. The internal-only fields (brandPositioning, distributionSystems, audience, authorityBaseline, thingsToNotDo, openQuestions) are notes M+J read privately and can stay analytical.`;
+POINT OF VIEW — IMPORTANT: All CLIENT-FACING fields (intakeReadback, whatsWorking, whatToPushOn, moves, brandVoice, visualIdentity, storyTelling, elephant) must be written in the SECOND PERSON, addressing the client directly ("you", "your") — never third person ("the client's problem is…"). These are read aloud or shown on screen to the client during the call. The internal-only fields (brandPositioning, distributionSystems, audience, authorityBaseline, contentHealth notes, thingsToNotDo, openQuestions) are notes M+J read privately and can stay analytical.`;
 }
 
 function buildUserPrompt(intake: IntakeRecord, extras: { priceRange?: string; monthlyRevenue?: string; teamSize?: string; primaryPlatform?: string; magicWand?: string; inspiration?: string }): string {

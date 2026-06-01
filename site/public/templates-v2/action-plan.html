@@ -1048,13 +1048,38 @@
       try { plan = JSON.parse(planJson); } catch (e) { showActionPlanPending(); return; }
       if (!plan || typeof plan !== 'object') { showActionPlanPending(); return; }
 
+      // ----- Review Dashboard inline edits (#4) ------------------------------
+      // M+J can edit string + bulleted-list sections on the Review Dashboard.
+      // Those edits are stored as plain-text overrides in plan.editedSections,
+      // keyed by the dashboard section key. We check the override FIRST and
+      // fall back to the structured render when none exists. Only the
+      // overrideable keys are honored (the complex nested sections —
+      // authorityRead/actionPlan/effortImpact — are not editable on the
+      // dashboard, so they always use the structured render below).
+      const edited = (plan.editedSections && typeof plan.editedSections === 'object')
+        ? plan.editedSections : {};
+      const ov = (key) => (typeof edited[key] === 'string' && edited[key].trim()) ? edited[key] : null;
+      // A bulleted-list override is stored as "• line\n• line" — split back to items.
+      const ovList = (key) => {
+        const t = ov(key);
+        if (!t) return null;
+        return t.split('\n').map(s => s.replace(/^\s*•\s?/, '').trim()).filter(Boolean);
+      };
+      // A quote override is stored as "\"line\"\n\n\"line\"" — split on blank lines.
+      const ovQuotes = (key) => {
+        const t = ov(key);
+        if (!t) return null;
+        return t.split(/\n{2,}/).map(s => s.trim().replace(/^"|"$/g, '').trim()).filter(Boolean);
+      };
+
       // 01 North Star
-      setText('northStar', plan.northStar);
+      setText('northStar', ov('northStar') || plan.northStar);
 
       // 02 What We Learned — single string → lead paragraph. Clear the
       // pullquote + second paragraph placeholders since we only have one blob.
-      if (typeof plan.whatWeLearned === 'string' && plan.whatWeLearned.trim()) {
-        setText('diagnosisPara1', plan.whatWeLearned.trim());
+      const whatWeLearned = ov('whatWeLearned') || (typeof plan.whatWeLearned === 'string' ? plan.whatWeLearned : '');
+      if (typeof whatWeLearned === 'string' && whatWeLearned.trim()) {
+        setText('diagnosisPara1', whatWeLearned.trim());
         const pull = document.getElementById('diagnosisPullquote');
         if (pull) pull.style.display = 'none';
         const p2 = document.getElementById('diagnosisPara2');
@@ -1085,7 +1110,7 @@
       if (counted) setText('totalScore', total + ' / 20');
 
       // 04 What We Love → render one .love-item per entry
-      const love = Array.isArray(plan.whatWeLove) ? plan.whatWeLove.filter(Boolean) : [];
+      const love = ovList('whatWeLove') || (Array.isArray(plan.whatWeLove) ? plan.whatWeLove.filter(Boolean) : []);
       const loveGrid = document.querySelector('.love-grid');
       if (loveGrid && love.length) {
         loveGrid.innerHTML = love.map(t =>
@@ -1094,7 +1119,7 @@
       }
 
       // 05 Things You Said That Matter → quote blocks (schema has no "why")
-      const said = Array.isArray(plan.thingsYouSaid) ? plan.thingsYouSaid.filter(Boolean) : [];
+      const said = ovQuotes('thingsYouSaid') || (Array.isArray(plan.thingsYouSaid) ? plan.thingsYouSaid.filter(Boolean) : []);
       const quotesWrap = document.querySelector('.quotes');
       if (quotesWrap && said.length) {
         quotesWrap.innerHTML = said.map(q =>
@@ -1104,7 +1129,7 @@
 
       // 06 What We're Not Doing → single notDoing list. The template splits
       // Stop / Not Yet; we only have one list, so fill Stop and hide Not Yet.
-      const nd = Array.isArray(plan.notDoing) ? plan.notDoing.filter(Boolean) : [];
+      const nd = ovList('notDoing') || (Array.isArray(plan.notDoing) ? plan.notDoing.filter(Boolean) : []);
       if (nd.length) {
         const stop = document.getElementById('stopList');
         if (stop) stop.innerHTML = nd.map(t => '<li>' + esc(t) + '</li>').join('');
@@ -1169,7 +1194,7 @@
         // ship in the client deliverable. Wire the Not Now quadrant from
         // plan.notDoing (the only real data we have for this map) and strip
         // every other quadrant's placeholder ei-items.
-        const nd2 = Array.isArray(plan.notDoing) ? plan.notDoing.filter(Boolean) : [];
+        const nd2 = ovList('notDoing') || (Array.isArray(plan.notDoing) ? plan.notDoing.filter(Boolean) : []);
         const notNow = quadEls.low_impact_high_effort;
         if (notNow) {
           notNow.querySelectorAll('.ei-item').forEach(n => n.remove());
@@ -1188,7 +1213,7 @@
       }
 
       // 09 Tools → render one .tool per entry
-      const tools = Array.isArray(plan.tools) ? plan.tools.filter(Boolean) : [];
+      const tools = ovList('tools') || (Array.isArray(plan.tools) ? plan.tools.filter(Boolean) : []);
       const toolsGrid = document.querySelector('.tools-grid');
       if (toolsGrid && tools.length) {
         toolsGrid.innerHTML = tools.map(t =>
@@ -1201,7 +1226,8 @@
       // horizon). Only fall back to the plain narrative blob when an older
       // plan has no structured benchmarks.
       const bm = plan.benchmarks || {};
-      const hasBenchmarks = ['sevenDay','thirtyDay','ninetyDay']
+      const successOverride = ov('success');
+      const hasBenchmarks = !successOverride && ['sevenDay','thirtyDay','ninetyDay']
         .some(k => bm[k] && (String(bm[k].goal||'').trim() || String(bm[k].signal||'').trim()));
       if (hasBenchmarks) {
         const fillBench = (goalId, knowId, b) => {
@@ -1215,20 +1241,23 @@
         fillBench('bench30', 'know30', bm.thirtyDay);
         fillBench('bench90', 'know90', bm.ninetyDay);
         // Grid stays visible (its default); narrative paragraph stays hidden.
-      } else if (typeof plan.success === 'string' && plan.success.trim()) {
+      } else if (successOverride || (typeof plan.success === 'string' && plan.success.trim())) {
+        // An override (or a plan with only a narrative success blob) replaces
+        // the structured 7/30/90 grid with the edited/plain narrative.
         const grid = document.getElementById('benchGrid');
         if (grid) grid.style.display = 'none';
         const narr = document.getElementById('successNarrative');
         if (narr) {
-          narr.textContent = plan.success.trim();
+          narr.textContent = (successOverride || plan.success).trim();
           narr.style.display = '';
         }
       }
 
       // 11 Continue the Conversation — pitch line over the upsell cards.
-      if (typeof plan.continueConversation === 'string' && plan.continueConversation.trim()) {
+      const continueConv = ov('continueConversation') || (typeof plan.continueConversation === 'string' ? plan.continueConversation : '');
+      if (typeof continueConv === 'string' && continueConv.trim()) {
         const sub = document.querySelector('section.section:last-of-type .section-sub');
-        if (sub) sub.textContent = plan.continueConversation.trim();
+        if (sub) sub.textContent = continueConv.trim();
       }
     }
     const setStatus = (text, kind) => {

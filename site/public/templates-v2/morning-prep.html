@@ -419,6 +419,10 @@
         <div class="k">Library</div>
         <div class="small" id="libraryCount">— files uploaded · <a href="#library" style="color: var(--tch-red); font-weight:700;">↓ jump</a></div>
       </div>
+      <div class="snap-block">
+        <div class="k">Their Links</div>
+        <div class="small" id="clientLinks">—</div>
+      </div>
     </div>
   </div>
 
@@ -764,6 +768,33 @@
       ].filter(Boolean).join(' · ');
       setText('businessName', businessBits || '—');
       setText('emergency', intake.creativeEmergency ? `"${intake.creativeEmergency}"` : 'No intake emergency on file yet.');
+      // Live, clickable links to the client's website + socials (Megha #2 — she
+      // needs to open these herself from the snapshot before the call).
+      (function renderClientLinks() {
+        const el = document.getElementById('clientLinks');
+        if (!el) return;
+        const seen = new Set();
+        const link = (label, raw) => {
+          if (!raw || typeof raw !== 'string') return '';
+          let u = raw.trim();
+          if (!u) return '';
+          if (!/^https?:\/\//i.test(u)) u = 'https://' + u.replace(/^\/+/, '');
+          const k = u.toLowerCase();
+          if (seen.has(k)) return '';
+          seen.add(k);
+          return `<a href="${escapeHtml(u)}" target="_blank" rel="noopener" style="color: var(--tch-red); font-weight:700; text-decoration:underline; margin-right:12px; white-space:nowrap;">${escapeHtml(label)} ↗</a>`;
+        };
+        const parts = [
+          link('Website', intake.brandWebsite || intake.website || intake.websiteIg),
+          link('Instagram', intake.instagram),
+          link('Portfolio', intake.portfolioWebsite),
+        ];
+        if (intake.brandLinks && typeof intake.brandLinks === 'string') {
+          intake.brandLinks.split(/[\s,]+/).forEach((raw, i) => parts.push(link('Link ' + (i + 1), raw)));
+        }
+        const html = parts.filter(Boolean).join('');
+        el.innerHTML = html || 'No links on file.';
+      })();
       setText('sessionTime', fmtTime(s.scheduledAt).replace(/<[^>]+>/g, m => m === '<strong>' || m === '</strong>' ? '' : ''));
       // sessionTime HTML version (rel time inside <strong>)
       const tEl = document.getElementById('sessionTime');
@@ -900,10 +931,14 @@
     const msg = pscore(ab.messaging);
     const exe = pscore(ab.execution);
     const dist = pscore(ab.distribution);
-    setText('baselinePositioning', `${pos} / 5 — ${trunc((ab.positioning || {}).note || 'Claude baseline', 100)}`);
-    setText('baselineMessaging', `${msg} / 5 — ${trunc((ab.messaging || {}).note || 'Claude baseline', 100)}`);
-    setText('baselineExecution', `${exe} / 5 — ${trunc((ab.execution || {}).note || 'Claude baseline', 100)}`);
-    setText('baselineDistribution', `${dist} / 5 — ${trunc((ab.distribution || {}).note || 'Claude baseline', 100)}`);
+    // Show the FULL pillar note (was truncated to 100 chars, which cut off
+    // Claude's reasoning — Megha needs to read the whole blurb). The notes are
+    // one-liners per schema, so untruncated they still render compactly; the
+    // .claude-baseline box has no fixed height, so longer notes just wrap.
+    setText('baselinePositioning', `${pos} / 5 — ${(ab.positioning || {}).note || 'Claude baseline'}`);
+    setText('baselineMessaging', `${msg} / 5 — ${(ab.messaging || {}).note || 'Claude baseline'}`);
+    setText('baselineExecution', `${exe} / 5 — ${(ab.execution || {}).note || 'Claude baseline'}`);
+    setText('baselineDistribution', `${dist} / 5 — ${(ab.distribution || {}).note || 'Claude baseline'}`);
     setText('authBaseline', `${pos + msg + exe + dist} / 20`);
 
     // Snapshot — The Unlock (+ the question that tests it)

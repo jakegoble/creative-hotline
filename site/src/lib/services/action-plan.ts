@@ -193,7 +193,7 @@ The plan has ELEVEN sections, all of which must be filled:
 8. **Effort/Impact Matrix** — 4-8 items placed on the 2×2 (high/low impact × high/low effort).
 9. **Tools** — 2-6 specific product recommendations with reasoning.
 10. **What Success Looks Like** — 2-3 sentence definition of success at 30/60/90.
-11. **Continue the Conversation** — 1-2 sentence pitch on the next step or upsell hook.
+11. **Continue the Conversation** — the closing pitch. Use Megha's EXACT line, verbatim, no paraphrasing: "If you want the Creative Hotline to build it with you rather than figure it out alone, we can do that."
 
 Rules:
 - ALWAYS reference specifics from the workshop or transcript by name (client's actual brand, product, channel) — never generic placeholders.
@@ -201,6 +201,15 @@ Rules:
 - Quotes in section 5 must be REAL quotes from the transcript. If transcript is empty, pull from workshop JSON ideas/notes. Never fabricate.
 - Effort/Impact quadrants: high-impact + low-effort → "high_impact_low_effort" (Do Now / DIY); high-impact + high-effort → "high_impact_high_effort" (Big Bet / Level Up); low-impact + low-effort → "low_impact_low_effort" (Fill-in); low-impact + high-effort → "low_impact_high_effort" (avoid).
 - Authority Read pillars use score 1-5. Be honest. A 5 means "strong, no work needed"; a 2 means "needs major work."
+
+PRICING & SCOPE GUARDRAILS (NON-NEGOTIABLE):
+- NEVER invent prices or quote a dollar figure for any TCH service. If a move references a paid TCH engagement, say it is "priced separately" rather than naming a number.
+- NEVER recommend that The Creative Hotline do copywriting — TCH is NOT a copywriting shop. When copywriting is the need, tell the client to "hire a copywriter."
+- NEVER offer "90-minute implementation calls" or invent any TCH service/package/SKU that wasn't established in the workshop. Do not make up offers.
+- For DIY tool recommendations (section 9 + the pathA / DIY paths), prefer best-in-class tools, and INCLUDE AI tools where they genuinely help (e.g., Wispr for voice capture, etc.). Recommend the right tool for the job, not a TCH service.
+
+STAND-ALONE RULE (sections 10 & 11): The action plan must make complete sense on its own, without any follow-up call. The "What Success Looks Like" / benchmarks section must NOT introduce new concepts, frameworks, or ideas that weren't discussed in the workshop — only restate and sharpen what's already in the plan. Do not gate value behind a future conversation.
+
 - Output ONLY valid JSON. No markdown, no commentary, no code fences.`;
 
   const user = `Generate the Creative Hotline Action Plan (11 sections) for ${input.clientName}.
@@ -235,17 +244,21 @@ Return JSON matching exactly this shape:
   "effortImpact": [
     { "title": "string", "quadrant": "high_impact_low_effort"|"high_impact_high_effort"|"low_impact_low_effort"|"low_impact_high_effort", "path": "A"|"B"|null }
   ],
-  "tools": ["string (tool name — why)", ...],
-  "success": "string (2-3 sentences defining 30/60/90 success — narrative)",
+  "tools": ["string (best-in-class tool name — why; include AI tools like Wispr where they help; NEVER a TCH service)", ...],
+  "success": "string (2-3 sentences defining 30/60/90 success — narrative; restate the plan, introduce NO new concepts)",
   "benchmarks": {
     "sevenDay":  { "goal": "string (concrete, measurable 7-day goal)", "signal": "string (how they'll know they hit it)" },
     "thirtyDay": { "goal": "string (30-day goal)", "signal": "string (the signal)" },
     "ninetyDay": { "goal": "string (90-day goal)", "signal": "string (the signal)" }
   },
-  "continueConversation": "string (1-2 sentence next-step pitch)"
+  "continueConversation": "If you want the Creative Hotline to build it with you rather than figure it out alone, we can do that."
 }
 
-The "benchmarks" must be specific and measurable (not aspirational fluff) — they render as a visual 7/30/90 grid the client tracks against.
+The "benchmarks" must be specific and measurable (not aspirational fluff) — they render as a visual 7/30/90 grid the client tracks against. Benchmarks and "success" must NOT introduce concepts that weren't discussed; the plan stands alone without a follow-up call.
+
+For "continueConversation", use Megha's exact line VERBATIM: "If you want the Creative Hotline to build it with you rather than figure it out alone, we can do that." Do not paraphrase, do not add a price, do not invent an offer.
+
+Pricing/scope: never quote a price (say "priced separately"), never have TCH do copywriting (say "hire a copywriter"), never offer "90-minute implementation calls" or invent TCH packages.
 
 JSON ONLY. No prose around it.`;
 

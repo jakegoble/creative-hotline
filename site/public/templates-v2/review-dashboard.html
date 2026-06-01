@@ -478,6 +478,83 @@
     localStorage.setItem(signoffKey(sid), JSON.stringify(s));
     scheduleNotionSave(sid);
   }
+
+  // ---- Editable sections (#4) -----------------------------------------
+  // Megha + Jake can EDIT section text on the dashboard, not just approve.
+  // We use a safe OVERRIDE model: edits are stored per-section-key in an
+  // `editedSections` map and merged into actionPlanJson under a top-level
+  // `editedSections` key by /api/sessions/[id]/save-action-plan — the
+  // structured fields (which Send + the public render depend on) are NEVER
+  // overwritten. The public action-plan.html + send-frankie email check
+  // editedSections[key] FIRST and fall back to the structured render.
+  //
+  // SECTION-KEY COVERAGE:
+  //   Overrideable end-to-end (plain string / bulleted list — the public
+  //   render consumes a single text blob cleanly):
+  //     northStar, whatWeLearned, whatWeLove, thingsYouSaid, notDoing,
+  //     tools, success, continueConversation
+  //   Complex nested (authorityRead, actionPlan, effortImpact): these render
+  //   into structured multi-field DOM (per-pillar scores, per-move DIY/Level-Up
+  //   paths, effort/impact quadrants). A flat text blob cannot round-trip back
+  //   into that structure, so on the dashboard they're shown read-only with an
+  //   "edit upstream" note rather than letting an edit silently vanish.
+  const OVERRIDEABLE_KEYS = new Set([
+    'northStar', 'whatWeLearned', 'whatWeLove', 'thingsYouSaid',
+    'notDoing', 'tools', 'success', 'continueConversation',
+  ]);
+  function isOverrideable(key) { return OVERRIDEABLE_KEYS.has(key); }
+
+  // Local mirror of editedSections for the current session (write-through cache
+  // for instant UI; the canonical copy is actionPlanJson.editedSections in Notion).
+  function getEditedSections() {
+    const ap = STATE.actionPlan;
+    if (ap && ap.editedSections && typeof ap.editedSections === 'object') {
+      return ap.editedSections;
+    }
+    return {};
+  }
+  // Debounced write-through to Notion (mirrors the approvals sync pattern).
+  let _apSaveTimer = null;
+  let _apSaveInFlight = null;
+  function scheduleActionPlanSave(sid) {
+    if (_apSaveTimer) clearTimeout(_apSaveTimer);
+    _apSaveTimer = setTimeout(() => persistEditedSections(sid), SAVE_DEBOUNCE_MS);
+  }
+  async function persistEditedSections(sid) {
+    if (!sid) return;
+    const edited = getEditedSections();
+    try {
+      if (_apSaveInFlight) await _apSaveInFlight;
+      _apSaveInFlight = fetch(`/api/sessions/${encodeURIComponent(sid)}/save-action-plan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ editedSections: edited }),
+      });
+      const res = await _apSaveInFlight;
+      _apSaveInFlight = null;
+      if (!res.ok) {
+        console.warn('[review-dashboard] action-plan edit save HTTP', res.status);
+      }
+    } catch (err) {
+      _apSaveInFlight = null;
+      console.warn('[review-dashboard] action-plan edit save failed', err);
+    }
+  }
+  // Capture an edited section: update the in-memory plan + schedule persist.
+  // An empty edit deletes the override (revert to structured copy).
+  function setEditedSection(sid, key, text) {
+    const ap = STATE.actionPlan;
+    if (!ap) return;
+    if (!ap.editedSections || typeof ap.editedSections !== 'object') {
+      ap.editedSections = {};
+    }
+    if (String(text || '').trim() === '') {
+      delete ap.editedSections[key];
+    } else {
+      ap.editedSections[key] = text;
+    }
+    scheduleActionPlanSave(sid);
+  }
   function fmtTime(iso) {
     if (!iso) return '—';
     try {
@@ -846,6 +923,7 @@
       return;
     }
     const approvals = getApprovals(sid);
+    const edited = getEditedSections();
     container.innerHTML = sections.map((sec, idx) => {
       const owner = sec.owner || (idx < 6 ? 'm' : 'j');
       const ownerClass = owner === 'shared' ? 'shared' : (owner === 'j' ? 'j' : '');
@@ -857,18 +935,31 @@
       const myApproved = approved[STATE.role] === true;
       const showM = owner === 'm' || owner === 'shared';
       const showJ = owner === 'j' || owner === 'shared';
-      const body = (typeof sec.body === 'string') ? sec.body : JSON.stringify(sec.body, null, 2);
+      const key = sec.key || '';
+      // Show the edited override if one exists (so edits survive reload),
+      // else the structured-render body.
+      const structuredBody = (typeof sec.body === 'string') ? sec.body : JSON.stringify(sec.body, null, 2);
+      const hasOverride = key && Object.prototype.hasOwnProperty.call(edited, key) && typeof edited[key] === 'string';
+      const body = hasOverride ? edited[key] : structuredBody;
+      // #4 — make string + bulleted-list sections editable end-to-end. Complex
+      // nested sections (authorityRead / actionPlan / effortImpact) can't round-trip
+      // through a flat text blob, so they stay read-only with an "edit upstream" note.
+      const canEdit = isOverrideable(key);
       const num = String(idx + 1).padStart(2,'0');
+      const editNote = canEdit
+        ? `<span class="edit-hint" style="font-family:var(--tch-mono);font-size:10px;color:rgba(28,28,30,0.45);letter-spacing:0.04em;">✎ Click to edit · saves on blur${hasOverride ? ' · <span style="color:var(--tch-red)">edited</span>' : ''}</span>`
+        : `<span class="edit-hint" style="font-family:var(--tch-mono);font-size:10px;color:rgba(28,28,30,0.45);letter-spacing:0.04em;">🔒 Structured section — edit in the live action-plan page (toolbar “Edit”) — not roundtrippable here</span>`;
       return `
-        <div class="section-card ${ownerClass}" data-section-idx="${idx}">
+        <div class="section-card ${ownerClass}" data-section-idx="${idx}" data-section-key="${esc(key)}">
           <div class="section-head">
             <div class="left">
               <span class="section-num-tag-r">${num}</span>
               <span class="section-name">${esc(sec.title || 'Section')}</span>
               <span class="tch-owner ${owner}">${esc(ownerLabel)}</span>
             </div>
+            <div class="section-actions">${editNote}</div>
           </div>
-          <div class="section-content" contenteditable="false">${esc(body).replace(/\n/g, '<br>')}</div>
+          <div class="section-content" contenteditable="${canEdit ? 'true' : 'false'}" data-section-key="${esc(key)}" ${canEdit ? 'data-editable="1"' : ''}>${esc(body).replace(/\n/g, '<br>')}</div>
           <div class="approval-row">
             <div class="approval-state">Approval: <span class="checks">
               ${showM ? `<span class="check-pill ${mDone?'done':''}">${mDone?'M ✓':'M'}</span>` : ''}
@@ -894,6 +985,41 @@
         updateGates();
       });
     });
+
+    // Wire editable section content (#4). On blur, read the edited plain text
+    // (convert <br>/<div> line breaks back to \n) and store it as an override.
+    container.querySelectorAll('.section-content[data-editable="1"]').forEach(el => {
+      el.addEventListener('blur', () => {
+        const key = el.getAttribute('data-section-key');
+        if (!key) return;
+        const text = contentEditableToText(el);
+        // Compare to the current structured render; only treat as an override
+        // if it actually differs (empty/equal reverts to the structured copy).
+        setEditedSection(sid, key, text);
+        // Refresh the "edited" hint without losing focus/cursor unexpectedly:
+        const card = el.closest('.section-card');
+        const hint = card && card.querySelector('.edit-hint');
+        if (hint) {
+          const has = String(text || '').trim() !== '';
+          hint.innerHTML = '✎ Click to edit · saves on blur' + (has ? ' · <span style="color:var(--tch-red)">edited</span>' : '');
+        }
+      });
+    });
+  }
+
+  // Convert a contenteditable element's HTML back to plain text with newlines.
+  // The render writes \n as <br>; browsers may also insert <div>/<p> on Enter.
+  function contentEditableToText(el) {
+    // Normalize block/line breaks to \n, strip remaining tags, decode entities.
+    let html = el.innerHTML
+      .replace(/<div><br\s*\/?><\/div>/gi, '\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(div|p)>/gi, '\n')
+      .replace(/<(div|p)[^>]*>/gi, '')
+      .replace(/<[^>]+>/g, '');
+    const tmp = document.createElement('textarea');
+    tmp.innerHTML = html;
+    return tmp.value.replace(/ /g, ' ').replace(/\n{3,}/g, '\n\n').replace(/\s+$/,'').trim();
   }
 
   function isSectionFullyApproved(sec, approvals, idx) {

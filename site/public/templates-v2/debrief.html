@@ -476,7 +476,23 @@
       : `/templates-v2/review-dashboard.html`;
     if (!sid) { window.location.href = target; return; }
     const btn = document.querySelector('.save-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Saving + drafting action plan… (~30s)'; }
+    // #3 — generation can take up to ~2 min; the old "(~30s)" label made a
+    // working button look dead. Give an honest, reassuring label + a live
+    // "working…" affordance (animated ellipsis) so it never reads as frozen.
+    let _btnDots = null;
+    if (btn) {
+      btn.disabled = true;
+      btn.setAttribute('aria-busy', 'true');
+      btn.style.opacity = '0.85';
+      btn.style.cursor = 'progress';
+      const base = 'Saving + drafting your action plan — up to 2 min, hang tight';
+      let n = 0;
+      btn.textContent = base + '…';
+      _btnDots = setInterval(() => {
+        n = (n + 1) % 4;
+        btn.textContent = base + '.'.repeat(n || 3) + (n ? '' : '');
+      }, 500);
+    }
     try {
       // 1. Persist the final debrief immediately (the debounced autosave would
       //    otherwise be cancelled by navigation).
@@ -489,6 +505,8 @@
     } catch (e) {
       console.error('[debrief] finalize/generate failed', e);
     }
+    if (_btnDots) { clearInterval(_btnDots); _btnDots = null; }
+    if (btn) btn.textContent = 'Opening review dashboard…';
     // 3. Open the Review Dashboard — the plan is now generated and ready to review.
     window.location.href = target;
   }
