@@ -27,7 +27,10 @@ export const dynamic = "force-dynamic";
 // see/gap, what's-working, push-on, structured moves) ~doubled the output, so a
 // real Claude call now runs ~40-90s. 60s was getting killed mid-flight and
 // leaving the row stuck on "Generating". Give it real headroom.
-export const maxDuration = 120;
+// 2026-06-15: round-3 delta/library context pushed real regens past 120s →
+// 504 Vercel Runtime Timeout, re-wedging the row on "Generating". Bumped to
+// the Vercel Pro ceiling (300s). The route already self-heals status on error.
+export const maxDuration = 300;
 
 export async function POST(request: Request) {
   let intakeId: string;
