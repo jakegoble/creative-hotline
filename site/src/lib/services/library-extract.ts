@@ -24,8 +24,8 @@ export interface LibraryDocRef {
 const PER_DOC_CHARS = 8000; // cap each doc's contribution
 const TOTAL_CHARS = 20000; // cap the whole appended block
 const MAX_DOCS = 6;
-const FETCH_TIMEOUT_MS = 8000;
-const MAX_BYTES = 15 * 1024 * 1024;
+const FETCH_TIMEOUT_MS = 25000; // larger client decks (multi-MB PDFs) need room to download on a cold function
+const MAX_BYTES = 25 * 1024 * 1024;
 
 function stripHtml(html: string): string {
   return html

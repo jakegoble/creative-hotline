@@ -73,6 +73,40 @@ function getDateStart(p: PageObjectResponse["properties"], key: string): string 
   const v = p[key];
   return v?.type === "date" && v.date?.start ? v.date.start : undefined;
 }
+/** Read a Notion "files" property as fetchable doc refs. Notion-hosted files
+ *  expose a freshly-signed `file.url` on every page retrieve, so reading them
+ *  here (right after the retrieve) gives a live, downloadable URL. */
+function getFiles(p: PageObjectResponse["properties"], key: string): LibraryDocRef[] {
+  const v = p[key];
+  if (v?.type !== "files") return [];
+  return v.files
+    .map((f) => ({
+      label: f.name || key,
+      url: f.type === "file" ? f.file?.url : f.type === "external" ? f.external?.url : undefined,
+      source: "intake",
+    }))
+    .filter((d) => typeof d.url === "string" && d.url.length > 0);
+}
+/** Pull any http(s) URLs out of a free-text property (e.g. "Brand Links"). */
+function getLinkDocs(p: PageObjectResponse["properties"], key: string): LibraryDocRef[] {
+  const text = getText(p, key);
+  const urls = text.match(/https?:\/\/[^\s,]+/g) || [];
+  return urls.map((url) => ({ label: url, url, source: "intake" }));
+}
+/** Merge doc refs, de-duplicated by URL, preserving first-seen order. */
+function mergeDocs(...lists: (LibraryDocRef[] | undefined)[]): LibraryDocRef[] {
+  const seen = new Set<string>();
+  const out: LibraryDocRef[] = [];
+  for (const list of lists) {
+    for (const d of list || []) {
+      const key = (d.url || "").trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(d);
+    }
+  }
+  return out;
+}
 
 export type RunBriefResult =
   | { ok: true; intakeId: string; status: "Ready"; generated: true }
@@ -166,14 +200,20 @@ export async function runResearchBriefGeneration(
     extraContext: opts.extraContext,
   };
 
-  // Read the CONTENTS of any library docs (PDF/text/html) and fold them into
-  // the delta context so a regen reflects what's in the uploads, not just their
-  // names. Fail-soft + time-boxed inside the extractor — never blocks the run.
-  if (opts.libraryDocs && opts.libraryDocs.length) {
+  // Read the CONTENTS of the client's uploaded files (PDF/text/html) and fold
+  // them into the prompt so the brief reflects what's actually IN the deck/docs,
+  // not just their names. We ALWAYS auto-include the intake's own attachments
+  // (Brand Files + any URLs in Brand Links) — not just docs the UI passes — so
+  // every brief (auto-after-Tally OR a manual regen) interprets client uploads
+  // with zero UI dependency. Fail-soft + time-boxed inside the extractor.
+  const intakeDocs = mergeDocs(getFiles(p, "Brand Files"), getLinkDocs(p, "Brand Links"));
+  const allDocs = mergeDocs(intakeDocs, opts.libraryDocs);
+  if (allDocs.length) {
     try {
-      const docText = await extractLibraryText(opts.libraryDocs);
+      const docText = await extractLibraryText(allDocs);
       if (docText) {
         extras.extraContext = [extras.extraContext, docText].filter(Boolean).join("\n\n");
+        console.info(`[research-brief] folded ${allDocs.length} client doc(s) into ${intakeId}`);
       }
     } catch (e) {
       console.warn(`[research-brief] library extract skipped: ${e instanceof Error ? e.message : e}`);
