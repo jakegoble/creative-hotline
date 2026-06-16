@@ -14,6 +14,7 @@ import { NextResponse } from "next/server";
 import { Client as NotionClient } from "@notionhq/client";
 import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoints";
 import { config } from "@/lib/config";
+import { parseVersions, versionSummaries } from "@/lib/services/versioning";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,11 +50,26 @@ export async function GET(request: Request) {
       page_id: intakeId,
     })) as PageObjectResponse;
     const p = page.properties;
+    const blob = parseVersions(getText(p, "Research Brief Versions JSON"));
+    const liveJson = getText(p, "Research Brief JSON") || null;
+    // Optional ?version=N — return that archived version's json WITHOUT making
+    // it live (lets the viewer preview an older version before restoring it).
+    const wantVersion = url.searchParams.get("version");
+    let json = liveJson;
+    if (wantVersion) {
+      const v = blob.versions.find((x) => String(x.n) === String(wantVersion));
+      json = v ? v.json : liveJson;
+    }
     return NextResponse.json({
       intakeId,
       status: getSelect(p, "Research Brief Status") || "Not Generated",
       generatedAt: getDate(p, "Research Brief Generated At"),
-      json: getText(p, "Research Brief JSON") || null,
+      json,
+      // Version metadata for the viewer's badge + switcher (empty when never
+      // regenerated, or when the "Research Brief Versions JSON" prop is absent).
+      liveVersion: blob.current || null,
+      viewingVersion: wantVersion ? Number(wantVersion) : (blob.current || null),
+      versions: versionSummaries(blob),
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "intake_fetch_failed";

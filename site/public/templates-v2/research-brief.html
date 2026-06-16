@@ -100,7 +100,42 @@
     header.top { background: #fff; color: #000; border-bottom: 2px solid #000; }
     header.top .back { display: none; }
     .card, .pillar, .move { box-shadow: none; }
+    .ver-wrap, .ver-banner { display: none !important; }
   }
+  /* ---- Version switcher (non-destructive) ---- */
+  .ver-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+  .ver-badge {
+    font-family: var(--tch-nord, system-ui); font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; font-size: 11px; color: var(--ink);
+    background: var(--tch-yellow, #F6ED52); border: 1.5px solid var(--ink);
+    padding: 4px 9px; white-space: nowrap;
+  }
+  .ver-badge.preview { background: #fff; color: var(--red); border-color: var(--red); }
+  .ver-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ver-pill {
+    font-family: var(--tch-mono, ui-monospace, monospace); font-size: 11px;
+    color: var(--ink); background: #fff; border: 1.5px solid var(--line);
+    padding: 4px 9px; cursor: pointer; line-height: 1.3; text-align: left;
+  }
+  .ver-pill:hover { border-color: var(--red); }
+  .ver-pill.is-live { border-color: var(--ink); border-left: 4px solid var(--tch-yellow, #F6ED52); }
+  .ver-pill.is-active { border-color: var(--red); border-left: 4px solid var(--red); }
+  .ver-pill .vp-n { font-weight: 700; }
+  .ver-pill .vp-live { color: var(--blue); font-weight: 700; }
+  .ver-pill .vp-meta { display: block; color: var(--muted); font-size: 10px; margin-top: 1px; }
+  .ver-banner {
+    background: var(--ink); color: var(--tch-cream, #F5F2EB); border-left: 5px solid var(--red);
+    padding: 12px 16px; margin-bottom: 20px; display: flex; align-items: center;
+    gap: 12px; flex-wrap: wrap; font-size: 13px;
+  }
+  .ver-banner .vb-txt { flex: 1 1 auto; }
+  .ver-banner button {
+    font-family: var(--tch-nord, system-ui); font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; font-size: 10px; padding: 6px 11px; cursor: pointer;
+    border: 1.5px solid var(--tch-cream); background: transparent; color: var(--tch-cream);
+  }
+  .ver-banner button.primary { background: var(--tch-yellow, #F6ED52); color: var(--ink); border-color: var(--tch-yellow); }
+  .ver-banner button:hover { opacity: 0.85; }
 </style>
 </head>
 <body>
@@ -113,6 +148,8 @@
 
 <main>
   <div class="meta" id="metaLine">The Creative Hotline · pre-call read</div>
+  <div id="verControl"></div>
+  <div id="verBanner"></div>
   <div id="content"><div class="state">Loading the research brief…</div></div>
   <div class="foot">Internal pre-call brief · The Creative Hotline</div>
 </main>
@@ -150,8 +187,6 @@
   function render(brief) {
     var u = brief.unlock || {};
     var ab = brief.authorityBaseline || {};
-    var work = brief.whatsWorking || {};
-    var push = brief.whatToPushOn || {};
     var moves = arr(brief.moves);
     var pillars = [
       ["Positioning", ab.positioning], ["Messaging", ab.messaging],
@@ -161,20 +196,18 @@
 
     if (brief.clientSnapshot) html += '<p class="snapshot">' + emify(brief.clientSnapshot) + "</p>";
 
-    if (brief.intakeReadback) {
-      html += '<div class="sec"><div class="lab">What’s actually happening</div><div class="card"><p class="statement">' + emify(brief.intakeReadback) + "</p></div></div>";
+    // NOTE: intakeReadback ("What’s actually happening") and the POV blocks
+    // ("What we love" / "What we’d push on") were REMOVED from this internal
+    // brief — they are client-facing deliverable copy that lives in Morning
+    // Prep. This brief shows Claude’s neutral, third-person analytical read only.
+
+    // Brand & positioning + distribution & systems (Claude’s internal read)
+    if (arr(brief.brandPositioning).length || arr(brief.distributionSystems).length) {
+      html += '<div class="sec"><div class="lab">Brand &amp; positioning · distribution &amp; systems</div><div class="two-col">'
+        + '<div><div class="col-h m">Brand &amp; positioning</div><div class="card">' + bullets(brief.brandPositioning) + "</div></div>"
+        + '<div><div class="col-h j">Distribution &amp; systems</div><div class="card blue">' + bullets(brief.distributionSystems) + "</div></div>"
+        + "</div></div>";
     }
-
-    // What we love + what we'd push on (two columns, brand vs systems)
-    html += '<div class="sec"><div class="lab">What we love</div><div class="two-col">'
-      + '<div><div class="col-h m">Megha · Brand</div><div class="card">' + bullets(work.brand && work.brand.length ? work.brand : brief.brandPositioning) + "</div></div>"
-      + '<div><div class="col-h j">Jake · Systems</div><div class="card blue">' + bullets(work.systems && work.systems.length ? work.systems : brief.distributionSystems) + "</div></div>"
-      + "</div></div>";
-
-    html += '<div class="sec"><div class="lab">What we’d push on</div><div class="two-col">'
-      + '<div><div class="col-h m">Megha · Brand</div><div class="card">' + bullets(push.brand) + "</div></div>"
-      + '<div><div class="col-h j">Jake · Systems</div><div class="card blue">' + bullets(push.systems) + "</div></div>"
-      + "</div></div>";
 
     // What we see (observation) + the gap (hypothesis) — kept distinct
     if (u.observation || u.hypothesis) {
@@ -233,10 +266,16 @@
       html += '<div class="sec"><div class="lab">Content health</div><div class="scorecard">'
         + chCells.map(function (c) {
             var v = c[1] || {};
+            var note = v.note == null ? "" : String(v.note).trim();
             var scoreHtml = (v.score == null)
               ? '<div class="sscore audit">Needs live audit</div>'
               : '<div class="sscore">' + esc(v.score) + " / 5</div>";
-            return '<div class="scorecell"><div class="sname">' + esc(c[0]) + "</div>" + scoreHtml + '<div class="snote">' + esc(v.note || "") + "</div></div>";
+            // Doubled-text fix: when the score is null the badge already says
+            // "Needs live audit"; if the note is just that same placeholder,
+            // drop it so the phrase doesn't render twice in the cell.
+            var noteIsAuditPlaceholder = (v.score == null) && /^needs (a )?live audit\.?$/i.test(note);
+            var noteHtml = (note && !noteIsAuditPlaceholder) ? '<div class="snote">' + esc(note) + "</div>" : "";
+            return '<div class="scorecell"><div class="sname">' + esc(c[0]) + "</div>" + scoreHtml + noteHtml + "</div>";
           }).join("")
         + "</div></div>";
     }
@@ -246,10 +285,10 @@
       html += '<div class="sec"><div class="lab">Competitive position</div><div class="card">' + bullets(brief.competitivePosition) + "</div></div>";
     }
 
-    // The story you're telling (current vs should-be)
+    // The story they're telling (current vs should-be)
     var st = brief.storyTelling || {};
     if (st.current || st.shouldBe) {
-      html += '<div class="sec"><div class="lab">The story you’re telling</div><div class="two-col">'
+      html += '<div class="sec"><div class="lab">The story they’re telling</div><div class="two-col">'
         + '<div><div class="col-h m">Right now</div><div class="card">' + (st.current ? '<p class="statement">' + emify(st.current) + "</p>" : '<p class="sub">Not provided in this brief.</p>') + "</div></div>"
         + '<div><div class="col-h j">Should be</div><div class="card blue">' + (st.shouldBe ? '<p class="statement">' + emify(st.shouldBe) + "</p>" : '<p class="sub">Not provided in this brief.</p>') + "</div></div>"
         + "</div></div>";
@@ -286,19 +325,124 @@
     content.innerHTML = html || '<div class="state">This brief has no readable content.</div>';
   }
 
-  function loadBrief(intakeId) {
-    fetch("/api/research-brief/get?intakeId=" + encodeURIComponent(intakeId))
+  // ---- Version switcher state + rendering (non-destructive) ----------------
+  var verCtrl = document.getElementById("verControl");
+  var verBannerEl = document.getElementById("verBanner");
+  var curIntakeId = "";
+  var liveVersion = null;       // version currently live
+  var versionsList = [];        // [{ n, at, note?, live }] newest first
+
+  function fmtDate(iso) {
+    if (!iso) return "";
+    try {
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+      return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " +
+             d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    } catch (e) { return ""; }
+  }
+
+  function renderVersionControl(viewing) {
+    if (!verCtrl) return;
+    var vers = Array.isArray(versionsList) ? versionsList : [];
+    // Backward-compatible: nothing to show when there are 0 or 1 versions and
+    // no meaningful live marker. Show a plain badge for a single known version.
+    if (vers.length <= 1) {
+      var only = vers.length === 1 ? vers[0].n : (liveVersion != null ? liveVersion : null);
+      verCtrl.innerHTML = (only != null)
+        ? '<div class="ver-wrap"><span class="ver-badge">v' + esc(only) + ' · live</span></div>'
+        : "";
+      return;
+    }
+    var isPreview = (viewing != null && viewing !== liveVersion);
+    var badge = isPreview
+      ? '<span class="ver-badge preview">v' + esc(viewing) + ' · preview</span>'
+      : '<span class="ver-badge">v' + esc(liveVersion != null ? liveVersion : vers[0].n) + ' · live</span>';
+    var pills = vers.map(function (v) {
+      var cls = "ver-pill";
+      if (v.live) cls += " is-live";
+      if (viewing != null && v.n === viewing) cls += " is-active";
+      var meta = [fmtDate(v.at), (v.note ? esc(v.note) : "")].filter(function (x) { return x; }).join(" · ");
+      return '<button type="button" class="' + cls + '" data-ver="' + esc(v.n) + '">'
+        + '<span class="vp-n">v' + esc(v.n) + '</span>'
+        + (v.live ? ' <span class="vp-live">live</span>' : "")
+        + (meta ? '<span class="vp-meta">' + meta + "</span>" : "")
+        + "</button>";
+    }).join("");
+    verCtrl.innerHTML = '<div class="ver-wrap">' + badge + '<div class="ver-pills">' + pills + "</div></div>";
+    verCtrl.querySelectorAll(".ver-pill").forEach(function (btn) {
+      btn.addEventListener("click", function () {
+        var n = parseInt(btn.getAttribute("data-ver"), 10);
+        if (isNaN(n)) return;
+        if (n === liveVersion) { loadBrief(curIntakeId); }
+        else { loadBrief(curIntakeId, n); }
+      });
+    });
+  }
+
+  function renderBanner(viewing) {
+    if (!verBannerEl) return;
+    if (viewing == null || viewing === liveVersion) { verBannerEl.innerHTML = ""; return; }
+    verBannerEl.innerHTML =
+      '<div class="ver-banner">'
+      + '<span class="vb-txt">Viewing <b>v' + esc(viewing) + '</b> (not live). The live version is v' + esc(liveVersion != null ? liveVersion : "?") + '.</span>'
+      + '<button type="button" class="primary" id="vbMakeLive">Make live</button>'
+      + '<button type="button" id="vbBackLive">Back to live</button>'
+      + "</div>";
+    var mk = document.getElementById("vbMakeLive");
+    if (mk) mk.addEventListener("click", function () { makeLive(viewing); });
+    var bk = document.getElementById("vbBackLive");
+    if (bk) bk.addEventListener("click", function () { loadBrief(curIntakeId); });
+  }
+
+  function makeLive(version) {
+    var btn = document.getElementById("vbMakeLive");
+    if (btn) { btn.disabled = true; btn.textContent = "Setting live…"; }
+    fetch("/api/research-brief/set-live", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intakeId: curIntakeId, version: version })
+    })
+      .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r; })
+      .then(function () { loadBrief(curIntakeId); })
+      .catch(function () {
+        if (btn) { btn.disabled = false; btn.textContent = "Make live"; }
+        alert("Couldn’t set that version live. Try again.");
+      });
+  }
+
+  // version === undefined → load the live brief (and refresh version metadata).
+  // version === N → preview that specific version (live state unchanged).
+  function loadBrief(intakeId, version) {
+    curIntakeId = intakeId;
+    var url = "/api/research-brief/get?intakeId=" + encodeURIComponent(intakeId);
+    if (version != null) url += "&version=" + encodeURIComponent(version);
+    fetch(url)
       .then(function (r) { return r.json().catch(function () { return {}; }); })
       .then(function (data) {
+        data = data || {};
+        // Capture version metadata whenever present (the live fetch carries the
+        // authoritative live marker; previews may omit it, so only overwrite
+        // when the field is actually present).
+        if (data.liveVersion !== undefined) liveVersion = data.liveVersion;
+        if (Array.isArray(data.versions)) versionsList = data.versions;
+        var viewing = (version != null) ? Number(version)
+          : (data.viewingVersion != null ? data.viewingVersion : liveVersion);
+
         if (!data || data.status !== "Ready" || !data.json) {
           var st = (data && data.status) || "Not Generated";
           content.innerHTML = '<div class="state">Research brief status: ' + esc(st) + '. It generates automatically once the client submits their intake.</div>';
+          renderVersionControl(viewing);
+          renderBanner(viewing);
           return;
         }
         var brief;
         try { brief = JSON.parse(data.json); } catch (e) { brief = null; }
         if (!brief) { content.innerHTML = '<div class="state">Brief could not be parsed.</div>'; return; }
         render(brief);
+        renderVersionControl(viewing);
+        renderBanner(viewing);
+        try { window.scrollTo(0, 0); } catch (e) {}
       })
       .catch(function () { content.innerHTML = '<div class="state">Couldn’t load the research brief.</div>'; });
   }

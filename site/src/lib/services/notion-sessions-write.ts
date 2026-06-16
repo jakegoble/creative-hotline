@@ -232,6 +232,13 @@ export async function updateSessionFields(
     workshopJson?: string;
     debriefJson?: string;
     actionPlanJson?: string;
+    /** Serialized VersionBlob (versioning.ts) → "Action Plan Versions JSON".
+     *  Optional; only written on regenerate. Fail-soft if the prop is absent. */
+    actionPlanVersionsJson?: string;
+    /** Morning Prep merged values — Megha+Jake's populated reads/edits/locks
+     *  that the workshop + action-plan render (the "merge contract"). Schema:
+     *  { version, fields:{id:val}, lists:{id:[..]}, locks:{id:bool}, updatedAt } */
+    prepJson?: string;
     /** Synced M+J review approvals + sign-off state. Schema:
      *  { approvals: { [idx]: { m?, j? } }, signoff: { m?, j? } } */
     approvalsJson?: string;
@@ -258,6 +265,12 @@ export async function updateSessionFields(
   }
   if (typeof updates.actionPlanJson === "string") {
     properties["Action Plan JSON"] = richText(updates.actionPlanJson);
+  }
+  if (typeof updates.actionPlanVersionsJson === "string") {
+    properties["Action Plan Versions JSON"] = richText(updates.actionPlanVersionsJson);
+  }
+  if (typeof updates.prepJson === "string") {
+    properties["Morning Prep JSON"] = richText(updates.prepJson);
   }
   if (typeof updates.approvalsJson === "string") {
     properties["Approvals JSON"] = richText(updates.approvalsJson);

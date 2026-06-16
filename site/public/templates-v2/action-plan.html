@@ -588,8 +588,49 @@
     justify-content: center; background: var(--tch-ink); color: var(--tch-cream);
     font-family: var(--tch-mono); font-size: 13px; letter-spacing: 0.04em; }
   body:not(.ap-loading) .ap-loader { display: none; }
+
+  /* ---- Version switcher (non-destructive) ---- */
+  body.ap-loading #apVerControl { visibility: hidden; }
+  #apVerControl {
+    position: fixed; left: 16px; bottom: 16px; z-index: 180;
+    max-width: min(320px, calc(100vw - 32px));
+    background: var(--tch-ink); color: var(--tch-cream);
+    border: 2px solid var(--tch-red); box-shadow: 4px 4px 0 var(--tch-red);
+    padding: 12px 14px; font-family: var(--tch-mono); font-size: 12px;
+  }
+  #apVerControl .av-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  #apVerControl .av-badge {
+    font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; font-size: 10px; color: var(--tch-ink);
+    background: var(--tch-yellow); border: 1.5px solid var(--tch-ink); padding: 3px 8px;
+  }
+  #apVerControl .av-toggle {
+    margin-left: auto; cursor: pointer; background: transparent; border: 0;
+    color: var(--tch-cream); font-family: var(--tch-nord); font-weight: 700;
+    letter-spacing: 0.1em; text-transform: uppercase; font-size: 10px; opacity: 0.8;
+  }
+  #apVerControl .av-toggle:hover { opacity: 1; }
+  #apVerControl .av-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  #apVerControl .av-row {
+    display: flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(245,242,235,0.25); padding: 6px 8px;
+  }
+  #apVerControl .av-row.is-live { border-left: 4px solid var(--tch-yellow); }
+  #apVerControl .av-row .av-n { font-weight: 700; }
+  #apVerControl .av-row .av-meta { opacity: 0.7; font-size: 10px; flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #apVerControl .av-row .av-live { color: var(--tch-yellow); font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; font-size: 9px; }
+  #apVerControl .av-row button.av-restore {
+    font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; font-size: 9px; color: var(--tch-cream);
+    background: var(--tch-red); border: 1.5px solid var(--tch-cream);
+    padding: 4px 7px; cursor: pointer; white-space: nowrap;
+  }
+  #apVerControl .av-row button.av-restore:hover { opacity: 0.85; }
+  #apVerControl[hidden] { display: none; }
+  @media print { #apVerControl { display: none !important; } }
 </style>
 <div class="ap-loader">Loading your action plan…</div>
+<div id="apVerControl" hidden></div>
 
 <!-- ============== COVER ============== -->
 <section class="cover">
@@ -1020,6 +1061,132 @@
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
 
+    // ---------- version switcher (non-destructive) ------------------------
+    // The /api/sessions/:id payload may carry actionPlanLiveVersion +
+    // actionPlanVersions ([{ n, at, note?, live }] newest first). There is no
+    // per-version preview endpoint for the action plan, so each non-live row
+    // offers "Restore this version" (POST set-live-action-plan + reload).
+    // Backward-compatible: missing/empty versions => render nothing extra.
+    function fmtVerDate(iso) {
+      if (!iso) return '';
+      try {
+        const d = new Date(iso);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' ' +
+               d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+      } catch (e) { return ''; }
+    }
+    function renderVersionControl(s) {
+      const host = document.getElementById('apVerControl');
+      if (!host) return;
+      const live = (s && s.actionPlanLiveVersion != null) ? s.actionPlanLiveVersion : null;
+      const versions = (s && Array.isArray(s.actionPlanVersions)) ? s.actionPlanVersions : [];
+
+      if (!versions.length) {
+        // No version metadata: show a plain badge only if we know a live number,
+        // otherwise render nothing (older sessions behave exactly as before).
+        if (live != null) {
+          host.hidden = false;
+          host.innerHTML = '<div class="av-head"><span class="av-badge">v' + esc(live) + ' · live</span></div>';
+        } else {
+          host.hidden = true;
+          host.innerHTML = '';
+        }
+        return;
+      }
+
+      const liveN = (live != null) ? live
+        : (versions.find(function (v) { return v && v.live; }) || {}).n;
+      const badge = '<span class="av-badge">v' + esc(liveN != null ? liveN : versions[0].n) + ' · live</span>';
+
+      // Single version: badge only, no list clutter.
+      if (versions.length === 1) {
+        host.hidden = false;
+        host.innerHTML = '<div class="av-head">' + badge + '</div>';
+        return;
+      }
+
+      const viewingN = (s && s.actionPlanViewingVersion != null) ? s.actionPlanViewingVersion : liveN;
+      const rows = versions.map(function (v) {
+        v = v || {};
+        const isLive = (liveN != null) ? (v.n === liveN) : !!v.live;
+        const meta = [fmtVerDate(v.at), (v.note ? esc(v.note) : '')].filter(function (x) { return x; }).join(' · ');
+        // Live row: just label it. Non-live: View (preview, non-destructive) +
+        // Make live (restore). Mirrors the research-brief version switcher.
+        const action = isLive
+          ? '<span class="av-live">live</span>'
+          : '<button type="button" class="av-restore av-view" data-ver="' + esc(v.n) + '">View</button>'
+            + ' <button type="button" class="av-restore av-makelive" data-ver="' + esc(v.n) + '">Make live</button>';
+        return '<div class="av-row' + (isLive ? ' is-live' : '') + '">'
+          + '<span class="av-n">v' + esc(v.n) + '</span>'
+          + '<span class="av-meta">' + (meta || '') + '</span>'
+          + action
+          + '</div>';
+      }).join('');
+
+      // Preview banner — shown when viewing a non-live version.
+      const previewing = (viewingN != null && liveN != null && viewingN !== liveN);
+      const banner = previewing
+        ? '<div class="av-banner" style="margin-top:8px;background:var(--tch-yellow);color:var(--tch-ink);padding:7px 10px;font-family:var(--tch-mono);font-size:11px;">'
+          + 'Viewing v' + esc(viewingN) + ' (not live) — '
+          + '<button type="button" class="av-restore av-makelive" data-ver="' + esc(viewingN) + '">Make live</button> '
+          + '<button type="button" class="av-restore av-backlive">Back to live</button></div>'
+        : '';
+
+      host.hidden = false;
+      host.innerHTML =
+        '<div class="av-head">' + badge + (previewing ? ' <span class="av-badge" style="background:var(--tch-yellow);color:var(--tch-ink);">viewing v' + esc(viewingN) + '</span>' : '')
+        + '<button type="button" class="av-toggle" id="apVerToggle">Versions ▾</button></div>'
+        + banner
+        + '<div class="av-list" id="apVerList" style="display:' + (previewing ? 'flex' : 'none') + ';">' + rows + '</div>';
+
+      const toggle = document.getElementById('apVerToggle');
+      const list = document.getElementById('apVerList');
+      if (toggle && list) {
+        toggle.addEventListener('click', function () {
+          const open = list.style.display !== 'none';
+          list.style.display = open ? 'none' : 'flex';
+          toggle.textContent = open ? 'Versions ▾' : 'Versions ▴';
+        });
+      }
+      // Preview an archived version WITHOUT making it live.
+      function previewVersion(version) {
+        fetch('/api/sessions/' + encodeURIComponent(sessionId) + '?planVersion=' + encodeURIComponent(version))
+          .then(function (r) { return r.json(); })
+          .then(function (sv) {
+            if (sv && sv.actionPlanJson) renderActionPlan(sv.actionPlanJson);
+            renderVersionControl(sv);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          })
+          .catch(function () { alert('Couldn’t load that version.'); });
+      }
+      function backToLive() {
+        fetch('/api/sessions/' + encodeURIComponent(sessionId))
+          .then(function (r) { return r.json(); })
+          .then(function (sv) { if (sv && sv.actionPlanJson) renderActionPlan(sv.actionPlanJson); renderVersionControl(sv); })
+          .catch(function () { location.reload(); });
+      }
+      function makeLive(version) {
+        if (!confirm('Make v' + version + ' the live action plan? (The current live version is kept as a version — nothing is lost.)')) return;
+        fetch('/api/sessions/' + encodeURIComponent(sessionId) + '/set-live-action-plan', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ version: version })
+        })
+          .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); })
+          .then(function () { setTimeout(function () { location.reload(); }, 400); })
+          .catch(function () { alert('Couldn’t make that version live. Try again.'); });
+      }
+      host.querySelectorAll('.av-view').forEach(function (btn) {
+        btn.addEventListener('click', function () { const n = parseInt(btn.getAttribute('data-ver'), 10); if (!isNaN(n)) previewVersion(n); });
+      });
+      host.querySelectorAll('.av-makelive').forEach(function (btn) {
+        btn.addEventListener('click', function () { const n = parseInt(btn.getAttribute('data-ver'), 10); if (!isNaN(n)) makeLive(n); });
+      });
+      host.querySelectorAll('.av-backlive').forEach(function (btn) {
+        btn.addEventListener('click', backToLive);
+      });
+    }
+
     // ---------- render the generated Action Plan (ActionPlanV2) ----------
     // The plan JSON is the source of truth (Section 1–11). Every section that
     // has a slot here is populated; missing fields leave the template
@@ -1350,6 +1517,12 @@
           renderActionPlan(s.actionPlanJson);
         } catch (e) {
           console.warn('[action-plan render]', e);
+        }
+        // Non-destructive version switcher (guarded; no-op without version data).
+        try {
+          renderVersionControl(s);
+        } catch (e) {
+          console.warn('[action-plan versions]', e);
         }
         setStatus('loaded', 'idle');
         revealActionPlan();

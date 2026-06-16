@@ -31,17 +31,34 @@ export const maxDuration = 120;
 
 export async function POST(request: Request) {
   let intakeId: string;
+  let force = false;
+  let extraContext: string | undefined;
+  let note: string | undefined;
+  let libraryDocs: { label?: string; url?: string; source?: string }[] | undefined;
   try {
-    const body = (await request.json()) as { intakeId?: string };
+    const body = (await request.json()) as {
+      intakeId?: string;
+      regenerate?: boolean;
+      force?: boolean;
+      extraContext?: string;
+      note?: string;
+      libraryDocs?: { label?: string; url?: string; source?: string }[];
+    };
     if (!body.intakeId) {
       return NextResponse.json({ error: "missing_intakeId" }, { status: 400 });
     }
     intakeId = body.intakeId;
+    // Either flag forces a fresh, non-destructive regeneration (the prior brief
+    // is archived as a version first). Without it the call stays idempotent.
+    force = !!(body.regenerate || body.force);
+    extraContext = typeof body.extraContext === "string" ? body.extraContext : undefined;
+    note = typeof body.note === "string" ? body.note : undefined;
+    libraryDocs = Array.isArray(body.libraryDocs) ? body.libraryDocs : undefined;
   } catch {
     return NextResponse.json({ error: "invalid_json_body" }, { status: 400 });
   }
 
-  const result = await runResearchBriefGeneration(intakeId);
+  const result = await runResearchBriefGeneration(intakeId, { force, extraContext, note, libraryDocs });
 
   if (!result.ok) {
     return NextResponse.json(

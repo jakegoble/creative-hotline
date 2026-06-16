@@ -259,12 +259,22 @@
   .edit-log .who.m { color: var(--tch-red); font-weight: 700; }
   .edit-log .who.j { color: var(--tch-blue); font-weight: 700; }
 
+  /* Regenerate action plan — secondary to the primary review/send flow */
+  .regen-row { margin-top: 16px; padding-top: 16px; border-top: 1.5px dashed var(--tch-ink-line); display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .regen-row .tch-btn.regen-action { padding: 9px 16px; font-size: 10px; }
+  .regen-note { font-family: var(--tch-mono); font-size: 11px; color: rgba(28,28,30,0.55); }
+  .regen-status { flex-basis: 100%; font-family: var(--tch-mono); font-size: 11px; min-height: 14px; line-height: 1.4; color: rgba(28,28,30,0.7); }
+  .regen-status.work { color: var(--tch-ink); }
+  .regen-status.ok { color: #15803d; }
+  .regen-status.err { color: var(--tch-red); }
+
   @media (max-width: 1200px) {
     .layout { grid-template-columns: 280px 1fr 320px; }
   }
   @media (max-width: 900px) {
     .layout { grid-template-columns: 1fr; }
     .sidebar, .approval-panel { display: none; }
+    .regen-row .tch-btn.regen-action { flex: 1 1 100%; text-align: center; }
   }
 </style>
 </head>
@@ -327,6 +337,12 @@
     <!-- SECTION CARDS (dynamic — see sectionsContainer above) -->
 
     <button class="tch-btn ghost" id="previewBtn" style="margin-top:14px;display:none;">👁 Preview Full Deliverable</button>
+
+    <div class="regen-row" id="regenRow" style="display:none;">
+      <button type="button" class="tch-btn ghost regen-action" id="regenPlanBtn">↻ Regenerate action plan</button>
+      <span class="regen-note">Keeps the current version. Spends a Claude call (~1-2 min).</span>
+      <div class="regen-status" id="regenStatus"></div>
+    </div>
   </main>
 
   <aside class="approval-panel">
@@ -702,12 +718,79 @@
     renderSections();
     updateGates();
     renderSendStatus();
+    wireRegen();
+  }
+
+  // -------- regenerate action plan -------------------------------------
+  // POST /api/sessions/<id>/generate-action-plan {} — non-destructive
+  // (server archives the prior version). Needs a debrief to exist, else it
+  // returns 400 missing_debrief, which we surface plainly. Spends a Claude
+  // call (~1-2 min) so we confirm() first. Hidden when no session loaded.
+  let _regenBusy = false;
+  function setRegenStatus(msg, kind) {
+    const el = document.getElementById('regenStatus');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.className = 'regen-status' + (kind ? ' ' + kind : '');
+  }
+  function wireRegen() {
+    const row = document.getElementById('regenRow');
+    const btn = document.getElementById('regenPlanBtn');
+    if (!row || !btn) return;
+    const sid = STATE.currentSessionId;
+    if (!sid) { row.style.display = 'none'; return; }
+    row.style.display = '';
+    setRegenStatus('', '');
+    btn.disabled = false;
+
+    btn.onclick = async () => {
+      if (_regenBusy) return;
+      if (!window.confirm(
+        'Regenerate the action plan? This spends a Claude call (~1-2 min). '
+        + 'The current version is kept as a saved version.'
+      )) return;
+
+      _regenBusy = true;
+      btn.disabled = true;
+      setRegenStatus('Regenerating the action plan… up to ~2 min. Keep this tab open.', 'work');
+      try {
+        const res = await fetch(`/api/sessions/${encodeURIComponent(sid)}/generate-action-plan`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        let body = {};
+        try { body = await res.json(); } catch {}
+        if (!res.ok) {
+          const code = body.error || body.message || '';
+          if (res.status === 400 && /missing_debrief/i.test(String(code))) {
+            setRegenStatus('Save the debrief first.', 'err');
+            btn.disabled = false;
+            return;
+          }
+          throw new Error(body.message || body.error || ('HTTP ' + res.status));
+        }
+        setRegenStatus('Done ✓ — reloading…', 'ok');
+        setTimeout(() => {
+          if (STATE.currentSessionId) loadSession(STATE.currentSessionId);
+          else window.location.reload();
+        }, 800);
+      } catch (err) {
+        console.warn('[review] regenerate action plan failed', err);
+        setRegenStatus('Regenerate failed — try again.', 'err');
+        btn.disabled = false;
+      } finally {
+        _regenBusy = false;
+      }
+    };
   }
 
   function renderEmpty() {
     document.getElementById('reviewClientName').textContent = 'Select a session from the queue →';
     document.getElementById('sectionsContainer').innerHTML = '';
     document.getElementById('debriefSummary').style.display = 'none';
+    const regenRow = document.getElementById('regenRow');
+    if (regenRow) regenRow.style.display = 'none';
   }
 
   function renderHeader() {

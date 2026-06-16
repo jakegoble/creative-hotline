@@ -1049,6 +1049,7 @@
 <button class="mj-drawer-toggle" onclick="toggleMJDrawer()">☎ M+J Setup</button>
 <aside class="mj-drawer" id="mjDrawer">
   <div class="head">↳ M + J Only · pre-populated from morning prep</div>
+  <div id="prepFlowNote" style="display:none; background:var(--tch-yellow); color:var(--tch-ink); font-family:var(--tch-mono); font-size:12px; padding:8px 10px; margin-bottom:10px; font-weight:700;"></div>
   <h2>Today's Session</h2>
   <div class="row"><div class="k">Client</div>—</div>
   <div class="row"><div class="k">Business</div>—</div>
@@ -1138,11 +1139,11 @@
       <!-- 3-minute timer bar (Megha req #16) — mirrors the 60-sec timer pattern -->
       <div class="rgo-timer" style="margin-top:18px;">
         <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-          <button type="button" id="rgoTimerBtn" onclick="startRgoTimer()" style="font-family:var(--tch-nord);font-weight:700;letter-spacing:0.12em;font-size:12px;text-transform:uppercase;background:var(--tch-ink);color:var(--tch-cream);border:none;padding:10px 16px;cursor:pointer;">▶ Start 3-min timer</button>
-          <span id="rgoTimerTime" style="font-family:var(--tch-mono);font-size:18px;color:var(--tch-ink);">03:00</span>
+          <button type="button" id="rgoTimerBtn" onclick="startRgoTimer()" style="font-family:var(--tch-nord);font-weight:700;letter-spacing:0.12em;font-size:12px;text-transform:uppercase;background:var(--tch-yellow);color:var(--tch-ink);border:none;padding:10px 16px;cursor:pointer;">▶ Start 3-min timer</button>
+          <span id="rgoTimerTime" style="font-family:var(--tch-mono);font-size:18px;color:var(--tch-cream);">03:00</span>
         </div>
-        <div style="margin-top:10px;height:8px;background:rgba(28,28,30,0.12);border:2px solid var(--tch-ink);">
-          <div id="rgoTimerFill" style="height:100%;width:100%;background:var(--tch-ink);transition:width 1s linear;"></div>
+        <div style="margin-top:10px;height:8px;background:rgba(245,242,235,0.14);border:2px solid var(--tch-cream);">
+          <div id="rgoTimerFill" style="height:100%;width:100%;background:var(--tch-yellow);transition:width 1s linear;"></div>
         </div>
       </div>
     </div>
@@ -1336,16 +1337,6 @@
           <li contenteditable="true"></li>
         </ul>
         <button class="add-btn" onclick="addLeaveItem()">+ Add yours</button>
-      </div>
-      <div class="stop-card park">
-        <div class="stop-card-head">
-          <h4>🔖 Parking · Later</h4>
-          <span class="mini-time">1 min</span>
-        </div>
-        <ul id="parkList">
-          <li contenteditable="true"></li>
-        </ul>
-        <button class="add-btn" onclick="addParkItem()">+ Add yours</button>
       </div>
       <div class="stop-card missing">
         <div class="stop-card-head">
@@ -1556,7 +1547,7 @@
       if (timeEl) timeEl.textContent = c > 0 ? `${m}:${s}` : "Time's up";
       if (fillEl) {
         fillEl.style.width = Math.max(0, c / total * 100) + '%';
-        fillEl.style.background = c <= 30 ? 'var(--tch-red)' : 'var(--tch-ink)';
+        fillEl.style.background = c <= 30 ? 'var(--tch-red)' : 'var(--tch-yellow)';
       }
     }
     paint();
@@ -1631,7 +1622,6 @@
   }
   function addStopItem() { addLi('stopList', 'New stop item...'); }
   function addLeaveItem() { addLi('leaveList', 'New leave-alone...'); }
-  function addParkItem() { addLi('parkList', 'Park for later...'); }
   function addMissingItem() { addLi('missingList', 'What we missed...'); }
   function addLi(id, txt) {
     const li = document.createElement('li'); li.contentEditable = 'true'; li.textContent = txt;
@@ -1696,7 +1686,7 @@
         // debrief autopop or action plan.
         if (el.id) blob.fields[el.id] = isPlaceholder(el.value) ? '' : el.value;
       });
-      ['stopList','leaveList','parkList','missingList'].forEach(id => {
+      ['stopList','leaveList','missingList'].forEach(id => {
         const root = document.getElementById(id);
         if (!root) return;
         blob.lists[id] = Array.from(root.children).map(child => (child.innerText || '').trim()).filter(Boolean);
@@ -1783,6 +1773,32 @@
       if (!t) return '';
       return t.length > n ? t.slice(0, n - 1).trimEnd() + '…' : t;
     };
+    // Lightly clean raw intake transcription before it shows on a client-facing
+    // screen (Megha #3): collapse whitespace, strip spoken filler, fix sentence
+    // casing + terminal punctuation. Non-destructive — never re-words meaning,
+    // so it's safe even on a brief that hasn't regenerated a cleaned read-back.
+    function tidyProse(s) {
+      let t = (s == null ? '' : String(s)).replace(/\s+/g, ' ').trim();
+      if (!t) return '';
+      // Drop standalone spoken filler words ("um", "uh", "like", "you know").
+      t = t.replace(/\b(?:um+|uh+|er+|you know|i mean|kind of|sort of|like)\b[,]?\s*/gi, '');
+      t = t.replace(/\s+/g, ' ').replace(/\s+([.,!?;:])/g, '$1').trim();
+      if (!t) return '';
+      t = t.charAt(0).toUpperCase() + t.slice(1);
+      if (!/[.!?…]$/.test(t)) t += '.';
+      return t;
+    }
+    // Replace internal "M+J" team shorthand with client-facing "us" on any text
+    // that shows on the client screen (Megha: client-facing moves). The
+    // generators also avoid the shorthand now — this is a safety net for briefs
+    // that predate that change.
+    function clientVoice(s) {
+      if (s == null) return s;
+      return String(s)
+        .replace(/\bMegha\s*(?:&|and|\+)\s*Jake\b/gi, 'us')
+        .replace(/\bM\s*(?:&|\+)\s*J\b/g, 'us')
+        .replace(/\bM\/J\b/g, 'us');
+    }
 
     // Seed the workshop's "from morning prep" / Claude-read slots from the
     // Research Brief so the facilitator screen carries the pre-call read into
@@ -1855,11 +1871,14 @@
     // These <div> slots aren't editable, so a plain overwrite is correct.
     function seedFromIntake(intake) {
       if (!intake) return;
-      setSlot('intakeBrought', intake.creativeEmergency);
+      // Tidy the raw transcription before it shows on the client screen (#3).
+      // intakeBrought may be replaced by the brief's cleaned read-back later;
+      // intakeChallenge/intakeSuccess have no brief equivalent, so tidy them here.
+      setSlot('intakeBrought', tidyProse(intake.creativeEmergency));
       // "Biggest challenge" = the magic-wand "fix one thing" answer; fall back
       // to what they've already tried if the wand answer is blank.
-      setSlot('intakeChallenge', intake.magicWand || intake.whatTried);
-      setSlot('intakeSuccess', intake.successDefinition);
+      setSlot('intakeChallenge', tidyProse(intake.magicWand || intake.whatTried));
+      setSlot('intakeSuccess', tidyProse(intake.successDefinition));
       // Derived one-liner: role · team size · price model.
       const typeBits = [intake.role, intake.teamSize, intake.priceRange]
         .map(x => (x || '').toString().trim()).filter(Boolean);
@@ -1929,6 +1948,92 @@
         });
       }
     }
+    // ---- MERGE CONTRACT (Megha 2026-06-08) -------------------------------
+    // The workshop must render M+J's populated Morning-Prep values OVER the raw
+    // research brief. We read the prep blob (server-persisted "Morning Prep
+    // JSON", with a same-device localStorage bridge fallback) and apply it
+    // BEFORE the brief seed. Because every setter here is fill-if-empty, the
+    // precedence is exactly: live workshop edits > prep (M+J) > brief (Claude).
+    function textToBullets(s) {
+      if (s == null) return [];
+      let str = String(s).trim();
+      if (!str) return [];
+      // Prefer explicit line breaks; otherwise split into sentences.
+      let parts = str.split(/\r?\n+/).map(x => x.trim()).filter(Boolean);
+      if (parts.length <= 1) {
+        parts = str.split(/(?<=[.!?])\s+/).map(x => x.trim()).filter(Boolean);
+      }
+      return parts;
+    }
+    // Read + normalize the prep blob from the server session payload first, then
+    // fall back to the prep page's own localStorage draft (same-device morning).
+    function getPrepBlob(sessionPayload) {
+      // 1) server blob: { fields, lists, libraryDocs, locks }
+      const raw = sessionPayload && sessionPayload.prepJson;
+      if (typeof raw === 'string' && raw.trim()) {
+        try {
+          const b = JSON.parse(raw);
+          if (b && typeof b === 'object' && (b.fields || b.lists)) {
+            return { fields: b.fields || {}, lists: b.lists || {} };
+          }
+        } catch (e) { /* fall through to bridge */ }
+      }
+      // 2) localStorage bridge: the prep page stores a flat {id:val, __lists}.
+      try {
+        const lsRaw = localStorage.getItem(`tch_prep_v2:${sessionId}`);
+        if (lsRaw) {
+          const d = JSON.parse(lsRaw);
+          const fields = {};
+          Object.keys(d).forEach(k => { if (k.indexOf('__') !== 0) fields[k] = d[k]; });
+          return { fields, lists: d.__lists || {} };
+        }
+      } catch (e) { /* none */ }
+      return null;
+    }
+    // Map prep fields → workshop slots. prep WINS over brief (runs first), and
+    // fill-if-empty setters mean it never clobbers a restored live edit.
+    function applyPrepOverlay(prep) {
+      if (!prep) return;
+      const f = prep.fields || {};
+      const l = prep.lists || {};
+      // Gap hypothesis (display slot pair) — only if not already a live value.
+      const gapEl = document.getElementById('gapHypothesis');
+      if (f.gapHypothesis && gapEl && isPlaceholder(gapEl.textContent)) {
+        setSlotPair('gapHypothesis', 'gapHypothesisSub', f.gapHypothesis);
+      }
+      // "What we love" — Megha = brand, Jake = systems (prep "what we like").
+      if (f.mLike) seedBullets('meghaLike', textToBullets(f.mLike));
+      if (f.jLike) seedBullets('jakeLike', textToBullets(f.jLike));
+      // The three moves — prep drafts seed the §05 inputs (client-voiced).
+      seedInputIfEmpty('move72', clientVoice(f.win72h));
+      seedInputIfEmpty('move1w', clientVoice(f.win1w));
+      seedInputIfEmpty('move1m', clientVoice(f.win1m));
+      // Not Doing / Leave Alone — prep's deliberate, client-appropriate drafts
+      // (distinct from the internal thingsToNotDo we scrubbed in #4).
+      if (Array.isArray(l.stopDraft)) seedListIfPlaceholder('stopList', l.stopDraft);
+      if (Array.isArray(l.leaveDraft)) seedListIfPlaceholder('leaveList', l.leaveDraft);
+      syncMapFromMoves();
+    }
+    // "What's not flowing through" check — flag any populated prep value that
+    // didn't land on its workshop slot, so nothing silently vanishes.
+    function checkPrepFlow(prep) {
+      if (!prep) return;
+      const f = prep.fields || {};
+      const slotText = id => { const e = document.getElementById(id); return e ? (e.value != null ? e.value : e.textContent) : ''; };
+      const pairs = [
+        ['gapHypothesis', 'gapHypothesis'], ['mLike', 'meghaLike'], ['jLike', 'jakeLike'],
+        ['win72h', 'move72'], ['win1w', 'move1w'], ['win1m', 'move1m'],
+      ];
+      const missing = pairs.filter(([pk, wid]) => {
+        const pv = (f[pk] || '').toString().trim();
+        return pv && isPlaceholder(slotText(wid));
+      }).map(([pk]) => pk);
+      if (missing.length) {
+        console.warn('[merge-contract] prep values not flowing through to workshop:', missing);
+        const note = document.getElementById('prepFlowNote');
+        if (note) { note.style.display = ''; note.textContent = '⚠ Prep not flowing: ' + missing.join(', '); }
+      }
+    }
     async function seedFromBrief(intakeId) {
       if (!intakeId) return;
       try {
@@ -1978,8 +2083,8 @@
         // Fall back to testQuestion only if no dedicated observation exists.
         setSlotPair('hunch', 'hunchSub', unlock.observation || unlock.testQuestion);
         // "What we'd push on" = CONSTRUCTIVE, client-facing feedback bullets.
-        // Megha = brand, Jake = systems. Fall back to the older reads.
-        const notDo = Array.isArray(brief.thingsToNotDo) ? brief.thingsToNotDo.filter(Boolean) : [];
+        // Megha = brand, Jake = systems. (brief.thingsToNotDo is internal-only
+        // and is deliberately NOT read here anymore — see Megha #4 scrub below.)
         // CLIENT-FACING: seed ONLY from whatToPushOn (constructive, 2nd-person).
         // Do NOT fall back to internal reads (audience / distributionSystems) —
         // those carry internal notes like "we don't know their subscriber-to-buyer
@@ -2009,32 +2114,30 @@
         ];
         slots.forEach((s, i) => {
           const m = briefMoves[i] || {};
-          seedInputIfEmpty(s.action, m.diy || fallbackDiy[i]);
-          seedInputIfEmpty(s.why, m.why);            // §39: "why this matters" was never seeded
+          seedInputIfEmpty(s.action, clientVoice(m.diy || fallbackDiy[i]));
+          seedInputIfEmpty(s.why, clientVoice(m.why));  // §39: "why this matters" was never seeded
           autoGrowMove(document.getElementById(s.action));
         });
 
-        // NOT DOING ← thingsToNotDo (declarative). LEAVE ALONE ← strengths worth
-        // protecting. PARKING ← blank, for M+J to fill live with things to revisit
-        // later (Megha #15 — parking is a distinct bucket from not-doing). WHAT'S
-        // MISSING ← left BLANK on purpose (Megha #26): it's the CLIENT's space to
-        // tell us anything we haven't covered — never pre-fill it with Claude's
-        // open questions.
-        seedListIfPlaceholder('stopList', notDo);
+        // NOT DOING ← BLANK for live input (Megha #4). It used to seed from
+        // thingsToNotDo, but those are INTERNAL M+J session guardrails ("don't
+        // oversell the retainer", "don't rabbit-hole on metrics") — NOT client
+        // to-don'ts. Seeding them leaked internal voice onto the client-facing
+        // Play. Now M+J fill "Not Doing" live with the client's own decisions,
+        // same as Parking/Missing. LEAVE ALONE ← strengths worth protecting.
+        // WHAT'S MISSING ← blank (Megha #26 — the client's space). (Parking
+        // column removed per Megha — it duplicated Leave Alone.)
         seedListIfPlaceholder('leaveList', pos);
-        // (parkList + missingList intentionally NOT seeded — blank for live input)
+        // (stopList + missingList intentionally NOT seeded — blank for live input)
 
         // ---- 06 THE MAP · DIY (A) / Level-Up (B) / Not Now ----------------
         // The map mirrors the Section-05 moves: Path A = the move as a
         // self-serve action, Path B = the same move with help / better tools.
         // syncMapFromMoves() (called after all seeding) copies the live move
         // inputs into the grid, so brief-seeded OR hand-typed moves both show.
-        // Not Now ← first "don't" guardrail from the stop list. Display-only
-        // sticky (no user input to clobber), so fill it whenever we have data.
-        if (notDo.length) {
-          const ns = document.querySelector('#quadNotNow .ei-sticky.notnow .sticky-action');
-          if (ns) ns.textContent = notDo[0];
-        }
+        // Not Now ← intentionally NOT seeded from thingsToNotDo (Megha #4): the
+        // same internal-guardrail leak as The Play's "Not Doing" was duplicated
+        // here on The Map. Left for M+J to fill live in client voice.
         syncMapFromMoves();
       } catch (err) {
         console.warn('[workshop brief seed]', err);
@@ -2057,7 +2160,7 @@
         const bEl = document.getElementById(m.b);
         // Path A (DIY) = the live move text. Path B (Level-Up) = the brief's
         // structured Level-Up version when we have it, else a sensible frame.
-        const levelUp = (briefMoves[i] && briefMoves[i].levelUp || '').trim();
+        const levelUp = clientVoice((briefMoves[i] && briefMoves[i].levelUp || '').trim());
         if (aEl) aEl.textContent = val || 'Set during the session';
         if (bEl) bEl.textContent = levelUp || (val ? `With help: ${val}` : 'The version with help / better tools');
       });
@@ -2075,6 +2178,9 @@
         setRow('Session #', s.id ? s.id.slice(-6) : '—');
         setRow('Website', intake.website || '—');
         setRow('Instagram', intake.instagram || '—');
+        // Referral coupon — bind from the session (same field the Hub reads);
+        // fall back to the standing house code so it's never blank (Megha).
+        setSlot('referralCode', s.referralCode || 'RAE-DIAL-100');
         if (s.scheduledAt) {
           try {
             const d = new Date(s.scheduledAt);
@@ -2085,16 +2191,20 @@
             setRow('Time', `${time}${rel}`);
           } catch(e) {}
         }
-        // 1) Restore any previously-saved workshop blob FIRST so M+J's live
-        //    edits survive a reload. 2) Then read the intake into Section 01.
-        //    3) Then seed the brief-derived slots — all guarded to only fill
-        //    fields still empty/placeholder, so nothing above gets clobbered.
+        // Precedence (merge contract): live workshop edits > prep (M+J) > brief.
+        // 1) Restore previously-saved workshop edits FIRST. 2) Overlay the
+        //    merged Morning-Prep values (M+J's populated reads/edits) — fills
+        //    before the brief so prep WINS over Claude's seed, but fill-if-empty
+        //    setters never clobber a restored live edit. 3) Read intake into §01.
+        //    4) Seed brief-derived slots (only fills what prep/edits left empty).
+        //    5) Flag anything in prep that didn't flow through.
         restoreWorkshopBlob(s.workshopJson);
+        const prep = getPrepBlob(s);
+        applyPrepOverlay(prep);
         seedFromIntake(intake);
-        // Mirror moves into the map now (covers restored/typed moves and the
-        // brief-not-ready case), then let the async brief seed re-sync.
         syncMapFromMoves();
-        if (intake.id) seedFromBrief(intake.id);
+        if (intake.id) await seedFromBrief(intake.id);
+        checkPrepFlow(prep);
         setStatus('loaded · saved locally', 'idle');
       } catch (err) {
         console.warn('[workshop load]', err);

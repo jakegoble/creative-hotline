@@ -125,7 +125,20 @@
   .quick-link .icon { font-size: 18px; }
   .quick-link .label { flex: 1; }
   .quick-link .arrow { font-family: var(--tch-nord); font-weight: 700; opacity: 0.5; }
-  @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .client-rail { display: none; } .three-panel { grid-template-columns: 1fr; } .stepper { grid-template-columns: repeat(2, 1fr); } .snapshot { grid-template-columns: 1fr; } }
+  /* Regenerate (secondary to the primary review actions) */
+  .regen-block { margin-top: 16px; padding-top: 14px; border-top: 1.5px dashed var(--tch-ink-line); }
+  .regen-head { font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.14em; font-size: 10px; text-transform: uppercase; color: rgba(28,28,30,0.6); margin-bottom: 10px; }
+  .regen-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+  .regen-btn { flex: 1 1 auto; min-width: 120px; background: transparent; color: var(--tch-ink); border: 1.5px solid var(--tch-ink-line); padding: 8px 10px; font-family: var(--tch-nord); font-weight: 700; letter-spacing: 0.1em; font-size: 10px; text-transform: uppercase; cursor: pointer; transition: all 0.12s; }
+  .regen-btn:hover:not(:disabled) { background: var(--tch-ink); color: var(--tch-cream); border-color: var(--tch-ink); }
+  .regen-btn.red { border-color: var(--tch-red); color: var(--tch-red); }
+  .regen-btn.red:hover:not(:disabled) { background: var(--tch-red); color: var(--tch-cream); border-color: var(--tch-red); }
+  .regen-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .regen-status { font-family: var(--tch-mono); font-size: 11px; margin-top: 10px; min-height: 14px; line-height: 1.4; color: rgba(28,28,30,0.7); }
+  .regen-status.work { color: var(--tch-ink); }
+  .regen-status.ok { color: var(--tch-green); }
+  .regen-status.err { color: var(--tch-red); }
+  @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .client-rail { display: none; } .three-panel { grid-template-columns: 1fr; } .stepper { grid-template-columns: repeat(2, 1fr); } .snapshot { grid-template-columns: 1fr; } .regen-btn { flex: 1 1 100%; } }
 </style>
 </head>
 <body>
@@ -273,6 +286,15 @@
           <div class="input-block j"><div class="who">07 · Action Plan · J owns</div></div>
           <div class="input-block shared"><div class="who">08 · Effort/Impact Map · Both approve</div></div>
           <a href="review-dashboard.html" class="quick-link"><span class="icon">🛠</span><span class="label">Open full review dashboard</span><span class="arrow">→</span></a>
+          <div class="regen-block" id="reviewRegenBlock" style="display:none;">
+            <div class="regen-head">↻ Regenerate <span style="opacity:0.55;font-weight:500;">(keeps the old version)</span></div>
+            <div class="regen-actions">
+              <button type="button" class="regen-btn" id="regenBriefBtn">Regenerate brief</button>
+              <button type="button" class="regen-btn" id="regenPlanBtn">Regenerate action plan</button>
+              <button type="button" class="regen-btn red" id="regenBothBtn">Regenerate both</button>
+            </div>
+            <div class="regen-status" id="regenStatus"></div>
+          </div>
         </div>
         <div class="panel right">
           <div class="panel-head"><span class="panel-tag">↳ Send Gates</span></div>
@@ -982,6 +1004,12 @@
         }
       }
 
+      // ----- REVIEW PANEL · Regenerate controls -----
+      // Non-destructive regeneration (server archives the prior version).
+      // Brief needs the linked intake's page id; action plan needs a debrief
+      // to already exist. Hide the whole block if we can't regenerate anything.
+      wireRegenControls(s);
+
       // ----- HEADER · Notion raw-record link -----
       // s.id is the Notion page UUID. Build a notion:// deep link that opens
       // the desktop app if installed, falls back to https://notion.so otherwise.
@@ -1090,6 +1118,133 @@
     }
   }
   window.autoHealResearchBrief = autoHealResearchBrief;
+
+  // -------------------------------------------------------------------------
+  // Regenerate controls (Review panel)
+  //   • Brief:  POST /api/research-brief/generate { intakeId, regenerate:true }
+  //   • Plan:   POST /api/sessions/<id>/generate-action-plan {}
+  // Both are non-destructive server-side (prior version archived). Each run
+  // spends a Claude call (~1-2 min), so we confirm() before firing. The block
+  // hides entirely when neither action is possible (no intake id + no session).
+  // -------------------------------------------------------------------------
+  let _regenBusy = false;
+
+  function setRegenStatus(msg, kind) {
+    const el = document.getElementById('regenStatus');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.className = 'regen-status' + (kind ? ' ' + kind : '');
+  }
+
+  function setRegenDisabled(disabled) {
+    ['regenBriefBtn', 'regenPlanBtn', 'regenBothBtn'].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.disabled = disabled;
+    });
+  }
+
+  async function regenBrief(intakeId) {
+    const r = await fetch('/api/research-brief/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intakeId, regenerate: true }),
+    });
+    let body = {};
+    try { body = await r.json(); } catch {}
+    if (!r.ok) throw new Error(body.message || body.error || ('brief_failed_' + r.status));
+    return body;
+  }
+
+  async function regenPlan(sessionId) {
+    const r = await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/generate-action-plan`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    let body = {};
+    try { body = await r.json(); } catch {}
+    if (!r.ok) {
+      const code = body.error || body.message || '';
+      if (r.status === 400 && /missing_debrief/i.test(String(code))) {
+        const e = new Error('missing_debrief');
+        e.userMessage = 'Save the debrief first.';
+        throw e;
+      }
+      throw new Error(body.message || body.error || ('plan_failed_' + r.status));
+    }
+    return body;
+  }
+
+  function wireRegenControls(s) {
+    const block = document.getElementById('reviewRegenBlock');
+    if (!block) return;
+
+    const sessionId = s && s.id;
+    const intakeId = s && s.intake && s.intake.id;
+    const briefBtn = document.getElementById('regenBriefBtn');
+    const planBtn = document.getElementById('regenPlanBtn');
+    const bothBtn = document.getElementById('regenBothBtn');
+
+    // Guard: with neither an intake nor a session there is nothing to do.
+    if (!sessionId && !intakeId) {
+      block.style.display = 'none';
+      return;
+    }
+    block.style.display = '';
+
+    // Toggle individual buttons by what's actually possible.
+    if (briefBtn) briefBtn.style.display = intakeId ? '' : 'none';
+    if (planBtn)  planBtn.style.display  = sessionId ? '' : 'none';
+    if (bothBtn)  bothBtn.style.display  = (intakeId && sessionId) ? '' : 'none';
+
+    setRegenStatus('', '');
+    setRegenDisabled(false);
+
+    async function run(kind) {
+      if (_regenBusy) return;
+      const doBrief = (kind === 'brief' || kind === 'both') && !!intakeId;
+      const doPlan = (kind === 'plan' || kind === 'both') && !!sessionId;
+      if (!doBrief && !doPlan) return;
+
+      const what = doBrief && doPlan ? 'the brief AND the action plan'
+        : doBrief ? 'the research brief' : 'the action plan';
+      if (!window.confirm(
+        `Regenerate ${what}? This spends a Claude call (~1-2 min). `
+        + 'The current version is kept as a saved version.'
+      )) return;
+
+      _regenBusy = true;
+      setRegenDisabled(true);
+      setRegenStatus('Regenerating… up to ~2 min. Keep this tab open.', 'work');
+
+      try {
+        if (doBrief) {
+          setRegenStatus('Regenerating the research brief… up to ~2 min.', 'work');
+          await regenBrief(intakeId);
+        }
+        if (doPlan) {
+          setRegenStatus('Regenerating the action plan… up to ~2 min.', 'work');
+          await regenPlan(sessionId);
+        }
+        setRegenStatus('Done ✓ — refreshing…', 'ok');
+        setTimeout(() => {
+          if (currentSessionId) loadClient(currentSessionId);
+          else window.location.reload();
+        }, 800);
+      } catch (err) {
+        console.warn('[hub] regenerate failed', err);
+        setRegenStatus(err && err.userMessage ? err.userMessage : 'Regenerate failed — try again.', 'err');
+        setRegenDisabled(false);
+      } finally {
+        _regenBusy = false;
+      }
+    }
+
+    if (briefBtn) briefBtn.onclick = () => run('brief');
+    if (planBtn)  planBtn.onclick  = () => run('plan');
+    if (bothBtn)  bothBtn.onclick  = () => run('both');
+  }
+  window.wireRegenControls = wireRegenControls;
 
   // -------------------------------------------------------------------------
   // Fireflies URL save — PATCH /api/sessions/[id]

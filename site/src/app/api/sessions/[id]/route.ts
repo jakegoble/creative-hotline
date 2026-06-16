@@ -40,6 +40,7 @@ import type { PageObjectResponse } from "@notionhq/client/build/src/api-endpoint
 import { config } from "@/lib/config";
 import { getSessionById } from "@/lib/services/notion-sessions-read";
 import { updateSessionFields } from "@/lib/services/notion-sessions-write";
+import { parseVersions, versionSummaries } from "@/lib/services/versioning";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -247,13 +248,16 @@ async function fetchIntakeSummary(id: string): Promise<IntakeSummary | null> {
 }
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
   const { id } = await context.params;
   if (!id) {
     return NextResponse.json({ error: "missing_id" }, { status: 400 });
   }
+  // Optional ?planVersion=N — preview an archived action-plan version without
+  // making it live (mirrors the research-brief ?version preview).
+  const planVersionParam = new URL(request.url).searchParams.get("planVersion");
 
   let session;
   try {
@@ -302,7 +306,25 @@ export async function GET(
     scheduledAt: session.scheduledAt,
     workshopJson: session.workshopJson,
     debriefJson: session.debriefJson,
-    actionPlanJson: session.actionPlanJson,
+    // When ?planVersion=N is passed, serve that archived version's plan so the
+    // viewer can preview it; otherwise serve the live plan. Live field untouched.
+    actionPlanJson: (() => {
+      if (!planVersionParam) return session.actionPlanJson;
+      const v = parseVersions(session.actionPlanVersionsJson).versions.find(
+        (x) => String(x.n) === String(planVersionParam),
+      );
+      return v ? v.json : session.actionPlanJson;
+    })(),
+    // Action-plan version metadata for the viewer's badge + switcher.
+    actionPlanLiveVersion: parseVersions(session.actionPlanVersionsJson).current || null,
+    actionPlanViewingVersion: planVersionParam
+      ? Number(planVersionParam)
+      : parseVersions(session.actionPlanVersionsJson).current || null,
+    actionPlanVersions: versionSummaries(parseVersions(session.actionPlanVersionsJson)),
+    /** Morning Prep merged values (the "merge contract") — Megha+Jake's prep
+     *  reads/edits/locks that the workshop + action-plan render. Empty string
+     *  until prep is saved (or until the "Morning Prep JSON" property exists). */
+    prepJson: session.prepJson || "",
     /** M+J review approval + sign-off state, synced across browsers via Notion.
      *  Empty string when no review activity yet. */
     approvalsJson: session.approvalsJson || "",

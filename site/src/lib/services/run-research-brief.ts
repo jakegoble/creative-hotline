@@ -28,6 +28,8 @@ import { config } from "@/lib/config";
 import { generateResearchBrief } from "@/lib/services/research-brief";
 import { updateIntakeResearchBrief } from "@/lib/services/notion-intake-write";
 import type { IntakeRecord } from "@/lib/services/notion";
+import { parseVersions, addVersion } from "@/lib/services/versioning";
+import { extractLibraryText, type LibraryDocRef } from "@/lib/services/library-extract";
 
 /**
  * A "Generating" row older than this with no completion is treated as a dead
@@ -83,6 +85,19 @@ export type RunBriefResult =
  */
 export async function runResearchBriefGeneration(
   intakeId: string,
+  opts: {
+    /** Force a fresh generation even when a brief is already Ready. The prior
+     *  brief is archived as a version first (non-destructive). */
+    force?: boolean;
+    /** Extra delta context (M+J prep edits + doc names) appended to the
+     *  generation prompt so a regen consumes the delta, not a blind re-roll. */
+    extraContext?: string;
+    /** Library docs to read CONTENTS from (fetched + text-extracted) and fold
+     *  into the prompt, so a regen reflects what's actually in new uploads. */
+    libraryDocs?: LibraryDocRef[];
+    /** Short note stored on the new version (e.g. "added Brand guide"). */
+    note?: string;
+  } = {},
 ): Promise<RunBriefResult> {
   // 1. Read current state to decide whether to proceed (idempotency guard).
   let page: PageObjectResponse;
@@ -96,12 +111,15 @@ export async function runResearchBriefGeneration(
 
   const currentStatus = getSelect(p, "Research Brief Status") || "Not Generated";
   const currentJson = getText(p, "Research Brief JSON");
+  const currentVersionsRaw = getText(p, "Research Brief Versions JSON");
   const generatedAt = getDateStart(p, "Research Brief Generated At");
 
-  if (currentStatus === "Ready" && currentJson.trim().length > 0) {
+  // A forced regenerate skips the "already Ready" short-circuit — it archives
+  // the current brief and generates a new live version.
+  if (!opts.force && currentStatus === "Ready" && currentJson.trim().length > 0) {
     return { ok: true, intakeId, status: "Ready", skipped: "already_ready" };
   }
-  if (currentStatus === "Generating") {
+  if (!opts.force && currentStatus === "Generating") {
     const startedMs = generatedAt ? Date.parse(generatedAt) : NaN;
     const fresh = Number.isFinite(startedMs) && Date.now() - startedMs < STALE_GENERATING_MS;
     if (fresh) {
@@ -145,7 +163,22 @@ export async function runResearchBriefGeneration(
     primaryPlatform: getSelect(p, "Primary Platform"),
     magicWand: getText(p, "Magic Wand"),
     inspiration: getText(p, "Inspiration"),
+    extraContext: opts.extraContext,
   };
+
+  // Read the CONTENTS of any library docs (PDF/text/html) and fold them into
+  // the delta context so a regen reflects what's in the uploads, not just their
+  // names. Fail-soft + time-boxed inside the extractor — never blocks the run.
+  if (opts.libraryDocs && opts.libraryDocs.length) {
+    try {
+      const docText = await extractLibraryText(opts.libraryDocs);
+      if (docText) {
+        extras.extraContext = [extras.extraContext, docText].filter(Boolean).join("\n\n");
+      }
+    } catch (e) {
+      console.warn(`[research-brief] library extract skipped: ${e instanceof Error ? e.message : e}`);
+    }
+  }
 
   // 4. Call Claude, persist Ready (with a fresh completion timestamp) or Failed.
   try {
@@ -155,6 +188,17 @@ export async function runResearchBriefGeneration(
       json: rawJson,
       generatedAt: new Date().toISOString(),
     });
+    // Non-destructive versioning: archive the prior brief + record this one as
+    // the new live version. Separate, fail-soft write so a missing "Research
+    // Brief Versions JSON" property can NEVER break generation itself.
+    try {
+      const { blob } = addVersion(parseVersions(currentVersionsRaw), currentJson, rawJson, opts.note);
+      await updateIntakeResearchBrief(intakeId, { versionsJson: JSON.stringify(blob) });
+    } catch (verr) {
+      console.warn(
+        `[research-brief] version archive skipped for ${intakeId} (add "Research Brief Versions JSON" property): ${verr instanceof Error ? verr.message : verr}`,
+      );
+    }
     return { ok: true, intakeId, status: "Ready", generated: true };
   } catch (err) {
     const message = err instanceof Error ? err.message : "generation_failed";

@@ -151,6 +151,9 @@ interface GenerateInput {
    *  Optional — empty string when no brief is on file. Grounds the plan in
    *  the voice / audience / authority-baseline / Unlock established pre-call. */
   researchBriefJson?: string;
+  /** Morning Prep JSON — Megha+Jake's populated reads/edits (the merge
+   *  contract). Optional. Their prep edits OUTRANK the raw brief when present. */
+  prepJson?: string;
 }
 
 interface MessagesResponse {
@@ -173,6 +176,13 @@ function buildPrompt(input: GenerateInput): { system: string; user: string } {
 
   const researchBriefBlock = input.researchBriefJson
     ? `RESEARCH BRIEF JSON (Claude's pre-call read — voice, audience, authority pillar baselines, the Unlock, things-to-not-do):\n${input.researchBriefJson}`
+    : "";
+
+  // Morning Prep is M+J's populated reads/edits. When it disagrees with the raw
+  // brief, PREP WINS (it's the humans' call). The merge contract, applied to the
+  // takeaway doc as well as the live workshop.
+  const prepBlock = input.prepJson
+    ? `MORNING PREP JSON (Megha + Jake's populated reads/edits — these OUTRANK the research brief above wherever they overlap):\n${input.prepJson}`
     : "";
 
   const system = `You are Frankie, the AI strategist for The Creative Hotline.
@@ -213,7 +223,7 @@ STAND-ALONE RULE (sections 10 & 11): The action plan must make complete sense on
 - Output ONLY valid JSON. No markdown, no commentary, no code fences.`;
 
   const user = `Generate the Creative Hotline Action Plan (11 sections) for ${input.clientName}.
-${researchBriefBlock ? `\n${researchBriefBlock}\n` : ""}
+${researchBriefBlock ? `\n${researchBriefBlock}\n` : ""}${prepBlock ? `\n${prepBlock}\n` : ""}
 ${workshopBlock}
 
 ${debriefBlock}

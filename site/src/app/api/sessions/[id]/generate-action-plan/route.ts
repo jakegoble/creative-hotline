@@ -35,6 +35,7 @@ import {
 } from "@/lib/services/notion-sessions-write";
 import { generateActionPlanV2 } from "@/lib/services/action-plan";
 import { fetchTranscriptText } from "@/lib/services/fireflies";
+import { parseVersions, addVersion } from "@/lib/services/versioning";
 
 /**
  * Fetch the persisted Research Brief JSON from the linked Intake page. Mirrors
@@ -137,6 +138,8 @@ export async function POST(
       debriefJson: session.debriefJson || "",
       transcript,
       researchBriefJson,
+      // Merge contract: M+J's prep edits outrank the raw brief in the plan too.
+      prepJson: session.prepJson || "",
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "generation_failed";
@@ -159,12 +162,36 @@ export async function POST(
     session.state === "Debrief";
   const newState: SessionState | undefined = shouldAdvance ? "Review" : undefined;
 
+  // Non-destructive versioning: archive the prior action plan as a version and
+  // record this one as live. Computed here so a missing "Action Plan Versions
+  // JSON" property only drops versioning (caught below), never the core save.
+  let actionPlanVersionsJson: string | undefined;
+  try {
+    const { blob } = addVersion(
+      parseVersions(session.actionPlanVersionsJson),
+      session.actionPlanJson || "",
+      planJson,
+    );
+    actionPlanVersionsJson = JSON.stringify(blob);
+  } catch {
+    actionPlanVersionsJson = undefined;
+  }
+
   try {
     await updateSessionFields(id, {
       actionPlanJson: planJson,
       actionPlanUrl,
       state: newState,
     });
+    // Separate, fail-soft write so an absent versions property can't fail the
+    // generation persist above.
+    if (actionPlanVersionsJson) {
+      await updateSessionFields(id, { actionPlanVersionsJson }).catch((verr) => {
+        console.warn(
+          `[generate-action-plan/${id}] version archive skipped (add "Action Plan Versions JSON" property): ${verr instanceof Error ? verr.message : verr}`,
+        );
+      });
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : "save_failed";
     console.error(`[generate-action-plan/${id}] persist failed: ${message}`);

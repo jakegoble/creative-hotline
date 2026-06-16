@@ -84,6 +84,13 @@ export interface SessionRecord {
   workshopJson: string;
   debriefJson: string;
   actionPlanJson: string;
+  /** Serialized VersionBlob (versioning.ts) of archived action plans. Empty
+   *  string when never regenerated or the property doesn't exist. */
+  actionPlanVersionsJson: string;
+  /** Morning Prep merged values (the "merge contract") — Megha+Jake's populated
+   *  reads/edits/locks that flow into the workshop + action-plan. Empty string
+   *  when no prep saved yet or the "Morning Prep JSON" property doesn't exist. */
+  prepJson: string;
   /** Synced M+J approvals + sign-off state for the Review Dashboard.
    * Schema: { approvals: { [sectionIdx]: { m?: boolean; j?: boolean } }, signoff: { m?: boolean; j?: boolean } }
    * Empty string when no review activity yet. V2 — added 2026-05-15. */
@@ -132,6 +139,8 @@ function parseSession(page: PageObjectResponse): SessionRecord {
     workshopJson: getText(p, "Workshop Session JSON"),
     debriefJson: getText(p, "Debrief JSON"),
     actionPlanJson: getText(p, "Action Plan JSON"),
+    actionPlanVersionsJson: getText(p, "Action Plan Versions JSON"),
+    prepJson: getText(p, "Morning Prep JSON"),
     approvalsJson: getText(p, "Approvals JSON"),
     actionPlanUrl: getUrl(p, "Action Plan URL"),
     firefliesUrl: getUrl(p, "Fireflies Transcript URL"),

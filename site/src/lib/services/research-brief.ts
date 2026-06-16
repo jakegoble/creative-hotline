@@ -108,19 +108,21 @@ export interface ResearchBrief {
     storytelling: { score: number | null; note: string };
     conversionPath: { score: number | null; note: string };
   };
-  /** Brand voice assessment, client-facing (2nd person). */
+  /** Brand voice assessment — INTERNAL Research Brief, THIRD person
+   *  analytical ("Their voice is…"), never "your". */
   brandVoice?: string;
-  /** Visual identity read; if the feed isn't visible, say so plainly. */
+  /** Visual identity read — THIRD person; if the feed isn't visible, say so
+   *  plainly ("the studio's feed needs a live look"). */
   visualIdentity?: string;
-  /** Where they sit vs competitors — qualitative bullets. */
+  /** Where they sit vs competitors — qualitative, third-person bullets. */
   competitivePosition?: string[];
-  /** The story they tell now vs the one they should tell. */
+  /** The story they tell now vs the one they should tell — THIRD person. */
   storyTelling?: { current: string; shouldBe: string };
-  /** 3-6 specific, concrete content ideas. */
+  /** 3-6 specific, concrete content ideas (third-person/neutral framing). */
   storyHooks?: string[];
-  /** 2-4 levers that could make content hit. */
+  /** 2-4 levers that could make content hit (third-person/neutral). */
   viralityLevers?: string[];
-  /** The hard truth to address directly, kindly. */
+  /** The hard truth, named directly but kindly — THIRD person analytical. */
   elephant?: string;
   /** Brands worth name-dropping as north stars. */
   referenceBrands?: string[];
@@ -151,7 +153,7 @@ Return ONLY valid JSON matching EXACTLY this schema (no prose preamble, no markd
     "distribution": { "score": 3, "note": "one-line read; integer 1-5" }
   },
   "unlock": {
-    "observation": "1-2 sentences — the surface PATTERN you observe (what we SEE). This is the symptom, not the cause.",
+    "observation": "1-2 sentences, THIRD person — the surface PATTERN observed in the client (what we SEE). This is the symptom, not the cause. Describe the client neutrally, not as 'you'.",
     "hypothesis": "2-3 sentences — the underlying GAP beneath the observation (the single biggest thread to pull). Must be DISTINCT from observation.",
     "testQuestion": "one sentence M+J can literally ask to test the hypothesis"
   },
@@ -179,16 +181,16 @@ Return ONLY valid JSON matching EXACTLY this schema (no prose preamble, no markd
     "storytelling": { "score": 3, "note": "1-line read; 1-5 if judgable, else null" },
     "conversionPath": { "score": 3, "note": "1-line read; 1-5 if judgable, else null" }
   },
-  "brandVoice": "2-3 sentences, 2nd person — your read on their voice and tone (warm, sharp, on-brand?)",
-  "visualIdentity": "2-3 sentences, 2nd person — read on their visual identity; if you can't see the feed, say so plainly ('this needs a live look at your feed')",
-  "competitivePosition": ["2-4 bullets — where you sit vs competitors, qualitative (no invented market-share numbers)"],
+  "brandVoice": "2-3 sentences, THIRD person analytical — the read on the client's voice and tone (warm, sharp, on-brand?). e.g. 'Their voice is warm but inconsistent…' — NEVER 'your'.",
+  "visualIdentity": "2-3 sentences, THIRD person — read on their visual identity; if you can't see the feed, say so plainly ('this needs a live look at their feed'). NEVER 'your'.",
+  "competitivePosition": ["2-4 bullets, THIRD person — where the client sits vs competitors, qualitative (no invented market-share numbers). NEVER 'you'."],
   "storyTelling": {
-    "current": "1-2 sentences, 2nd person — the story you're telling right now",
-    "shouldBe": "1-2 sentences, 2nd person — the sharper story you should be telling"
+    "current": "1-2 sentences, THIRD person — the story the client is telling right now ('Right now they're telling a story about…'). NEVER 'you'.",
+    "shouldBe": "1-2 sentences, THIRD person — the sharper story they should be telling. NEVER 'you'."
   },
-  "storyHooks": ["3-6 specific, concrete content ideas tailored to THIS client"],
-  "viralityLevers": ["2-4 levers that could make their content actually hit"],
-  "elephant": "1-2 sentences — the hard truth to name directly, kindly. The thing nobody's said out loud yet.",
+  "storyHooks": ["3-6 specific, concrete content ideas tailored to THIS client (third-person/neutral framing, not 'you')"],
+  "viralityLevers": ["2-4 levers that could make their content actually hit (third-person/neutral, not 'you')"],
+  "elephant": "1-2 sentences, THIRD person — the hard truth to name directly, kindly. The thing nobody's said out loud yet (e.g. 'The studio is hiding behind…'). NEVER 'you'.",
   "referenceBrands": ["1-4 brands worth name-dropping as north stars for this client"]
 }
 
@@ -196,13 +198,20 @@ PHASE 1 — TEXT-ONLY ANALYSIS (CRITICAL): You are working from the intake TEXT 
 
 Every authorityBaseline score MUST be an integer from 1 to 5. When the intake is too thin to judge a pillar, score it conservatively (low) and say so in the note. The "unlock" is the most important field — make the hypothesis a clear, single-thread thesis, and keep "observation" (what we SEE on the surface) DISTINCT from "hypothesis" (the GAP underneath).
 
-POINT OF VIEW — IMPORTANT: All CLIENT-FACING fields (intakeReadback, whatsWorking, whatToPushOn, moves, brandVoice, visualIdentity, storyTelling, elephant) must be written in the SECOND PERSON, addressing the client directly ("you", "your") — never third person ("the client's problem is…"). These are read aloud or shown on screen to the client during the call. The internal-only fields (brandPositioning, distributionSystems, audience, authorityBaseline, contentHealth notes, thingsToNotDo, openQuestions) are notes M+J read privately and can stay analytical.`;
+POINT OF VIEW — IMPORTANT (two distinct voices, do not mix them up):
+
+(1) CLIENT-FACING fields — SECOND PERSON ("you", "your"): intakeReadback, whatsWorking, whatToPushOn, and moves. ONLY these four. They are read aloud / shown on screen to the client during the workshop, prep, and action-plan, so address the client directly ("You're a ceramics studio that…", "Your voice is unmistakably yours…"). Never third person here.
+
+(2) INTERNAL RESEARCH-BRIEF analysis fields — THIRD PERSON, neutral analytical ("Their…", "The studio's…", "<Brand> is…"): brandVoice, visualIdentity, storyTelling (current + shouldBe), elephant, competitivePosition, storyHooks, viralityLevers — PLUS the already-neutral clientSnapshot, brandPositioning, distributionSystems, audience, authorityBaseline notes, contentHealth notes, thingsToNotDo, openQuestions, and unlock (observation/hypothesis/testQuestion). These render in the INTERNAL pre-call Research Brief that only Megha & Jake read. Write Claude's neutral read — NEVER address the client as "you"/"your" in any of these. Our point of view ("what we love / what we'd push on") lives in Morning Prep, not in this brief.`;
 }
 
-function buildUserPrompt(intake: IntakeRecord, extras: { priceRange?: string; monthlyRevenue?: string; teamSize?: string; primaryPlatform?: string; magicWand?: string; inspiration?: string }): string {
+function buildUserPrompt(intake: IntakeRecord, extras: { priceRange?: string; monthlyRevenue?: string; teamSize?: string; primaryPlatform?: string; magicWand?: string; inspiration?: string; extraContext?: string }): string {
   const links = intake.website_ig ? `Brand link: ${intake.website_ig}` : "No brand link provided";
+  const deltaBlock = extras.extraContext && extras.extraContext.trim()
+    ? `\nNEW SINCE THE LAST BRIEF (regeneration delta — weigh this heavily)\n================================================================\n${extras.extraContext.trim()}\n`
+    : "";
   return `Generate the Research Brief for this client.
-
+${deltaBlock}
 CLIENT INTAKE
 =============
 Name: ${intake.client_name || "Unknown"}
@@ -255,6 +264,7 @@ export async function generateResearchBrief(
     primaryPlatform?: string;
     magicWand?: string;
     inspiration?: string;
+    extraContext?: string;
   } = {},
 ): Promise<{ brief: ResearchBrief; rawJson: string }> {
   if (!config.anthropic.apiKey) {

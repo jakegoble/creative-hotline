@@ -426,10 +426,45 @@
     </div>
   </div>
 
-  <!-- ============== SECTION 1 (M LEAD) — BRAND & POSITIONING ============== -->
-  <section class="prep-section m">
+  <!-- ============== SECTION 1 — LIBRARY (living folder, primary input) ====== -->
+  <!-- Moved to top per Megha: the client's docs are a primary input, not an
+       afterthought. Living folder — Tally uploads PLUS docs M+J add at any
+       stage (source + timestamp). Added docs save into the prep blob and are
+       offered to the next regen. -->
+  <section class="prep-section" id="library">
     <div class="sec-head">
       <span class="sec-num">01</span>
+      <span class="sec-title">Library</span>
+      <span class="tch-owner shared">Client docs · living folder</span>
+    </div>
+
+    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 14px;">Every document we have on this client — uploaded through Tally <em>and</em> anything we add along the way. Click to open. New docs feed the next regenerate.</p>
+
+    <p style="margin-bottom: 14px;"><a id="viewIntakeLink" href="#" target="_blank" rel="noopener" style="font-family: var(--tch-nord, system-ui); font-weight:700; letter-spacing:0.08em; font-size:12px; text-transform:uppercase; color: var(--tch-red); text-decoration:underline;">↳ Open the client's intake · research brief →</a></p>
+
+    <div class="library" id="libraryGrid">
+      <div class="library-empty">No files uploaded yet.</div>
+    </div>
+
+    <!-- Add-a-document (living folder). Saves a {label, url, source, addedAt}
+         entry into the prep blob; the regenerate flow consumes new entries. -->
+    <div class="lib-add" style="margin-top:16px; display:grid; grid-template-columns: 1fr 1.4fr auto; gap:8px; align-items:center;">
+      <input id="libAddLabel" type="text" placeholder="Doc name (e.g. Brand guide)" style="font-family:var(--tch-mono); font-size:13px; padding:9px 10px; border:2px solid rgba(28,28,30,0.2); background:var(--tch-cream,#f5f2eb);">
+      <input id="libAddUrl" type="url" placeholder="Paste a link (Drive, Notion, Figma…)" style="font-family:var(--tch-mono); font-size:13px; padding:9px 10px; border:2px solid rgba(28,28,30,0.2); background:var(--tch-cream,#f5f2eb);">
+      <button type="button" id="libAddBtn" onclick="addLibraryDoc()" style="font-family:var(--tch-nord,system-ui); font-weight:700; letter-spacing:0.1em; font-size:12px; text-transform:uppercase; background:var(--tch-ink,#1c1c1e); color:var(--tch-cream,#f5f2eb); border:none; padding:10px 16px; cursor:pointer;">+ Add link</button>
+    </div>
+    <div style="margin-top:8px; display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+      <input type="file" id="libFileInput" style="display:none;" onchange="uploadLibraryFile(this)">
+      <button type="button" onclick="document.getElementById('libFileInput').click()" style="font-family:var(--tch-nord,system-ui); font-weight:700; letter-spacing:0.1em; font-size:12px; text-transform:uppercase; background:none; color:var(--tch-ink,#1c1c1e); border:1px solid rgba(28,28,30,0.3); padding:9px 14px; cursor:pointer;">⬆ Upload a file</button>
+      <span id="libUploadStatus" style="font-family:var(--tch-mono,monospace); font-size:12px; color:rgba(28,28,30,0.6);"></span>
+    </div>
+    <div id="libAddedList" style="margin-top:10px;"></div>
+  </section>
+
+  <!-- ============== SECTION 2 (M LEAD) — BRAND & POSITIONING ============== -->
+  <section class="prep-section m">
+    <div class="sec-head">
+      <span class="sec-num">02</span>
       <span class="sec-title">Brand &amp; Positioning</span>
       <span class="tch-owner m">M · Lead</span>
     </div>
@@ -458,7 +493,7 @@
   <!-- ============== SECTION 2 (J LEAD) — DISTRIBUTION & SYSTEMS ============== -->
   <section class="prep-section j">
     <div class="sec-head">
-      <span class="sec-num">02</span>
+      <span class="sec-num">03</span>
       <span class="sec-title">Distribution &amp; Systems</span>
       <span class="tch-owner j">J · Lead</span>
     </div>
@@ -487,7 +522,7 @@
   <!-- ============== SECTION 3 (SHARED) — AUDIENCE ============== -->
   <section class="prep-section shared">
     <div class="sec-head">
-      <span class="sec-num">03</span>
+      <span class="sec-num">04</span>
       <span class="sec-title">Audience</span>
       <span class="tch-owner shared">Shared</span>
     </div>
@@ -514,7 +549,7 @@
   <!-- ============== SECTION 4 (SHARED) — AUTHORITY AUDIT ============== -->
   <section class="prep-section shared">
     <div class="sec-head">
-      <span class="sec-num">04</span>
+      <span class="sec-num">05</span>
       <span class="sec-title">Creative Authority Audit</span>
       <span class="tch-owner shared">Shared</span>
     </div>
@@ -553,23 +588,6 @@
     </div>
   </section>
 
-  <!-- ============== SECTION 5 — LIBRARY ============== -->
-  <section class="prep-section" id="library">
-    <div class="sec-head">
-      <span class="sec-num">05</span>
-      <span class="sec-title">Library</span>
-      <span class="tch-owner shared">Client-uploaded · Tally</span>
-    </div>
-
-    <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 14px;">Files uploaded through Tally. Click to open the full file.</p>
-
-    <p style="margin-bottom: 14px;"><a id="viewIntakeLink" href="#" target="_blank" rel="noopener" style="font-family: var(--tch-nord, system-ui); font-weight:700; letter-spacing:0.08em; font-size:12px; text-transform:uppercase; color: var(--tch-red); text-decoration:underline;">↳ Open the client's intake · research brief →</a></p>
-
-    <div class="library" id="libraryGrid">
-      <div class="library-empty">No files uploaded yet.</div>
-    </div>
-  </section>
-
   <!-- ============== SECTION 6 — PRE-DRAFT WORKSHOP INPUTS ============== -->
   <section class="prep-section">
     <div class="sec-head">
@@ -580,8 +598,8 @@
     <p style="font-family: var(--tch-mono); font-size: 13px; color: rgba(28,28,30,0.7); margin-bottom: 18px;">These flow directly into the workshop session screen. Get them tight here — refining live during the call eats the 45 minutes.</p>
 
     <div class="draft-input gap">
-      <div class="lab">↳ Gap Hypothesis (auto-merged from M + J)</div>
-      <textarea id="gapHypothesis" placeholder="One sentence. The thing beneath the thing. M and J each draft, system merges into one for the session screen."></textarea>
+      <div class="lab">↳ Gap Hypothesis · seeded from the research brief — edit to lock</div>
+      <textarea id="gapHypothesis" placeholder="One sentence. The thing beneath the thing. Pre-filled from Claude's read — sharpen it here and it flows straight to the session screen."></textarea>
     </div>
 
     <div class="input-pair">
@@ -624,11 +642,16 @@
     </div>
 
     <div class="ownership-toggle">
-      <strong>Per-session ownership reassignment</strong> — defaults: M owns creative/voice, J owns action/systems, Effort/Impact + Audit + upsell are shared. <em>Override here if this client's expertise fits differently.</em> [reassignment UI: Phase 2]
+      <strong>Per-session ownership</strong> — defaults: M owns creative/voice, J owns action/systems, Effort/Impact + Audit + upsell are shared.
     </div>
   </section>
 
 </main>
+</div>
+
+<div id="regenBanner" style="display:none; position:fixed; left:0; right:0; bottom:64px; z-index:40; background:var(--tch-yellow,#f4c20d); color:var(--tch-ink,#1c1c1e); padding:10px 18px; font-family:var(--tch-mono,monospace); font-size:13px; display:none; align-items:center; gap:14px; border-top:2px solid var(--tch-ink,#1c1c1e);">
+  <strong>Inputs changed</strong> — new docs or prep edits aren't in the brief/workshop yet.
+  <button type="button" id="regenBtn" onclick="regenerateAll()" style="margin-left:auto; font-family:var(--tch-nord,system-ui); font-weight:700; letter-spacing:0.1em; font-size:12px; text-transform:uppercase; background:var(--tch-ink,#1c1c1e); color:var(--tch-cream,#f5f2eb); border:none; padding:9px 16px; cursor:pointer;">↻ Regenerate from new inputs</button>
 </div>
 
 <div class="submit-bar" id="submitBar" style="display:none">
@@ -654,7 +677,55 @@
     }
   }
 
-  // ---------- Local autosave (Megha's V2 pattern, scoped per session) ----------
+  // ---------- Autosave: localStorage (live) + server mirror (merge contract) ----
+  // The localStorage copy is the fast live working draft. We ALSO mirror a
+  // structured blob to the Session row ("Morning Prep JSON") so the workshop +
+  // action-plan can render M+J's prep values OVER the raw research brief — the
+  // "merge contract" Megha called the core fix. Server save is debounced and
+  // fail-soft: if it errors (e.g. the Notion property isn't added yet), the
+  // localStorage copy still carries the prep and the workshop falls back to a
+  // localStorage bridge, so nothing breaks live.
+  let libraryDocs = [];          // [{label, url, source, addedAt}] — living folder (#8)
+  let prepLocks = {};            // {fieldId: true} — approved/locked, persist on regen
+  let _prepServerTimer = null;
+
+  // Collect the draft <ul> lists (their <li> are contenteditable but have no id,
+  // so the generic input collector misses them).
+  function collectDraftList(id) {
+    const root = document.getElementById(id);
+    if (!root) return [];
+    return Array.from(root.children)
+      .map(li => (li.innerText || '').trim())
+      .filter(Boolean);
+  }
+  // The merged-prep blob the workshop/action-plan read back.
+  function buildPrepBlob() {
+    const fields = {};
+    document.querySelectorAll('#prepView input, #prepView textarea').forEach(el => {
+      if (el.id && el.id.indexOf('libAdd') !== 0) fields[el.id] = el.value;
+    });
+    return {
+      version: 2,
+      fields,
+      lists: { stopDraft: collectDraftList('stopDraft'), leaveDraft: collectDraftList('leaveDraft') },
+      libraryDocs,
+      locks: prepLocks,
+      updatedAt: new Date().toISOString(),
+    };
+  }
+  function savePrepToServer() {
+    if (!sessionId) return;
+    fetch(`/api/sessions/${encodeURIComponent(sessionId)}/save-morning-prep`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prepJson: JSON.stringify(buildPrepBlob()) }),
+    }).then(r => {
+      const s = document.getElementById('status');
+      if (s) s.textContent = r.ok
+        ? 'on · synced ' + new Date().toLocaleTimeString()
+        : 'on · saved locally (server sync pending — add "Morning Prep JSON" field)';
+    }).catch(() => {});
+  }
   function persist() {
     const data = {};
     document.querySelectorAll('#prepView input, #prepView textarea, #prepView [contenteditable="true"]').forEach(el => {
@@ -662,22 +733,212 @@
         data[el.id] = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' ? el.value : el.innerText;
       }
     });
+    // Stash the lists + living-folder docs in the same localStorage object so a
+    // reload restores them too (reserved keys, ignored by the element loop).
+    data.__lists = { stopDraft: collectDraftList('stopDraft'), leaveDraft: collectDraftList('leaveDraft') };
+    data.__libraryDocs = libraryDocs;
+    data.__locks = prepLocks;
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e) {}
     const s = document.getElementById('status');
     if (s) s.textContent = 'on · saved ' + new Date().toLocaleTimeString();
+    // Debounce the server mirror so we don't POST on every keystroke.
+    if (_prepServerTimer) clearTimeout(_prepServerTimer);
+    _prepServerTimer = setTimeout(savePrepToServer, 1200);
   }
   function restore() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const data = JSON.parse(raw);
+      if (data.__locks && typeof data.__locks === 'object') prepLocks = data.__locks;
       Object.keys(data).forEach(id => {
+        if (id === '__lists' || id === '__libraryDocs' || id === '__locks') return;
         const el = document.getElementById(id);
         if (!el) return;
         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = data[id];
         else el.innerText = data[id];
       });
+      if (Array.isArray(data.__libraryDocs)) { libraryDocs = data.__libraryDocs; renderLibraryDocs(); }
+      const dl = data.__lists || {};
+      ['stopDraft', 'leaveDraft'].forEach(id => {
+        const root = document.getElementById(id);
+        if (root && Array.isArray(dl[id]) && dl[id].length) {
+          root.innerHTML = dl[id].map(t => `<li contenteditable="true">${escapeHtml(t)}</li>`).join('');
+        }
+      });
     } catch(e) {}
+  }
+  // Hydrate from the server blob when there's no local draft yet (e.g. Megha
+  // opens prep on a fresh device). Server is the cross-device source of truth.
+  function hydratePrepFromServer(prepJson) {
+    if (localStorage.getItem(STORAGE_KEY)) return; // local draft wins on this device
+    let blob = null;
+    try { blob = prepJson ? JSON.parse(prepJson) : null; } catch(e) { return; }
+    if (!blob || typeof blob !== 'object') return;
+    const fields = blob.fields || {};
+    Object.keys(fields).forEach(id => {
+      const el = document.getElementById(id);
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) el.value = fields[id];
+    });
+    const lists = blob.lists || {};
+    ['stopDraft', 'leaveDraft'].forEach(id => {
+      const root = document.getElementById(id);
+      if (root && Array.isArray(lists[id]) && lists[id].length) {
+        root.innerHTML = lists[id].map(t => `<li contenteditable="true">${escapeHtml(t)}</li>`).join('');
+      }
+    });
+    if (Array.isArray(blob.libraryDocs)) { libraryDocs = blob.libraryDocs; renderLibraryDocs(); }
+    if (blob.locks && typeof blob.locks === 'object') prepLocks = blob.locks;
+  }
+  // ---------- Living folder (#8): add a doc at any stage ----------
+  function addLibraryDoc() {
+    const labelEl = document.getElementById('libAddLabel');
+    const urlEl = document.getElementById('libAddUrl');
+    const label = (labelEl?.value || '').trim();
+    const url = (urlEl?.value || '').trim();
+    if (!label && !url) return;
+    libraryDocs.push({ label: label || url, url, source: 'M+J', addedAt: new Date().toISOString() });
+    if (labelEl) labelEl.value = '';
+    if (urlEl) urlEl.value = '';
+    renderLibraryDocs();
+    persist();
+    flagRegenNeeded(); // adding a doc prompts a (manual) regen — Megha #regen
+  }
+  function renderLibraryDocs() {
+    const wrap = document.getElementById('libAddedList');
+    if (!wrap) return;
+    if (!libraryDocs.length) { wrap.innerHTML = ''; return; }
+    wrap.innerHTML = libraryDocs.map((d, i) => {
+      const when = (() => { try { return new Date(d.addedAt).toLocaleDateString(); } catch(e) { return ''; } })();
+      const link = d.url
+        ? `<a href="${escapeHtml(d.url)}" target="_blank" rel="noopener" style="color:var(--tch-red,#c0392b); font-weight:700; text-decoration:underline;">${escapeHtml(d.label)}</a>`
+        : `<span>${escapeHtml(d.label)}</span>`;
+      return `<div style="font-family:var(--tch-mono); font-size:13px; padding:7px 0; border-bottom:1px dashed rgba(28,28,30,0.15); display:flex; gap:10px; align-items:center;">📎 ${link}<span style="color:rgba(28,28,30,0.5);">· ${escapeHtml(d.source || 'M+J')} · ${when}</span><button type="button" onclick="removeLibraryDoc(${i})" style="margin-left:auto; background:none; border:none; cursor:pointer; color:rgba(28,28,30,0.5); font-size:16px;">×</button></div>`;
+    }).join('');
+  }
+  function removeLibraryDoc(i) {
+    libraryDocs.splice(i, 1);
+    renderLibraryDocs();
+    persist();
+  }
+  // Upload a real file to storage (Vercel Blob) and add it to the library.
+  // Falls back gracefully to link-mode if storage isn't configured yet.
+  async function uploadLibraryFile(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const status = document.getElementById('libUploadStatus');
+    if (status) status.textContent = 'Uploading ' + file.name + '…';
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      const res = await fetch(`/api/library/upload?sessionId=${encodeURIComponent(sessionId)}`, { method: 'POST', body: fd });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) {
+        libraryDocs.push({ label: data.name || file.name, url: data.url, source: 'M+J upload', addedAt: new Date().toISOString() });
+        renderLibraryDocs(); persist(); flagRegenNeeded();
+        if (status) status.textContent = '✓ Uploaded ' + (data.name || file.name);
+      } else if (res.status === 501) {
+        if (status) status.textContent = '⚠ File storage not set up yet — paste a link instead (see Add link above).';
+      } else {
+        if (status) status.textContent = '⚠ ' + (data.message || 'Upload failed') + ' — paste a link instead.';
+      }
+    } catch (e) {
+      if (status) status.textContent = '⚠ Upload failed — paste a link instead.';
+    } finally {
+      input.value = '';
+    }
+  }
+  // ---------- Prep approval/lock (#14) ----------
+  // Locking a prep field marks it approved: it WINS in the workshop/action-plan
+  // and a regenerate is told not to contradict it (the value persists across
+  // regens). Lock state lives in the prep blob (locks{}), so it syncs too.
+  const LOCKABLE = ['gapHypothesis', 'mLike', 'jLike', 'win72h', 'win1w', 'win1m'];
+  function toggleLock(id) { prepLocks[id] = !prepLocks[id]; updateLockUI(id); persist(); }
+  function updateLockUI(id) {
+    const on = !!prepLocks[id];
+    const b = document.getElementById('lock_' + id);
+    if (b) { b.textContent = on ? '🔒 Locked' : '🔓 Lock'; b.style.opacity = on ? '1' : '0.55'; }
+    const fld = document.getElementById(id);
+    if (fld) fld.style.boxShadow = on ? 'inset 0 0 0 2px var(--tch-red, #c0392b)' : '';
+  }
+  function initPrepLocks() {
+    LOCKABLE.forEach(id => {
+      const fld = document.getElementById(id);
+      if (!fld) return;
+      const block = fld.closest('.draft-input, .input-block');
+      if (!block) return;
+      const label = block.querySelector('.lab, .who');
+      if (!label || label.querySelector('.lock-toggle')) { updateLockUI(id); return; }
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'lock-toggle'; btn.id = 'lock_' + id;
+      btn.setAttribute('onclick', `toggleLock('${id}')`);
+      btn.style.cssText = 'margin-left:8px;font-family:var(--tch-nord,system-ui);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;background:none;border:1px solid rgba(28,28,30,0.25);padding:2px 7px;cursor:pointer;';
+      label.appendChild(btn);
+      updateLockUI(id);
+    });
+  }
+  // ---------- Regenerate (#9): manual, non-destructive ----------
+  // Adding a doc or editing prep means the brief/workshop/action-plan are now
+  // behind the inputs. Regenerate re-runs generation from the SAVED prep +
+  // library. The generate endpoint archives the prior version, so this is
+  // non-destructive (old version is kept; newest is live). Manual, never auto.
+  function flagRegenNeeded() {
+    const b = document.getElementById('regenBanner');
+    if (b) b.style.display = '';
+  }
+  // Build the regen delta: new library docs + M+J's prep edits + which sections
+  // are locked. The brief generator weighs this heavily so a regen consumes the
+  // delta instead of a blind re-roll.
+  function buildRegenContext() {
+    const lines = [];
+    if (libraryDocs.length) {
+      lines.push('New / current documents in the client library:');
+      libraryDocs.forEach(d => lines.push(`- ${d.label}${d.url ? ' (' + d.url + ')' : ''} [${d.source || 'M+J'}]`));
+    }
+    const f = id => (document.getElementById(id)?.value || '').trim();
+    const edits = [
+      ['Gap hypothesis (M+J)', f('gapHypothesis')],
+      ['What we like — brand (Megha)', f('mLike')],
+      ['What we like — systems (Jake)', f('jLike')],
+      ['72-hour win (M+J)', f('win72h')],
+      ['1-week move (M+J)', f('win1w')],
+      ['1-month build (M+J)', f('win1m')],
+    ].filter(([, v]) => v);
+    if (edits.length) {
+      lines.push('', "Megha + Jake's prep edits (these reflect the humans' call — honor them):");
+      edits.forEach(([k, v]) => lines.push(`- ${k}: ${v}`));
+    }
+    const locked = Object.keys(prepLocks).filter(k => prepLocks[k]);
+    if (locked.length) {
+      lines.push('', `LOCKED sections (do not contradict these): ${locked.join(', ')}`);
+    }
+    return lines.join('\n');
+  }
+  async function regenerateAll() {
+    const intakeId = window.__intakeId;
+    const btn = document.getElementById('regenBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Regenerating… (up to ~2 min)'; }
+    try {
+      savePrepToServer(); // ensure newest prep is server-side before regen consumes it
+      const extraContext = buildRegenContext();
+      if (intakeId) {
+        await fetch('/api/research-brief/generate', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          // libraryDocs lets the server fetch + read the docs' CONTENTS (PDF/
+          // text/html), not just their names, when regenerating.
+          body: JSON.stringify({ intakeId, regenerate: true, extraContext, libraryDocs, note: 'regenerated from prep + library' }),
+        });
+      }
+      // Re-generate the action plan too, if the route is available for this session.
+      await fetch(`/api/sessions/${encodeURIComponent(sessionId)}/generate-action-plan`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ regenerate: true }),
+      }).catch(() => {});
+      if (btn) btn.textContent = '✓ Regenerated · reloading';
+      setTimeout(() => location.reload(), 1000);
+    } catch (e) {
+      if (btn) { btn.disabled = false; btn.textContent = '↻ Regenerate from new inputs'; }
+    }
   }
 
   // ---------- Authority pillar averaging ----------
@@ -756,7 +1017,12 @@
       if (!res.ok) throw new Error('session fetch ' + res.status);
       const s = await res.json();
 
+      // Merge contract: hydrate prep fields/lists/library from the server blob
+      // when this device has no local draft yet (cross-device source of truth).
+      hydratePrepFromServer(s.prepJson);
+
       const intake = s.intake || {};
+      window.__intakeId = intake.id || null; // used by regenerateAll()
       const payment = s.payment || {};
       const product = (payment.product || s.product || '').toString();
 
@@ -952,7 +1218,13 @@
     // walk in with a starting point instead of bracket placeholders. Only
     // fills if untouched (placeholder/empty) so restored drafts survive.
     seedDraftListIfEmpty('stopDraft', brief.thingsToNotDo);
-    seedDraftListIfEmpty('leaveDraft', brief.brandPositioning);
+    // "Leave alone" = strengths worth PROTECTING — seed from the genuine
+    // positives (whatsWorking), NOT the analytical positioning read (Megha #6:
+    // it was mis-filled with brandPositioning). Falls back to positioning only
+    // when a legacy brief has no whatsWorking.
+    const wkProtect = brief.whatsWorking || {};
+    const protectSeed = [...(wkProtect.brand || []), ...(wkProtect.systems || [])].filter(Boolean);
+    seedDraftListIfEmpty('leaveDraft', protectSeed.length ? protectSeed : brief.brandPositioning);
 
     // ---- Section 06 PRE-DRAFT inputs — seed editably so M+J can SEE + EDIT
     // the gap hypothesis, "what we like", and the three moves before the call
@@ -1016,7 +1288,7 @@
 
   // ---------- Boot ----------
   if (sessionId) {
-    loadSession().then(restore);
+    loadSession().then(restore).then(initPrepLocks);
     document.addEventListener('input', persist);
     document.addEventListener('blur', persist, true);
     document.addEventListener('change', (e) => {

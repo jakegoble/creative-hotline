@@ -45,6 +45,10 @@ export async function updateIntakeResearchBrief(
   updates: {
     status?: ResearchBriefStatus;
     json?: string;
+    /** Serialized VersionBlob (see versioning.ts) → "Research Brief Versions
+     *  JSON". Optional; only written on regenerate. Degrades gracefully if the
+     *  property doesn't exist yet. */
+    versionsJson?: string;
     generatedAt?: string; // ISO date — defaults to now if status is Ready
   },
 ): Promise<void> {
@@ -56,6 +60,9 @@ export async function updateIntakeResearchBrief(
   }
   if (typeof updates.json === "string") {
     properties["Research Brief JSON"] = richText(updates.json);
+  }
+  if (typeof updates.versionsJson === "string") {
+    properties["Research Brief Versions JSON"] = richText(updates.versionsJson);
   }
   if (updates.generatedAt || updates.status === "Ready") {
     const date = updates.generatedAt ?? new Date().toISOString().slice(0, 10);
