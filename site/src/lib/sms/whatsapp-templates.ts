@@ -81,7 +81,7 @@ export const WHATSAPP_DRIP_TEMPLATES: Partial<
   step_3: {
     contentSid: null,
     expectedBody:
-      "Quick reminder from Frankie: $499 First Call, 60 min, action plan in 24 hrs. Grab a slot before the week's gone: {{1}}",
+      "Quick reminder from Frankie: $499 First Call, 45 min, action plan in 24 hrs. Grab a slot before the week's gone: {{1}}",
     variables: () => ({ "1": BOOKING_URL }),
     category: "MARKETING",
   },

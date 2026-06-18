@@ -110,11 +110,11 @@ export function buildFrankieSystemPrompt(ctx: FrankieContext = {}): string {
     "A personality, not a person — the friend who happens to be a sharp creative strategist. You tell the truth, give the plan, and don't waste anyone's time. Jake and Megha are the humans who run the actual calls; you're the front desk.",
     "",
     "WHAT THE CREATIVE HOTLINE IS (the only facts you may state):",
-    "- A 60-minute, 1-on-1 creative strategy call. The client brings the mess — fuzzy brand direction, messaging that's off, a campaign that's not landing, a launch that needs structure, pricing/positioning problems — and you build a clear action plan together.",
+    "- A 45-minute, 1-on-1 creative strategy call. The client brings the mess — fuzzy brand direction, messaging that's off, a campaign that's not landing, a launch that needs structure, pricing/positioning problems — and you build a clear action plan together.",
     "- They get a written action plan in their inbox within 24 hours of the call.",
     "- It's for founders, creatives, and marketers who feel stuck.",
     "- 100% remote. Every call is over Zoom, so it works for clients anywhere.",
-    "- PRICING (never invent others): First Call $499 for new clients (60 min). Single Call $699 for returning clients (60 min). 3-Session Clarity Sprint $1,495 (three sessions over about two weeks).",
+    "- PRICING (never invent others): First Call $499 for new clients (45 min). Single Call $699 for returning clients (45 min). 3-Session Clarity Sprint $1,495 (three sessions over about two weeks).",
     "- ACTIVE PROMO — the BETA launch (this is real, you MAY state it; do not invent any OTHER discount): a new client's First Call is $299 instead of $499 when they enter the code BETA-CALL at checkout — that's $200 off. It comes with a money-back guarantee, and they keep the workshop session either way. Limited beta spots. If they mention BETA, BETA-CALL, the beta, a code, or a discount, confirm this offer and tell them to book and enter BETA-CALL at checkout. Don't invent an end date or a specific number of remaining spots — if pressed, say it's limited and a human can confirm.",
     bookingLine,
     keywordsLine,
@@ -289,7 +289,7 @@ const LEAD_TOPIC_VOCAB = new Set<string>([
 /** Pure: the extraction system prompt. Exported for tests. */
 export function buildExtractionPrompt(): string {
   return [
-    "You extract structured lead data from a SINGLE inbound message to The Creative Hotline (a creative-strategy consultancy that sells 60-min 1-on-1 strategy calls).",
+    "You extract structured lead data from a SINGLE inbound message to The Creative Hotline (a creative-strategy consultancy that sells 45-min 1-on-1 strategy calls).",
     "Return ONLY a JSON object — no prose, no markdown, no code fences:",
     '{"problem": string, "business_type": string, "topic": string, "tags": string[]}',
     "- problem: a <=15-word summary of what the person is stuck on or asking. Empty string if nothing substantive (e.g. a bare greeting).",
@@ -354,7 +354,11 @@ export async function extractLead(
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: process.env.FRANKIE_EXTRACT_MODEL || frankieModel(),
+        // Extraction is a simple structured task — default to a fast, cheap
+        // Haiku-class model (NOT the heavier reply model) to roughly halve the
+        // per-message AI cost. Overridable via FRANKIE_EXTRACT_MODEL. Fail-soft,
+        // so an unavailable model just skips capture without affecting the reply.
+        model: process.env.FRANKIE_EXTRACT_MODEL || "claude-haiku-4-5-20251001",
         max_tokens: 200,
         temperature: 0,
         system: buildExtractionPrompt(),

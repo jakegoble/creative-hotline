@@ -49,7 +49,7 @@ const FALLBACK_REPLY =
   "Frankie here — tell me what you're stuck on (a brand, a launch, a campaign that's not landing) and I'll point you the right way. Or tap below to grab a call.";
 
 const EMPTY_REPLY =
-  "Hey — Frankie here, front desk of The Creative Hotline. What are you working on? Tell me the creative problem, or tap below to book a 60-min call.";
+  "Hey — Frankie here, front desk of The Creative Hotline. What are you working on? Tell me the creative problem, or tap below to book a 45-min call.";
 
 /**
  * Build the response body: a simple {reply, booking_url} for field-mapping AND

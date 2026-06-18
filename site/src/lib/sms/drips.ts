@@ -69,7 +69,7 @@ export const DRIP_SEQUENCE: Record<DripStage, DripStep | null> = {
     nextStage: "step_4",
     daysSinceOptIn: 7,
     body:
-      "Quick reminder from Frankie: $499 First Call, 60 min, action plan in 24 hrs. " +
+      "Quick reminder from Frankie: $499 First Call, 45 min, action plan in 24 hrs. " +
       `Grab a slot before the week's gone: ${BOOKING_URL} · Reply STOP to opt out.`,
   },
   step_4: {
@@ -118,7 +118,7 @@ export const BETA_DRIP_SEQUENCE: Record<DripStage, DripStep | null> = {
     nextStage: "step_4",
     daysSinceOptIn: 4,
     body:
-      "Still holding a beta slot for you. 60 min, 1-on-1, action plan in 24 hrs, money-back guarantee — keep the session either way. $299, code BETA-CALL: " +
+      "Still holding a beta slot for you. 45 min, 1-on-1, action plan in 24 hrs, money-back guarantee — keep the session either way. $299, code BETA-CALL: " +
       `${BOOKING_URL} · Reply STOP to opt out.`,
   },
   step_4: {

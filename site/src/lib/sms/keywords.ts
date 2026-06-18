@@ -81,14 +81,14 @@ const REPLIES: Record<KeywordTopic, string> = {
   opt_in:
     "You just dialed The Creative Hotline ☎️ Frankie here. Tell me what you're stuck on — or text PRICING, INFO, or BOOK to get going. Reply STOP to opt out.",
   info:
-    "The Creative Hotline is a 60-min 1-on-1 strategy call. You bring the mess — a brand that's fuzzy, a launch that needs structure, a campaign that's not landing — and we build a clear plan together. Action plan in your inbox within 24 hrs. Text PRICING for options or BOOK to grab a slot.",
+    "The Creative Hotline is a 45-min 1-on-1 strategy call. You bring the mess — a brand that's fuzzy, a launch that needs structure, a campaign that's not landing — and we build a clear plan together. Action plan in your inbox within 24 hrs. Text PRICING for options or BOOK to grab a slot.",
   pricing:
-    "Three options: First Call $499 (new clients) · Single Call $699 (returning) · 3-Session Clarity Sprint $1,495. All 60-min strategy calls, action plan in 24 hrs. Text BOOK to lock one in.",
-  book: `Let's do it — grab a slot: ${BOOKING_URL}. 60-min call, action plan within 24 hrs. Want it sent to your email too? Just reply with your address.`,
+    "Three options: First Call $499 (new clients) · Single Call $699 (returning) · 3-Session Clarity Sprint $1,495. All 45-min strategy calls, action plan in 24 hrs. Text BOOK to lock one in.",
+  book: `Let's do it — grab a slot: ${BOOKING_URL}. 45-min call, action plan within 24 hrs. Want it sent to your email too? Just reply with your address.`,
   beta: `You found the BETA line. A senior creative director on the phone in under 24 hrs. Normally $499 — code BETA-CALL takes $200 off, so it's $299. Money-back guarantee, keep the session either way. Grab a slot: ${BOOKING_URL} (enter BETA-CALL at checkout).`,
   services:
-    "Short answer: probably yes. The Hotline is for brand direction, messaging, content that's not landing, launches, pricing, positioning — the creative stuff that's got you stuck. Tell me your specific challenge, or text BOOK to talk it through on a 60-min call.",
-  location: `We run 100% remote — every call's over Zoom, so it doesn't matter if you're in LA or London. You bring the creative problem, we build the plan. Text BOOK to grab a 60-min slot: ${BOOKING_URL}`,
+    "Short answer: probably yes. The Hotline is for brand direction, messaging, content that's not landing, launches, pricing, positioning — the creative stuff that's got you stuck. Tell me your specific challenge, or text BOOK to talk it through on a 45-min call.",
+  location: `We run 100% remote — every call's over Zoom, so it doesn't matter if you're in LA or London. You bring the creative problem, we build the plan. Text BOOK to grab a 45-min slot: ${BOOKING_URL}`,
   help:
     "Frankie here — your hotline operator. Just text me what you're stuck on, or use: BOOK (grab a call) · PRICING (see options) · INFO (how it works) · DEALS. Reply STOP to opt out.",
   human: `Got it — I'm looping in a real human. Jake or Megha will text you back shortly. Want to grab a call slot in the meantime? ${BOOKING_URL}`,
