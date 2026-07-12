@@ -32,6 +32,7 @@
 import { NextResponse } from "next/server";
 import { getSessionById } from "@/lib/services/notion-sessions-read";
 import { updateSessionFields } from "@/lib/services/notion-sessions-write";
+import { stampBlob } from "@/lib/auth/attribution";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -149,7 +150,9 @@ export async function POST(
   }
 
   try {
-    await updateSessionFields(id, { actionPlanJson: nextJson });
+    // Stamp WHO edited (from the verified login cookie, not the client payload).
+    const stamped = await stampBlob(nextJson, request);
+    await updateSessionFields(id, { actionPlanJson: stamped });
   } catch (err) {
     const message = err instanceof Error ? err.message : "notion_write_failed";
     console.error(`[sessions/${id}/save-action-plan] failed: ${message}`);

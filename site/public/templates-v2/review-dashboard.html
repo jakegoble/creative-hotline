@@ -589,21 +589,19 @@
     return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
   }
 
-  // -------- role toggle -------------------------------------------------
-  window.toggleRole = function() {
-    const t = document.getElementById('userRole');
-    if (STATE.role === 'm') {
-      STATE.role = 'j';
-      t.classList.add('jake');
-      t.textContent = 'Reviewing as: Jake';
-    } else {
-      STATE.role = 'm';
-      t.classList.remove('jake');
-      t.textContent = 'Reviewing as: Megha';
+  // -------- role: from login, not a toggle -------------------------------
+  // Who's reviewing comes from the Google login session (_shared/identity.js
+  // fires 'tch:user' and repaints the chip). Approvals + sign-offs follow the
+  // logged-in user; clicking the chip signs out.
+  document.addEventListener('tch:user', function (e) {
+    STATE.role = e.detail && e.detail.id === 'jake' ? 'j' : 'm';
+    try {
+      renderSections();
+      updateGates();
+    } catch (_) {
+      /* fires pre-boot on fast networks — boot() renders with role set */
     }
-    renderSections();
-    updateGates();
-  };
+  });
 
   // -------- boot --------------------------------------------------------
   async function boot() {
@@ -1270,5 +1268,6 @@
 })();
 </script>
 <script src="/templates-v2/_shared/sidenav.js" defer></script>
+<script src="_shared/identity.js" defer></script>
 </body>
 </html>

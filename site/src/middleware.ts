@@ -58,7 +58,31 @@ function isPublic(req: NextRequest): boolean {
   return false;
 }
 
+/**
+ * FAIL-OPEN UNTIL CONFIGURED: if the auth env vars aren't set in Vercel yet
+ * (GOOGLE_CLIENT_ID + AUTH_SECRET — see SHIP-AUTH-2026-07-12.md steps 1-2),
+ * the gate passes everything through, matching the pre-auth production
+ * posture. The moment both vars exist, default-deny activates automatically.
+ * Decision: Jake, 2026-07-12 — unblocks the POV tool deploy without forcing
+ * the OAuth setup first.
+ */
+const AUTH_CONFIGURED = Boolean(
+  process.env.AUTH_SECRET && process.env.GOOGLE_CLIENT_ID,
+);
+let warnedUnconfigured = false;
+
 export async function middleware(req: NextRequest) {
+  if (!AUTH_CONFIGURED) {
+    if (!warnedUnconfigured) {
+      warnedUnconfigured = true;
+      console.warn(
+        "[auth] AUTH_SECRET / GOOGLE_CLIENT_ID not set — middleware is FAIL-OPEN. " +
+          "Set both in Vercel to activate the login gate (SHIP-AUTH-2026-07-12.md).",
+      );
+    }
+    return NextResponse.next();
+  }
+
   if (isPublic(req)) return NextResponse.next();
 
   const token = req.cookies.get(SESSION_COOKIE)?.value;

@@ -36,6 +36,7 @@ import {
   updateSessionFields,
   type SessionState,
 } from "@/lib/services/notion-sessions-write";
+import { stampBlob } from "@/lib/auth/attribution";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -104,8 +105,10 @@ export async function POST(
     currentState === "Session" || currentState === "Prep";
 
   try {
+    // Stamp WHO saved (from the verified login cookie, not the client payload).
+    const stamped = await stampBlob(body.debriefJson, request);
     await updateSessionFields(id, {
-      debriefJson: body.debriefJson,
+      debriefJson: stamped,
       // Only patch firefliesUrl if it was explicitly provided.
       firefliesUrl:
         typeof body.firefliesUrl === "string" && body.firefliesUrl.length > 0

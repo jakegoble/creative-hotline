@@ -30,6 +30,7 @@
 import { NextResponse } from "next/server";
 import { getSessionById } from "@/lib/services/notion-sessions-read";
 import { updateSessionFields } from "@/lib/services/notion-sessions-write";
+import { stampBlob } from "@/lib/auth/attribution";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -84,7 +85,9 @@ export async function POST(
   }
 
   try {
-    await updateSessionFields(id, { prepJson: body.prepJson });
+    // Stamp WHO saved (from the verified login cookie, not the client payload).
+    const stamped = await stampBlob(body.prepJson, request);
+    await updateSessionFields(id, { prepJson: stamped });
   } catch (err) {
     const message = err instanceof Error ? err.message : "save_failed";
     console.error(`[sessions/${id}/save-morning-prep] failed: ${message}`);

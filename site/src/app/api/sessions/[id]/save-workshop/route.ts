@@ -40,6 +40,7 @@ import {
   updateSessionFields,
   type SessionState,
 } from "@/lib/services/notion-sessions-write";
+import { stampBlob } from "@/lib/auth/attribution";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -104,8 +105,10 @@ export async function POST(
   const shouldAdvance = currentState === "Prep";
 
   try {
+    // Stamp WHO saved (from the verified login cookie, not the client payload).
+    const stamped = await stampBlob(body.workshopJson, request);
     await updateSessionFields(id, {
-      workshopJson: body.workshopJson,
+      workshopJson: stamped,
       // Only patch state when actually advancing — avoids unnecessary writes.
       state: shouldAdvance ? "Session" : undefined,
     });
