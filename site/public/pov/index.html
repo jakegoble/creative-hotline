@@ -242,10 +242,17 @@ h1 em{font-style:italic;font-weight:400;color:var(--acid-yellow)}
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
+  /* Light markdown cleanup: strip ** (mono is never bold — brand rule),
+     render *emphasis* as italic, matching Megha's mock. Runs AFTER esc(). */
+  function md(text) {
+    return text
+      .replace(/\*\*([^*]+)\*\*/g, "$1")
+      .replace(/\*([^*\n]+)\*/g, "<i>$1</i>");
+  }
   function addFrankie(text, first) {
     var wrap = el("div", "frankie");
     wrap.appendChild(el("div", "who", first ? "Frankie · Operator" : "Frankie"));
-    wrap.appendChild(el("div", "msg", esc(text)));
+    wrap.appendChild(el("div", "msg", md(esc(text))));
     thread.appendChild(wrap);
     scrollDown();
   }
