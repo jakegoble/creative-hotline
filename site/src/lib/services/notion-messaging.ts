@@ -43,7 +43,8 @@ export type ContactSource =
   | "import"
   | "email_signup"
   | "ad_campaign"
-  | "referral";
+  | "referral"
+  | "pov_tool";
 export type Channel = "SMS" | "WhatsApp" | "Email" | "Instagram";
 
 export interface MessagingContact {
@@ -516,6 +517,83 @@ export async function upsertInstagramContact(
     const refreshed = input.email
       ? await findContactByEmail(input.email)
       : await findContactByManychatId(input.manychatId);
+    return { contact: refreshed ?? existing, isNew: false };
+  }
+
+  const properties = buildProperties(upsert, true, "", [], []);
+  const created = await client.pages.create({
+    parent: { data_source_id: config.notion.messagingDbId } as Parameters<
+      typeof client.pages.create
+    >[0]["parent"],
+    properties: properties as Parameters<
+      typeof client.pages.create
+    >[0]["properties"],
+  });
+  return { contact: pageToContact(created as PageObjectResponse), isNew: true };
+}
+
+/** Input for upserting a free POV-tool lead into the shared CRM. */
+export interface PovLeadUpsertInput {
+  /** Dedupe key — the email captured at the end of the POV exercise. */
+  email: string;
+  name?: string;
+  /** Brand name as they want it to appear (goes in Stated Problem context). */
+  brand?: string;
+  /** The POV statement the tool produced — stored as the stated problem line. */
+  pov?: string;
+  complianceNote?: string;
+}
+
+/**
+ * Upsert a free POV-tool lead into the SAME Notion Messaging Contacts DB as
+ * SMS + Instagram — one CRM, every channel. Email-keyed (these leads have no
+ * phone or ManyChat ID). Source "pov_tool", channel "Email", tag "pov-tool".
+ * Mirrors upsertInstagramContact; never throws data at the caller's user —
+ * the capture route treats failures as non-fatal.
+ */
+export async function upsertPovLead(
+  input: PovLeadUpsertInput,
+): Promise<{ contact: MessagingContact; isNew: boolean }> {
+  if (!input.email) throw new Error("upsertPovLead needs an email");
+  const client = getClient();
+
+  const existing = await findContactByEmail(input.email);
+
+  const statedProblem = input.pov
+    ? `[POV tool] ${input.brand ? `${input.brand}: ` : ""}${input.pov}`.slice(0, 1900)
+    : "";
+
+  const upsert: UpsertInput = {
+    phone: "", // email-only lead — buildProperties guards this
+    email: input.email,
+    name: input.name,
+    statedProblem: statedProblem || undefined,
+    addChannels: ["Email"],
+    addTags: ["pov-tool"],
+    touchInteraction: true,
+    source: "pov_tool",
+    complianceNote:
+      input.complianceNote ??
+      "Email submitted via free POV tool (end-of-exercise capture).",
+  };
+
+  if (existing) {
+    const properties = buildProperties(
+      upsert,
+      false,
+      existing.complianceLog,
+      existing.channels,
+      existing.tags,
+    );
+    if (Object.keys(properties).length > 0) {
+      await client.pages.update({
+        page_id: existing.id,
+        properties: properties as Parameters<
+          typeof client.pages.update
+        >[0]["properties"],
+      });
+    }
+    const refreshed = await findContactByEmail(input.email);
     return { contact: refreshed ?? existing, isNew: false };
   }
 
