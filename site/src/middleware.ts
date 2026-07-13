@@ -45,8 +45,14 @@ const PUBLIC_EXACT = new Set([
   "/favicon.ico",
 ]);
 
-/** GET /api/sessions/<id> only — no subpaths, no writes. */
-const PUBLIC_SESSION_GET = /^\/api\/sessions\/[^/]+$/;
+/**
+ * GET /api/sessions/<id> only — no subpaths, no writes, and the segment must
+ * be an actual Notion page UUID (dashed or undashed hex). A looser [^/]+ let
+ * the list endpoints (today / in-review / range) through unauthenticated —
+ * caught in the 2026-07-13 post-deploy smoke test.
+ */
+const PUBLIC_SESSION_GET =
+  /^\/api\/sessions\/[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
 
 function isPublic(req: NextRequest): boolean {
   const { pathname } = req.nextUrl;
