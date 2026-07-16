@@ -20,6 +20,7 @@
 
 import { config } from "../config";
 import type { IntakeRecord } from "./notion";
+import { getFrameworksBlock } from "./frameworks";
 
 // ---------------------------------------------------------------------------
 // Output shape — what the brief contains
@@ -271,6 +272,9 @@ export async function generateResearchBrief(
     throw new Error("ANTHROPIC_API_KEY is not configured");
   }
 
+  // Locked methodology from the TCH Frameworks Library (Notion). Fail-soft "".
+  const frameworksBlock = await getFrameworksBlock("Research Brief");
+
   const res = await fetch(`${ANTHROPIC_BASE}/messages`, {
     method: "POST",
     headers: {
@@ -285,7 +289,9 @@ export async function generateResearchBrief(
       messages: [
         {
           role: "user",
-          content: buildUserPrompt(intake, extras),
+          content: frameworksBlock
+            ? `${buildUserPrompt(intake, extras)}\n\n${frameworksBlock}`
+            : buildUserPrompt(intake, extras),
         },
       ],
     }),

@@ -18,6 +18,7 @@
  */
 
 import { config } from "@/lib/config";
+import { getFrameworksBlock } from "./frameworks";
 
 const BASE = "https://api.anthropic.com/v1";
 
@@ -371,12 +372,18 @@ export async function generateActionPlanV2(
   }
   const { system, user } = buildPrompt(input);
 
+  // Locked methodology from the TCH Frameworks Library (Notion). Fail-soft "".
+  const frameworksBlock = await getFrameworksBlock("Action Plan");
+  const userWithFrameworks = frameworksBlock
+    ? `${user}\n\n${frameworksBlock}`
+    : user;
+
   const { res, attempt } = await fetchClaudeWithRetry({
     model: config.anthropic.model,
     // 11-section plan is bigger output — bump from 4096 to give Claude room.
     max_tokens: 6144,
     system,
-    messages: [{ role: "user", content: user }],
+    messages: [{ role: "user", content: userWithFrameworks }],
   });
 
   if (!res.ok) {
