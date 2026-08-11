@@ -33,8 +33,8 @@ export default function ConversionPathsPage() {
 
   const { paths, attribution } = conversionData;
 
-  const avgTouchpoints = paths.reduce((s, p) => s + p.touchpoints.length, 0) / paths.length;
-  const avgDaysToConvert = paths.reduce((s, p) => s + p.days_to_convert, 0) / paths.length;
+  const avgTouchpoints = paths.length ? paths.reduce((s, p) => s + p.touchpoints.length, 0) / paths.length : 0;
+  const avgDaysToConvert = paths.length ? paths.reduce((s, p) => s + p.days_to_convert, 0) / paths.length : 0;
   const totalRevenue = paths.reduce((s, p) => s + p.revenue, 0);
 
   const attributionChart = attribution.map((a) => ({
