@@ -65,15 +65,21 @@ function isPublic(req: NextRequest): boolean {
 }
 
 /**
- * FAIL-OPEN UNTIL CONFIGURED: if the auth env vars aren't set in Vercel yet
- * (GOOGLE_CLIENT_ID + AUTH_SECRET — see SHIP-AUTH-2026-07-12.md steps 1-2),
- * the gate passes everything through, matching the pre-auth production
- * posture. The moment both vars exist, default-deny activates automatically.
- * Decision: Jake, 2026-07-12 — unblocks the POV tool deploy without forcing
- * the OAuth setup first.
+ * FAIL-OPEN UNTIL CONFIGURED: if the auth env vars aren't set in Vercel yet,
+ * the gate passes everything through, matching the pre-auth production posture.
+ * Default-deny activates automatically once AUTH_SECRET is set together with a
+ * sign-in method:
+ *   - SITE_PASSWORD_HASH / SITE_PASSWORD  → email + password login (current)
+ *   - GOOGLE_CLIENT_ID                    → Google OAuth (disabled 2026-07-15
+ *                                            when the SOS Google account was
+ *                                            suspended; kept for future use)
+ * Decision: Jake, 2026-07-12 (fail-open) / 2026-08-10 (password fallback).
  */
 const AUTH_CONFIGURED = Boolean(
-  process.env.AUTH_SECRET && process.env.GOOGLE_CLIENT_ID,
+  process.env.AUTH_SECRET &&
+    (process.env.SITE_PASSWORD_HASH ||
+      process.env.SITE_PASSWORD ||
+      process.env.GOOGLE_CLIENT_ID),
 );
 let warnedUnconfigured = false;
 
