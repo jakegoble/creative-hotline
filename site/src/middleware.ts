@@ -34,6 +34,12 @@ const PUBLIC_EXACT = new Set([
   "/api/health",
   "/api/stripe/webhook",
   "/api/calendly/webhook",
+  // Cal.com replaces Calendly. MUST be listed here or middleware 401s every
+  // booking delivery BEFORE the route runs — Cal.com would log failed
+  // deliveries, no Session would ever be created, and the route code would
+  // look entirely correct. Adding a webhook route without adding it here is a
+  // silent, total failure.
+  "/api/calcom/webhook",
   "/api/tally/webhook",
   "/api/twilio/inbound",
   "/api/manychat/frankie",

@@ -37,6 +37,19 @@ export const config = {
     webhookSecret: process.env.CALENDLY_WEBHOOK_SECRET ?? "",
   },
 
+  calcom: {
+    /**
+     * Webhook signing secret. Unlike Calendly, this is a value WE choose and
+     * paste into the webhook's Secret field in Cal.com (Settings → Developer →
+     * Webhooks). Cal.com uses it verbatim as the HMAC-SHA256 key over the raw
+     * request body, and sends the digest in `x-cal-signature-256`.
+     *
+     * Leave the Cal.com-side field blank and no signature header is sent at
+     * all — our verifier fails closed in that case, on purpose.
+     */
+    webhookSecret: process.env.CALCOM_WEBHOOK_SECRET ?? "",
+  },
+
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY ?? "",
     model: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6",
@@ -58,6 +71,46 @@ export const config = {
 
   fireflies: {
     apiKey: process.env.FIREFLIES_API_KEY ?? "",
+  },
+
+  /**
+   * Google Drive service account, used by the Megha sync crons.
+   *
+   * Service account rather than interactive OAuth on purpose: the n8n version
+   * used a personal OAuth credential that rotted silently and took the sync
+   * down for months without anyone noticing. A service account has no session
+   * to expire.
+   *
+   * GOOGLE_PRIVATE_KEY is stored with escaped \n, since Vercel env vars cannot
+   * hold literal newlines. It is unescaped at use.
+   *
+   * **The folders must be shared with the service-account email.** A service
+   * account sees nothing in Drive until you explicitly share with it.
+   */
+  googleDrive: {
+    serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL ?? "",
+    privateKey: process.env.GOOGLE_PRIVATE_KEY ?? "",
+  },
+
+  /** Megha ↔ Jake daily sync. Replaces the three dead n8n Drive workflows. */
+  meghaSync: {
+    /** Folder watched for changes. Defaults to "THE CREATIVE HOTLINE - MEGHA
+     *  FILES", the folder Megha actually uses. The n8n version watched
+     *  "DAILY UPDATES", which has held one file since March 2026. */
+    driveFolderId:
+      process.env.MEGHA_DRIVE_FOLDER_ID ?? "10oNe8vQC11ggsOQZyNV_2fRnqhN8lkPN",
+    /** Where the evening job writes JAKE-UPDATE-<date>. Defaults to the
+     *  "DAILY UPDATES" folder, which is what the n8n evening job used and the
+     *  one part of the original design that worked. */
+    driveWriteFolderId:
+      process.env.MEGHA_DRIVE_WRITE_FOLDER_ID ?? "1lclljpPUIwGmCkb5vH8uhfP1WEof38QI",
+    /** Notion parent page that briefings are created under. Unset means the
+     *  sync still runs and returns its summary in the response, but writes
+     *  nothing to Notion. */
+    notionParentPageId: process.env.NOTION_MEGHA_SYNC_PARENT ?? "",
+    /** "System State — Live Snapshot", read by the evening job for context. */
+    systemStatePageId:
+      process.env.NOTION_SYSTEM_STATE_PAGE ?? "31d0e73f-fadc-8135-881e-d31a78182194",
   },
 
   sendgrid: {
