@@ -12,6 +12,7 @@
 
 import {
   extractStripePaymentIntentId,
+  paymentDedupKey,
   bookingToPaymentInput,
 } from "../src/lib/services/calcom-webhook";
 import type { CalcomWebhookEvent } from "../src/lib/services/calcom-webhook";
@@ -82,21 +83,53 @@ const real = bookingToPaymentInput(realEvent);
 check("maps the $499 SKU to First Call", real?.product, "First Call");
 check("amount in dollars", real?.amount, 499);
 
-console.log("\n--- the cases that must NOT produce a row ---");
+console.log("\n--- externalId absent: the 2026-09-01 17:05 booking ---");
+/*
+ * The real second test booking. Cal.com sent a payment array with NO externalId
+ * (uid dkwEvVjvNyJPQuN3Gaow7M, Stripe pi_3UAv746sEOcFCGXZ1bVaanfn). The first
+ * version of the self-heal returned null here and logged
+ * "no usable payment payload". It must now fall back to the booking uid.
+ */
+const noExternalId: CalcomWebhookEvent = {
+  ...paidEvent,
+  payload: {
+    ...paidEvent.payload,
+    uid: "dkwEvVjvNyJPQuN3Gaow7M",
+    payment: [{ amount: 100, currency: "usd", success: true }],
+  },
+};
 check(
-  "free booking: no payment array",
-  bookingToPaymentInput({
-    ...paidEvent,
-    payload: { ...paidEvent.payload, payment: undefined },
-  }),
+  "no Stripe id to extract",
+  extractStripePaymentIntentId(noExternalId.payload),
   null,
 );
+check(
+  "falls back to the booking uid as dedup key",
+  paymentDedupKey(noExternalId.payload),
+  "calcom_dkwEvVjvNyJPQuN3Gaow7M",
+);
+const healed = bookingToPaymentInput(noExternalId);
+check("still builds a Payments input", healed !== null, true);
+check("keyed on the uid", healed?.stripeSessionId, "calcom_dkwEvVjvNyJPQuN3Gaow7M");
+check("amount survives", healed?.amount, 1);
+check(
+  "a real Stripe id still wins over the uid fallback",
+  paymentDedupKey(paidEvent.payload),
+  "pi_3UAhuN6sEOcFCGXZ1GqCwG4y",
+);
+
+console.log("\n--- the cases that must NOT produce a row ---");
 check(
   "no attendee email",
   bookingToPaymentInput({
     ...paidEvent,
     payload: { ...paidEvent.payload, attendees: [{ name: "No Email" }] },
   }),
+  null,
+);
+check(
+  "no uid and no Stripe id: nothing stable to key on",
+  paymentDedupKey({ ...paidEvent.payload, uid: undefined, payment: [{}] }),
   null,
 );
 check(

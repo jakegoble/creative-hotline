@@ -74,6 +74,7 @@ import {
   constructCalcomEvent,
   extractPhoneFromBooking,
   extractStripePaymentIntentId,
+  paymentDedupKey,
   bookingToPaymentInput,
   bookingToSessionInput,
   bookingKey,
@@ -135,6 +136,27 @@ export async function POST(request: Request) {
 
   try {
     const p = event.payload;
+
+    /*
+     * PAYLOAD SHAPE PROBE — deliberately permanent, not temporary debug cruft.
+     *
+     * This whole route has now been wrong twice about what an upstream actually
+     * sends: first `receipt_email` (a Calendly guarantee Cal.com doesn't keep),
+     * then `payment[0].externalId` (modelled from docs, not from an observed
+     * delivery — the 2026-09-01 17:05 booking proved it absent). Cal.com's UI
+     * has no delivery log, so without this line the only way to learn the real
+     * shape is to spend another $1 and still be guessing.
+     *
+     * Logs KEYS and the payment array only. Never the whole payload: attendees
+     * carry names, emails and phone numbers, and webhook logs are not the place
+     * for them. Amounts and opaque ids are not PII.
+     */
+    console.log(
+      `[calcom-webhook] payload shape: trigger=${event.triggerEvent} ` +
+        `keys=[${Object.keys(p).sort().join(",")}] ` +
+        `paymentId=${JSON.stringify(p.paymentId ?? null)} ` +
+        `payment=${JSON.stringify(p.payment ?? null)}`,
+    );
 
     // -------- BOOKING_CANCELLED --------
     // Cal.com fires this on real cancellations AND on the OLD booking when an
@@ -257,11 +279,22 @@ export async function POST(request: Request) {
      * winner's page rather than making a second one.
      */
     const stripePaymentIntentId = extractStripePaymentIntentId(p);
+    const dedupKey = paymentDedupKey(p);
 
-    const lookupPayment = async (): Promise<string | null> =>
-      stripePaymentIntentId
-        ? findPaymentByStripeSessionId(stripePaymentIntentId)
-        : findPaymentByEmail(email);
+    /*
+     * Try every key that could point at an existing row, cheapest first, so we
+     * ADOPT rather than duplicate:
+     *   1. the dedup key we would ourselves write (Stripe id, or calcom_<uid>)
+     *   2. a fresh row by email — catches a row the Stripe handler wrote under
+     *      its own `pi_…` key when ours is the calcom_ fallback
+     */
+    const lookupPayment = async (): Promise<string | null> => {
+      if (dedupKey) {
+        const byKey = await findPaymentByStripeSessionId(dedupKey);
+        if (byKey) return byKey;
+      }
+      return findPaymentByEmail(email);
+    };
 
     let paymentPageId = await lookupPayment();
     if (!paymentPageId) {
@@ -283,9 +316,9 @@ export async function POST(request: Request) {
         paymentPageId = created.pageId;
         paymentSelfHealed = created.created;
         console.warn(
-          `[calcom-webhook] no Payments row for pi=${stripePaymentIntentId ?? "none"} ` +
-            `email=${email}; self-healed from BOOKING_PAID → ${created.created ? "created" : "adopted"} ${created.pageId}. ` +
-            `Check the Stripe handler — it should normally win this race.`,
+          `[calcom-webhook] no Payments row for key=${dedupKey ?? "none"} ` +
+            `(stripe_pi=${stripePaymentIntentId ?? "absent"}) email=${email}; ` +
+            `self-healed from BOOKING_PAID → ${created.created ? "created" : "adopted"} ${created.pageId}`,
         );
       }
     }

@@ -337,12 +337,39 @@ function mapCalcomProduct(
  * Returns null when the payload lacks an email or a usable PaymentIntent id —
  * without both, a Payments row would be unmatched and undedupable.
  */
+/**
+ * The dedup key to store in the Payments row's "Stripe Session ID".
+ *
+ * PREFERRED: the real Stripe id from `payment[0].externalId`, because that is
+ * the same key our Stripe handler writes — one booking, one row, whichever
+ * webhook lands first.
+ *
+ * FALLBACK: `calcom_<uid>`. Cal.com's BOOKING_PAID payload does NOT reliably
+ * carry externalId — observed absent on the 2026-09-01 booking, which is why
+ * the first version of this self-heal produced nothing. The booking uid is
+ * stable, unique, and present on every booking event, so it keeps the row
+ * idempotent across retries and replays even with no Stripe id in hand.
+ *
+ * THE COST OF THE FALLBACK, stated plainly: if the Stripe handler ever starts
+ * writing rows for these bookings (it currently cannot — Cal.com sets neither
+ * receipt_email nor billing_details.email), its `pi_…` key won't match a
+ * `calcom_…` key and you would get two Payments rows for one booking. The
+ * route mitigates this by checking for an existing row by email before
+ * creating one. If you fix the Stripe side, re-check this.
+ */
+export function paymentDedupKey(p: CalcomBookingPayload): string | null {
+  const stripeId = extractStripePaymentIntentId(p);
+  if (stripeId) return stripeId;
+  const uid = p.uid?.trim();
+  return uid ? `calcom_${uid}` : null;
+}
+
 export function bookingToPaymentInput(
   event: CalcomWebhookEvent,
 ): PaymentCreateInput | null {
   const p = event.payload;
   const email = p.attendees?.[0]?.email?.trim() ?? "";
-  const stripeSessionId = extractStripePaymentIntentId(p);
+  const stripeSessionId = paymentDedupKey(p);
   if (!email || !stripeSessionId) return null;
 
   const attendeeName = p.attendees?.[0]?.name?.trim();
