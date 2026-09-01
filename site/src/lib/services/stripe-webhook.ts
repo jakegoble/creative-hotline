@@ -242,13 +242,72 @@ export async function checkoutSessionToPaymentInput(
  * Notion field is named "Stripe Session ID" but used as an opaque dedup key —
  * the value works regardless of whether it's a `cs_` or `pi_` prefix.
  */
+/**
+ * Best-effort email + name for a PaymentIntent, in descending order of trust.
+ *
+ * `receipt_email` alone was the original implementation and it was correct for
+ * as long as Calendly created the PaymentIntents — Calendly always set it.
+ * Cal.com's Stripe integration does not, so on 2026-08-31 a real paid booking
+ * produced `payment_intent.succeeded missing receipt_email`, no Payments row,
+ * and no Session. An assumption that was true of one upstream silently stopped
+ * being true when the upstream changed.
+ *
+ * The charge's billing_details is the reliable fallback: Stripe populates it
+ * from what the customer typed into the payment element, whoever created the
+ * intent. It costs one API round-trip, which is why it is only reached for when
+ * the free fields are empty.
+ *
+ * Never throws — a failed lookup degrades to whatever we already had. The
+ * caller treats an empty email as "skip", and the Cal.com handler self-heals
+ * from its own payload regardless, so this is belt to that braces.
+ */
+async function resolvePaymentIntentContact(
+  pi: Stripe.PaymentIntent,
+): Promise<{ email: string; name?: string; phone?: string }> {
+  if (pi.receipt_email) return { email: pi.receipt_email };
+
+  const chargeRef = pi.latest_charge;
+  if (!chargeRef) return { email: "" };
+
+  try {
+    const charge =
+      typeof chargeRef === "string"
+        ? await getStripe().charges.retrieve(chargeRef)
+        : chargeRef;
+    const details = charge.billing_details;
+    return {
+      email: charge.receipt_email ?? details?.email ?? "",
+      name: details?.name ?? undefined,
+      phone: details?.phone ?? undefined,
+    };
+  } catch (err) {
+    console.warn(
+      `[stripe-webhook] could not expand latest_charge for ${pi.id}: ` +
+        `${err instanceof Error ? err.message : "unknown error"}`,
+    );
+    return { email: "" };
+  }
+}
+
 export async function paymentIntentToPaymentInput(
   pi: Stripe.PaymentIntent,
 ): Promise<PaymentCreateInput> {
-  const email = pi.receipt_email ?? "";
+  const contact = await resolvePaymentIntentContact(pi);
+  const email = contact.email;
 
+  /*
+   * `parseCalendlyDescription` only understands Calendly's
+   * "[Calendly] {event} with {name}" format. Cal.com writes its own shape, so
+   * on a Cal.com intent this yields nothing useful — fall back to the charge's
+   * billing name rather than writing an empty or wrong title. Product is left
+   * undefined when it can't be parsed: the Cal.com handler derives it from the
+   * booking's event type, which is a better source than a description string.
+   */
   const parsed = parseCalendlyDescription(pi.description);
-  const clientName = parsed.clientName;
+  const clientName =
+    parsed.clientName ||
+    contact.name ||
+    (email ? email.split("@")[0] : undefined);
   const product = mapProductName(parsed.product);
 
   const amount =
@@ -264,7 +323,7 @@ export async function paymentIntentToPaymentInput(
     stripeSessionId: pi.id,
     email,
     clientName,
-    phone: undefined,
+    phone: contact.phone,
     amount,
     paymentDate,
     product,

@@ -103,10 +103,16 @@ export async function POST(request: Request) {
         const pi = event.data.object as Stripe.PaymentIntent;
         const input = await paymentIntentToPaymentInput(pi);
         if (!input.email) {
-          // Calendly-initiated PaymentIntents reliably have receipt_email, but
-          // tolerate the unexpected case: log and ack so Stripe stops retrying.
+          // No email on the intent AND none on its charge. Ack so Stripe stops
+          // retrying — but this is now genuinely unexpected, and for a Cal.com
+          // booking it is NOT the end of the road: the Cal.com BOOKING_PAID
+          // handler creates the Payments row itself from the booking payload.
+          // If you are reading this log next to a missing Session, the Cal.com
+          // webhook is the other half of the story.
           console.warn(
-            `[stripe-webhook] payment_intent.succeeded missing receipt_email; pi=${pi.id}`,
+            `[stripe-webhook] payment_intent.succeeded has no email on the intent ` +
+              `or its charge; pi=${pi.id}. Cal.com bookings self-heal via ` +
+              `/api/calcom/webhook; a non-Cal.com payment will need manual entry.`,
           );
           return NextResponse.json({ received: true, skipped: "no_email" });
         }

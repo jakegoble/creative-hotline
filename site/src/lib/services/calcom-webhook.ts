@@ -39,6 +39,7 @@
 
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { config } from "../config";
+import type { PaymentCreateInput } from "../v2-types";
 import type { SessionCreateInput } from "./notion-sessions-write";
 
 /**
@@ -252,6 +253,117 @@ export function constructCalcomEvent(
     // Cal.com always sends a payload for booking triggers; default to an empty
     // object so the route's optional-chaining reads don't have to guard `null`.
     payload: event.payload ?? {},
+  };
+}
+
+/**
+ * Pull the Stripe PaymentIntent id out of a BOOKING_PAID payload.
+ *
+ * Cal.com puts it in `payment[0].externalId`. This is the ONLY reliable join
+ * key between a Cal.com booking and its Payments row, and it is the key the
+ * Payments DB already dedupes on ("Stripe Session ID" holds `pi_…` for the
+ * PaymentIntent path).
+ *
+ * WHY THIS EXISTS — read before "simplifying" back to an email match.
+ * The original route matched Payment rows by attendee email. That worked under
+ * Calendly only because Calendly's Stripe integration always set
+ * `receipt_email` on the PaymentIntent, so a Payments row reliably existed with
+ * that address. Cal.com's integration does NOT set `receipt_email`. On the
+ * first real $1 Cal.com booking (2026-08-31, pi_3UAhuN6sEOcFCGXZ1GqCwG4y) the
+ * Stripe handler logged `payment_intent.succeeded missing receipt_email` and
+ * skipped the write; the Cal.com handler then retried an email lookup for ~17s,
+ * found nothing, and dropped a genuinely paid booking. Both webhooks returned
+ * 200. Nothing looked broken anywhere.
+ *
+ * Matching on the id Cal.com hands us removes the dependency on what Stripe
+ * chooses to populate, and on two webhooks agreeing about an email address.
+ *
+ * Returns null for unpaid/free bookings (no payment array) and for anything
+ * that doesn't look like a Stripe object id, so a malformed value can't be
+ * written into the dedup key and quietly split one payment across two rows.
+ */
+export function extractStripePaymentIntentId(
+  p: CalcomBookingPayload,
+): string | null {
+  const external = p.payment?.[0]?.externalId;
+  if (typeof external !== "string") return null;
+  const trimmed = external.trim();
+  // Stripe object ids for the two shapes that can back a booking.
+  if (!/^(pi|cs)_[A-Za-z0-9_]+$/.test(trimmed)) return null;
+  return trimmed;
+}
+
+/**
+ * Map a Cal.com booking to the canonical Notion "Product Purchased" option.
+ *
+ * Deliberately separate from `mapProductName` in stripe-webhook.ts: that one
+ * parses a Calendly-formatted PaymentIntent description, which Cal.com does not
+ * produce. Matching on the event-type slug and title is the Cal.com equivalent.
+ *
+ * Returns undefined when nothing matches — Product is optional on the Payments
+ * row, and a wrong enum value is worse than an empty one. The internal $1 test
+ * event intentionally falls through to undefined.
+ */
+function mapCalcomProduct(
+  p: CalcomBookingPayload,
+): PaymentCreateInput["product"] {
+  const haystack = `${p.type ?? ""} ${p.title ?? ""}`.toLowerCase();
+  if (haystack.includes("clarity")) return "3-Session Clarity Sprint";
+  if (haystack.includes("3-pack") || haystack.includes("3 pack"))
+    return "3-Pack Sprint";
+  if (haystack.includes("single call")) return "Single Call";
+  if (haystack.includes("standard")) return "Standard Call";
+  if (haystack.includes("first call")) return "First Call";
+  // The $499 SKU's event type is "Creative Hotline Call" → canonical "First Call",
+  // matching the Calendly-era mapping in stripe-webhook.ts.
+  if (haystack.includes("creative hotline call")) return "First Call";
+  return undefined;
+}
+
+/**
+ * Build a Payments row from a BOOKING_PAID payload.
+ *
+ * The self-heal path: when the Stripe webhook did not (or could not) write the
+ * Payments row, the Cal.com payload carries everything the row needs — the
+ * attendee email and name, the amount, and the PaymentIntent id. BOOKING_PAID
+ * is itself proof the charge succeeded, so creating the row here is not
+ * inventing a payment, it is recording one Stripe already confirmed.
+ *
+ * Safe to call unconditionally: `createPaymentRecord` dedupes on
+ * `stripeSessionId`, and Stripe's own handler uses the SAME `pi_…` value as its
+ * dedup key. Whichever webhook lands first creates the row; the other finds it
+ * and returns the existing page id. There is no duplicate-row race between them.
+ *
+ * Returns null when the payload lacks an email or a usable PaymentIntent id —
+ * without both, a Payments row would be unmatched and undedupable.
+ */
+export function bookingToPaymentInput(
+  event: CalcomWebhookEvent,
+): PaymentCreateInput | null {
+  const p = event.payload;
+  const email = p.attendees?.[0]?.email?.trim() ?? "";
+  const stripeSessionId = extractStripePaymentIntentId(p);
+  if (!email || !stripeSessionId) return null;
+
+  const attendeeName = p.attendees?.[0]?.name?.trim();
+  // Cal.com sends the amount in minor units (cents), like Stripe.
+  const rawAmount = p.payment?.[0]?.amount;
+  const amount =
+    typeof rawAmount === "number" && Number.isFinite(rawAmount)
+      ? rawAmount / 100
+      : undefined;
+
+  return {
+    stripeSessionId,
+    email,
+    clientName: attendeeName || email.split("@")[0],
+    phone: extractPhoneFromBooking(p) ?? undefined,
+    amount,
+    // The booking's own timestamp, not the slot time: this is a payment date.
+    paymentDate: event.createdAt || new Date().toISOString(),
+    product: mapCalcomProduct(p),
+    redeemedCode: undefined,
+    leadSource: "Website",
   };
 }
 

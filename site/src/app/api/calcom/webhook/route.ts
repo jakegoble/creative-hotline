@@ -9,8 +9,12 @@
  * a code revert if we have to fall back.
  *
  * On BOOKING_PAID we:
- *   1. Look up the Payment row by attendee email (stable cross-source key)
- *   2. Look up the Intake row by the same email (best-effort)
+ *   1. Resolve the Payment row by the Stripe PaymentIntent id Cal.com sends in
+ *      `payment[0].externalId` — the same value the Stripe handler stores as
+ *      "Stripe Session ID". Falls back to an email match for bookings with no
+ *      payment object, and self-heals by creating the row from this payload if
+ *      the Stripe handler never wrote one.
+ *   2. Look up the Intake row by attendee email (best-effort)
  *   3. Create a Session row in "Prep" state, linked to the Payment + Intake,
  *      with the Cal.com booking uid stored for later cancellation lookups.
  *
@@ -32,12 +36,22 @@
  * ack-and-ignored. BOOKING_PAID also carries the guarantee we actually want:
  * money moved, therefore a Payment row exists (or is about to).
  *
- * Race condition with Stripe: Cal.com's BOOKING_PAID and our own Stripe
- * payment_intent.succeeded handler fire roughly in parallel, and Notion can take
- * several seconds to make a brand-new page queryable by its email property. The
- * Payment lookup therefore retries with backoff across ~17s. This is the same
- * ladder the Calendly route uses, and it exists because a real $1 booking on
- * 2026-05-21 missed after a single 3s retry and never got a Session.
+ * RACE WITH STRIPE — and why this handler no longer depends on winning it.
+ * Cal.com's BOOKING_PAID and our Stripe payment_intent.succeeded handler fire
+ * roughly in parallel, and Notion takes a few seconds to make a brand-new page
+ * queryable. The old design waited ~17s for Stripe's row to appear and gave up
+ * if it never did. That turned any Stripe-side failure into a silently dropped
+ * paid booking — which is exactly what happened on the first real Cal.com
+ * booking (2026-08-31): Cal.com's Stripe integration does not set
+ * `receipt_email`, our Stripe handler skipped the write for want of an address,
+ * and this route then searched by that same address for 17s and found nothing.
+ * Both webhooks returned 200. See extractStripePaymentIntentId for the detail.
+ *
+ * Now: match on the PaymentIntent id instead of an email, retry only ~5s for
+ * Notion's index lag, then CREATE the Payments row from this payload if it is
+ * still missing. Both handlers key on the same `pi_…` and createPaymentRecord
+ * dedupes on it, so whoever lands second adopts the existing row. Neither
+ * handler can lose a paid booking because the other one failed.
  *
  * Idempotency: createSession dedupes on the Linked Payment relation, so retries
  * or duplicate Cal.com deliveries return the existing Session page id without
@@ -59,10 +73,16 @@ import { NextResponse } from "next/server";
 import {
   constructCalcomEvent,
   extractPhoneFromBooking,
+  extractStripePaymentIntentId,
+  bookingToPaymentInput,
   bookingToSessionInput,
   bookingKey,
 } from "@/lib/services/calcom-webhook";
-import { findPaymentByEmail } from "@/lib/services/notion-payments-write";
+import {
+  createPaymentRecord,
+  findPaymentByEmail,
+  findPaymentByStripeSessionId,
+} from "@/lib/services/notion-payments-write";
 import { findIntakeIdByEmail } from "@/lib/services/notion-intake-read";
 import {
   createSession,
@@ -212,32 +232,75 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true, skipped: "no_email" });
     }
 
-    // Look up the Payment created by the Stripe webhook. Notion can take
-    // several seconds to make a brand-new page queryable by its email property,
-    // so a single short retry is NOT enough: a real $1 booking on 2026-05-21
-    // still missed after one 3s retry and the Session was never created. Retry
-    // with backoff across ~17s — comfortably inside the webhook timeout — so
-    // the freshly-written Payment row is reliably found.
-    let paymentPageId = await findPaymentByEmail(email);
+    /*
+     * Resolve the Payments row.
+     *
+     * PRIMARY: join on the Stripe PaymentIntent id that Cal.com hands us in
+     * `payment[0].externalId`. That is the same value the Stripe handler writes
+     * into "Stripe Session ID", so it is an exact key match rather than a guess.
+     *
+     * FALLBACK: match on email, for bookings with no payment object at all
+     * (org-internal / free event types), preserving the old behaviour there.
+     *
+     * SELF-HEAL: if the row still isn't there, create it from this payload.
+     * BOOKING_PAID is proof Stripe took the money, so a missing Payments row
+     * means our Stripe handler failed or lagged — not that the booking is
+     * unpaid. Dropping a paid booking because a sibling webhook misfired is the
+     * failure this whole block exists to prevent.
+     *
+     * The short retry before self-healing is for Notion's index lag, not for
+     * Stripe: a page created seconds ago isn't instantly queryable. It is ~5s
+     * now rather than the old ~17s because we no longer need to WAIT for the
+     * Stripe path to succeed — we can finish the job ourselves. Creating a row
+     * Stripe also creates is harmless: both paths key on the same `pi_…` and
+     * `createPaymentRecord` dedupes, so the loser of the race adopts the
+     * winner's page rather than making a second one.
+     */
+    const stripePaymentIntentId = extractStripePaymentIntentId(p);
+
+    const lookupPayment = async (): Promise<string | null> =>
+      stripePaymentIntentId
+        ? findPaymentByStripeSessionId(stripePaymentIntentId)
+        : findPaymentByEmail(email);
+
+    let paymentPageId = await lookupPayment();
     if (!paymentPageId) {
-      const retryDelaysMs = [2000, 3000, 3000, 4000, 5000]; // ~17s total
-      for (const delay of retryDelaysMs) {
+      for (const delay of [2000, 3000]) {
         await new Promise((r) => setTimeout(r, delay));
-        paymentPageId = await findPaymentByEmail(email);
+        paymentPageId = await lookupPayment();
         if (paymentPageId) break;
       }
     }
+
+    let paymentSelfHealed = false;
     if (!paymentPageId) {
-      // Still no Payment after the full retry window. Likely an org-internal
-      // booking with no Stripe payment, OR the Stripe path is broken/lagging.
-      // Ack so Cal.com doesn't retry — manual Promote from Morning Prep is the
-      // fallback.
+      const paymentInput = bookingToPaymentInput(event);
+      if (paymentInput) {
+        // Not wrapped in try/catch on purpose: if we cannot record the payment
+        // we must not go on to create a Session that references nothing. Let it
+        // fall through to the outer catch → 500 → Cal.com retries with backoff.
+        const created = await createPaymentRecord(paymentInput);
+        paymentPageId = created.pageId;
+        paymentSelfHealed = created.created;
+        console.warn(
+          `[calcom-webhook] no Payments row for pi=${stripePaymentIntentId ?? "none"} ` +
+            `email=${email}; self-healed from BOOKING_PAID → ${created.created ? "created" : "adopted"} ${created.pageId}. ` +
+            `Check the Stripe handler — it should normally win this race.`,
+        );
+      }
+    }
+
+    if (!paymentPageId) {
+      // No Payments row and not enough in the payload to build one — i.e. a
+      // booking with no Stripe payment attached. Ack so Cal.com doesn't retry;
+      // manual Promote from Morning Prep is the fallback.
       console.warn(
-        `[calcom-webhook] no Payment row for email=${email} after ~17s of retries; will not auto-create Session`,
+        `[calcom-webhook] no Payment row and no usable payment payload for email=${email}; ` +
+          `will not auto-create Session`,
       );
       return NextResponse.json({
         received: true,
-        skipped: "no_payment_for_email",
+        skipped: "no_payment_for_booking",
         email,
       });
     }
@@ -259,7 +322,8 @@ export async function POST(request: Request) {
 
     console.log(
       `[calcom-webhook] BOOKING_PAID → notion ${result.created ? "created" : "deduped"} session ${result.pageId} for ${email}` +
-        (intakePageId ? ` (intake linked)` : ` (no intake)`),
+        (intakePageId ? ` (intake linked)` : ` (no intake)`) +
+        (paymentSelfHealed ? ` (payment self-healed)` : ``),
     );
 
     // Cross-flow connection: mark the Messaging Contact (if any) as booked.
@@ -371,6 +435,8 @@ export async function POST(request: Request) {
       session_page_id: result.pageId,
       created: result.created,
       payment_page_id: paymentPageId,
+      payment_self_healed: paymentSelfHealed,
+      stripe_payment_intent_id: stripePaymentIntentId,
       intake_page_id: intakePageId ?? null,
       scheduled_at: sessionInput.scheduledAt,
       booking_uid: p.uid ?? null,
