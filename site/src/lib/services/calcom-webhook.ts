@@ -114,7 +114,22 @@ export interface CalcomBookingPayload {
   responses?: Record<string, unknown>;
   /** Legacy pre-`responses` shape for custom booking questions. */
   customInputs?: Record<string, unknown>;
-  /** Present on BOOKING_PAID. Amount is in minor units (cents). */
+  /**
+   * Top-level price on the booking. OBSERVED PRESENT in the key list on both
+   * BOOKING_CREATED and BOOKING_PAID (2026-09-01). Units NOT yet confirmed —
+   * see the probe in the route. Do not read this into an amount until a logged
+   * value has settled whether it is cents or whole currency units.
+   */
+  price?: number;
+  currency?: string;
+  /**
+   * DOCUMENTED but NOT SENT. The 2026-09-01 BOOKING_PAID delivery carried
+   * `payment: null` and `paymentId: 289060`. Modelling this array and reading
+   * `payment[0].externalId` as the Stripe id is what made the first two
+   * versions of the self-heal fail. Kept typed because a future Cal.com release
+   * may populate it, and `extractStripePaymentIntentId` still prefers it when
+   * present — but nothing may DEPEND on it existing.
+   */
   payment?: Array<{
     amount?: number;
     currency?: string;

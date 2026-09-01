@@ -147,15 +147,24 @@ export async function POST(request: Request) {
      * has no delivery log, so without this line the only way to learn the real
      * shape is to spend another $1 and still be guessing.
      *
-     * Logs KEYS and the payment array only. Never the whole payload: attendees
-     * carry names, emails and phone numbers, and webhook logs are not the place
-     * for them. Amounts and opaque ids are not PII.
+     * Logs KEYS, the payment fields and the price. Never the whole payload:
+     * attendees carry names, emails and phone numbers, and webhook logs are not
+     * the place for them. Amounts, a currency code and opaque ids are not PII.
+     *
+     * 2026-09-01 21:44, the first delivery this probe ever saw:
+     *   paymentId=289060  payment=null
+     * So there is no `payment` array at all — the amount has to come from the
+     * top-level `price`, whose UNITS ARE STILL UNCONFIRMED. That is why price
+     * and currency are logged by value here and not yet read by the mapper.
      */
     console.log(
       `[calcom-webhook] payload shape: trigger=${event.triggerEvent} ` +
         `keys=[${Object.keys(p).sort().join(",")}] ` +
         `paymentId=${JSON.stringify(p.paymentId ?? null)} ` +
-        `payment=${JSON.stringify(p.payment ?? null)}`,
+        `payment=${JSON.stringify(p.payment ?? null)} ` +
+        `price=${JSON.stringify(p.price ?? null)} ` +
+        `currency=${JSON.stringify(p.currency ?? null)} ` +
+        `typeofPrice=${typeof p.price}`,
     );
 
     // -------- BOOKING_CANCELLED --------
