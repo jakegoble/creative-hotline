@@ -103,6 +103,7 @@ import {
   isLateBooking,
   processSession,
 } from "@/lib/email/frankie-followups";
+import { sendConfirmationFromCalendlyPayment } from "@/lib/email/send-frankie";
 import { config } from "@/lib/config";
 import { sendSms } from "@/lib/services/twilio";
 
@@ -289,6 +290,9 @@ export async function POST(request: Request) {
      */
     const stripePaymentIntentId = extractStripePaymentIntentId(p);
     const dedupKey = paymentDedupKey(p);
+    // Built once: the self-heal writes it, and the confirmation email reads the
+    // same shape (name, email, product) further down.
+    const paymentInput = bookingToPaymentInput(event);
 
     /*
      * Try every key that could point at an existing row, cheapest first, so we
@@ -316,7 +320,6 @@ export async function POST(request: Request) {
 
     let paymentSelfHealed = false;
     if (!paymentPageId) {
-      const paymentInput = bookingToPaymentInput(event);
       if (paymentInput) {
         // Not wrapped in try/catch on purpose: if we cannot record the payment
         // we must not go on to create a Session that references nothing. Let it
@@ -367,6 +370,41 @@ export async function POST(request: Request) {
         (intakePageId ? ` (intake linked)` : ` (no intake)`) +
         (paymentSelfHealed ? ` (payment self-healed)` : ``),
     );
+
+    /*
+     * Frankie confirmation email (#1) — service agreement + intake link.
+     *
+     * THIS MUST LIVE HERE, not only on the Stripe path. Under Calendly the
+     * email was sent by the Stripe handler after it created the Payments row.
+     * For a Cal.com booking that handler returns early at `no_email` and never
+     * reaches the send, so between the cutover and 2026-09-02 a paying client
+     * would have received Cal.com's calendar invite and NOTHING from us: no
+     * service agreement, no intake link. No intake means no research brief,
+     * which starves the entire workshop pipeline. The SMS below is only a
+     * backup and only fires when the booking form captured a phone.
+     *
+     * Gated on `result.created` so Cal.com retries and duplicate deliveries
+     * don't re-send. Never throws — a failed email must not 500 the webhook and
+     * trigger a retry storm that double-books or double-emails.
+     */
+    let confirmationEmail: { ok: boolean; reason?: string } = {
+      ok: false,
+      reason: "skipped_dedup",
+    };
+    if (result.created && paymentInput) {
+      try {
+        confirmationEmail = await sendConfirmationFromCalendlyPayment(paymentInput);
+      } catch (err) {
+        confirmationEmail = {
+          ok: false,
+          reason: err instanceof Error ? err.message : "unknown_error",
+        };
+      }
+      console.log(
+        `[calcom-webhook] frankie confirmation: ok=${confirmationEmail.ok}` +
+          (confirmationEmail.reason ? ` reason=${confirmationEmail.reason}` : ""),
+      );
+    }
 
     // Cross-flow connection: mark the Messaging Contact (if any) as booked.
     // This closes the loop between SMS marketing → actual booking. The contact
@@ -478,6 +516,8 @@ export async function POST(request: Request) {
       created: result.created,
       payment_page_id: paymentPageId,
       payment_self_healed: paymentSelfHealed,
+      confirmation_email_sent: confirmationEmail.ok,
+      confirmation_email_reason: confirmationEmail.reason ?? null,
       stripe_payment_intent_id: stripePaymentIntentId,
       intake_page_id: intakePageId ?? null,
       scheduled_at: sessionInput.scheduledAt,
