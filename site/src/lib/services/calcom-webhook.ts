@@ -115,12 +115,15 @@ export interface CalcomBookingPayload {
   /** Legacy pre-`responses` shape for custom booking questions. */
   customInputs?: Record<string, unknown>;
   /**
-   * Top-level price on the booking. OBSERVED PRESENT in the key list on both
-   * BOOKING_CREATED and BOOKING_PAID (2026-09-01). Units NOT yet confirmed —
-   * see the probe in the route. Do not read this into an amount until a logged
-   * value has settled whether it is cents or whole currency units.
+   * Top-level price, in MINOR UNITS (cents). This — not `payment[]` — is where
+   * the amount actually lives on every booking trigger.
+   *
+   * Confirmed 2026-09-01 by a logged delivery: the $1.00 internal test booking
+   * sent `price=100 currency="usd"`. Present on BOOKING_CREATED, BOOKING_PAID
+   * and BOOKING_CANCELLED alike.
    */
   price?: number;
+  /** ISO 4217, lowercase, e.g. "usd". */
   currency?: string;
   /**
    * DOCUMENTED but NOT SENT. The 2026-09-01 BOOKING_PAID delivery carried
@@ -388,8 +391,21 @@ export function bookingToPaymentInput(
   if (!email || !stripeSessionId) return null;
 
   const attendeeName = p.attendees?.[0]?.name?.trim();
-  // Cal.com sends the amount in minor units (cents), like Stripe.
-  const rawAmount = p.payment?.[0]?.amount;
+  /*
+   * Amount, in minor units (cents), same convention as Stripe.
+   *
+   * `payment[0].amount` first because it is the more specific field IF Cal.com
+   * ever populates the array — it does not today (see the CalcomBookingPayload
+   * note). Top-level `price` is what actually arrives.
+   *
+   * UNITS CONFIRMED BY OBSERVATION, not by docs: the 2026-09-01 cancellation of
+   * the $1.00 internal test booking logged `price=100 currency="usd"
+   * typeofPrice=number`. 100 for a one-dollar booking settles it as cents; had
+   * it been whole units the value would have been 1. Two earlier assumptions in
+   * this file were taken from documentation and both were wrong, so this one is
+   * anchored to a logged delivery.
+   */
+  const rawAmount = p.payment?.[0]?.amount ?? p.price;
   const amount =
     typeof rawAmount === "number" && Number.isFinite(rawAmount)
       ? rawAmount / 100

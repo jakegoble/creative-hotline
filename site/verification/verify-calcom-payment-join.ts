@@ -112,6 +112,51 @@ const healed = bookingToPaymentInput(noExternalId);
 check("still builds a Payments input", healed !== null, true);
 check("keyed on the uid", healed?.stripeSessionId, "calcom_dkwEvVjvNyJPQuN3Gaow7M");
 check("amount survives", healed?.amount, 1);
+
+console.log("\n--- amount comes from top-level price (the real shape) ---");
+/*
+ * What Cal.com ACTUALLY sends, per the logged 2026-09-01 cancellation:
+ * no payment array, price in cents at the top level.
+ */
+const realShape: CalcomWebhookEvent = {
+  ...paidEvent,
+  payload: {
+    ...paidEvent.payload,
+    uid: "qq8vRgrJMoRjXLArC5GjoU",
+    payment: undefined,
+    paymentId: 289060,
+    price: 100,
+    currency: "usd",
+  },
+};
+const fromPrice = bookingToPaymentInput(realShape);
+check("builds a row with no payment array at all", fromPrice !== null, true);
+check("$1.00 from price=100", fromPrice?.amount, 1);
+check("keyed on the uid", fromPrice?.stripeSessionId, "calcom_qq8vRgrJMoRjXLArC5GjoU");
+check(
+  "a $499 booking: price=49900 → 499",
+  bookingToPaymentInput({
+    ...realShape,
+    payload: { ...realShape.payload, price: 49900 },
+  })?.amount,
+  499,
+);
+check(
+  "free booking: price=0 → 0, not undefined",
+  bookingToPaymentInput({
+    ...realShape,
+    payload: { ...realShape.payload, price: 0 },
+  })?.amount,
+  0,
+);
+check(
+  "no price at all → undefined, never NaN",
+  bookingToPaymentInput({
+    ...realShape,
+    payload: { ...realShape.payload, price: undefined },
+  })?.amount,
+  undefined,
+);
 check(
   "a real Stripe id still wins over the uid fallback",
   paymentDedupKey(paidEvent.payload),
